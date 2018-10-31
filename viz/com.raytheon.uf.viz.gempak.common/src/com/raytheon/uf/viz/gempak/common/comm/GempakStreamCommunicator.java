@@ -153,7 +153,6 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
     private boolean processInternal() throws GempakException {
         Object obj;
         try {
-            // TODO need some sort of timeout if no request is being received?
             obj = manager.deserialize(is);
         } catch (SerializationException e) {
             throw new GempakCommunicationException(

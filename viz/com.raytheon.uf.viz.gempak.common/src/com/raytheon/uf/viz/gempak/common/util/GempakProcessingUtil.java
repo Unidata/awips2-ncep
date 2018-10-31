@@ -37,6 +37,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * Sep 05, 2018 54480      mapeters    Initial creation
  * Oct 08, 2018 54483      mapeters    Moved from gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak,
  *                                     subprocess script moved to /awips2/gempak/gempak.sh
+ * Oct 30, 2018 54483      mapeters    Remove max subprocess limit validation
  *
  * </pre>
  *
@@ -67,12 +68,6 @@ public class GempakProcessingUtil {
 
     private static final int MIN_SUBPROCESS_LIMIT = 1;
 
-    /*
-     * TODO: Set better max limit, should try to be dynamic with hardware
-     * changes as well, instead of hard-coded.
-     */
-    private static final int MAX_SUBPROCESS_LIMIT = 10;
-
     /**
      * Private constructor to prevent instantiation (everything's static).
      */
@@ -93,12 +88,6 @@ public class GempakProcessingUtil {
                     + ", setting to minimum accepted value ("
                     + MIN_SUBPROCESS_LIMIT + ")");
             subprocessLimit = MIN_SUBPROCESS_LIMIT;
-        } else if (subprocessLimit > MAX_SUBPROCESS_LIMIT) {
-            statusHandler.warn("Invalid subprocess limit (" + subprocessLimit
-                    + ") in " + CONFIG_PATH
-                    + ", setting to maximum accepted value ("
-                    + MAX_SUBPROCESS_LIMIT + ")");
-            subprocessLimit = MAX_SUBPROCESS_LIMIT;
         }
         return subprocessLimit;
     }

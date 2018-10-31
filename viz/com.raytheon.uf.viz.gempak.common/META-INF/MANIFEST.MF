@@ -9,6 +9,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.ncep.grid
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.raytheon.uf.viz.gempak.common,
+ com.raytheon.uf.viz.gempak.common.adapter,
  com.raytheon.uf.viz.gempak.common.comm,
  com.raytheon.uf.viz.gempak.common.conn,
  com.raytheon.uf.viz.gempak.common.data,

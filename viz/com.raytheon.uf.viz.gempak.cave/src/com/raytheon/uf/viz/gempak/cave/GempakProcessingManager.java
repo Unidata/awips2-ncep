@@ -60,6 +60,7 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  *                                     only use subprocesses if subprocess RPM installed
  * Oct 16, 2018 54483      mapeters    Listen to localization file changes, add
  *                                     activation/deactivation support
+ * Oct 25, 2018 54483      mapeters    Remove redundant log message
  *
  * </pre>
  *
@@ -297,7 +298,6 @@ public class GempakProcessingManager implements ILocalizationPathObserver {
         lock.writeLock().lock();
         try {
             if (processingStrategy != null) {
-                statusHandler.info("Shutting down GEMPAK processing strategy");
                 processingStrategy.shutdown();
             }
         } finally {

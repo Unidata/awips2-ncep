@@ -8,7 +8,8 @@ Eclipse-RegisterBuddy: ch.qos.logback
 Require-Bundle: ch.qos.logback,
  org.eclipse.core.runtime,
  com.raytheon.uf.common.logback,
- com.raytheon.uf.viz.gempak.common
+ com.raytheon.uf.viz.gempak.common,
+ com.raytheon.uf.viz.ncep.grid
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.localization,
@@ -16,4 +17,4 @@ Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.time.util,
  com.raytheon.uf.viz.application.component,
  com.raytheon.uf.viz.core.localization,
- com.raytheon.uf.viz.ncep.grid
+ com.raytheon.uf.viz.core.status

@@ -57,6 +57,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * Sep 10, 2018 54483      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Use {@link IPerformanceStatusHandler}
+ * Oct 25, 2018 54483      mapeters    Handle {@link NcgribLogger} refactor
  *
  * </pre>
  *
@@ -87,7 +88,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         String parameters = gempakRequest.getParameters();
         String datauri = dataCache.getDataURI(parameters);
         if (datauri != null) {
-            if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+            if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                 long t00 = System.currentTimeMillis();
                 perfLog.logDuration("++++ getDataURIFromAssembler for("
                         + parameters + ") from cache", t00 - t0);
@@ -97,7 +98,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
 
         Map<String, RequestConstraint> rcMap = getRequestConstraint(
                 gempakRequest);
-        if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+        if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
             long t01 = System.currentTimeMillis();
             perfLog.logDuration(
                     "++++ getRequestConstraint for(" + parameters + ")",
@@ -132,7 +133,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
 
         long t2 = System.currentTimeMillis();
 
-        if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+        if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
             String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
                     .getConstraintValue();
             int fcstTime = Integer
@@ -170,7 +171,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         String parameters = gempakRequest.getParameters();
         GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
         String[] parmList = parameters.split("\\|");
-        if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+        if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
             statusHandler.debug(
                     "enter getRequestConstraint - parameters:" + parameters);
         }
@@ -242,7 +243,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         try {
             rcMap = qAssembler.getConstraintMap();
         } catch (CommunicationException e) {
-            if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+            if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                 statusHandler.debug("getConstraintMap - CommunicationException",
                         e);
             }
@@ -257,7 +258,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
                 new RequestConstraint(refTime));
         rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
                 new RequestConstraint(fcstTimeInSec));
-        if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+        if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
             statusHandler.debug(
                     "exit getRequestConstraint - rcMap:" + rcMap.toString());
         }

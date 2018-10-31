@@ -55,6 +55,7 @@ import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
  * Sep 10, 2018 54483      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Use {@link IPerformanceStatusHandler}
+ * Oct 25, 2018 54483      mapeters    Handle {@link NcgribLogger} refactor
  *
  * </pre>
  *
@@ -94,7 +95,7 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
             rData = unprocessedResponse.getData();
             subgSpatialObj = unprocessedResponse.getSubgSpatialObj();
             if (rData == null) {
-                if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+                if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                     statusHandler
                             .debug("??? retrieveDataFromRetriever return NULL for dataURI("
                                     + dataURI + ")");
@@ -102,7 +103,7 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
                 return null;
             }
         } else {
-            if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+            if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                 long t00 = System.currentTimeMillis();
                 perfLog.logDuration("++++ retrieve data (nx:" + gData.getNx()
                         + "-ny:" + gData.getNy() + ") from cache", t00 - t0);
@@ -161,7 +162,7 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
             // ignore setUnit exception. use default units
         }
         long t002 = System.currentTimeMillis();
-        if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+        if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
             perfLog.logDuration(
                     "***Initialize GridDataRetriever for " + dataURI,
                     t002 - t001);
@@ -174,14 +175,14 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
             GempakDbDataResponse rval = new GempakDbDataResponse(data,
                     dataRetriever.getCoverage());
             t002 = System.currentTimeMillis();
-            if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+            if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                 perfLog.logDuration("***Reading " + dataURI
                         + " from hdf5 (return size: " + data.length + ")",
                         t002 - t001);
             }
             return rval;
         } catch (StorageException s) {
-            if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
+            if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
                 statusHandler.debug(
                         "???? getDataRecord --- throw StorageException", s);
             }

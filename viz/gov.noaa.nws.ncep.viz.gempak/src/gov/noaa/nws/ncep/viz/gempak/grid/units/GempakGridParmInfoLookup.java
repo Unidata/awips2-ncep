@@ -19,6 +19,7 @@
  **/
 package gov.noaa.nws.ncep.viz.gempak.grid.units;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager;
  * ------------ ---------- ----------- --------------------------
  *                                     Initial creation
  * Sep 13, 2018 54483      mapeters    Sync {@link #getInstance()}, cleanup
+ * Oct 30, 2018 54483      mapeters    Fix config file existence check
  *
  * </pre>
  *
@@ -89,8 +91,10 @@ public class GempakGridParmInfoLookup implements ILocalizationPathObserver {
     private void initParmInfo() throws IOException {
         ILocalizationFile gempakParmInfo = NcPathManager.getInstance()
                 .getStaticLocalizationFile(GRID_GEMPAK_PARM_FILE);
-        if (!gempakParmInfo.exists()) {
-            return;
+        if (gempakParmInfo == null || !gempakParmInfo.exists()) {
+            throw new FileNotFoundException(
+                    "Failed to find gempak parameter info file: "
+                            + GRID_GEMPAK_PARM_FILE);
         }
         try (InputStream is = gempakParmInfo.openInputStream()) {
             SingleTypeJAXBManager<GempakGridParmInfoSet> jaxb = new SingleTypeJAXBManager<>(

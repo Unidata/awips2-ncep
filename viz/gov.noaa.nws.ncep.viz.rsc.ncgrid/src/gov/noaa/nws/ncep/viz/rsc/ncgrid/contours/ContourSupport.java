@@ -1,6 +1,6 @@
 /*****************************************************************************************
  * COPYRIGHT (c), 2007, RAYTHEON COMPANY
- * ALL RIGHTS RESERVED, An Unpublished Work 
+ * ALL RIGHTS RESERVED, An Unpublished Work
  *
  * RAYTHEON PROPRIETARY
  * If the end user is not the U.S. Government or any agency thereof, use
@@ -120,33 +120,33 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * ContourSupport
- * 
+ *
  * Provides contouring wrapper
- * 
+ *
  * <pre>
- * 
+ *
  *    SOFTWARE HISTORY
- * 
+ *
  *    Date       Ticket# Engineer      Description
  *    ---------- ------- -----------   --------------------------
  *    10/22/2007         chammack      Initial Creation.
  *    05/26/2009 #2172   chammack      Use zoomLevel to calculate label spacing
- *    03/10/2010 #164    M. Li         Control increments on zoom   
+ *    03/10/2010 #164    M. Li         Control increments on zoom
  *    05/18/2011         M. Li         Add contour label frequency capability
  *    05/26/2011         M. Li         Add a new method createContourLabel
  *    08/18/2011         M. li         fixed reproject problems for streamline
- *    11/08/2011         X. Guo        Checked centeral_meridian and 
- *                                        added vertices twice after subtract 360  
+ *    11/08/2011         X. Guo        Checked centeral_meridian and
+ *                                        added vertices twice after subtract 360
  *    02/15/2012         X. Guo        Used cached contour information to re-create
  *                                        wired frame
  *    03/01/2012         X. Guo        Handle five zoom levels
  *    03/13/2012         X. Guo        Handle multi-threads
  *    03/15/2012         X. Guo        Refactor
- *    03/27/2012         X. Guo        Used contour lock instead of "synchronized" 
+ *    03/27/2012         X. Guo        Used contour lock instead of "synchronized"
  *    05/23/2012         X. Guo        Loaded ncgrib logger
  *    04/26/2013         B. Yin        Fixed the world wrap problem for centeral line 0/180.
  *    06/06/2013         B. Yin        fixed the half-degree grid porblem.
- *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil 
+ *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil
  *    08/19/2013 #743    S. Gurung     Added clrbar and corresponding getter/setter method (from Archana's branch) and
  *                                        fix for editing clrbar related attribute changess not being applied from right click legend.
  *    09/17/2013 #1036   S. Gurung     Added TEXT attribute related changes to create labels with various parameters
@@ -167,11 +167,12 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                     In general fix/verify that map/scalebar are correct when number of colors
  *                                     are less than, equal too or greater than number of increments
  *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
- *                                     be limiting the number of rendered contours, not the number or intervals between the 
+ *                                     be limiting the number of rendered contours, not the number or intervals between the
  *                                     min and the max
- * 
+ *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
+ *
  * </pre>
- * 
+ *
  */
 public class ContourSupport {
     private static final IUFStatusHandler statusHandler = UFStatus
@@ -263,7 +264,7 @@ public class ContourSupport {
 
     /**
      * Constructor
-     * 
+     *
      * @param records
      * @param level
      * @param extent
@@ -476,19 +477,21 @@ public class ContourSupport {
                         textAttr.getTextSize(), styles);
 
                 /* Set text rotation */
-                if (textAttr.getTextRotation() == 'N')
+                if (textAttr.getTextRotation() == 'N') {
                     rotation = -1; // North relative, to be processed later when
                                    // location coordinate is available
-                else
+                } else {
                     rotation = 0.0; // Screen relative
+                }
 
                 /* Set text horizontal alignment */
-                if (textAttr.getTextJustification() == 'L')
+                if (textAttr.getTextJustification() == 'L') {
                     justification = HorizontalAlignment.LEFT;
-                else if (textAttr.getTextJustification() == 'R')
+                } else if (textAttr.getTextJustification() == 'R') {
                     justification = HorizontalAlignment.RIGHT;
-                else
+                } else {
                     justification = HorizontalAlignment.CENTER;
+                }
 
                 String border = textAttr.getTextBorder() + "";
 
@@ -552,8 +555,9 @@ public class ContourSupport {
         this.target = target;
         this.cntrData = new ContourGridData(records);
         this.centralMeridian = getCentralMeridian(descriptor);
-        if (centralMeridian == -180)
+        if (centralMeridian == -180) {
             centralMeridian = 180;
+        }
         this.worldWrapChecker = new WorldWrapChecker(
                 descriptor.getGridGeometry().getEnvelope()).needsChecking();
         this.corrector = new WorldWrapCorrector(descriptor.getGridGeometry());
@@ -605,8 +609,9 @@ public class ContourSupport {
                      */
                     genContour(cvalues);
 
-                    if (!isCntrsCreated)
+                    if (!isCntrsCreated) {
                         return;
+                    }
                     contourGroup.cvalues.clear();
                     contourGroup.cvalues.addAll(cvalues);
                 }
@@ -679,9 +684,10 @@ public class ContourSupport {
             string.horizontalAlignment = contourGroup.labelParms.justification;
             string.verticallAlignment = VerticalAlignment.MIDDLE;
 
-            if (contourGroup.labelParms.textStyle != null)
+            if (contourGroup.labelParms.textStyle != null) {
                 string.addTextStyle(contourGroup.labelParms.textStyle,
                         contourGroup.labelParms.boxColor);
+            }
 
             if (contourGroup.labelParms.rotation == -1) {
                 // North relative rotation
@@ -760,8 +766,9 @@ public class ContourSupport {
     private static Geometry polyToLine(Polygon poly) {
         GeometryFactory gf = new GeometryFactory();
 
-        if (poly.getNumInteriorRing() == 0)
+        if (poly.getNumInteriorRing() == 0) {
             return poly;
+        }
 
         poly.normalize();
         LineString outerPoly = poly.getExteriorRing();
@@ -826,8 +833,9 @@ public class ContourSupport {
             }
 
             if (intx != null) {
-                if (max.compareTo(intx) == -1)
+                if (max.compareTo(intx) == -1) {
                     max = intx;
+                }
             }
         }
 
@@ -842,8 +850,9 @@ public class ContourSupport {
             double centralMeridian = group.parameter(
                     AbstractProvider.CENTRAL_MERIDIAN.getName().getCode())
                     .doubleValue();
-            if (centralMeridian > 180)
+            if (centralMeridian > 180) {
                 centralMeridian -= 360;
+            }
             return centralMeridian;
         }
         return -999;
@@ -923,14 +932,17 @@ public class ContourSupport {
 
     private void initZoomIndex() {
         zoomLevelIndex = level + 1;
-        if (zoomLevelIndex < 1)
+        if (zoomLevelIndex < 1) {
             zoomLevelIndex = 1;
+        }
         int maxZoomLevel = 5;
         String cint = attr.getCint();
-        if (cint != null)
+        if (cint != null) {
             maxZoomLevel = cint.trim().split(">").length;
-        if (zoomLevelIndex > maxZoomLevel)
+        }
+        if (zoomLevelIndex > maxZoomLevel) {
             zoomLevelIndex = maxZoomLevel;
+        }
     }
 
     private List<Double> calcCintValue() {
@@ -999,10 +1011,11 @@ public class ContourSupport {
                         }
                     }
                 } else {
-                    if (labelFreq == 0)
+                    if (labelFreq == 0) {
                         toLabel = false;
-                    else
+                    } else {
                         toLabel = (n % labelFreq == 0) ? true : false;
+                    }
                 }
 
                 Geometry g = contourGroup.latlonContours.get(cval.toString());
@@ -1065,9 +1078,10 @@ public class ContourSupport {
         long t3 = System.currentTimeMillis();
         logger.debug("===Creating label wireframes for (" + name + ") took: "
                 + total_labeling_time);
-        if (ncgribLogger.enableCntrLogs())
+        if (ncgribLogger.isEnableContourLogs()) {
             logger.debug("===Creating contour line wireframes for (" + name
                     + ")took: " + (t3 - t2));
+        }
     }
 
     // get MapProjection name for the given CoordinateReferenceSystem
@@ -1145,9 +1159,10 @@ public class ContourSupport {
         }
 
         long t4 = System.currentTimeMillis();
-        if (ncgribLogger.enableCntrLogs())
+        if (ncgribLogger.isEnableContourLogs()) {
             logger.debug("===Creating color fills for (" + name + ") took : "
                     + (t4 - t3));
+        }
     }
 
     private TileSetRenderable createRenderableImage(IGraphicsTarget target,
@@ -1170,10 +1185,11 @@ public class ContourSupport {
 
             if (fline == null || fline.trim().length() < 1) {
                 for (int i = 0; i < contourGroup.fvalues.size() + 2; i++) {
-                    if (i <= 30)
+                    if (i <= 30) {
                         fillColorsIndex.add(i + 1);
-                    else
+                    } else {
                         fillColorsIndex.add(30);
+                    }
                 }
             } else {
                 FLine flineInfo = new FLine(fline.trim());
@@ -1244,7 +1260,7 @@ public class ContourSupport {
     }
 
     /*-
-     *  Create colormap for any resource. Modified to include 
+     *  Create colormap for any resource. Modified to include
      *     non-linear FINTs (unequal fill intervals ie. precip)
      */
     private ColorMapParameters createColorMapParameters() {
@@ -1369,8 +1385,9 @@ public class ContourSupport {
          * Fix arrow size by M. Li
          */
         float arrowSize = (float) (0.4f / Math.sqrt(zoom));
-        if (arrowSize > 0.4)
+        if (arrowSize > 0.4) {
             arrowSize = 0.4f;
+        }
 
         StrmPakConfig config = new StrmPakConfig(arrowSize, minspc, maxspc,
                 -1000000f, -999998f);
@@ -1401,8 +1418,9 @@ public class ContourSupport {
                             f = maxX + 1 - point.getX();
                         }
 
-                        if (f > 180)
+                        if (f > 180) {
                             f = f - 360;
+                        }
 
                         try {
                             rastPosToWorldGrid.transform(
@@ -1498,9 +1516,9 @@ public class ContourSupport {
                         .getActiveDisplayPane().getDisplay());
 
                 List<Double> fillIntvls = new ArrayList<>();
-                if (fIntvls != null && fIntvls.size() > 0)
+                if (fIntvls != null && fIntvls.size() > 0) {
                     fillIntvls.addAll(fIntvls);
-                else {
+                } else {
                     FINT theFillIntervals = new FINT(fint.trim());
                     fillIntvls = theFillIntervals
                             .getUniqueSortedFillValuesFromAllZoomLevels();
@@ -1544,7 +1562,7 @@ public class ContourSupport {
 
     /**
      * Uses the FortConBuf algorithm to generate contour lines in x/y space.
-     * 
+     *
      * @param contourVals
      *            The desired values of the lines
      * @return a Map of the contour line value to a Geometry of the contour(s)
@@ -1626,7 +1644,7 @@ public class ContourSupport {
         logger.debug(
                 "Total generating contour line values took: " + (t2 - t1a));
 
-        if (ncgribLogger.enableCntrLogs()) {
+        if (ncgribLogger.isEnableContourLogs()) {
             printSize();
         }
     }
@@ -1709,8 +1727,9 @@ public class ContourSupport {
                 if (out[0] < -180 || out[0] > 180.) {
                     out[0] = ((out[0] + 180) % 360) - 180;
                 }
-                if (out[0] == 0.0)
+                if (out[0] == 0.0) {
                     out[0] = 0.001;
+                }
                 clist.add(new Coordinate(out[0], out[1]), true);
             } catch (TransformException e) {
             }
@@ -1719,14 +1738,15 @@ public class ContourSupport {
     }
 
     public ContourGroup getContours() {
-        if (!isCntrsCreated)
+        if (!isCntrsCreated) {
             return null;
+        }
         return contourGroup;
     }
 
     /**
      * If the worldWrapChecker is true and the grid is split by the map border.
-     * 
+     *
      * @param imageGridGeometry
      * @param rastPosToLatLon
      * @return
@@ -1756,11 +1776,13 @@ public class ContourSupport {
             double minLon = (out0[0] >= 0) ? out0[0] : out0[0] + 360;
             double maxLon = (out1[0] >= 0) ? out1[0] : out1[0] + 360;
 
-            if (minLon == 0 && maxLon == 360)
+            if (minLon == 0 && maxLon == 360) {
                 globalData = true;
+            }
 
-            if (maxLon >= 360)
+            if (maxLon >= 360) {
                 maxLon = 359;
+            }
             double right = centralMeridian + 180;
 
             if (maxLon > minLon) {
@@ -1785,7 +1807,7 @@ public class ContourSupport {
 
     /**
      * Gets the maximum grid number in x direction
-     * 
+     *
      * @param imageGridGeometry
      * @return int - maximum grid number in x direction
      */
@@ -1795,7 +1817,7 @@ public class ContourSupport {
 
     /**
      * Gets the map width in screen coordinate.
-     * 
+     *
      * @return
      */
     private double getMapWidth() {
@@ -1840,7 +1862,7 @@ public class ContourSupport {
     /**
      * Calculates the angle difference of "north" relative to the screen's
      * y-axis at a given pixel location.
-     * 
+     *
      * @param loc
      *            - The point location in pixel coordinates
      * @return The angle difference of "north" versus world coordinate's y-axis
@@ -1859,11 +1881,12 @@ public class ContourSupport {
         double[] north = { loc.x, loc.y + delta, 0.0 };
         double[] pt2 = descriptor.pixelToWorld(north);
 
-        if (pt1 != null && pt2 != null)
+        if (pt1 != null && pt2 != null) {
             return -90.0 - Math.toDegrees(
                     Math.atan2((pt2[1] - pt1[1]), (pt2[0] - pt1[0])));
-        else
+        } else {
             return 0.0;
+        }
     }
 
     private List<Integer> handleNotEnoughFillColors(int fillIntvlsSize,
@@ -1876,8 +1899,9 @@ public class ContourSupport {
         for (int i = fillColors.size() + 1; i < fillIntvlsSize + 2
                 && fillColors.size() > 0; i++) {
 
-            if (index >= fillColors.size())
+            if (index >= fillColors.size()) {
                 index = 0;
+            }
 
             newFillColors.add(fillColors.get(index));
 
@@ -1900,21 +1924,21 @@ public class ContourSupport {
 
     /*
      * Adds a stream line to JTSCompiler for clipping against view area.
-     * 
+     *
      * Clipping removed from GLGeometryObject2D and the clipping is moved to
      * JTSCompiler. So we use this method to clip against view area to remove
      * pole points and extra lines outside of view area.
-     * 
+     *
      * @param points - The point location in world grid coordinates
-     * 
+     *
      * @param gf - Geometry factory.
-     * 
+     *
      * @param mf - math transform to convert points into map coordinates.
-     * 
+     *
      * @param jtsCompiler - A JTS compiler to accept/handle the LineString.
-     * 
+     *
      * @param wcr - A WorldWrapCorrector to handle world wrap.
-     * 
+     *
      * @return
      */
     private void addStreamLineToJTS(double[][] points, GeometryFactory gf,

@@ -20,6 +20,7 @@
 package com.raytheon.uf.viz.gempak.common.data;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -41,6 +42,7 @@ import com.raytheon.uf.common.time.DataTime;
  * Sep 05, 2018 54480      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Add {@link #toString()}
+ * Oct 25, 2018 54483      mapeters    Use {@link List} interface for lists
  *
  * </pre>
  *
@@ -53,7 +55,7 @@ public class GempakDataInput {
     private String ensembleMember;
 
     @DynamicSerializeElement
-    private ArrayList<DataTime> cycleForecastTimes;
+    private List<DataTime> cycleForecastTimes;
 
     @DynamicSerializeElement
     private ISpatialObject spatialObject;
@@ -109,7 +111,7 @@ public class GempakDataInput {
     /**
      * @return the cycleForecastTimes
      */
-    public ArrayList<DataTime> getCycleForecastTimes() {
+    public List<DataTime> getCycleForecastTimes() {
         return cycleForecastTimes;
     }
 

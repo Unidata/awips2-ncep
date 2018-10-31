@@ -19,6 +19,7 @@
  **/
 package gov.noaa.nws.ncep.viz.gempak.grid.units;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager;
  * ------------ ---------- ----------- --------------------------
  *                                     Initial creation
  * Sep 13, 2018 54483      mapeters    Sync {@link #getInstance()}, cleanup
+ * Oct 30, 2018 54483      mapeters    Fix config file existence check
  *
  * </pre>
  *
@@ -87,8 +89,10 @@ public class GempakGridVcrdInfoLookup {
     private void initVcordInfo() throws IOException {
         ILocalizationFile gempakVcrdInfo = NcPathManager.getInstance()
                 .getStaticLocalizationFile(GRID_GEMPAK_VCORD_FILE);
-        if (!gempakVcrdInfo.exists()) {
-            return;
+        if (gempakVcrdInfo == null || !gempakVcrdInfo.exists()) {
+            throw new FileNotFoundException(
+                    "Failed to find gempak vcord info file: "
+                            + GRID_GEMPAK_VCORD_FILE);
         }
         try (InputStream is = gempakVcrdInfo.openInputStream()) {
             SingleTypeJAXBManager<GempakGridVcrdInfoSet> jaxb = new SingleTypeJAXBManager<>(

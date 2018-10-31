@@ -31,6 +31,8 @@ import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
 import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessDataURIRetriever;
 import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessDbDataRetriever;
+import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessNavigationRetriever;
+import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessSubgridCoverageRetriever;
 import com.raytheon.uf.viz.ncep.grid.FloatGridData;
 
 /**
@@ -46,6 +48,8 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  * Sep 10, 2018 54483      mapeters    Initial creation
  * Oct 23, 2018 54483      mapeters    Don't throw data exception, add
  *                                     performance logging
+ * Oct 25, 2018 54483      mapeters    Pass navigation and subgrid retrievers
+ *                                     to {@link Dgdriv}
  *
  * </pre>
  *
@@ -80,7 +84,9 @@ public class GempakDataRecordRequestHandler
 
         Dgdriv dgdriv = new Dgdriv(request.getDataInput(),
                 new GempakSubprocessDataURIRetriever(communicator),
-                new GempakSubprocessDbDataRetriever(communicator));
+                new GempakSubprocessDbDataRetriever(communicator),
+                new GempakSubprocessNavigationRetriever(communicator),
+                new GempakSubprocessSubgridCoverageRetriever(communicator));
 
         GempakDataRecord rval = null;
         try {

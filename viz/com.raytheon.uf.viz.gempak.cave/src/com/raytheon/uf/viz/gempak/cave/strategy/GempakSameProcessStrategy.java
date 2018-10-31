@@ -28,6 +28,8 @@ import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.gempak.cave.data.retriever.GempakCaveDataURIRetriever;
 import com.raytheon.uf.viz.gempak.cave.data.retriever.GempakCaveDbDataRetriever;
+import com.raytheon.uf.viz.gempak.cave.data.retriever.GempakCaveNavigationRetriever;
+import com.raytheon.uf.viz.gempak.cave.data.retriever.GempakCaveSubgridCoverageRetriever;
 import com.raytheon.uf.viz.gempak.common.Dgdriv;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
@@ -49,9 +51,11 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  * ------------ ---------- ----------- --------------------------
  * Sep 04, 2018 54480      mapeters    Initial creation
  * Sep 26, 2018 54483      mapeters    Pass data URI and DB data retrievers to
- *                                     Dgdriv
+ *                                     {@link Dgdriv}
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Add shutdown support
+ * Oct 25, 2018 54483      mapeters    Pass navigation and subgrid retrievers
+ *                                     to {@link Dgdriv}
  *
  * </pre>
  *
@@ -97,7 +101,9 @@ public class GempakSameProcessStrategy implements IGempakProcessingStrategy {
                 GempakDataRecord data = null;
                 Dgdriv dgdriv = new Dgdriv(dataInput,
                         new GempakCaveDataURIRetriever(),
-                        new GempakCaveDbDataRetriever());
+                        new GempakCaveDbDataRetriever(),
+                        new GempakCaveNavigationRetriever(),
+                        new GempakCaveSubgridCoverageRetriever());
                 try {
                     FloatGridData floatData = dgdriv.execute();
                     if (floatData != null) {

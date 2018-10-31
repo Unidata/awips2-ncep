@@ -30,6 +30,8 @@ import com.raytheon.uf.viz.gempak.cave.conn.GempakServerSocketConnector;
 import com.raytheon.uf.viz.gempak.cave.conn.IGempakServer;
 import com.raytheon.uf.viz.gempak.cave.request.handler.GempakDataURIRequestHandler;
 import com.raytheon.uf.viz.gempak.cave.request.handler.GempakDbDataRequestHandler;
+import com.raytheon.uf.viz.gempak.cave.request.handler.GempakNavigationRequestHandler;
+import com.raytheon.uf.viz.gempak.cave.request.handler.GempakSubgridCoverageRequestHandler;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
@@ -37,11 +39,15 @@ import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
+import com.raytheon.uf.viz.gempak.common.message.GempakLoggingConfigMessage;
 import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataURIRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
+import com.raytheon.uf.viz.gempak.common.request.GempakNavigationRequest;
+import com.raytheon.uf.viz.gempak.common.request.GempakSubgridCoverageRequest;
 import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
+import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
 
 /**
  * This class is used when GEMPAK processing is being done in subprocesses. It
@@ -63,6 +69,8 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Single subprocess can handle multiple requests, add
  *                                     shutdown support
+ * Oct 25, 2018 54483      mapeters    Handle navigation and subgrid requests,
+ *                                     send logging config to subprocess
  *
  * </pre>
  *
@@ -76,7 +84,7 @@ public class GempakSubprocessSpawner {
     private static final IPerformanceStatusHandler perfLog = PerformanceStatus
             .getHandler(GempakSubprocessSpawner.class.getSimpleName() + ":");
 
-    private static final int SHUTDOWN_TIMEOUT = 3_000;
+    private static final int SHUTDOWN_TIMEOUT = 10_000;
 
     private final IGempakServer server;
 
@@ -112,6 +120,11 @@ public class GempakSubprocessSpawner {
                     new GempakDataURIRequestHandler());
             communicator.registerRequestHandler(GempakDbDataRequest.class,
                     new GempakDbDataRequestHandler());
+            communicator.registerRequestHandler(GempakNavigationRequest.class,
+                    new GempakNavigationRequestHandler());
+            communicator.registerRequestHandler(
+                    GempakSubgridCoverageRequest.class,
+                    new GempakSubgridCoverageRequestHandler());
         } catch (GempakConnectionException | IOException e) {
             throw new GempakConnectionException(
                     "Error initializing GEMPAK subprocess", e);
@@ -136,6 +149,9 @@ public class GempakSubprocessSpawner {
                         "Attempted to perform GEMPAK data processing using shutdown subprocess spawner");
             }
             long t0 = System.currentTimeMillis();
+            // Send logging config here (instead of on init) in case it changes
+            communicator.send(
+                    new GempakLoggingConfigMessage(NcgribLogger.getInstance()));
             data = communicator.request(new GempakDataRecordRequest(dataInput),
                     GempakDataRecord.class);
             long t1 = System.currentTimeMillis();

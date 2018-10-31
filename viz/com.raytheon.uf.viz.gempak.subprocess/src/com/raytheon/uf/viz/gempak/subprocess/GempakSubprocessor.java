@@ -30,12 +30,15 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.application.component.IStandaloneComponent;
 import com.raytheon.uf.viz.core.localization.CAVELocalizationAdapter;
 import com.raytheon.uf.viz.core.localization.LocalizationInitializer;
+import com.raytheon.uf.viz.core.status.VizStatusHandlerFactory;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.conn.IGempakConnector;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.message.GempakLoggingConfigMessage;
 import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.subprocess.conn.GempakClientSocketConnector;
+import com.raytheon.uf.viz.gempak.subprocess.message.handler.GempakLoggingConfigMessageHandler;
 import com.raytheon.uf.viz.gempak.subprocess.message.handler.GempakShutdownMessageHandler;
 import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordRequestHandler;
 
@@ -58,6 +61,8 @@ import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordReq
  *                                     refactored to implement {@link IStandaloneComponent}
  * Oct 16, 2018 54483      mapeters    Single subprocessor handles multiple requests until
  *                                     receiving shutdown request, initialize localization
+ * Oct 25, 2018 54483      mapeters    Handle {@link GempakLoggingConfigMessage}s, match
+ *                                     CAVE logging and prevent Eclipse error pop-ups
  *
  * </pre>
  *
@@ -69,10 +74,27 @@ public class GempakSubprocessor implements IStandaloneComponent {
             .getHandler(GempakSubprocessor.class);
 
     @Override
-    public Object startComponent(String componentName) throws Exception {
+    public Object startComponent(String componentName) {
+        /*
+         * Wrap everything in a try/catch and return OK status, as throwing an
+         * exception here (or returning a different status) may cause Eclipse to
+         * display a pop-up dialog, which we don't want
+         */
+        try {
+            startComponentInternal();
+        } catch (Exception e) {
+            statusHandler.fatal("Error running GEMPAK subprocess", e);
+        }
+
+        return IApplication.EXIT_OK;
+    }
+
+    private void startComponentInternal() throws Exception {
         long t0 = System.currentTimeMillis();
 
         initializeLocalization();
+
+        UFStatus.setHandlerFactory(new VizStatusHandlerFactory());
 
         /*
          * Connect to server socket that was opened on the CAVE side for
@@ -93,6 +115,9 @@ public class GempakSubprocessor implements IStandaloneComponent {
              */
             communicator.registerRequestHandler(GempakDataRecordRequest.class,
                     new GempakDataRecordRequestHandler(communicator));
+            communicator.registerMessageHandler(
+                    GempakLoggingConfigMessage.class,
+                    new GempakLoggingConfigMessageHandler());
             communicator.registerMessageHandler(GempakShutdownMessage.class,
                     new GempakShutdownMessageHandler());
             communicator.process();
@@ -107,8 +132,6 @@ public class GempakSubprocessor implements IStandaloneComponent {
         long durationSeconds = (t1 - t0) / TimeUtil.MILLIS_PER_SECOND;
         statusHandler.debug("GEMPAK subprocess shutting down after running for "
                 + durationSeconds + " s");
-
-        return IApplication.EXIT_OK;
     }
 
     private void initializeLocalization() throws Exception {

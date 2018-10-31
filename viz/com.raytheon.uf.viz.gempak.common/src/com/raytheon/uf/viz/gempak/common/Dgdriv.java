@@ -30,23 +30,13 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.geotools.coverage.grid.GridGeometry2D;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
-import com.raytheon.uf.common.geospatial.util.GridGeometryWrapChecker;
 import com.raytheon.uf.common.gridcoverage.Corner;
 import com.raytheon.uf.common.gridcoverage.GridCoverage;
-import com.raytheon.uf.common.gridcoverage.LambertConformalGridCoverage;
-import com.raytheon.uf.common.gridcoverage.LatLonGridCoverage;
-import com.raytheon.uf.common.gridcoverage.MercatorGridCoverage;
-import com.raytheon.uf.common.gridcoverage.PolarStereoGridCoverage;
-import com.raytheon.uf.common.gridcoverage.exception.GridCoverageException;
 import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.PerformanceStatus;
@@ -56,18 +46,19 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDbDataResponse;
+import com.raytheon.uf.viz.gempak.common.data.GempakNavigationResponse;
 import com.raytheon.uf.viz.gempak.common.data.retriever.IGempakDataURIRetriever;
 import com.raytheon.uf.viz.gempak.common.data.retriever.IGempakDbDataRetriever;
+import com.raytheon.uf.viz.gempak.common.data.retriever.IGempakNavigationRetriever;
+import com.raytheon.uf.viz.gempak.common.data.retriever.IGempakSubgridCoverageRetriever;
 import com.raytheon.uf.viz.gempak.common.exception.DgdrivException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataURIRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
+import com.raytheon.uf.viz.gempak.common.request.GempakNavigationRequest;
+import com.raytheon.uf.viz.gempak.common.request.GempakSubgridCoverageRequest;
 import com.raytheon.uf.viz.ncep.grid.FloatGridData;
 import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
-import com.raytheon.uf.viz.ncep.grid.customCoverage.CustomLambertConformalCoverage;
-import com.raytheon.uf.viz.ncep.grid.customCoverage.CustomLatLonCoverage;
-import com.raytheon.uf.viz.ncep.grid.customCoverage.CustomMercatorCoverage;
-import com.raytheon.uf.viz.ncep.grid.customCoverage.CustomPolarStereoCoverage;
 import com.raytheon.uf.viz.ncep.grid.util.GridDBConstants;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.FloatByReference;
@@ -140,6 +131,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * 09/05/2018   54480       mapeters        Updates to support either running in CAVE or in subprocess
  * 09/26/2018   54483       mapeters        Extracted out data URI and DB data retrieval
  * 10/23/2018   54483       mapeters        Use {@link IPerformanceStatusHandler}
+ * 10/25/2018   54483       mapeters        Extracted out navigation and subgrid retrieval
  * </pre>
  *
  * @author tlee
@@ -153,12 +145,13 @@ public class Dgdriv {
     private static final IPerformanceStatusHandler perfLog = PerformanceStatus
             .getHandler(Dgdriv.class.getSimpleName() + ":");
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(Dgdriv.class.getSimpleName() + "Debug");
-
     private final IGempakDataURIRetriever dataURIRetriever;
 
     private final IGempakDbDataRetriever dbDataRetriever;
+
+    private final IGempakNavigationRetriever navigationRetriever;
+
+    private final IGempakSubgridCoverageRetriever subgridCoverageRetriever;
 
     private static GridDiag gd;
 
@@ -168,6 +161,11 @@ public class Dgdriv {
 
     private String gempakTime;
 
+    /*
+     * TODO: flip/flop are always true and are therefore unnecessary. They
+     * should either be removed if it is correct for them to always be true, or
+     * updated to be false when appropriate.
+     */
     private boolean scalar, arrowVector, flop, flip;
 
     private String gdfileOriginal;
@@ -176,7 +174,7 @@ public class Dgdriv {
 
     private ISpatialObject spatialObj, subgSpatialObj;
 
-    private ArrayList<DataTime> dataForecastTimes;
+    private List<DataTime> dataForecastTimes;
 
     private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
 
@@ -189,23 +187,23 @@ public class Dgdriv {
     private static String[] nativeLogTypes = { "|critical", "|error", "|info",
             "|debug" };
 
-    private static int nativeLogLevel = 10;
-
-    private static boolean nativeLogging = true;
-
-    // private static boolean nativeLogging = false;
+    private static final int NATIVE_LOG_LEVEL = 10;
 
     // ENSEMBLE Calculation flag
     private static boolean isEnsCategory = false;
 
     public Dgdriv(GempakDataInput dataInput,
             IGempakDataURIRetriever dataURIRetriever,
-            IGempakDbDataRetriever dbDataRetriever) {
+            IGempakDbDataRetriever dbDataRetriever,
+            IGempakNavigationRetriever navigationRetriever,
+            IGempakSubgridCoverageRetriever subgridCoverageRetriever) {
         /*
          * Initialize GEMPLT, DG and grid libraries.
          */
         this.dataURIRetriever = dataURIRetriever;
         this.dbDataRetriever = dbDataRetriever;
+        this.navigationRetriever = navigationRetriever;
+        this.subgridCoverageRetriever = subgridCoverageRetriever;
         gd = GridDiag.getInstance();
         flop = true;
         flip = true;
@@ -390,19 +388,16 @@ public class Dgdriv {
         public boolean callback(String msg) {
             long t0 = System.currentTimeMillis();
             String sep = "::";
-            if (!nativeLogging) {
-                return true;
-            }
 
             int lvl = checkNativeLoggerLevel(msg);
-            if (lvl > nativeLogLevel) {
+            if (lvl > NATIVE_LOG_LEVEL) {
                 return true;
             }
 
             if (msg.contains("|debug")) {
                 String logMessage = msg.split("\\|")[0] + ":"
                         + msg.split(sep)[1];
-                logger.debug("C DEBUG MESSAGE " + logMessage);
+                statusHandler.debug("C DEBUG MESSAGE " + logMessage);
             } else if (msg.contains("|info")) {
                 String logMessage;
                 if (msg.split("\\|").length > 2) {
@@ -410,11 +405,11 @@ public class Dgdriv {
                 } else {
                     logMessage = msg;
                 }
-                logger.debug("C INFO MESSAGE " + logMessage);
+                statusHandler.debug("C INFO MESSAGE " + logMessage);
             } else if (msg.contains("|error")) {
                 String logMessage = msg.split("\\|")[0] + ":"
                         + msg.split(sep)[1];
-                logger.error("C ERROR MESSAGE " + logMessage);
+                statusHandler.error("C ERROR MESSAGE " + logMessage);
             }
             long t1 = System.currentTimeMillis();
             perfLog.logDuration("Handling diagnostics callback for " + msg,
@@ -429,8 +424,8 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             if (msg.contains("/")) {
-                if (ncgribLogger.enableDiagnosticLogs()) {
-                    logger.debug(" enter ReturnDataCallback:" + msg);
+                if (ncgribLogger.isEnableDiagnosticLogs()) {
+                    statusHandler.debug(" enter ReturnDataCallback:" + msg);
                 }
                 String[] msgArr = msg.split(";");
                 if (msgArr.length == 3) {
@@ -450,8 +445,8 @@ public class Dgdriv {
                         }
                     } catch (GempakException e) {
                         statusHandler
-                                .error("Error performing GEMPAK DB data request: "
-                                        + gempakRequest, e);
+                                .error("Error performing GEMPAK DB data request for "
+                                        + msg, e);
                     }
                     if (response == null) {
                         errorURI = msg;
@@ -473,8 +468,8 @@ public class Dgdriv {
                             ISpatialObject newSubgSpatialObj = response
                                     .getSubgSpatialObj();
                             if (NcgribLogger.getInstance()
-                                    .enableDiagnosticLogs()) {
-                                logger.debug("===new coverage nx:"
+                                    .isEnableDiagnosticLogs()) {
+                                statusHandler.debug("===new coverage nx:"
                                         + newSubgSpatialObj.getNx() + " ny:"
                                         + newSubgSpatialObj.getNy());
                             }
@@ -504,18 +499,24 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             String navigationString = null;
-            logger.debug("request navigation for: " + msg);
+            statusHandler.debug("request navigation for: " + msg);
             long t0 = System.currentTimeMillis();
-            if (gdfile.startsWith("{") && gdfile.endsWith("}")) {
-                navigationString = getEnsembleNavigation(msg);
-            } else {
-                navigationString = getGridNavigationContent(spatialObj);
+            try {
+                if (gdfile.startsWith("{") && gdfile.endsWith("}")) {
+                    navigationString = getEnsembleNavigation(msg);
+                } else {
+                    navigationString = getNavigation(spatialObj);
+                }
+                gd.gem.db_returnnav(navigationString);
+                long t1 = System.currentTimeMillis();
+                perfLog.logDuration("Returning grid navigation "
+                        + navigationString + " for " + msg, t1 - t0);
+            } catch (GempakException e) {
+                statusHandler.error("Error getting grid navigation for " + msg,
+                        e);
+                errorURI = msg;
+                proces = false;
             }
-            gd.gem.db_returnnav(navigationString);
-            long t1 = System.currentTimeMillis();
-            perfLog.logDuration(
-                    "Returning navigation " + navigationString + " for " + msg,
-                    t1 - t0);
             return true;
         }
     }
@@ -536,8 +537,9 @@ public class Dgdriv {
                         "Returning data URI " + dataURI + " for " + msg,
                         t1 - t0);
             } catch (GempakException e) {
-                statusHandler.error("Error performing GEMPAK data URI request: "
-                        + gempakRequest, e);
+                statusHandler.error(
+                        "Error performing GEMPAK data URI request for " + msg,
+                        e);
                 errorURI = msg;
                 proces = false;
             }
@@ -551,12 +553,28 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             long t0 = System.currentTimeMillis();
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("Rcv'd new subg:" + msg);
+            if (ncgribLogger.isEnableDiagnosticLogs()) {
+                statusHandler.debug("Rcv'd new subg:" + msg);
             }
-            createNewISpatialObj(msg);
-            long t1 = System.currentTimeMillis();
-            perfLog.logDuration("Returning subgrid CRS for " + msg, t1 - t0);
+
+            GempakSubgridCoverageRequest request = new GempakSubgridCoverageRequest(
+                    spatialObj, msg);
+            if (subgSpatialObj == null) {
+                try {
+                    ISpatialObject subgridCoverage = subgridCoverageRetriever
+                            .getSubgridCoverage(request);
+                    setSubgSpatialObj(subgridCoverage);
+                    long t1 = System.currentTimeMillis();
+                    perfLog.logDuration("Returning subgrid CRS for " + msg,
+                            t1 - t0);
+                } catch (GempakException e) {
+                    statusHandler
+                            .error("Error performing GEMPAK subgrid coverage request for "
+                                    + msg, e);
+                    errorURI = msg;
+                    proces = false;
+                }
+            }
             return true;
         }
     }
@@ -582,7 +600,6 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
-            // if (msg.contains("import")) {
             long t0 = System.currentTimeMillis();
             String fileNames = executeScript(msg);
             gd.gem.db_returnflnm(fileNames);
@@ -674,8 +691,8 @@ public class Dgdriv {
             prepareGridDTInfo();
         }
 
-        long t05 = System.currentTimeMillis();
-        perfLog.logDuration("init and settime", t05 - t0);
+        long t01 = System.currentTimeMillis();
+        perfLog.logDuration("init and settime", t01 - t0);
         /*
          * Process the GDFILE input.
          */
@@ -695,8 +712,8 @@ public class Dgdriv {
             }
         }
 
-        long t06 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_nfil", t06 - t05);
+        long t02 = System.currentTimeMillis();
+        perfLog.logDuration("dgc_nfil", t02 - t01);
 
         /*
          * Process the GDATTIM input; setup the time server.
@@ -709,8 +726,8 @@ public class Dgdriv {
             }
         }
 
-        long t07 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_ndtm", t07 - t06);
+        long t03 = System.currentTimeMillis();
+        perfLog.logDuration("dgc_ndtm", t03 - t02);
 
         if (proces) {
             /*
@@ -724,51 +741,27 @@ public class Dgdriv {
              * Set the attributes that do not vary within the time loop.
              */
             gd.gem.inc_scal(scale, iscale, iscalv, iret);
-            long t07b = System.currentTimeMillis();
-            perfLog.logDuration("inc_scal", t07b - t07);
+            long t03b = System.currentTimeMillis();
+            perfLog.logDuration("inc_scal", t03b - t03);
 
             /*
              * Get the next time to process from time server.
              */
             gd.gem.dgc_ntim_(chngnv, coladd, time1, time2, gottm, iret);
-            long t08 = System.currentTimeMillis();
-            perfLog.logDuration("dgc_ntim", t08 - t07b);
+            long t04 = System.currentTimeMillis();
+            perfLog.logDuration("dgc_ntim", t04 - t03b);
 
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, "", ier);
                 proces = false;
             } else {
                 gd.gem.tgc_dual(time1, time2, time, iret);
-                long t08b = System.currentTimeMillis();
-                perfLog.logDuration("tgc_dual", t08b - t08);
+                long t04b = System.currentTimeMillis();
+                perfLog.logDuration("tgc_dual", t04b - t04);
             }
         }
 
-        /*
-         * Set the map projection and graphics area.
-         */
-        long t09a = System.currentTimeMillis();
-        /*
-         * if (proces) { gd.gem.dgc_fixa_ ( garea, proj, gareabuf, prjbuf,
-         * iret); if ( iret.getValue () != 0 ) { gd.gem.erc_wmsg ("DG", iret,
-         * "", ier); proces = false; } }
-         */
-
-        long t09 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_fixa", t09 - t09a);
-
-        /*
-         * Fortran wrapper used and use byte array instead of String as input!!
-         */
-        // if (proces) {
-        // gd.gem.ggc_maps (prjbuf, gareabuf, satfil, drpflg, iret);
-        // if ( iret.getValue () != 0 ) {
-        // gd.gem.erc_wmsg ("DG", iret, "", ier);
-        // proces = false;
-        // }
-        // }
-        long t10 = System.currentTimeMillis();
-        perfLog.logDuration("ggc_maps", t10 - t09);
+        long t05 = System.currentTimeMillis();
 
         /*
          * Setup the grid subset that covers the graphics area.
@@ -789,8 +782,8 @@ public class Dgdriv {
             }
         }
 
-        long t11 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_subg", t11 - t10);
+        long t06 = System.currentTimeMillis();
+        perfLog.logDuration("dgc_subg", t06 - t05);
 
         /*
          * Return grid dimension for grid diagnostic calculation.
@@ -803,7 +796,7 @@ public class Dgdriv {
             }
         }
 
-        logger.debug("kx:" + kx.getValue() + "  ky:" + ky.getValue());
+        statusHandler.debug("kx:" + kx.getValue() + "  ky:" + ky.getValue());
         float[] ugrid = null;
         float[] vgrid = null;
         int grid_size = kx.getValue() * ky.getValue();
@@ -814,8 +807,8 @@ public class Dgdriv {
             proces = false;
         }
 
-        long t012 = System.currentTimeMillis();
-        perfLog.logDuration("From dgc_nfil to dgc_grid", t012 - t06);
+        long t07 = System.currentTimeMillis();
+        perfLog.logDuration("From dgc_nfil to dgc_grid", t07 - t02);
         /*
          * Compute the requested grid.
          */
@@ -839,8 +832,8 @@ public class Dgdriv {
                 proces = false;
             }
         }
-        long t013 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_grid", t013 - t012);
+        long t08 = System.currentTimeMillis();
+        perfLog.logDuration("dgc_grid", t08 - t07);
 
         /*
          * Compute the scaling factor and scale the grid data.
@@ -885,7 +878,7 @@ public class Dgdriv {
              */
             gd.gem.dg_fall_(iret);
             long t1 = System.currentTimeMillis();
-            perfLog.logDuration("Scaling", t1 - t013);
+            perfLog.logDuration("Scaling", t1 - t08);
             return fds;
         } else {
             /*
@@ -910,8 +903,8 @@ public class Dgdriv {
     private void prepareGridDTInfo() {
         String alias = this.gdfile;
         String path = "A2DB_GRID";
-        logger.debug("prepareGridDTInfo-- alias:" + alias + " gdfileOriginal:"
-                + this.gdfileOriginal);
+        statusHandler.debug("prepareGridDTInfo-- alias:" + alias
+                + " gdfileOriginal:" + this.gdfileOriginal);
         String template = this.gdfileOriginal + "_db";
         if (this.gdfileOriginal.contains(":")) {
             template = this.gdfileOriginal.substring(0,
@@ -991,8 +984,8 @@ public class Dgdriv {
                 sbt.toString().length() - 1);
         IntByReference iret = new IntByReference(0);
 
-        logger.debug("prepareEnsembleDTInfo: alias=" + alias + ", path=" + path
-                + ",template=" + template);
+        statusHandler.debug("prepareEnsembleDTInfo: alias=" + alias + ", path="
+                + path + ",template=" + template);
         gd.gem.db_seta2dtinfo_(alias, path, template, iret);
     }
 
@@ -1000,14 +993,13 @@ public class Dgdriv {
         String ensTemplate = ensName + "_db_" + perturbationNum
                 + "_YYYYMMDDHHfFFF";
 
-        logger.debug("getEnsembleTemplate(" + ensTemplate + ") for(" + ensName
-                + "," + perturbationNum + ")");
+        statusHandler.debug("getEnsembleTemplate(" + ensTemplate + ") for("
+                + ensName + "," + perturbationNum + ")");
         return ensTemplate;
     }
 
     private String getTaggedGdfile() {
         if (this.dataSource.equalsIgnoreCase("grid")) {
-            // String tag = this.dataSource + "_";
             String tag = "A2DB_";
             /*
              * For gdfile containing event name do not have to do anything as
@@ -1043,199 +1035,7 @@ public class Dgdriv {
         }
     }
 
-    /**
-     * Create sub-grid coverage
-     *
-     * @param subgGempakFormat
-     *            -- prj;nx;ny;lllat;lllon;urlat;urlon;angle1;angle2;angle3
-     */
-    private void createNewISpatialObj(String subgGempakFormat) {
-        String[] gareaStr = subgGempakFormat.split(";");
-
-        if (subgSpatialObj == null && gareaStr != null
-                && gareaStr.length >= 7) {
-            if ("CED".equalsIgnoreCase(gareaStr[0])) {
-                createLatlonISPatialObj(Integer.parseInt(gareaStr[1]),
-                        Integer.parseInt(gareaStr[2]),
-                        Double.parseDouble(gareaStr[3]),
-                        Double.parseDouble(gareaStr[4]),
-                        Double.parseDouble(gareaStr[5]),
-                        Double.parseDouble(gareaStr[6]));
-            } else if ("LCC".equalsIgnoreCase(gareaStr[0])) {
-                createLambertConformalISPatialObj(Integer.parseInt(gareaStr[1]),
-                        Integer.parseInt(gareaStr[2]),
-                        Double.parseDouble(gareaStr[3]),
-                        Double.parseDouble(gareaStr[4]));
-            } else if ("MER".equalsIgnoreCase(gareaStr[0])) {
-                createMercatorISPatialObj(Integer.parseInt(gareaStr[1]),
-                        Integer.parseInt(gareaStr[2]),
-                        Double.parseDouble(gareaStr[3]),
-                        Double.parseDouble(gareaStr[4]),
-                        Double.parseDouble(gareaStr[5]),
-                        Double.parseDouble(gareaStr[6]));
-            } else if ("STR".equalsIgnoreCase(gareaStr[0])) {
-                createPolarStereoISPatialObj(Integer.parseInt(gareaStr[1]),
-                        Integer.parseInt(gareaStr[2]),
-                        Double.parseDouble(gareaStr[3]),
-                        Double.parseDouble(gareaStr[4]));
-            }
-        }
-    }
-
-    /**
-     * Create Latitude/longitude coverage
-     *
-     * @param nx
-     *            - Number of points along a parallel
-     * @param ny
-     *            - Number of points along a meridian
-     * @param la1
-     *            - Latitude of first grid point
-     * @param lo1
-     *            - Longitude of the first grid point
-     * @param la2
-     *            - Latitude of the last grid point
-     * @param lo2
-     *            - Longitude of the last grid point
-     */
-    private void createLatlonISPatialObj(int nx, int ny, double la1, double lo1,
-            double la2, double lo2) {
-
-        logger.debug("nx:" + nx + " ny:" + ny + " la1:" + la1 + " lo1:" + lo1
-                + " la2:" + la2 + " lo2:" + lo2);
-        CustomLatLonCoverage cv = new CustomLatLonCoverage();
-        cv.setNx(nx);
-        cv.setNy(ny);
-        cv.setLa1(la1);
-        cv.setLo1(lo1);
-        cv.setLa2(la2);
-        cv.setLo2(lo2);
-        GridCoverage gc = (GridCoverage) spatialObj;
-
-        LatLonGridCoverage llgc = (LatLonGridCoverage) gc;
-        cv.setDx(llgc.getDx());
-        cv.setDy(llgc.getDy());
-        cv.setSpacingUnit(llgc.getSpacingUnit());
-        if (cv.build()) {
-            setSubgSpatialObj(cv);
-        }
-    }
-
-    /**
-     * Create Lambert-Conformal coverage
-     *
-     * @param nx
-     *            - Number of points along the x-axis
-     * @param ny
-     *            - Number of points along the y-axis
-     * @param la1
-     *            - Latitude of the first grid point
-     * @param lo1
-     *            - Longitude of the first grid point
-     */
-    private void createLambertConformalISPatialObj(int nx, int ny, double la1,
-            double lo1) {
-
-        CustomLambertConformalCoverage cv = new CustomLambertConformalCoverage();
-        cv.setNx(nx);
-        cv.setNy(ny);
-        cv.setLa1(la1);
-        cv.setLo1(lo1);
-
-        GridCoverage gc = (GridCoverage) spatialObj;
-
-        LambertConformalGridCoverage llgc = (LambertConformalGridCoverage) gc;
-        cv.setMajorAxis(llgc.getMajorAxis());
-        cv.setMinorAxis(llgc.getMinorAxis());
-        cv.setLatin1(llgc.getLatin1());
-        cv.setLatin2(llgc.getLatin2());
-        cv.setLov(llgc.getLov());
-        cv.setDx(llgc.getDx());
-        cv.setDy(llgc.getDy());
-        cv.setSpacingUnit(llgc.getSpacingUnit());
-        if (cv.build()) {
-            setSubgSpatialObj(cv);
-        }
-    }
-
-    /**
-     * Create Mercator coverage
-     *
-     * @param nx
-     *            - Number of points along a parallel
-     * @param ny
-     *            - Number of points along a meridian
-     * @param la1
-     *            - Latitude of first grid point
-     * @param lo1
-     *            - Longitude of the first grid point
-     * @param la2
-     *            - Latitude of the last grid point
-     * @param lo2
-     *            - Longitude of the last grid point
-     */
-    private void createMercatorISPatialObj(int nx, int ny, double la1,
-            double lo1, double la2, double lo2) {
-
-        CustomMercatorCoverage cv = new CustomMercatorCoverage();
-        cv.setNx(nx);
-        cv.setNy(ny);
-        cv.setLa1(la1);
-        cv.setLo1(lo1);
-        cv.setLa2(la2);
-        cv.setLo2(lo2);
-        GridCoverage gc = (GridCoverage) spatialObj;
-
-        MercatorGridCoverage llgc = (MercatorGridCoverage) gc;
-        cv.setMajorAxis(llgc.getMajorAxis());
-        cv.setMinorAxis(llgc.getMinorAxis());
-        cv.setDx(llgc.getDx());
-        cv.setDy(llgc.getDy());
-        cv.setSpacingUnit(llgc.getSpacingUnit());
-        if (cv.build()) {
-            setSubgSpatialObj(cv);
-        }
-    }
-
-    /**
-     * Create Polar-Stereo coverage
-     *
-     * @param nx
-     *            - Number of points along the x-axis
-     * @param ny
-     *            - Number of points along the y-axis
-     * @param la1
-     *            - Latitude of the first grid point
-     * @param lo1
-     *            - Longitude of the first grid point
-     */
-    private void createPolarStereoISPatialObj(int nx, int ny, double la1,
-            double lo1) {
-
-        CustomPolarStereoCoverage cv = new CustomPolarStereoCoverage();
-        cv.setNx(nx);
-        cv.setNy(ny);
-        cv.setLa1(la1);
-        cv.setLo1(lo1);
-
-        GridCoverage gc = (GridCoverage) spatialObj;
-
-        PolarStereoGridCoverage llgc = (PolarStereoGridCoverage) gc;
-        cv.setMajorAxis(llgc.getMajorAxis());
-        cv.setMinorAxis(llgc.getMinorAxis());
-        cv.setLov(llgc.getLov());
-        cv.setLov(llgc.getLov());
-        cv.setDx(llgc.getDx());
-        cv.setDy(llgc.getDy());
-        cv.setSpacingUnit(llgc.getSpacingUnit());
-        if (cv.build()) {
-            setSubgSpatialObj(cv);
-        }
-    }
-
-    private String getCycleFcstHrsString(
-            ArrayList<DataTime> dataForecastTimes) {
-        // TODO Auto-generated method stub
+    private String getCycleFcstHrsString(List<DataTime> dataForecastTimes) {
         StringBuilder resultsBuf = new StringBuilder();
         for (DataTime dt : dataForecastTimes) {
             resultsBuf
@@ -1245,12 +1045,11 @@ public class Dgdriv {
         return resultsBuf.substring(0, resultsBuf.length() - 1);
     }
 
-    /*
+    /**
      * Flops the data from GEMPAK order and changes the missing data value from
      * GEMPAK -9999.0f to CAVE -999999.0f
      */
     private float[] flopData(float[] inGrid, int nx, int ny) {
-
         float[] outGridFlopped = new float[inGrid.length];
         int kk = 0;
         for (int jj = ny - 1; jj >= 0; jj--) {
@@ -1270,12 +1069,11 @@ public class Dgdriv {
         return outGridFlopped;
     }
 
-    /*
+    /**
      * Revert data from GEMPAK order and changes the missing data value from
      * GEMPAK -9999.0f to CAVE -999999.0f
      */
     private float[] revertGempakData2CAVE(float[] inGrid) {
-
         float[] outGridFlopped = new float[inGrid.length];
 
         for (int ii = 0; ii < inGrid.length; ii++) {
@@ -1310,240 +1108,15 @@ public class Dgdriv {
         sb.append(dataTimeStr);
         sb.append(".h5");
 
-        // if (DataMode.getSystemMode() == DataMode.THRIFT) {
-        // file = new File(File.separator + dataURI.split("/")[1]
-        // + File.separator + path + File.separator + sb.toString());
-        // } else if (DataMode.getSystemMode() == DataMode.PYPIES) {
         file = new File(
                 // TODO--OK?? VizApp.getServerDataDir() + File.separator +
                 dataURI.split("/")[1] + File.separator + path + File.separator
                         + sb.toString());
-        // } else {
-        // file = new File(VizApp.getDataDir() + File.separator
-        // + dataURI.split("/")[1] + File.separator + path
-        // + File.separator + sb.toString());
-        // }
 
         if (file != null) {
             filename = file.getAbsolutePath();
         }
         return filename;
-    }
-
-    private String getGridNavigationContent(ISpatialObject obj) {
-
-        GridCoverage gc;
-        try {
-            gc = setCoverageForWorldWrap((GridCoverage) obj);
-        } catch (GridCoverageException e) {
-            gc = (GridCoverage) obj;
-        }
-
-        StringBuilder resultsBuf = new StringBuilder();
-
-        if (gc instanceof LatLonGridCoverage) {
-            /*
-             * LatLonGridCoverage
-             */
-            LatLonGridCoverage llgc = (LatLonGridCoverage) gc;
-            resultsBuf.append("CED"); // 1
-            resultsBuf.append(";");
-            resultsBuf.append(llgc.getNx()); // 2
-            resultsBuf.append(";");
-            resultsBuf.append(llgc.getNy()); // 3
-            resultsBuf.append(";");
-            Double dummy;
-            double ddx = llgc.getDx() * (llgc.getNx() - 1);
-            double ddy = llgc.getDy() * (llgc.getNy() - 1);
-
-            if (llgc.getFirstGridPointCorner() == Corner.UpperLeft) {
-                // upper left
-                dummy = llgc.getLa1() * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-                dummy = llgc.getLo1() * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-                // lower right
-                dummy = (llgc.getLa1() - ddy) * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-                dummy = (llgc.getLo1() + ddx) * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-            } else { // assume there are only two options: UpperLeft and
-                     // LowerLeft
-                dummy = (llgc.getLa1() + ddy) * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-                dummy = llgc.getLo1() * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-
-                dummy = llgc.getLa1() * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-                dummy = (llgc.getLo1() + ddx) * 10_000;
-                resultsBuf.append(dummy.intValue());
-                resultsBuf.append(";");
-            }
-
-            dummy = -9999.0;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = llgc.getDx() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = llgc.getDy() * 10_000;
-            resultsBuf.append(dummy.intValue());
-        } else if (gc instanceof LambertConformalGridCoverage) {
-            resultsBuf.append("LCC");
-            resultsBuf.append(";");
-            LambertConformalGridCoverage lcgc = (LambertConformalGridCoverage) gc;
-            if (lcgc.getFirstGridPointCorner() == Corner.UpperLeft) {
-                this.flip = true;
-            }
-            resultsBuf.append(lcgc.getNx());
-            resultsBuf.append(";");
-            resultsBuf.append(lcgc.getNy());
-            resultsBuf.append(";");
-            Double dummy = lcgc.getLa1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getLo1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getLatin1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getLatin2() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getLov() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getDx() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = lcgc.getDy() * 10_000;
-            resultsBuf.append(dummy.intValue());
-        } else if (gc instanceof MercatorGridCoverage) {
-            MercatorGridCoverage mgc = (MercatorGridCoverage) gc;
-            if (mgc.getFirstGridPointCorner() == Corner.UpperLeft) {
-                this.flip = true;
-            }
-            resultsBuf.append("MER");
-            resultsBuf.append(";");
-            resultsBuf.append(mgc.getNx());
-            resultsBuf.append(";");
-            resultsBuf.append(mgc.getNy());
-            resultsBuf.append(";");
-            Double dummy = mgc.getLa1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getLo1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getLatin() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getLa2() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getLo2() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getDx() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = mgc.getDy() * 10_000;
-            resultsBuf.append(dummy.intValue());
-        } else if (gc instanceof PolarStereoGridCoverage) {
-            /*
-             * PolarStereoGridCoverage
-             */
-            PolarStereoGridCoverage psgc = (PolarStereoGridCoverage) gc;
-            if (psgc.getFirstGridPointCorner() == Corner.UpperLeft) {
-                this.flip = true;
-            }
-            resultsBuf.append("STR");
-            resultsBuf.append(";");
-            resultsBuf.append(psgc.getNx());
-            resultsBuf.append(";");
-            resultsBuf.append(psgc.getNy());
-            resultsBuf.append(";");
-            Double dummy = psgc.getLa1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = psgc.getLo1() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = -9999.0;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = -9999.0;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = psgc.getLov() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = psgc.getDx() * 10_000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = psgc.getDy() * 10_000;
-            resultsBuf.append(dummy.intValue());
-        }
-
-        String content = resultsBuf.toString();
-        return content;
-
-    }
-
-    private GridCoverage setCoverageForWorldWrap(GridCoverage orig)
-            throws GridCoverageException {
-        GridCoverage dataLoc = orig;
-        GridGeometry2D dataGeom = dataLoc.getGridGeometry();
-        int wrapX = GridGeometryWrapChecker.checkForWrapping(dataGeom);
-        if (wrapX != -1) {
-            // add one column
-            int newX = wrapX + 1;
-            if (newX == dataLoc.getNx()) {
-                return orig;
-            } else if (newX < dataLoc.getNx()) {
-                return orig;
-            } else {
-                GridCoverage requestCoverage;
-                if (dataLoc instanceof LatLonGridCoverage) {
-                    LatLonGridCoverage newLoc = new LatLonGridCoverage(
-                            (LatLonGridCoverage) dataLoc);
-                    newLoc.setLa2(0);
-                    newLoc.setLo2(0);
-                    requestCoverage = newLoc;
-                } else if (dataLoc instanceof MercatorGridCoverage) {
-                    MercatorGridCoverage newLoc = new MercatorGridCoverage(
-                            (MercatorGridCoverage) dataLoc);
-                    newLoc.setLa2(null);
-                    newLoc.setLo2(null);
-                    requestCoverage = newLoc;
-                } else if (dataLoc instanceof LambertConformalGridCoverage) {
-                    requestCoverage = new LambertConformalGridCoverage(
-                            (LambertConformalGridCoverage) dataLoc);
-                } else if (dataLoc instanceof PolarStereoGridCoverage) {
-                    requestCoverage = new PolarStereoGridCoverage(
-                            (PolarStereoGridCoverage) dataLoc);
-                } else {
-                    throw new GridCoverageException(
-                            "Cannot wrap data for projection of type "
-                                    + dataLoc.getClass().getName());
-                }
-                requestCoverage.setNx(newX);
-                requestCoverage.setGridGeometry(null);
-                requestCoverage.initialize();
-                return requestCoverage;
-            }
-        } else {
-            return orig;
-        }
     }
 
     private void setGridFlip(ISpatialObject obj) {
@@ -1561,7 +1134,7 @@ public class Dgdriv {
             return null;
         }
 
-        logger.debug("executeScript: scriptToRun=" + scriptToRun);
+        statusHandler.debug("executeScript: scriptToRun=" + scriptToRun);
         String[] parms = scriptToRun.split("\\|");
         if (parms.length < 4) {
             return null;
@@ -1623,8 +1196,8 @@ public class Dgdriv {
                         && refValue != null && refValue instanceof Date) {
 
                     String refString = sdf.format((Date) refValue);
-                    logger.debug("executeScript: match " + refString);
-                    logger.debug("executeScript:  with " + tmStr);
+                    statusHandler.debug("executeScript: match " + refString);
+                    statusHandler.debug("executeScript:  with " + tmStr);
                     Matcher m = p.matcher(refString);
                     if (!m.matches()) {
                         continue;
@@ -1667,7 +1240,7 @@ public class Dgdriv {
         return timeStr;
     }
 
-    public void setCycleForecastTimes(ArrayList<DataTime> dataTimes) {
+    public void setCycleForecastTimes(List<DataTime> dataTimes) {
         this.dataForecastTimes = dataTimes;
     }
 
@@ -1682,9 +1255,19 @@ public class Dgdriv {
         return lvl;
     }
 
-    private String getEnsembleNavigation(String msg) {
+    private String getNavigation(ISpatialObject spatialObject)
+            throws GempakException {
+        GempakNavigationResponse navigationResponse = navigationRetriever
+                .getNavigation(new GempakNavigationRequest(spatialObject));
+        if (navigationResponse.isEnableFlip()) {
+            flip = true;
+        }
+        return navigationResponse.getNavigation();
+    }
+
+    private String getEnsembleNavigation(String msg) throws GempakException {
         String navStr = null;
-        logger.debug("getEnsembleNavigation: " + msg + " dataTime:"
+        statusHandler.debug("getEnsembleNavigation: " + msg + " dataTime:"
                 + dataForecastTimes.get(0).toString());
         String[] tmpAttrs = msg.split("\\|");
         Map<String, RequestConstraint> queryList = new HashMap<>();
@@ -1699,7 +1282,7 @@ public class Dgdriv {
         }
         if (tmpAttrs[2] != null && tmpAttrs[2].length() > 0) {
             String navTime = buildRefTime(tmpAttrs[2]);
-            logger.debug("getEnsembleNavigation: " + navTime);
+            statusHandler.debug("getEnsembleNavigation: " + navTime);
             queryList.put(GridDBConstants.DATA_TIME_QUERY,
                     new RequestConstraint(navTime));
         } else {
@@ -1734,10 +1317,12 @@ public class Dgdriv {
             }
 
             if (cov != null) {
-                navStr = getGridNavigationContent(cov);
+                navStr = getNavigation(cov);
             }
         } catch (VizException e) {
-            //
+            statusHandler
+                    .error("Error performing ensemble grid navigation query for "
+                            + msg, e);
         }
 
         return navStr;

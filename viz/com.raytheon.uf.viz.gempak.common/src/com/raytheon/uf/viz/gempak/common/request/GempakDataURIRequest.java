@@ -19,6 +19,8 @@
  **/
 package com.raytheon.uf.viz.gempak.common.request;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
@@ -32,6 +34,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
+ * Oct 30, 2018 54483      mapeters    Add {@link #toString()}
  *
  * </pre>
  *
@@ -116,5 +119,10 @@ public class GempakDataURIRequest implements IGempakRequest {
      */
     public void setEnsembleMember(String ensembleMember) {
         this.ensembleMember = ensembleMember;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

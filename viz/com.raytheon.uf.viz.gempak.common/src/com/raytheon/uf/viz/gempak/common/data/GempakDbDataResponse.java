@@ -16,16 +16,17 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
+ */
 package com.raytheon.uf.viz.gempak.common.data;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+import com.raytheon.uf.viz.gempak.common.adapter.GempakDbDataResponseAdapter;
 import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
 
 /**
- * Response object corresponding to a {@link GempakDbDataRequest}.
+ * Response object corresponding to a {@link GempakDbDataRequest}. For
+ * performance reasons, this is serialized by
+ * {@link GempakDbDataResponseAdapter}.
  *
  * <pre>
  *
@@ -34,25 +35,17 @@ import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
+ * Oct 24, 2018 54483      mapeters    Serialize via {@link GempakDbDataResponseAdapter}
  *
  * </pre>
  *
  * @author mapeters
  */
-@DynamicSerialize
 public class GempakDbDataResponse {
 
-    @DynamicSerializeElement
     private float[] data;
 
-    @DynamicSerializeElement
     private ISpatialObject subgSpatialObj;
-
-    /**
-     * Empty constructor for serialization.
-     */
-    public GempakDbDataResponse() {
-    }
 
     /**
      * Constructor.

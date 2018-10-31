@@ -250,6 +250,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                         containing logic that was previously
  *                                         in 'NcgridLoaderTask.run()'.
  * Oct 23, 2018  54476    tjensen          Change cache to singleton
+ * Oct 25, 2018  54483    mapeters         Handle {@link NcgribLogger} refactor
  *
  * </pre>
  *
@@ -529,7 +530,7 @@ public class NcgridResource
             gdPrxy = (NcGridDataProxy) rscDataObj;
 
             long st = System.currentTimeMillis();
-            if (ncgribLogger.enableRscLogs()) {
+            if (ncgribLogger.isEnableRscLogs()) {
                 logger.debug("From init resource to updated frame("
                         + gdPrxy.getDataTime().toString() + ") data took:"
                         + (st - initTime));
@@ -654,7 +655,7 @@ public class NcgridResource
                     long t4 = System.currentTimeMillis();
 
                     if (cov != null) {
-                        if (ncgribLogger.enableRscLogs()) {
+                        if (ncgribLogger.isEnableRscLogs()) {
                             logger.debug("retrieving grid navigation("
                                     + cov.toString() + ") : "
                                     + gdPrxy.getDataTime().toString() + " took:"
@@ -663,7 +664,7 @@ public class NcgridResource
                         gdPrxy.setSpatialObject(cov);
                         gdPrxy.setNewSpatialObject(cov);
                     } else {
-                        if (ncgribLogger.enableRscLogs()) {
+                        if (ncgribLogger.isEnableRscLogs()) {
                             logger.debug(
                                     "Error retrieving ncgrid navigation for "
                                             + gdPrxy.getDataTime().toString()
@@ -707,7 +708,7 @@ public class NcgridResource
                                 contourAttributes[i].getMarker(),
                                 getNcMapDescriptor(),
                                 gdPrxy.getNewSpatialObject());
-                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                    } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                         logMissingDataCondition(i);
                     }
                 }
@@ -720,7 +721,7 @@ public class NcgridResource
                                         .convertToRGB(gridRscData.getGrdlbl()),
                                 getNcMapDescriptor(),
                                 gdPrxy.getNewSpatialObject());
-                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                    } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                         logMissingDataCondition(i);
                     }
                 }
@@ -751,11 +752,11 @@ public class NcgridResource
                                         gdPrxy.getSpatialObject(),
                                         contourAttributes[i]);
                                 hasData = true;
-                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i);
                             }
                         } else {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
+                            if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i);
                             }
                             logger.debug(this.getClass().getCanonicalName()
@@ -783,12 +784,12 @@ public class NcgridResource
                                             contourAttributes[i]);
                                     hasData = true;
                                 } else if (ncgribLogger
-                                        .enableDiagnosticLogs()) {
+                                        .isEnableDiagnosticLogs()) {
                                     logMissingDataCondition(i);
                                 }
                             }
                         } else {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
+                            if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i);
                             }
                             logger.debug(this.getClass().getCanonicalName()
@@ -812,7 +813,7 @@ public class NcgridResource
                             && gdPrxy.getNewSpatialObject() != null) {
                         contourName = createContourName(gdPrxy,
                                 contourAttributes[i]);
-                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                    } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                         logMissingDataCondition(i);
                     }
 
@@ -840,11 +841,11 @@ public class NcgridResource
                                 contourRenderable[i]
                                         .setResource(NcgridResource.this);
                                 hasData = true;
-                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i);
                             }
                         } else {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
+                            if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i, false);
                             }
                             logger.debug(this.getClass().getCanonicalName()
@@ -896,7 +897,7 @@ public class NcgridResource
                                 scale = contourAttributes[i].getScale();
                                 colors = contourAttributes[i].getColors();
                                 text = contourAttributes[i].getText();
-                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i, false);
                             }
 
@@ -916,7 +917,7 @@ public class NcgridResource
                                         createGridRelativeHiLoDisplay(
                                                 contourRenderable[i].getData(),
                                                 gdPrxy, contourAttributes[i]));
-                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                                 logMissingDataCondition(i, false);
                             }
 
@@ -931,7 +932,7 @@ public class NcgridResource
 
             frameLoaded = true;
             long t1 = System.currentTimeMillis();
-            if (ncgribLogger.enableRscLogs()) {
+            if (ncgribLogger.isEnableRscLogs()) {
                 logger.debug("*updateFrameData("
                         + ((gdPrxy != null) ? gdPrxy.getDataTime().toString()
                                 : " ")
@@ -1020,7 +1021,7 @@ public class NcgridResource
                                     contourAttributes[i].getMarker(),
                                     getNcMapDescriptor(),
                                     gdPrxy.getNewSpatialObject());
-                        } else if (ncgribLogger.enableDiagnosticLogs()) {
+                        } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                             logMissingDataCondition(i);
                         }
                     } else if (!attrType.contains("M")
@@ -1036,7 +1037,7 @@ public class NcgridResource
                                             gridRscData.getGrdlbl()),
                                     getNcMapDescriptor(),
                                     gdPrxy.getNewSpatialObject());
-                        } else if (ncgribLogger.enableDiagnosticLogs()) {
+                        } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                             logMissingDataCondition(i);
                         }
                     } else if (!attrType.contains("G")
@@ -1067,7 +1068,7 @@ public class NcgridResource
                                                 gdPrxy.getSpatialObject(),
                                                 contourAttributes[i]);
                                     } else if (ncgribLogger
-                                            .enableDiagnosticLogs()) {
+                                            .isEnableDiagnosticLogs()) {
                                         logMissingDataCondition(i);
                                     }
                                 }
@@ -1127,7 +1128,7 @@ public class NcgridResource
                                     colors = contourAttributes[i].getColors();
                                     text = contourAttributes[i].getText();
                                 } else if (ncgribLogger
-                                        .enableDiagnosticLogs()) {
+                                        .isEnableDiagnosticLogs()) {
                                     logMissingDataCondition(i);
                                 }
                             }
@@ -1149,7 +1150,7 @@ public class NcgridResource
                                                     gdPrxy,
                                                     contourAttributes[i]));
                                 } else if (ncgribLogger
-                                        .enableDiagnosticLogs()) {
+                                        .isEnableDiagnosticLogs()) {
                                     logMissingDataCondition(i);
                                 }
                             } else {
@@ -1169,7 +1170,7 @@ public class NcgridResource
                                                                 gdPrxy,
                                                                 contourAttributes[i]));
                                     } else if (ncgribLogger
-                                            .enableDiagnosticLogs()) {
+                                            .isEnableDiagnosticLogs()) {
                                         logMissingDataCondition(i);
                                     }
                                 }
@@ -1230,7 +1231,7 @@ public class NcgridResource
             long t2 = System.currentTimeMillis();
             logger.debug("**createContours for("
                     + gdPrxy.getDataTime().toString() + ") took:" + (t2 - t1));
-            if (ncgribLogger.enableTotalTimeLogs()) {
+            if (ncgribLogger.isEnableTotalTimeLogs()) {
                 logger.debug(
                         "**From init to complete createContours/wireframe ("
                                 + gdPrxy.getDataTime().toString() + ") took:"
@@ -1354,7 +1355,7 @@ public class NcgridResource
 
                 if (gdPrxy != null && gdPrxy.getNewSpatialObject() != null) {
                     gridData = getDataRecord(gdPrxy, contourAttributes[i]);
-                } else if (ncgribLogger.enableDiagnosticLogs()) {
+                } else if (ncgribLogger.isEnableDiagnosticLogs()) {
                     logMissingDataCondition(i);
                 }
                 long t2 = System.currentTimeMillis();
@@ -1366,7 +1367,7 @@ public class NcgridResource
                         gdPrxy.setNewSpatialObject(subgObj);
                     }
                 }
-                if (ncgribLogger.enableRscLogs()) {
+                if (ncgribLogger.isEnableRscLogs()) {
                     logger.debug(
                             "getGriddedData contour/streamline/vector grid data("
                                     + gdPrxy.getDataTime().toString()
@@ -1552,7 +1553,7 @@ public class NcgridResource
             this.lastTarget = target;
             queryRecords();
             long t1 = System.currentTimeMillis();
-            if (ncgribLogger.enableRscLogs()) {
+            if (ncgribLogger.isEnableRscLogs()) {
                 logger.debug(
                         "NcgridResource.initResource query all avariable times: "
                                 + (t1 - t0));
@@ -1570,7 +1571,7 @@ public class NcgridResource
         TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
 
         long t1 = System.currentTimeMillis();
-        if (ncgribLogger.enableRscLogs()) {
+        if (ncgribLogger.isEnableRscLogs()) {
             logger.debug("==from init to run loadNcgridData took: "
                     + (t1 - initTime));
         }
@@ -2249,10 +2250,6 @@ public class NcgridResource
     }
 
     private void getNcgridLoggerCfgInfo() {
-        /*
-         * TODO need to do this in GEMPAK subprocess...just add flags to
-         * GempakDataInput?
-         */
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
         boolean enableAll = prefs
                 .getBoolean(NcgribLoggerPreferences.ENABLE_ALL_LOGGER);
@@ -2262,7 +2259,7 @@ public class NcgridResource
         if (enableAll) {
             ncgribLogger.setEnableRscLogs(true);
             ncgribLogger.setEnableDiagnosticLogs(true);
-            ncgribLogger.setEnableCntrLogs(true);
+            ncgribLogger.setEnableContourLogs(true);
             ncgribLogger.setEnableTotalTimeLogs(true);
         } else {
             boolean enableRsc = prefs
@@ -2275,7 +2272,7 @@ public class NcgridResource
 
             boolean enableCntr = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_CNTR_LOGGER);
-            ncgribLogger.setEnableCntrLogs(enableCntr);
+            ncgribLogger.setEnableContourLogs(enableCntr);
 
             boolean enableTT = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_FINAL_LOGGER);

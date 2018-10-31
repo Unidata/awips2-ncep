@@ -25,10 +25,22 @@
         of the file.
     -->
 <gempakProcessingConfig>
-    <!-- If true, GEMPAK processing is done in subprocesses; if false, it is
-         done in the CAVE process -->
+
+    <!--
+        If true, GEMPAK processing is done in subprocesses; if false, it is
+        done in the CAVE process.
+    -->
     <runInSubprocess>false</runInSubprocess>
-    <!-- The maximum number of subprocesses that can run concurrently for
-         GEMPAK processing (only used if runInSubprocess is true) -->
+
+    <!--
+        The maximum number of subprocesses that can run concurrently for
+        GEMPAK processing (only used if runInSubprocess is true).
+
+        NOTE: GEMPAK processing is resource-intensive, so setting this value
+        too high may overload a user's system and impact performance and
+        stability. Users should consider the other applications that are
+        running and monitor their available memory when increasing this limit.
+    -->
     <subprocessLimit>3</subprocessLimit>
+
 </gempakProcessingConfig>

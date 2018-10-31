@@ -44,6 +44,7 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 07, 2018 54480      mapeters    Initial creation
+ * Oct 25, 2018 54483      mapeters    Shorten socket accept timeout
  *
  * </pre>
  *
@@ -58,10 +59,8 @@ public class GempakServerSocketConnector extends GempakSocketConnector
     /**
      * Time (in ms) to wait for a connection to be made to the server socket
      * before throwing an exception.
-     *
-     * TODO set better value
      */
-    private static final int TIMEOUT = 30_000;
+    private static final int TIMEOUT = 15_000;
 
     private final ServerSocket serverSocket;
 

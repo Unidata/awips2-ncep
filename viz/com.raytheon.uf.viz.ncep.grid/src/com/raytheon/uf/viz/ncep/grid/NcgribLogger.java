@@ -16,8 +16,11 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
+ */
 package com.raytheon.uf.viz.ncep.grid;
+
+import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
  * Handles enabling/disabling various types of logging for ncgrib data.
@@ -30,25 +33,35 @@ package com.raytheon.uf.viz.ncep.grid;
  * ------------ ---------- ----------- --------------------------
  *                                     Initial creation
  * Sep 13, 2018 54483      mapeters    Sync {@link #getInstance()}
+ * Oct 25, 2018 54483      mapeters    Add dynamic serialize support
  *
  * </pre>
  *
  * @author mapeters
  */
+@DynamicSerialize
 public class NcgribLogger {
 
     private static final Object INSTANCE_LOCK = new Object();
 
-    private boolean enableRscLogs;
-
-    private boolean enableDiagnosticLogs;
-
-    private boolean enableContourLogs;
-
-    private boolean enableTotalTimeLogs;
-
     private static NcgribLogger instance = null;
 
+    @DynamicSerializeElement
+    private boolean enableRscLogs = false;
+
+    @DynamicSerializeElement
+    private boolean enableDiagnosticLogs = false;
+
+    @DynamicSerializeElement
+    private boolean enableContourLogs = false;
+
+    @DynamicSerializeElement
+    private boolean enableTotalTimeLogs = false;
+
+    /**
+     * @return the singleton {@link NcgribLogger} instance, creating it if
+     *         necessary
+     */
     public static NcgribLogger getInstance() {
         synchronized (INSTANCE_LOCK) {
             if (instance == null) {
@@ -58,42 +71,86 @@ public class NcgribLogger {
         }
     }
 
-    private NcgribLogger() {
-        this.enableRscLogs = false;
-        this.enableDiagnosticLogs = false;
-        this.enableContourLogs = false;
-        this.enableTotalTimeLogs = false;
+    /**
+     * Empty constructor for serialization. This should never be called
+     * externally as this is a singleton, use {@link #getInstance()} instead.
+     */
+    public NcgribLogger() {
     }
 
-    public void setEnableRscLogs(boolean enable) {
-        this.enableRscLogs = enable;
+    /**
+     * @return the enableRscLogs
+     */
+    public boolean isEnableRscLogs() {
+        return enableRscLogs;
     }
 
-    public boolean enableRscLogs() {
-        return this.enableRscLogs;
+    /**
+     * @param enableRscLogs
+     *            the enableRscLogs to set
+     */
+    public void setEnableRscLogs(boolean enableRscLogs) {
+        this.enableRscLogs = enableRscLogs;
     }
 
-    public void setEnableDiagnosticLogs(boolean enable) {
-        this.enableDiagnosticLogs = enable;
+    /**
+     * @return the enableDiagnosticLogs
+     */
+    public boolean isEnableDiagnosticLogs() {
+        return enableDiagnosticLogs;
     }
 
-    public boolean enableDiagnosticLogs() {
-        return this.enableDiagnosticLogs;
+    /**
+     * @param enableDiagnosticLogs
+     *            the enableDiagnosticLogs to set
+     */
+    public void setEnableDiagnosticLogs(boolean enableDiagnosticLogs) {
+        this.enableDiagnosticLogs = enableDiagnosticLogs;
     }
 
-    public void setEnableCntrLogs(boolean enable) {
-        this.enableContourLogs = enable;
+    /**
+     * @return the enableContourLogs
+     */
+    public boolean isEnableContourLogs() {
+        return enableContourLogs;
     }
 
-    public boolean enableCntrLogs() {
-        return this.enableContourLogs;
+    /**
+     * @param enableContourLogs
+     *            the enableContourLogs to set
+     */
+    public void setEnableContourLogs(boolean enableContourLogs) {
+        this.enableContourLogs = enableContourLogs;
     }
 
-    public void setEnableTotalTimeLogs(boolean enable) {
-        this.enableTotalTimeLogs = enable;
+    /**
+     * @return the enableTotalTimeLogs
+     */
+    public boolean isEnableTotalTimeLogs() {
+        return enableTotalTimeLogs;
     }
 
-    public boolean enableTotalTimeLogs() {
-        return this.enableTotalTimeLogs;
+    /**
+     * @param enableTotalTimeLogs
+     *            the enableTotalTimeLogs to set
+     */
+    public void setEnableTotalTimeLogs(boolean enableTotalTimeLogs) {
+        this.enableTotalTimeLogs = enableTotalTimeLogs;
+    }
+
+    /**
+     * Update this {@link NcgribLogger}'s settings from other's. Note that since
+     * this is a singleton, this should only be used for updating the singleton
+     * instance in one process after serializing the singleton instance from
+     * another process.
+     *
+     * @param other
+     *            the {@link NcgribLogger} to copy the settings from
+     */
+    public void update(NcgribLogger other) {
+        setEnableRscLogs(other.isEnableRscLogs());
+        setEnableDiagnosticLogs(other.isEnableDiagnosticLogs());
+        setEnableContourLogs(other.isEnableContourLogs());
+        setEnableTotalTimeLogs(other.isEnableTotalTimeLogs());
     }
 }

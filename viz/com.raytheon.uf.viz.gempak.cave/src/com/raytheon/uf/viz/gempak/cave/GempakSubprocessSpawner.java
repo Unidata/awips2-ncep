@@ -40,7 +40,9 @@ import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
 import com.raytheon.uf.viz.gempak.common.message.GempakLoggingConfigMessage;
+import com.raytheon.uf.viz.gempak.common.message.GempakProcessingExceptionMessage;
 import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
+import com.raytheon.uf.viz.gempak.common.message.handler.GempakProcessingExceptionMessageHandler;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataURIRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
@@ -71,6 +73,7 @@ import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
  *                                     shutdown support
  * Oct 25, 2018 54483      mapeters    Handle navigation and subgrid requests,
  *                                     send logging config to subprocess
+ * Nov 01, 2018 54483      mapeters    Handle processing exception messages
  *
  * </pre>
  *
@@ -125,6 +128,9 @@ public class GempakSubprocessSpawner {
             communicator.registerRequestHandler(
                     GempakSubgridCoverageRequest.class,
                     new GempakSubgridCoverageRequestHandler());
+            communicator.registerMessageHandler(
+                    GempakProcessingExceptionMessage.class,
+                    new GempakProcessingExceptionMessageHandler());
         } catch (GempakConnectionException | IOException e) {
             throw new GempakConnectionException(
                     "Error initializing GEMPAK subprocess", e);

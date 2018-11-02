@@ -22,8 +22,12 @@ package com.raytheon.uf.viz.gempak.common.comm;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
+import com.raytheon.uf.viz.gempak.common.message.GempakProcessingExceptionMessage;
 import com.raytheon.uf.viz.gempak.common.message.IGempakMessage;
 import com.raytheon.uf.viz.gempak.common.message.handler.IGempakMessageHandler;
 import com.raytheon.uf.viz.gempak.common.request.IGempakRequest;
@@ -39,6 +43,9 @@ import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Oct 16, 2018 54483      mapeters    Initial creation
+ * Nov 01, 2018 54483      mapeters    Communicate {@link GempakProcessingException}s across
+ *                                     processes during request/response, to prevent them from
+ *                                     getting out of sync
  *
  * </pre>
  *
@@ -46,6 +53,9 @@ import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
  */
 public abstract class AbstractGempakCommunicator
         implements IGempakCommunicator {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(AbstractGempakCommunicator.class);
 
     private final Map<Class<? extends IGempakRequest>, IGempakRequestHandler<? extends IGempakRequest>> requestHandlers = new HashMap<>();
 
@@ -58,14 +68,13 @@ public abstract class AbstractGempakCommunicator
     }
 
     /**
-     * Handle the given request.
+     * Respond to the given request.
      *
      * @param request
-     * @return the response object
      * @throws GempakException
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected Object handleRequest(IGempakRequest request)
+    protected void handleRequest(IGempakRequest request)
             throws GempakException {
         IGempakRequestHandler handler = getRequestHandler(request);
         if (handler == null) {
@@ -73,7 +82,24 @@ public abstract class AbstractGempakCommunicator
                     "No registered handler for request: "
                             + request.getClass().getName());
         }
-        return handler.handleRequest(request);
+
+        try {
+            Object response = handler.handleRequest(request);
+            sendObject(response);
+        } catch (GempakProcessingException e) {
+            /*
+             * An error occurred that is specific to this request and shouldn't
+             * influence future requests. The other process is still expecting a
+             * response, so we send the exception across so that it knows what
+             * happened and can move on from this request. Other exceptions are
+             * propagated because they indicate an error with the actual
+             * connection/communication, so we need to fully cancel the current
+             * request/message processing in that case.
+             */
+            statusHandler.error("Error processing GEMPAK request: " + request,
+                    e);
+            send(new GempakProcessingExceptionMessage(e));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -105,7 +131,40 @@ public abstract class AbstractGempakCommunicator
                     "No registered handler for message: "
                             + message.getClass().getName());
         }
-        return handler.handleMessage(message);
+
+        try {
+            return handler.handleMessage(message);
+        } catch (GempakProcessingException e) {
+            /*
+             * An error occurred that is specific to this request and shouldn't
+             * influence future requests. Other errors are allowed to propagate
+             * as they indicate an error with the actual
+             * connection/communication, which prevents us from being able to
+             * process future requests correctly.
+             */
+            if (message.isIntentionalException()) {
+                /*
+                 * If the message's purpose is to indicate an error that
+                 * occurred in the other process, propagate the exception in
+                 * case this message is part of a bigger request in order to
+                 * cancel the overall request, since the other side will be
+                 * moving on as well. We do this instead of returning false
+                 * because we still want to process future requests.
+                 */
+                throw e;
+            }
+
+            /*
+             * If the exception wasn't intentional to cancel the current
+             * processing, just log it and try to continue with the current
+             * processing, as the other process will be proceeding normally as
+             * well.
+             */
+            statusHandler.error("Error processing GEMPAK message: " + message,
+                    e);
+        }
+
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -114,4 +173,14 @@ public abstract class AbstractGempakCommunicator
         return (IGempakMessageHandler<T>) messageHandlers
                 .get(message.getClass());
     }
+
+    /**
+     * Send the given object.
+     *
+     * @param object
+     * @throws GempakCommunicationException
+     *             if an error occurs sending the object
+     */
+    protected abstract void sendObject(Object object)
+            throws GempakCommunicationException;
 }

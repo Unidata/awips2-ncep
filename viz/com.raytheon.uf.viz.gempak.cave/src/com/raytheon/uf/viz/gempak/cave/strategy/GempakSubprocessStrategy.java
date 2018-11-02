@@ -38,10 +38,10 @@ import com.raytheon.uf.viz.gempak.cave.GempakProcessingManager;
 import com.raytheon.uf.viz.gempak.cave.GempakSubprocessSpawner;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
-import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakStrategyException;
 import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
 
 /**
@@ -58,6 +58,7 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  * Sep 04, 2018 54480      mapeters    Initial creation
  * Oct 16, 2018 54483      mapeters    Single subprocess can handle multiple requests, add
  *                                     shutdown support
+ * Nov 01, 2018 54483      mapeters    Use {@link GempakStrategyException}
  *
  * </pre>
  *
@@ -168,7 +169,7 @@ public class GempakSubprocessStrategy implements IGempakProcessingStrategy {
                 } while (spawner == null && subprocessLimit.get() > 0);
                 waitingRequestsCounter.decrementAndGet();
             } catch (InterruptedException e) {
-                throw new GempakException(
+                throw new GempakStrategyException(
                         "Thread interrupted while waiting for other "
                                 + "subprocesses to complete",
                         e);
@@ -192,8 +193,7 @@ public class GempakSubprocessStrategy implements IGempakProcessingStrategy {
             GempakDataRecord rval = null;
             try {
                 rval = spawner.getDataRecord(dataInput);
-            } catch (GempakConnectionException | GempakCommunicationException
-                    | GempakShutdownException e) {
+            } catch (GempakStrategyException e) {
                 /*
                  * Catch errors indicating a likely invalid subprocess in order
                  * to replace it, let others propagate

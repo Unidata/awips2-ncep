@@ -23,6 +23,9 @@ package com.raytheon.uf.viz.gempak.common.exception;
  * A GEMPAK exception for when an error occurs shutting down data processing
  * resources.
  *
+ * NOTE: See {@link GempakException}'s javadoc for the importance of the
+ * exceptions used in GEMPAK processing.
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -30,12 +33,13 @@ package com.raytheon.uf.viz.gempak.common.exception;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Oct 16, 2018 54483      mapeters    Initial creation
+ * Nov 01, 2018 54483      mapeters    Extend {@link GempakStrategyException}
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakShutdownException extends GempakException {
+public class GempakShutdownException extends GempakStrategyException {
 
     private static final long serialVersionUID = 1L;
 

@@ -20,8 +20,13 @@
 package com.raytheon.uf.viz.gempak.common.exception;
 
 /**
- * A GEMPAK exception for when an error occurs during the actual data
- * processing.
+ * A GEMPAK exception for when an error occurs during the actual data processing
+ * of an individual request. It is not influenced by the current processing
+ * strategy being used and should not influence the ability for the strategy to
+ * process further requests.
+ *
+ * NOTE: See {@link GempakException}'s javadoc for the importance of the
+ * exceptions used in GEMPAK processing.
  *
  * <pre>
  *

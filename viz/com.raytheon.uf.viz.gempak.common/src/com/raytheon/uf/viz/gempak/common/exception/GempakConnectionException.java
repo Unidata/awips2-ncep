@@ -23,6 +23,9 @@ package com.raytheon.uf.viz.gempak.common.exception;
  * A GEMPAK exception for when an error occurs creating a connection between
  * CAVE and a GEMPAK subprocess.
  *
+ * NOTE: See {@link GempakException}'s javadoc for the importance of the
+ * exceptions used in GEMPAK processing.
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -30,12 +33,13 @@ package com.raytheon.uf.viz.gempak.common.exception;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 11, 2018 54480      mapeters    Initial creation
+ * Nov 01, 2018 54483      mapeters    Extend {@link GempakStrategyException}
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakConnectionException extends GempakException {
+public class GempakConnectionException extends GempakStrategyException {
 
     private static final long serialVersionUID = 1L;
 

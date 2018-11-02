@@ -71,10 +71,16 @@ public interface IGempakCommunicator {
 
     /**
      * Handle requests/messages (using the registered handlers) until a message
-     * is received that indicates to stop processing. This method blocks until
-     * processing is completed.
+     * is received that indicates to stop processing, or an error occurs. This
+     * method blocks until processing is completed.
+     *
+     * Subclasses are responsible for deciding which {@link GempakException}s
+     * should cause processing to terminate, and which ones should allow for
+     * further requests/messages to be processed.
      *
      * @throws GempakException
+     *             an exception while processing a request/message that
+     *             indicates that no further processing should be done
      */
     public void process() throws GempakException;
 

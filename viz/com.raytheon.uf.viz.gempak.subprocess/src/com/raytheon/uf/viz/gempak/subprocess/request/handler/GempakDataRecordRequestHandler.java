@@ -27,6 +27,7 @@ import com.raytheon.uf.viz.gempak.common.Dgdriv;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.DgdrivException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
 import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessDataURIRetriever;
@@ -50,6 +51,8 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  *                                     performance logging
  * Oct 25, 2018 54483      mapeters    Pass navigation and subgrid retrievers
  *                                     to {@link Dgdriv}
+ * Nov 01, 2018 54483      mapeters    Throw data exception again, now that it's
+ *                                     safely handled by the communicator
  *
  * </pre>
  *
@@ -79,7 +82,8 @@ public class GempakDataRecordRequestHandler
     }
 
     @Override
-    public GempakDataRecord handleRequest(GempakDataRecordRequest request) {
+    public GempakDataRecord handleRequest(GempakDataRecordRequest request)
+            throws GempakProcessingException {
         long t0 = System.currentTimeMillis();
 
         Dgdriv dgdriv = new Dgdriv(request.getDataInput(),
@@ -96,7 +100,7 @@ public class GempakDataRecordRequestHandler
                         dgdriv.getSubgSpatialObj());
             }
         } catch (DgdrivException e) {
-            statusHandler.error(
+            throw new GempakProcessingException(
                     "Error performing GEMPAK data processing for " + request,
                     e);
         }

@@ -16,12 +16,13 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
+ */
 package com.raytheon.uf.viz.gempak.common.exception;
 
 /**
- * A GEMPAK exception for when an error occurs communicating between CAVE and a
- * GEMPAK subprocess.
+ * A GEMPAK exception for when an error occurs that is specific to the current
+ * processing strategy (IGempakProcessingStrategy) being used and influences its
+ * ability to process future requests.
  *
  * NOTE: See {@link GempakException}'s javadoc for the importance of the
  * exceptions used in GEMPAK processing.
@@ -32,26 +33,25 @@ package com.raytheon.uf.viz.gempak.common.exception;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 11, 2018 54480      mapeters    Initial creation
- * Nov 01, 2018 54483      mapeters    Extend {@link GempakStrategyException}
+ * Oct 16, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakCommunicationException extends GempakStrategyException {
+public class GempakStrategyException extends GempakException {
 
     private static final long serialVersionUID = 1L;
 
-    public GempakCommunicationException(String message) {
+    public GempakStrategyException(String message) {
         super(message);
     }
 
-    public GempakCommunicationException(String message, Throwable t) {
+    public GempakStrategyException(String message, Throwable t) {
         super(message, t);
     }
 
-    public GempakCommunicationException(Throwable t) {
+    public GempakStrategyException(Throwable t) {
         super(t);
     }
 }

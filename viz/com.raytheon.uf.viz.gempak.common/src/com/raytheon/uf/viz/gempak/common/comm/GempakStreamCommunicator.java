@@ -26,8 +26,11 @@ import java.io.OutputStream;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager.SerializationType;
 import com.raytheon.uf.common.serialization.SerializationException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
 import com.raytheon.uf.viz.gempak.common.message.IGempakMessage;
 import com.raytheon.uf.viz.gempak.common.request.IGempakRequest;
 
@@ -45,12 +48,18 @@ import com.raytheon.uf.viz.gempak.common.request.IGempakRequest;
  * Sep 26, 2018 54483      mapeters    Flush streams as needed
  * Oct 16, 2018 54483      mapeters    Added {@link IGempakMessage} support, abstracted out
  *                                     handler logic to {@link AbstractGempakCommunicator}
+ * Nov 01, 2018 54483      mapeters    More abstracted out to {@link AbstractGempakCommunicator},
+ *                                     prevent subprocess shutting down from issue that isn't its
+ *                                     fault
  *
  * </pre>
  *
  * @author mapeters
  */
 public class GempakStreamCommunicator extends AbstractGempakCommunicator {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(GempakStreamCommunicator.class);
 
     private final DynamicSerializationManager manager = DynamicSerializationManager
             .getManager(SerializationType.Thrift);
@@ -76,7 +85,7 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
     @Override
     public void send(IGempakMessage request)
             throws GempakCommunicationException {
-        sendInternal(request);
+        sendObject(request);
     }
 
     @Override
@@ -96,16 +105,15 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
                             + responseType.getClass().getName());
         }
 
-        sendInternal(request);
+        sendObject(request);
         try {
             Object obj;
             while ((obj = manager.deserialize(is)) != null) {
                 if (obj instanceof IGempakRequest) {
                     // Received intermediate request, respond to it
-                    Object response = handleRequest((IGempakRequest) obj);
-                    sendInternal(response);
+                    handleRequest((IGempakRequest) obj);
                 } else if (obj instanceof IGempakMessage) {
-                    // Received intermediate message, handle it
+                    // Received intermediate message, handle it.
                     if (!handleMessage((IGempakMessage) obj)) {
                         break;
                     }
@@ -134,11 +142,20 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
 
     @Override
     public void process() throws GempakException {
-        while (processInternal()) {
-            /*
-             * Empty loop to process individual requests/messages until one
-             * returns false to indicate to stop
-             */
+        boolean continueProcessing = true;
+        while (continueProcessing) {
+            try {
+                continueProcessing = processInternal();
+            } catch (GempakProcessingException e) {
+                /*
+                 * A processing exception indicates an issue with an individual
+                 * request, as opposed to our ability to process requests in
+                 * general. So, processing exceptions are caught so that we can
+                 * continue to process other requests, while other exceptions
+                 * are propagated.
+                 */
+                statusHandler.error("Error processing GEMPAK request", e);
+            }
         }
     }
 
@@ -148,7 +165,7 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
      *
      * @return whether or not we should continue communicating and processing
      *         requests/messages
-     * @throws GempakCommunicationException
+     * @throws GempakException
      */
     private boolean processInternal() throws GempakException {
         Object obj;
@@ -161,8 +178,7 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
 
         if (obj instanceof IGempakRequest) {
             // Received request, respond to it
-            Object response = handleRequest((IGempakRequest) obj);
-            sendInternal(response);
+            handleRequest((IGempakRequest) obj);
         } else if (obj instanceof IGempakMessage) {
             // Received message, handle it
             return handleMessage((IGempakMessage) obj);
@@ -176,7 +192,8 @@ public class GempakStreamCommunicator extends AbstractGempakCommunicator {
         return true;
     }
 
-    private void sendInternal(Object object)
+    @Override
+    protected void sendObject(Object object)
             throws GempakCommunicationException {
         try {
             manager.serialize(object, os);

@@ -34,8 +34,11 @@ import com.raytheon.uf.viz.core.status.VizStatusHandlerFactory;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.conn.IGempakConnector;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
 import com.raytheon.uf.viz.gempak.common.message.GempakLoggingConfigMessage;
+import com.raytheon.uf.viz.gempak.common.message.GempakProcessingExceptionMessage;
 import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
+import com.raytheon.uf.viz.gempak.common.message.handler.GempakProcessingExceptionMessageHandler;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.subprocess.conn.GempakClientSocketConnector;
 import com.raytheon.uf.viz.gempak.subprocess.message.handler.GempakLoggingConfigMessageHandler;
@@ -63,6 +66,9 @@ import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordReq
  *                                     receiving shutdown request, initialize localization
  * Oct 25, 2018 54483      mapeters    Handle {@link GempakLoggingConfigMessage}s, match
  *                                     CAVE logging and prevent Eclipse error pop-ups
+ * Nov 01, 2018 54483      mapeters    Handle {@link GempakProcessingExceptionMessage}s, now
+ *                                     safe for request handlers to throw
+ *                                     {@link GempakProcessingException}s
  *
  * </pre>
  *
@@ -107,11 +113,6 @@ public class GempakSubprocessor implements IStandaloneComponent {
              * We are expecting CAVE to send us data processing requests, so
              * register the data request handler with the communicator and then
              * tell the communicator to read the requests and respond to them
-             *
-             * NOTE: these request handlers should only throw exceptions for
-             * errors that indicate an invalid subprocess (as opposed to an
-             * invalid data request, for example), as any exception will cause
-             * this subprocess to shutdown
              */
             communicator.registerRequestHandler(GempakDataRecordRequest.class,
                     new GempakDataRecordRequestHandler(communicator));
@@ -120,6 +121,9 @@ public class GempakSubprocessor implements IStandaloneComponent {
                     new GempakLoggingConfigMessageHandler());
             communicator.registerMessageHandler(GempakShutdownMessage.class,
                     new GempakShutdownMessageHandler());
+            communicator.registerMessageHandler(
+                    GempakProcessingExceptionMessage.class,
+                    new GempakProcessingExceptionMessageHandler());
             communicator.process();
         } catch (GempakException e) {
             statusHandler.error(

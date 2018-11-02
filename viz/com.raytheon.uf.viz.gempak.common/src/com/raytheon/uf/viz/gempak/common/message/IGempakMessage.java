@@ -32,6 +32,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Oct 16, 2018 54483      mapeters    Initial creation
+ * Nov 02, 2018 54483      mapeters    Add {@link #isIntentionalException()}
  *
  * </pre>
  *
@@ -39,5 +40,15 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
  */
 @DynamicSerialize
 public interface IGempakMessage {
-    // Empty, just provides consistent supertype for GEMPAK messages
+
+    /**
+     * Return whether or not this message intentionally throws an exception that
+     * indicates the current request should be canceled.
+     *
+     * @return true if this message intentionally throws an exception, false
+     *         otherwise
+     */
+    default boolean isIntentionalException() {
+        return false;
+    }
 }

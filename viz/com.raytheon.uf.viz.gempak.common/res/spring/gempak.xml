@@ -11,4 +11,13 @@
             <bean class="com.raytheon.uf.viz.gempak.common.adapter.GempakDbDataResponseAdapter"/>
         </constructor-arg>
     </bean>
+
+    <bean class="com.raytheon.uf.common.serialization.DynamicSerializationManager" factory-method="registerAdapter">
+        <constructor-arg>
+            <value>com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException</value>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="com.raytheon.uf.viz.gempak.common.adapter.GempakProcessingExceptionAdapter"/>
+        </constructor-arg>
+    </bean>
 </beans>

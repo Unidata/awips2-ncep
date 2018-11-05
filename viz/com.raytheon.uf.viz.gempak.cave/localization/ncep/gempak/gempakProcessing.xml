@@ -30,7 +30,7 @@
         If true, GEMPAK processing is done in subprocesses; if false, it is
         done in the CAVE process.
     -->
-    <runInSubprocess>false</runInSubprocess>
+    <runInSubprocess>true</runInSubprocess>
 
     <!--
         The maximum number of subprocesses that can run concurrently for

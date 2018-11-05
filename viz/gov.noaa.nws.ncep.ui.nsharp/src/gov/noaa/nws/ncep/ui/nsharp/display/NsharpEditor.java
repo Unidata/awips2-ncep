@@ -23,6 +23,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  * 01/15/2018   6746        bsteffen    Do not replace incoming display on swap.
  * 03/21/2018   6914        bsteffen    Reuse display panes when changing pane layout.
+ * 11/05/2018   6800        bsteffen    Use a new handler when a procedure is loaded.
  *
  * </pre>
  * 
@@ -35,15 +36,9 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpAbstractPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpDataPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpHodoPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpInsetPaneResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpPartListener;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSkewTPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSpcGraphsPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpTimeStnPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpWitoPaneResource;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
 import gov.noaa.nws.ncep.ui.pgen.tools.InputHandlerDefaultImpl;
 import gov.noaa.nws.ncep.viz.ui.display.NCLoopProperties;
@@ -1410,113 +1405,19 @@ public class NsharpEditor extends AbstractEditor implements
      * be called before calling this function
      */
     private void createPaneResource() {
-        NsharpSkewTPaneResource skewtPaneRsc = null;
-        // skewT pane always available for all pane configuration
-        // However, in d2dlite or OCP configuration, their graph mode should be checked to 
-        // make sure NOT in hodo mode. As hodo mode uses its own pane; icing and turbulence share same 
-        // pane with skewT. 
-        if ((!paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) &&
-        		!paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
-                || ((paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) || 
-                		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
-                && rscHandler
-                        .getCurrentGraphMode() != NsharpConstants.GRAPH_HODO)) { 
-            ResourcePair skewtRscPair = displayArray[DISPLAY_SKEWT]
-                    .getDescriptor().getResourceList().get(0);
-
-            if (skewtRscPair.getResource() instanceof NsharpSkewTPaneResource) {
-                skewtPaneRsc = (NsharpSkewTPaneResource) skewtRscPair
-                        .getResource();
-                skewtPaneRsc.setRscHandler(rscHandler);
+        for (int i = 0; i < displayArray.length; i += 1) {
+            ResourceList resources = displayArray[i].getDescriptor()
+                    .getResourceList();
+            List<NsharpAbstractPaneResource> nsharpResources = resources
+                    .getResourcesByTypeAsType(NsharpAbstractPaneResource.class);
+            for (NsharpAbstractPaneResource nsharpResource : nsharpResources) {
+                nsharpResource.setRscHandler(rscHandler);
+                if (nsharpResource instanceof NsharpSkewTPaneResource) {
+                    ((NsharpSkewTPaneResource) nsharpResource)
+                            .setCurrentGraphMode(
+                                    rscHandler.getCurrentGraphMode());
+                }
             }
-
-        }
-        // Data pane always available for all pane configuration
-        ResourcePair dataRscPair = displayArray[DISPLAY_DATA].getDescriptor()
-                .getResourceList().get(0);
-        if (dataRscPair.getResource() instanceof NsharpDataPaneResource) {
-            NsharpDataPaneResource dataPaneRsc = (NsharpDataPaneResource) dataRscPair
-                    .getResource();
-            dataPaneRsc.setRscHandler(rscHandler);
-        }
-        // hodo pane always available for all pane configuration
-        // However, in d2dlite or OCP configuration, their graph mode should be checked to 
-        // make sure in hodo mode. 
-        if((!paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) &&
-        		!paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
-                || ((paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) || 
-                		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
-                && rscHandler
-                        .getCurrentGraphMode() == NsharpConstants.GRAPH_HODO)) {
-            ResourcePair hodoRscPair = displayArray[DISPLAY_HODO]
-                    .getDescriptor().getResourceList().get(0);
-            if (hodoRscPair.getResource() instanceof NsharpHodoPaneResource) {
-                NsharpHodoPaneResource hodoPaneRsc = (NsharpHodoPaneResource) hodoRscPair
-                        .getResource();
-                hodoPaneRsc.setRscHandler(rscHandler);
-            }
-        } 
-
-        if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
-            ResourcePair witoRscPair = displayArray[DISPLAY_WITO]
-                    .getDescriptor().getResourceList().get(0);
-            if (witoRscPair.getResource() instanceof NsharpWitoPaneResource) {
-                NsharpWitoPaneResource witoPaneRsc = (NsharpWitoPaneResource) witoRscPair
-                        .getResource();
-                witoPaneRsc.setRscHandler(rscHandler);
-            }
-
-            ResourcePair insetRscPair = displayArray[DISPLAY_INSET]
-                    .getDescriptor().getResourceList().get(0);
-            if (insetRscPair.getResource() instanceof NsharpInsetPaneResource) {
-                NsharpInsetPaneResource insetPaneRsc = (NsharpInsetPaneResource) insetRscPair
-                        .getResource();
-                insetPaneRsc.setRscHandler(rscHandler);
-            }
-        }
-        if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
-            ResourcePair spcGraphRscPair = displayArray[DISPLAY_SPC_GRAPHS]
-                    .getDescriptor().getResourceList().get(0);
-            if (spcGraphRscPair.getResource() instanceof NsharpSpcGraphsPaneResource) {
-                NsharpSpcGraphsPaneResource spcPaneRsc = (NsharpSpcGraphsPaneResource) spcGraphRscPair
-                        .getResource();
-                spcPaneRsc.setRscHandler(rscHandler);
-            }
-        }
-        if (paneConfigurationName
-                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
-            ResourcePair futureRscPair = displayArray[DISPLAY_FUTURE]
-                    .getDescriptor().getResourceList().get(0);
-            if (futureRscPair.getResource() instanceof NsharpAbstractPaneResource) {
-                NsharpAbstractPaneResource futurePaneRsc = (NsharpAbstractPaneResource) futureRscPair
-                        .getResource();
-                futurePaneRsc.setRscHandler(rscHandler);
-            }
-        }
-        if (paneConfigurationName
-                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR) 
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
-            ResourcePair timeStnRscPair = displayArray[DISPLAY_TIMESTN]
-                    .getDescriptor().getResourceList().get(0);
-            if (timeStnRscPair.getResource() instanceof NsharpTimeStnPaneResource) {
-                NsharpTimeStnPaneResource timeStnPaneRsc = (NsharpTimeStnPaneResource) timeStnRscPair
-                        .getResource();
-                timeStnPaneRsc.setRscHandler(rscHandler);
-            }
-        }
-        if (skewtPaneRsc != null) {
-            skewtPaneRsc.setCurrentGraphMode(rscHandler.getCurrentGraphMode());
         }
     }
 
@@ -1961,18 +1862,24 @@ public class NsharpEditor extends AbstractEditor implements
                     .getRscHandler();
             if (newHandler != null && newHandler != rscHandler) {
                 rscHandler = newHandler;
-                for (int i = 0; i < displayArray.length; i += 1) {
-                    if (displayPanes[i] != pane) {
-                        ResourceList resources = displayArray[i].getDescriptor()
-                                .getResourceList();
-                        List<NsharpAbstractPaneResource> nsharpResources = resources
-                                .getResourcesByTypeAsType(
-                                        NsharpAbstractPaneResource.class);
-                        for (NsharpAbstractPaneResource nsharpResource : nsharpResources) {
-                            nsharpResource.setRscHandler(rscHandler);
-                        }
-                    }
+                createPaneResource();
+            } else if (newHandler == null) {
+                ResourceList resources = newRenderableDisplay.getDescriptor()
+                        .getResourceList();
+                /*
+                 * Ensure resources are instantiated so it is possible to set
+                 * the resource handler.
+                 */
+                resources.instantiateResources(
+                        newRenderableDisplay.getDescriptor(), true);
+                if (newRenderableDisplay instanceof NsharpSkewTPaneDisplay) {
+                    /*
+                     * This is a new display loaded into an existing editor,
+                     * probably by the bundle loader, so reset all the data.
+                     */
+                    rscHandler = new NsharpResourceHandler(displayArray, this);
                 }
+                createPaneResource();
             }
             rscHandler.updateDisplay(displayArray, paneConfigurationName);
             rscHandler.resetData();

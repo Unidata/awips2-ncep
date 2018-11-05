@@ -23,6 +23,7 @@
  * 08/10/2015  RM#9396   Chin Chen  implement new OPC pane configuration
  * 07/05/2016  RM#15923  Chin Chen  NSHARP - Native Code replacement
  * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
+ * 11/05/2018  6800      bsteffen   Extract click indexing to time/station resource.
  * </pre>
  * 
  * @author Chin Chen
@@ -126,21 +127,7 @@ public class NsharpResourceHandler {
 
     private int currentInsetPage = 1;
 
-    private int dtNextPageEnd = NsharpConstants.DATA_TIMELINE_NEXT_PAGE_END_;
-
-    private double charHeight = NsharpConstants.CHAR_HEIGHT_;
-
-    private double lineHeight = charHeight;
-
-    private int dtXOrig = NsharpConstants.DATA_TIMELINE_X_ORIG;
-
-    private int dtYOrig = NsharpConstants.DATA_TIMELINE_Y_ORIG;
-
-    private int dtWidth = NsharpConstants.DATA_TIMELINE_WIDTH;
-
     private String paneConfigurationName;
-
-    private int numTimeLinePerPage = 1;
 
     private NsharpWeatherDataStore weatherDataStore;
 
@@ -263,18 +250,6 @@ public class NsharpResourceHandler {
 
     private NsharpSoundingElementStateProperty preSndProfileProp = null;
 
-    private int curTimeLinePage = 1;
-
-    private int totalTimeLinePage = 1;
-
-    private int curStnIdPage = 1;
-
-    private int totalStnIdPage = 1;
-
-    private int curSndPage = 1;
-
-    private int totalSndPage = 1;
-
     private int previousTimeLineStateListIndex;
 
     // index to first dim of stnTimeSndTable and index to stnElementList
@@ -293,8 +268,6 @@ public class NsharpResourceHandler {
     private int currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
 
     private float currentParcelLayerPressure = NsharpLibSndglib.MU_LAYER_PRESS;
-
-    private float smWindDir, smWindSpd;
 
     public class CompSndSelectedElem {
         private int stnIndex;
@@ -751,14 +724,6 @@ public class NsharpResourceHandler {
         return currentParcel;
     }
 
-    public float getSmWindDir() {
-        return smWindDir;
-    }
-
-    public float getSmWindSpd() {
-        return smWindSpd;
-    }
-
     public NsharpStationInfo getPickedStnInfo() {
         return pickedStnInfo;
     }
@@ -803,8 +768,8 @@ public class NsharpResourceHandler {
         Coordinate c = hodoPaneRsc.getHodoBackground().getWorld()
                 .unMap(hodoHouseC.x, hodoHouseC.y);
         c = WxMath.speedDir((float) c.x, (float) c.y);
-        smWindDir = (float) c.y;
-        smWindSpd = (float) c.x;
+        float smWindDir = (float) c.y;
+        float smWindSpd = (float) c.x;
         weatherDataStore.setStorm(smWindSpd, smWindDir);
         if (insetPaneRsc != null) {
             NsharpWGraphics WGc = insetPaneRsc.getPsblWatchTypeBackground()
@@ -1827,9 +1792,6 @@ public class NsharpResourceHandler {
                     .get(currentSndElementListIndex);
         }
 
-        // set total time line group and stn id list page number
-        calculateTimeStnBoxData();
-
         // set data time to descriptor this is necessary for looping
         // starting 13.2.1, this line is changed by Raytheon
         if ((skewtPaneRsc != null) && (skewtPaneRsc.getDescriptor()
@@ -1920,30 +1882,7 @@ public class NsharpResourceHandler {
     }
 
     public void handleUserClickOnStationId(Coordinate c, boolean shiftDown) {
-        // first to find if it is for change to next page, or change sorting
-        int index = ((int) (c.y - dtYOrig)) / (int) lineHeight;
-
-        if (c.y < dtNextPageEnd) {// d2dlite
-            // change to next/previous page
-            if (totalStnIdPage == 1)
-                return;
-            if ((c.x - (dtXOrig + dtWidth)) < (dtWidth / 2)) {
-                curStnIdPage++;
-                if (curStnIdPage > totalStnIdPage)
-                    curStnIdPage = 1;
-            } else {
-                curStnIdPage--;
-                if (curStnIdPage <= 0)
-                    curStnIdPage = totalStnIdPage;
-            }
-            return;
-        }
-        double dIndex;
-        // recalculate index for time line
-        dIndex = ((c.y - dtNextPageEnd)) / lineHeight
-                + (curStnIdPage - 1) * numTimeLinePerPage;
-
-        index = (int) dIndex;
+        int index = timeStnPaneRsc.getUserClickedStationIdIndex(c);
         if (index < this.stnElementList.size()) {
             NsharpConstants.ActState actState = stnElementList.get(index)
                     .getActionState();
@@ -2015,33 +1954,7 @@ public class NsharpResourceHandler {
     }
 
     public void handleUserClickOnTimeLine(Coordinate c, boolean shiftDown) {
-
-        // first to find if it is for change to next/prev page
-        int index = ((int) (c.y - dtYOrig)) / ((int) lineHeight);
-
-        if (c.y < dtNextPageEnd) {
-            // change to next/previous page
-            if (totalTimeLinePage == 1) {
-                return;
-            }
-            if ((c.x - dtXOrig) < (dtWidth / 2)) {
-                curTimeLinePage++;
-                if (curTimeLinePage > totalTimeLinePage) {
-                    curTimeLinePage = 1;
-                }
-            } else {
-                curTimeLinePage--;
-                if (curTimeLinePage <= 0) {
-                    curTimeLinePage = totalTimeLinePage;
-                }
-            }
-            return;
-        }
-        double dIndex;
-        // recalculate index for time line
-        dIndex = (c.y - dtNextPageEnd) / lineHeight
-                + (curTimeLinePage - 1) * numTimeLinePerPage;
-        index = (int) dIndex;
+        int index = timeStnPaneRsc.getUserClickedTimeIndex(c);
         if (index < timeElementList.size() && index >= 0) {
             NsharpConstants.ActState actState = timeElementList.get(index)
                     .getActionState();
@@ -2139,29 +2052,7 @@ public class NsharpResourceHandler {
     public void handleUserClickOnSndLine(Coordinate c, boolean shiftDown) {
 
         // first to find if it is for change to next/prev page
-        int index = ((int) (c.y - dtYOrig)) / (int) lineHeight;
-        if (c.y < dtNextPageEnd) {
-            // change to next/previous page
-            if (totalSndPage == 1)
-                return;
-            if ((c.x - dtXOrig) < (dtWidth / 2)) {
-                curSndPage++;
-                if (curSndPage > totalSndPage) {
-                    curSndPage = 1;
-                }
-            } else {
-                curSndPage--;
-                if (curSndPage <= 0) {
-                    curSndPage = totalSndPage;
-                }
-            }
-            return;
-        }
-        double dIndex;
-        // recalculate index for time line
-        dIndex = (c.y - dtNextPageEnd) / lineHeight
-                + (curSndPage - 1) * numTimeLinePerPage;
-        index = (int) dIndex;
+        int index = timeStnPaneRsc.getUserClickedSndIndex(c);
         if (index < sndElementList.size() && index >= 0) {
             NsharpConstants.ActState actState = sndElementList.get(index)
                     .getActionState();
@@ -2302,8 +2193,6 @@ public class NsharpResourceHandler {
                 handleUserPickNewTimeLine(currentTimeElementListIndex);
                 return;
             }
-            curTimeLinePage = currentTimeElementListIndex / numTimeLinePerPage
-                    + 1;
             setCurSndProfileProp();
             setCurrentSoundingLayerInfo();
             resetData();
@@ -2438,8 +2327,6 @@ public class NsharpResourceHandler {
             }
             previousTimeLineStateListIndex = currentTimeElementListIndex;
             currentTimeElementListIndex = targetIndex;
-            curTimeLinePage = currentTimeElementListIndex / numTimeLinePerPage
-                    + 1;
             setCurSndProfileProp();
             setCurrentSoundingLayerInfo();
             resetData();
@@ -2590,7 +2477,6 @@ public class NsharpResourceHandler {
                         break;
                 }
             }
-            curStnIdPage = currentStnElementListIndex / numTimeLinePerPage + 1;
 
             setCurSndProfileProp();
             setCurrentSoundingLayerInfo();
@@ -2744,7 +2630,6 @@ public class NsharpResourceHandler {
                         break;
                 }
             }
-            curStnIdPage = currentSndElementListIndex / numTimeLinePerPage + 1;
 
             setCurSndProfileProp();
             setCurrentSoundingLayerInfo();
@@ -2927,56 +2812,28 @@ public class NsharpResourceHandler {
                 hodoPaneRsc = (NsharpHodoPaneResource) absPaneRsc;
                 hodoPaneRsc.setLinePropertyMap(linePropertyMap);
                 hodoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpWitoPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
-
+            } else if (absPaneRsc instanceof NsharpWitoPaneResource) {
                 witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
                 witoPaneRsc.setLinePropertyMap(linePropertyMap);
                 witoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-
-            } else if (absPaneRsc instanceof NsharpInsetPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
+            } else if (absPaneRsc instanceof NsharpInsetPaneResource) {
 
                 insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
                 insetPaneRsc.setLinePropertyMap(linePropertyMap);
                 insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
 
-            } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource
-                    && paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+            } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource) {
                 spcGraphsPaneRsc = (NsharpSpcGraphsPaneResource) absPaneRsc;
                 spcGraphsPaneRsc.setLinePropertyMap(linePropertyMap);
                 spcGraphsPaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpAbstractPaneResource
-                    && paneConfigurationName
-                            .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
-                futurePaneRsc = (NsharpAbstractPaneResource) absPaneRsc;
-                futurePaneRsc.setLinePropertyMap(linePropertyMap);
-                futurePaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpTimeStnPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_OPC_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
+            } else if (absPaneRsc instanceof NsharpTimeStnPaneResource) {
                 timeStnPaneRsc = (NsharpTimeStnPaneResource) absPaneRsc;
                 timeStnPaneRsc.setLinePropertyMap(linePropertyMap);
                 timeStnPaneRsc.setGraphConfigProperty(graphConfigProperty);
+            } else {
+                futurePaneRsc = absPaneRsc;
+                futurePaneRsc.setLinePropertyMap(linePropertyMap);
+                futurePaneRsc.setGraphConfigProperty(graphConfigProperty);
             }
         }
         this.displayArray = displayArray;
@@ -3802,10 +3659,6 @@ public class NsharpResourceHandler {
         return preSndProfileProp;
     }
 
-    public int getCurTimeLinePage() {
-        return curTimeLinePage;
-    }
-
     public int getCurrentInsetPage() {
         return currentInsetPage;
     }
@@ -3822,28 +3675,8 @@ public class NsharpResourceHandler {
         return curSndProfileProp;
     }
 
-    public int getCurStnIdPage() {
-        return curStnIdPage;
-    }
-
-    public int getCurSndPage() {
-        return curSndPage;
-    }
-
     public HashMap<String, RGB> getElementColorMap() {
         return elementColorMap;
-    }
-
-    public int getTotalTimeLinePage() {
-        return totalTimeLinePage;
-    }
-
-    public int getTotalStnIdPage() {
-        return totalStnIdPage;
-    }
-
-    public int getTotalSndPage() {
-        return totalSndPage;
     }
 
     public void recomputeWeatherData() {
@@ -3865,19 +3698,6 @@ public class NsharpResourceHandler {
 
     public NsharpDataPaneResource getDataPaneRsc() {
         return dataPaneRsc;
-    }
-
-    public void setTimeStnBoxData(int cnYOrig, int dtNextPage_end, int dtYOrig,
-            int dtXOrig, int dtWidth, double charHeight, double lineHeight,
-            int numTimeLinePerPage) {
-        this.charHeight = charHeight;
-        this.lineHeight = lineHeight;
-        this.dtYOrig = dtYOrig;
-        this.dtXOrig = dtXOrig;
-        this.dtWidth = dtWidth;
-        this.dtNextPageEnd = dtNextPage_end;
-        this.numTimeLinePerPage = numTimeLinePerPage;
-        calculateTimeStnBoxData();
     }
 
     public void refreshPane() {
@@ -3907,21 +3727,7 @@ public class NsharpResourceHandler {
                 / dataPageProperty.getNumberPagePerDisplay();
     }
 
-    private void calculateTimeStnBoxData() {
-        // set total time line group and stn id list page number
-        totalTimeLinePage = timeElementList.size() / numTimeLinePerPage;
-        if (timeElementList.size() % numTimeLinePerPage != 0)
-            totalTimeLinePage = totalTimeLinePage + 1;
-        curTimeLinePage = currentTimeElementListIndex / numTimeLinePerPage + 1;
-        totalStnIdPage = stnElementList.size() / numTimeLinePerPage;
-        if (stnElementList.size() % numTimeLinePerPage != 0)
-            totalStnIdPage++;
-        curStnIdPage = currentStnElementListIndex / numTimeLinePerPage + 1;
-        totalSndPage = sndElementList.size() / numTimeLinePerPage;
-        if (sndElementList.size() % numTimeLinePerPage != 0)
-            totalSndPage++;
-        curSndPage = currentSndElementListIndex / numTimeLinePerPage + 1;
-    }
+
 
     /*
      * Return size of stnTimeSndTable Note that not all elements in this table
@@ -3981,9 +3787,6 @@ public class NsharpResourceHandler {
         currentTimeElementListIndex = tempTmi;
         currentSndElementListIndex = tempSndi;
         setCurSndProfileProp();
-        curTimeLinePage = currentTimeElementListIndex / numTimeLinePerPage + 1;
-        curSndPage = currentSndElementListIndex / numTimeLinePerPage + 1;
-        curStnIdPage = currentStnElementListIndex / numTimeLinePerPage + 1;
         setCurrentSoundingLayerInfo();
         resetData();
         refreshPane();

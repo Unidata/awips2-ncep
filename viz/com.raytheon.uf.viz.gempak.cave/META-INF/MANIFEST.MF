@@ -35,6 +35,5 @@ Import-Package: com.raytheon.uf.common.comm,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
  gov.noaa.nws.ncep.viz.gempak.util,
- javax.measure.converter,
- org.slf4j
+ javax.measure.converter
 Export-Package: com.raytheon.uf.viz.gempak.cave

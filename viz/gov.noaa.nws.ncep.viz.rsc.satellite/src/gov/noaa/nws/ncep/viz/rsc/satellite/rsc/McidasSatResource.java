@@ -2,14 +2,11 @@ package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.quantity.Temperature;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -55,19 +52,19 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 
 /**
  * Provides Mcidas satellite raster rendering support.
- * 
+ *
  * <pre>
- * 
+ *
  *  SOFTWARE HISTORY
- * 
+ *
  *  Date        Ticket#     Engineer    Description
  *  ----------  ----------  ----------- --------------------------
- *  05/24/2010    #281       ghull        Initial creation 
+ *  05/24/2010    #281       ghull        Initial creation
  *  06/07/2012    #717       archana      Added the methods getImageTypeNumber(),
  *                                        getParameterList(), getLocFilePathForImageryStyleRule()
  *                                        Updated getDataUnitsFromRecord() to get the units from the database
  *  11/29/2012    #630       ghull        IGridGeometryProvider
- *  02/13/2015    #R6345     mkean        add areaName, resolution and getRscAttrSetName 
+ *  02/13/2015    #R6345     mkean        add areaName, resolution and getRscAttrSetName
  *                                        to legendStr
  *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
  *  12/03/2015    R12953     R. Reynolds  Modified to enhance Legend title
@@ -84,18 +81,17 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *                                        Updated FrameData.updateFramData(),
  *                                        Extended getGridGeometry method(),
  *                                        Updated isCloudHeightCapable() method
- *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow 
+ *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow
  *                                        for override of colormap name in SPF.
  *  11/29/2017    5863       bsteffen     Change dataTimes to a NavigableSet
- * 
+ *  11/07/2018    #7552      dgilling     Remove unnecessary interface ICloudHeightCapable.
+ *
  * </pre>
- * 
+ *
  * @author ghull
- * @version 1
  */
 
-public class McidasSatResource extends NcSatelliteResource
-        implements ICloudHeightCapable {
+public class McidasSatResource extends NcSatelliteResource {
 
     private int numLevels;
 
@@ -111,7 +107,7 @@ public class McidasSatResource extends NcSatelliteResource
 
     /**
      * Create legend string from subtypes
-     * 
+     *
      * @return
      */
     private String createLegendString() {
@@ -267,13 +263,6 @@ public class McidasSatResource extends NcSatelliteResource
     protected class McidasSatRenderable
             extends NcSatelliteResource.SatRenderable<McidasMapCoverage> {
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource.
-         * SatRenderable
-         * #addRecord(com.raytheon.uf.common.dataplugin.persist.IPersistable)
-         */
         @Override
         public void addRecord(IPersistable record) {
             RecordTileSetRenderable tileSet = null;
@@ -289,13 +278,6 @@ public class McidasSatResource extends NcSatelliteResource
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * initializeFirstFrame
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
-     */
     @Override
     protected void initializeFirstFrame(IPersistable rec) throws VizException {
 
@@ -355,13 +337,6 @@ public class McidasSatResource extends NcSatelliteResource
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * generateAndStoreColorBarLabelingInformation
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable, int)
-     */
     @Override
     public void generateAndStoreColorBarLabelingInformation(IPersistable record,
             int imageTypeNumber) {
@@ -403,10 +378,12 @@ public class McidasSatResource extends NcSatelliteResource
                         maxPixVal = imgPref.getSamplePrefs().getMaxValue();
                     } else if (imgPref.getDataScale() != null) {
                         DataScale ds = imgPref.getDataScale();
-                        if (ds.getMaxValue() != null)
+                        if (ds.getMaxValue() != null) {
                             maxPixVal = ds.getMaxValue().doubleValue();
-                        if (ds.getMinValue() != null)
+                        }
+                        if (ds.getMinValue() != null) {
                             minPixVal = ds.getMinValue().doubleValue();
+                        }
                     }
 
                     colorBar.setImagePreferences(imgPref);
@@ -477,8 +454,9 @@ public class McidasSatResource extends NcSatelliteResource
 
             imgPref.setDataMapping(dmPref);
             colorBar.setImagePreferences(imgPref);
-            if (!colorBar.isScalingAttemptedForThisColorMap())
+            if (!colorBar.isScalingAttemptedForThisColorMap()) {
                 colorBar.scalePixelValues();
+            }
 
             colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
 
@@ -540,68 +518,12 @@ public class McidasSatResource extends NcSatelliteResource
 
     }
 
-    public GridGeometry2D getGridGeometry() {
-
-        FrameData fd = (FrameData) getCurrentFrame();
-        McidasRecord mrecord = (McidasRecord) fd.getLastRecordAdded();
-        GridGeometry2D gridgeom = null;
-
-        if (mrecord != null) {
-            gridgeom = mrecord.getGridGeometry();
-        } else {
-            System.out.println("==> mrecord is null");
-        }
-
-        return gridgeom;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * createNewFrame (com.raytheon.uf.common.time.DataTime, int)
-     */
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
             int frameInterval) {
-        return (AbstractFrameData) new FrameData(frameTime, frameInterval);
+        return new FrameData(frameTime, frameInterval);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * isCloudHeightCompatible()
-     */
-    @Override
-    public boolean isCloudHeightCompatible() {
-
-        boolean isCldHtCmptble = false;
-        Unit<Temperature> tmpunit = null;
-
-        try {
-            tmpunit = this.getTemperatureUnits();
-
-            if (tmpunit == SI.CELSIUS) {
-                isCldHtCmptble = true;
-            }
-
-        } catch (Exception e) {
-            statusHandler.error(
-                    "Did not obtain a unit for temperature for a McidasSatResource",
-                    e);
-        }
-
-        return isCldHtCmptble;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#project(org
-     * .opengis.referencing.crs.CoordinateReferenceSystem)
-     */
     @Override
     public void project(CoordinateReferenceSystem mapData) throws VizException {
         for (AbstractFrameData frm : frameDataMap.values()) {
@@ -612,12 +534,6 @@ public class McidasSatResource extends NcSatelliteResource
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * getParameterList (com.raytheon.uf.common.dataplugin.persist.IPersistable)
-     */
     @Override
     protected List<String> getParameterList(IPersistable pdo) {
 
@@ -628,49 +544,21 @@ public class McidasSatResource extends NcSatelliteResource
         return paramList;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * getImageTypeNumber
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
-     */
     @Override
     protected int getImageTypeNumber(IPersistable pdo) {
         return Integer.parseInt(((McidasRecord) pdo).getImageTypeId());
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getUnits(
-     * com.raytheon.uf.common.dataplugin.persist.IPersistable)
-     */
     @Override
     protected String getUnits(IPersistable record) {
         return ((McidasRecord) record).getCalType();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * getImageTypeFromRecord
-     * (com.raytheon.uf.common.dataplugin.PluginDataObject)
-     */
     @Override
     String getImageTypeFromRecord(PluginDataObject pdo) {
         return ((McidasRecord) pdo).getImageTypeId();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * getDataUnitsFromRecord
-     * (com.raytheon.uf.common.dataplugin.PluginDataObject)
-     */
     @Override
     String getDataUnitsFromRecord(PluginDataObject pdo) {
         return ((McidasRecord) pdo).getCalType();
@@ -679,5 +567,4 @@ public class McidasSatResource extends NcSatelliteResource
     String getCreatingEntityFromRecord(PluginDataObject pdo) {
         return ((McidasRecord) pdo).getSatelliteId();
     }
-
 }

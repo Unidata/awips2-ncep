@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.viz.tools.aodt.ui;
 
-import gov.noaa.nws.ncep.viz.gempak.nativelib.LibraryLoader;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
-import gov.noaa.nws.ncep.viz.tools.aodt.AODTProcesser;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -17,22 +11,29 @@ import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.viz.gempak.nativelib.LibraryLoader;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
+import gov.noaa.nws.ncep.viz.tools.aodt.AODTProcesser;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * Cloud Height Dialog
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 09/30/09					M. Li		Created
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 09/30/09                 M. Li       Created
  * 10/05/09      169        Greg Hull   integrate with NCMapEditor,
  *                                      AbstractNCModalMapTool and InputHandlerDefaultImpl
  * 02/11/13      972        G. Hull     AbstractEditor instead of NCMapEditor
- * 
+ * 11/07/18      #7552      dgilling    Allow tool to work with arbitrary
+ *                                      NcSatResources.
+ *
  * </pre>
- * 
- * @version 1
+ *
  */
 public class AODTAction extends AbstractNcModalTool {
 
@@ -42,15 +43,8 @@ public class AODTAction extends AbstractNcModalTool {
 
     private AODTProcesser aodtProcessor = null;
 
-    private ICloudHeightCapable satResource = null;
+    private NcSatelliteResource satResource = null;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands
-     * .ExecutionEvent)
-     */
     @Override
     protected void activateTool() {
         LibraryLoader.load("aodtv64");
@@ -83,10 +77,11 @@ public class AODTAction extends AbstractNcModalTool {
             }
             mapEditor.registerMouseHandler(this.mouseHndlr);
 
-            if (satResource != null)
+            if (satResource != null) {
                 aodtDlg.open();
-            else
+            } else {
                 issueAlert();
+            }
 
             aodtDlg = null;
 
@@ -113,11 +108,6 @@ public class AODTAction extends AbstractNcModalTool {
 
     }
 
-    /*
-     * (non-Javadoc) org.osgi.framework.BundleContext
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractModalTool#deactivateTool()
-     */
     @Override
     public void deactivateTool() {
         if (mapEditor != null && mouseHndlr != null) {
@@ -139,12 +129,6 @@ public class AODTAction extends AbstractNcModalTool {
 
         boolean preempt = false;
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         * int, int)
-         */
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
 
@@ -152,8 +136,9 @@ public class AODTAction extends AbstractNcModalTool {
 
             if (button == 1) {
                 Coordinate ll = mapEditor.translateClick(x, y);
-                if (ll == null || satResource == null)
+                if (ll == null || satResource == null) {
                     return false;
+                }
 
                 Double value = satResource.getSatIRTemperature(ll);
                 if (value != null && !value.isNaN()) {

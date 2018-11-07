@@ -1,12 +1,5 @@
 package gov.noaa.nws.ncep.viz.cloudHeight.ui;
 
-import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightProcesser;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
-import gov.noaa.nws.ncep.viz.ui.display.NCPaneManager;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
@@ -25,10 +18,17 @@ import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightProcesser;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
+import gov.noaa.nws.ncep.viz.ui.display.NCPaneManager;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+
 /**
  * Cloud Height Dialog
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -39,15 +39,14 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/01/12     524/TTR11   B. Hebbard    Various changes to allow mutual operation of
  *                                        'Take Control' button with other Modal Tools
  * 06/01/12		747			B. Yin		  Made the pan tool work when the shift is held down.
- * 06/21/12     826         Archana       Updated the activateTool() method to remove the cloudheight tool from the 
- *                                        tool manager when there is no IR image loaded. 
- *                                        Instead, the default Pan tool is loaded. 
+ * 06/21/12     826         Archana       Updated the activateTool() method to remove the cloudheight tool from the
+ *                                        tool manager when there is no IR image loaded.
+ *                                        Instead, the default Pan tool is loaded.
  * 02/12/13     972         G. Hull       AbstractEditor, IDisplayPane
- * 
- * 
+ * 11/07/2018   #7552       dgilling        Allow tool to work with arbitrary
+ *                                          NcSatResources.
  * </pre>
- * 
- * @version 1
+ *
  */
 public class CloudHeightAction extends AbstractNcModalTool {
 
@@ -60,7 +59,7 @@ public class CloudHeightAction extends AbstractNcModalTool {
 
     private CloudHeightProcesser cldHghtProcessor = null;
 
-    private ICloudHeightCapable satResource = null;
+    private NcSatelliteResource satResource = null;
 
     ISelectedPanesChangedListener paneChangeListener = new ISelectedPanesChangedListener() {
 
@@ -80,12 +79,6 @@ public class CloudHeightAction extends AbstractNcModalTool {
         }
     };
 
-    /**
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands
-     *      .ExecutionEvent)
-     */
     @Override
     protected void activateTool() {
 
@@ -177,11 +170,6 @@ public class CloudHeightAction extends AbstractNcModalTool {
         super.setEnabled(enable);
     }
 
-    /**
-     * (non-Javadoc) org.osgi.framework.BundleContext
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractModalTool#deactivateTool()
-     */
     @Override
     public void deactivateTool() {
         if (mapEditor != null) {
@@ -205,24 +193,20 @@ public class CloudHeightAction extends AbstractNcModalTool {
 
         private boolean shiftDown;
 
-        /**
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         *      int, int)
-         */
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
 
             preempt = false;
 
-            if (shiftDown)
+            if (shiftDown) {
                 return false;
+            }
 
             if (button == 1) {
                 Coordinate ll = mapEditor.translateClick(x, y);
-                if (ll == null || satResource == null)
+                if (ll == null || satResource == null) {
                     return false;
+                }
 
                 Double value = satResource.getSatIRTemperature(ll);
                 if (value != null && !value.isNaN()) {
@@ -235,12 +219,6 @@ public class CloudHeightAction extends AbstractNcModalTool {
             return preempt;
         }
 
-        /**
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
-         *      int, int)
-         */
         @Override
         public boolean handleMouseDownMove(int x, int y, int button) {
             return preempt;

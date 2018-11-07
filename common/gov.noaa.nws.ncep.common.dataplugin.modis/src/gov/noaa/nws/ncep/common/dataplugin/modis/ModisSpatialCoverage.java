@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.common.dataplugin.modis;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFactory;
-
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -25,19 +23,22 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
 import com.vividsolutions.jts.geom.Geometry;
 
+import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFactory;
+
 /**
  * MODIS geographic data record object
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer     Description
  * ------------ ---------- -----------  --------------------------
  * 10/01/2014   R5116      kbugenhagen  Initial creation
- * 
+ * 11/07/2018   #7552      dgilling     Implement IGridGeometryProvider.
+ *
  * </pre>
- * 
+ *
  * @author kbugenhagen
  * @version 1.0
  */
@@ -170,6 +171,10 @@ public class ModisSpatialCoverage extends PersistableDataObject implements
 
     @Override
     public GridGeometry2D getGridGeometry() {
+        if (getCrs() != null) {
+            return getGridGeometry(null, null);
+        }
+
         return null;
     }
 

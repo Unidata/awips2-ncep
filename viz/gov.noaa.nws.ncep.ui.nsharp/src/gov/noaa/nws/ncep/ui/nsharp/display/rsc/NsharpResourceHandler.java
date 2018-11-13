@@ -27,6 +27,7 @@
  * 10/05/2018  7480      bsteffen   Handle remove from d2d.
  * 10/16/2018  6835      bsteffen   Extract printing logic.
  * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
+ * 11/13/2018  7576      bsteffen   Unify activation dialogs.
  *
  * </pre>
  * 
@@ -3428,42 +3429,6 @@ public class NsharpResourceHandler {
             dataPaneRsc.setPageDisplayOrderNumberArray(
                     pageDisplayOrderNumberArray,
                     dataPageProperty.getNumberPagePerDisplay());
-    }
-
-    public void handleTimeLineActConfig(List<String> tlList,
-            NsharpConstants.ActState actSt) {
-        for (String tlStr : tlList) {
-            for (NsharpOperationElement tl : timeElementList) {
-                if (tlStr.equals(tl.getElementDescription())) {
-                    tl.setActionState(actSt);
-                    break;
-                }
-            }
-        }
-    }
-
-    public void handleStationActConfig(List<String> stnList,
-            NsharpConstants.ActState actSt) {
-        for (String tlStr : stnList) {
-            for (NsharpOperationElement stn : stnElementList) {
-                if (tlStr.equals(stn.getElementDescription())) {
-                    stn.setActionState(actSt);
-                    break;
-                }
-            }
-        }
-    }
-
-    public void handleSndTypeActConfig(List<String> sndTypeList,
-            NsharpConstants.ActState actSt) {
-        for (String tlStr : sndTypeList) {
-            for (NsharpOperationElement sndType : sndElementList) {
-                if (tlStr.equals(sndType.getElementDescription())) {
-                    sndType.setActionState(actSt);
-                    break;
-                }
-            }
-        }
     }
 
     public int getCurrentTextChapter() {

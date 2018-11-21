@@ -30,7 +30,6 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Helicity;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.MixHeight;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
@@ -65,7 +64,8 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
  * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
- * Oct 16, 2018  6845       bsteffen  Remove unnecessary jna code.
+ * Oct 16, 2018  6845       bsteffen    Remove unnecessary jna code.
+ * Nov 21, 2018  7574       bsteffen    Remove unused override
  *
  * </pre>
  *
@@ -314,13 +314,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         defaultFont = font8;
         handleResize();
         initDone = true;
-    }
-
-    @Override
-    public void resetData(List<NcSoundingLayer> soundingLys, List<NcSoundingLayer> prevsoundingLys) {
-
-        super.resetData(soundingLys, prevsoundingLys);
-
     }
 
     private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect) throws VizException {

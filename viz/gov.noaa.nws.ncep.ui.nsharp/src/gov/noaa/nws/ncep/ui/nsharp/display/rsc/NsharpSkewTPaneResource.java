@@ -41,6 +41,7 @@ import com.vividsolutions.jts.geom.LineString;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSkparams;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.DendriticZone;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.EffectiveLayerPressures;
@@ -51,7 +52,6 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpShapeAndLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
@@ -100,7 +100,8 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * Apr 18, 2018   17341 mgamazaychikov  Fix the cursor plotting for station with negative surface elevation,
  *                                      add scaling for pressure surface height labels
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070
- *
+ * 11/21/2018   7574        bsteffen    Fix comparison coloring.
+ * 
  * </pre>
  *
  * @author Chin Chen
@@ -132,8 +133,6 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     private float omegaYOrig = NsharpConstants.OMEGA_Y_ORIG;
 
     private float omegaWidth = NsharpConstants.OMEGA_WIDTH;
-
-    private float omegaHeight = NsharpConstants.OMEGA_HEIGHT;
 
     private float omegaYEnd = NsharpConstants.OMEGA_Y_END;
 
@@ -329,13 +328,11 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 break;
             }
             double pressure = layer.getPressure();
-            if (t != INVALID_DATA && pressure >= minPressure && pressure <= maxPressure) {
+            if (t != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA
+                    && pressure >= minPressure && pressure <= maxPressure) {
 
                 Coordinate c1 = NsharpWxMath.getSkewTXY(pressure, t);
-
-                c1.x = world.mapX(c1.x);
-                c1.y = world.mapY(c1.y);
-
+                c1 = world.map(c1);
                 target.drawPoint(c1.x, c1.y, 0.0, color, ps);
 
             }
@@ -1434,36 +1431,32 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 parcelLp.getLineWidth(), parcelLp.getLineStyle(), font10);
                     }
                 }
-                boolean compareStnIsOn = rscHandler.isCompareStnIsOn();
-                boolean compareSndIsOn = rscHandler.isCompareSndIsOn();
-                boolean compareTmIsOn = rscHandler.isCompareTmIsOn();
+                boolean compareAny = rscHandler.isAnyCompareOn();
                 boolean editGraphOn = rscHandler.isEditGraphOn();
                 boolean overlayIsOn = rscHandler.isOverlayIsOn();
                 if (graphConfigProperty != null) {
-                    if (graphConfigProperty.isTemp() == true && !compareStnIsOn && !compareTmIsOn && !compareSndIsOn) {
-                        if (editGraphOn) {
-                            plotPressureTempEditPoints(target, world, NsharpConstants.color_red, TEMP_TYPE,
+                    if (!compareAny && editGraphOn) {
+                        if (graphConfigProperty.isTemp()) {
+                            plotPressureTempEditPoints(target, world,
+                                    NsharpConstants.color_red, TEMP_TYPE,
                                     this.soundingLys);
                         }
-                    }
-                    // dew point curve
-                    if (graphConfigProperty.isDewp() == true && !compareStnIsOn && !compareTmIsOn && !compareSndIsOn) {
-                        if (editGraphOn) {
-                            plotPressureTempEditPoints(target, world, NsharpConstants.color_green, DEWPOINT_TYPE,
+                        // dew point curve
+                        if (graphConfigProperty.isDewp()) {
+                            plotPressureTempEditPoints(target, world,
+                                    NsharpConstants.color_green, DEWPOINT_TYPE,
                                     this.soundingLys);
                         }
                     }
                     // plot wet bulb trace
-                    if (graphConfigProperty.isWetBulb() == true && rscHandler.isGoodData() && !compareStnIsOn
-                            && !compareTmIsOn && !compareSndIsOn) {
+                    if (graphConfigProperty.isWetBulb() == true && rscHandler.isGoodData() && !compareAny) {
                         NsharpLineProperty lp = linePropertyMap
                                 .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_WETBULB]);
                         target.drawWireframeShape(wetBulbTraceRscShape, lp.getLineColor(), lp.getLineWidth(),
                                 lp.getLineStyle(), font10);
                     }
                     // plot virtual temperature trace
-                    if (graphConfigProperty.isVTemp() == true && rscHandler.isGoodData() && !compareStnIsOn
-                            && !compareTmIsOn && !compareSndIsOn) {
+                    if (graphConfigProperty.isVTemp() == true && rscHandler.isGoodData() && !compareAny) {
                         NsharpLineProperty lp = linePropertyMap
                                 .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_VIRTUAL_TEMP]);
                         target.drawWireframeShape(vtempTraceCurveRscShape, lp.getLineColor(), lp.getLineWidth(),
@@ -1471,7 +1464,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     }
                     // virtual temperature parcel trace curve
                     if (graphConfigProperty.isParcelTv() == true && rscHandler.isGoodData() // #5929
-                            && !compareStnIsOn && !compareTmIsOn && !compareSndIsOn && !overlayIsOn) {
+                            && !compareAny && !overlayIsOn) {
                         if (soundingLys.size() > 0) {
                             NsharpLineProperty lp = linePropertyMap
                                     .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_PARCEL_TV]);
@@ -1481,7 +1474,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     }
 
                     if (graphConfigProperty.isDcape() == true && rscHandler.isGoodData() && dacpeTraceRscShape != null
-                            && !compareStnIsOn && !compareSndIsOn && !compareTmIsOn && !overlayIsOn) {
+                            && !compareAny && !overlayIsOn) {
                         if (soundingLys.size() > 0) {
                             NsharpLineProperty lp = linePropertyMap
                                     .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_DCAPE]);
@@ -1490,15 +1483,13 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
                         }
                     }
-                    if (graphConfigProperty.isEffLayer() == true && rscHandler.isGoodData() && !compareStnIsOn
-                            && !compareTmIsOn && !compareSndIsOn) {
+                    if (graphConfigProperty.isEffLayer() == true && rscHandler.isGoodData() && !compareAny) {
                         // draw effective layer lines
                         target.drawWireframeShape(effectiveLayerLineShape, NsharpConstants.color_cyan_md, 2,
                                 commonLineStyle, font10);
                     }
                     // cloud
-                    if (graphConfigProperty.isCloud() == true && rscHandler.isGoodData() && !compareStnIsOn
-                            && !compareTmIsOn && !compareSndIsOn) {
+                    if (graphConfigProperty.isCloud() == true && rscHandler.isGoodData() && !compareAny) {
                         if (cloudFMShape != null) {
                             target.drawShadedShape(cloudFMShape, 1f);
                         }
@@ -1510,7 +1501,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                             target.drawShadedShape(cloudCEShape, 1f);
                         }
                     }
-                    if (graphConfigProperty.isOmega() == true && !compareStnIsOn && !compareTmIsOn && !compareSndIsOn) {
+                    if (graphConfigProperty.isOmega() == true && !compareAny) {
                         if (NsharpLoadDialog.getAccess() != null && (NsharpLoadDialog.getAccess()
                                 .getActiveLoadSoundingType() == NsharpLoadDialog.MODEL_SND
                                 || NsharpLoadDialog.getAccess()
@@ -1521,13 +1512,11 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     }
                 } else {
                     // by default, draw everything
-                    if (!compareStnIsOn && !compareTmIsOn && !compareSndIsOn) {
+                    if (!compareAny) {
                         if (editGraphOn) {
                             plotPressureTempEditPoints(target, world, NsharpConstants.color_red, TEMP_TYPE,
                                     this.soundingLys);
-                        }
-                        // dew point curve
-                        if (editGraphOn) {
+                            // dew point curve
                             plotPressureTempEditPoints(target, world, NsharpConstants.color_green, DEWPOINT_TYPE,
                                     this.soundingLys);
                         }
@@ -1581,7 +1570,8 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 if ((graphConfigProperty != null && graphConfigProperty.isWindBarb() == true)
                         || graphConfigProperty == null) {
                     double xPos = skewTBackground.getWindBarbXPosition();
-                    if (overlayIsOn == true && this.previousSoundingLys != null) {
+                    List<NcSoundingLayer> previousSoundingLys = rscHandler.getPreviousSoundingLys();
+                    if (overlayIsOn == true && previousSoundingLys != null) {
                         drawNsharpWindBarb(target, currentZoomLevel, world, linePropertyMap
                                 .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1]).getLineColor(),
                                 this.soundingLys, xPos, 100);
@@ -1589,76 +1579,24 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                             drawNsharpWindBarb(target, currentZoomLevel, world,
                                     linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY2])
                                             .getLineColor(),
-                                    this.previousSoundingLys, xPos - NsharpResourceHandler.BARB_LENGTH, 100);
+                                    previousSoundingLys, xPos - NsharpResourceHandler.BARB_LENGTH, 100);
+                        }
+                    } else if (compareAny) {
+                        for (NsharpSoundingElementStateProperty prop : rscHandler
+                                .getComparisonProperties()) {
+                            List<NcSoundingLayer> soundingLayeys = prop
+                                    .getSndLyLst();
+                            int colorIndex = prop.getCompColorIndex();
+                            NsharpLineProperty lp = linePropertyMap.get(
+                                    NsharpConstants.lineNameArray[colorIndex]);
+                            drawNsharpWindBarb(target, currentZoomLevel, world,
+                                    lp.getLineColor(), soundingLayeys, xPos,
+                                    100);
                         }
                     } else {
-                        if (!compareStnIsOn && !compareTmIsOn && !compareSndIsOn) {
-                            drawNsharpWindBarb(target, currentZoomLevel, world, graphConfigProperty.getWindBarbColor(),
-                                    this.soundingLys, xPos, 100);
-                        } else {
-                            int currentTimeListIndex = rscHandler.getCurrentTimeElementListIndex();
-                            int currentStnListIndex = rscHandler.getCurrentStnElementListIndex();
-                            int currentSndListIndex = rscHandler.getCurrentSndElementListIndex();
-                            List<NsharpOperationElement> stnElemList = rscHandler.getStnElementList();
-                            List<NsharpOperationElement> timeElemList = rscHandler.getTimeElementList();
-                            List<NsharpOperationElement> sndElemList = rscHandler.getSndElementList();
-                            List<List<List<NsharpSoundingElementStateProperty>>> stnTimeSndTable = rscHandler
-                                    .getStnTimeSndTable();
-                            if (compareTmIsOn && currentStnListIndex >= 0 && currentSndListIndex >= 0) {
-                                int colorIndex;
-                                for (NsharpOperationElement elm : timeElemList) {
-                                    if (elm.getActionState() == NsharpConstants.ActState.ACTIVE
-                                            && stnTimeSndTable.get(currentStnListIndex).get(timeElemList.indexOf(elm))
-                                                    .get(currentSndListIndex) != null) {
-                                        List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(currentStnListIndex)
-                                                .get(timeElemList.indexOf(elm)).get(currentSndListIndex).getSndLyLst();
-                                        colorIndex = stnTimeSndTable.get(currentStnListIndex)
-                                                .get(timeElemList.indexOf(elm)).get(currentSndListIndex)
-                                                .getCompColorIndex();
-                                        NsharpLineProperty lp = linePropertyMap
-                                                .get(NsharpConstants.lineNameArray[colorIndex]);
-                                        drawNsharpWindBarb(target, currentZoomLevel, world, lp.getLineColor(),
-                                                soundingLayeys, xPos, 100);
-                                    }
-                                }
-                            } else if (compareStnIsOn && currentTimeListIndex >= 0 && currentSndListIndex >= 0) {
-                                int colorIndex;
-                                for (NsharpOperationElement elm : stnElemList) {
-                                    if (elm.getActionState() == NsharpConstants.ActState.ACTIVE
-                                            && stnTimeSndTable.get(stnElemList.indexOf(elm)).get(currentTimeListIndex)
-                                                    .get(currentSndListIndex) != null) {
-                                        List<NcSoundingLayer> soundingLayeys = stnTimeSndTable
-                                                .get(stnElemList.indexOf(elm)).get(currentTimeListIndex)
-                                                .get(currentSndListIndex).getSndLyLst();
-                                        colorIndex = stnTimeSndTable.get(stnElemList.indexOf(elm))
-                                                .get(currentTimeListIndex).get(currentSndListIndex).getCompColorIndex();
-                                        NsharpLineProperty lp = linePropertyMap
-                                                .get(NsharpConstants.lineNameArray[colorIndex]);
-                                        drawNsharpWindBarb(target, currentZoomLevel, world, lp.getLineColor(),
-                                                soundingLayeys, xPos, 100);
-                                    }
-                                }
-                            } else if (compareSndIsOn && currentStnListIndex >= 0 && currentTimeListIndex >= 0) {
-                                int colorIndex;
-
-                                List<NsharpResourceHandler.CompSndSelectedElem> sndCompElementList = rscHandler
-                                        .getCompSndSelectedElemList();
-                                for (NsharpResourceHandler.CompSndSelectedElem compElem : sndCompElementList) {
-                                    NsharpSoundingElementStateProperty elemProp = stnTimeSndTable
-                                            .get(compElem.getStnIndex()).get(compElem.getTimeIndex())
-                                            .get(compElem.getSndIndex());
-                                    if (sndElemList.get(compElem.getSndIndex())
-                                            .getActionState() == NsharpConstants.ActState.ACTIVE && elemProp != null) {
-                                        List<NcSoundingLayer> soundingLayeys = elemProp.getSndLyLst();
-                                        colorIndex = elemProp.getCompColorIndex();
-                                        NsharpLineProperty lp = linePropertyMap
-                                                .get(NsharpConstants.lineNameArray[colorIndex]);
-                                        drawNsharpWindBarb(target, currentZoomLevel, world, lp.getLineColor(),
-                                                soundingLayeys, xPos, 100);
-                                    }
-                                }
-                            }
-                        }
+                        drawNsharpWindBarb(target, currentZoomLevel, world,
+                                graphConfigProperty.getWindBarbColor(),
+                                this.soundingLys, xPos, 100);
                     }
                 }
                 if (rscHandler.isGoodData()) {
@@ -1800,70 +1738,25 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             }
             parcelRtShapeList.clear();
         }
-
-        int currentTimeListIndex = rscHandler.getCurrentTimeElementListIndex();
-        int currentStnListIndex = rscHandler.getCurrentStnElementListIndex();
-        int currentSndListIndex = rscHandler.getCurrentSndElementListIndex();
-        List<NsharpOperationElement> stnElemList = rscHandler.getStnElementList();
-        List<NsharpOperationElement> timeElemList = rscHandler.getTimeElementList();
-        List<NsharpOperationElement> sndElemList = rscHandler.getSndElementList();
-        List<List<List<NsharpSoundingElementStateProperty>>> stnTimeSndTable = rscHandler.getStnTimeSndTable();
-        if (rscHandler.isCompareStnIsOn() && currentTimeListIndex >= 0 && currentSndListIndex >= 0) {
-            for (NsharpOperationElement elm : stnElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable
-                        .get(stnElemList.indexOf(elm)).get(currentTimeListIndex).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(stnElemList.indexOf(elm))
-                            .get(currentTimeListIndex).get(currentSndListIndex).getSndLyLst();
-                    int colorIndex = stnTimeSndTable.get(stnElemList.indexOf(elm)).get(currentTimeListIndex)
-                            .get(currentSndListIndex).getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    IWireframeShape shape = createRTParcelTraceShapes(parcelType, userPre, soundingLayeys);
-                    NsharpShapeAndLineProperty shNLp = new NsharpShapeAndLineProperty();
-                    shNLp.setShape(shape);
-                    shNLp.setLp(lp);
-                    parcelRtShapeList.add(shNLp);
-                }
-            }
-        } else if (rscHandler.isCompareTmIsOn() && currentStnListIndex >= 0 && currentSndListIndex >= 0) {
-            for (NsharpOperationElement elm : timeElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable.get(currentStnListIndex)
-                        .get(timeElemList.indexOf(elm)).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(currentStnListIndex)
-                            .get(timeElemList.indexOf(elm)).get(currentSndListIndex).getSndLyLst();
-                    int colorIndex = stnTimeSndTable.get(currentStnListIndex).get(timeElemList.indexOf(elm))
-                            .get(currentSndListIndex).getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    IWireframeShape shape = createRTParcelTraceShapes(parcelType, userPre, soundingLayeys);
-                    NsharpShapeAndLineProperty shNLp = new NsharpShapeAndLineProperty();
-                    shNLp.setShape(shape);
-                    shNLp.setLp(lp);
-                    parcelRtShapeList.add(shNLp);
-                }
-            }
-        } else if (rscHandler.isCompareSndIsOn() && currentStnListIndex >= 0 && currentTimeListIndex >= 0) {
-            for (NsharpOperationElement elm : sndElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable.get(currentStnListIndex)
-                        .get(currentTimeListIndex).get(sndElemList.indexOf(elm)) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(currentStnListIndex)
-                            .get(currentTimeListIndex).get(sndElemList.indexOf(elm)).getSndLyLst();
-                    int colorIndex = stnTimeSndTable.get(currentStnListIndex).get(currentTimeListIndex)
-                            .get(sndElemList.indexOf(elm)).getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    IWireframeShape shape = createRTParcelTraceShapes(parcelType, userPre, soundingLayeys);
-                    NsharpShapeAndLineProperty shNLp = new NsharpShapeAndLineProperty();
-                    shNLp.setShape(shape);
-                    shNLp.setLp(lp);
-                    parcelRtShapeList.add(shNLp);
-                }
+        if (rscHandler.isAnyCompareOn()) {
+            for (NsharpSoundingElementStateProperty prop : rscHandler.getComparisonProperties()) {
+                List<NcSoundingLayer> soundingLayeys = prop.getSndLyLst();
+                int colorIndex = prop.getCompColorIndex();
+                NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
+                IWireframeShape shape = createRTParcelTraceShapes(parcelType, userPre, soundingLayeys);
+                NsharpShapeAndLineProperty shNLp = new NsharpShapeAndLineProperty();
+                shNLp.setShape(shape);
+                shNLp.setLp(lp);
+                parcelRtShapeList.add(shNLp);
             }
         } else if (rscHandler.isOverlayIsOn() == true) {
-            previousSoundingLys = rscHandler.getPreviousSoundingLys();
+            List<NcSoundingLayer> previousSoundingLys = rscHandler.getPreviousSoundingLys();
             IWireframeShape shape = createRTParcelTraceShapes(parcelType, userPre, this.soundingLys);
             NsharpShapeAndLineProperty shNLp = new NsharpShapeAndLineProperty();
             shNLp.setShape(shape);
             shNLp.setLp(linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1]));
             parcelRtShapeList.add(shNLp);
-            if (this.previousSoundingLys != null && !previousSoundingLys.equals(soundingLys)) {
+            if (previousSoundingLys != null && !previousSoundingLys.equals(soundingLys)) {
                 shape = createRTParcelTraceShapes(parcelType, userPre, previousSoundingLys);
                 shNLp = new NsharpShapeAndLineProperty();
                 shNLp.setShape(shape);
@@ -2500,69 +2393,24 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             }
             pressureTempRscShapeList.clear();
         }
-
-        int currentTimeListIndex = rscHandler.getCurrentTimeElementListIndex();
-        int currentStnListIndex = rscHandler.getCurrentStnElementListIndex();
-        int currentSndListIndex = rscHandler.getCurrentSndElementListIndex();
-        List<NsharpOperationElement> stnElemList = rscHandler.getStnElementList();
-        List<NsharpOperationElement> timeElemList = rscHandler.getTimeElementList();
-        List<NsharpOperationElement> sndElemList = rscHandler.getSndElementList();
-        List<List<List<NsharpSoundingElementStateProperty>>> stnTimeSndTable = rscHandler.getStnTimeSndTable();
-        if (rscHandler.isCompareStnIsOn() && currentTimeListIndex >= 0 && currentSndListIndex >= 0) {
-            int colorIndex;
-            for (NsharpOperationElement elm : stnElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable
-                        .get(stnElemList.indexOf(elm)).get(currentTimeListIndex).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(stnElemList.indexOf(elm))
-                            .get(currentTimeListIndex).get(currentSndListIndex).getSndLyLst();
-                    colorIndex = stnTimeSndTable.get(stnElemList.indexOf(elm)).get(currentTimeListIndex)
-                            .get(currentSndListIndex).getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    createRscPressTempCurveShape(world, soundingLayeys, lp, target);
-                }
+        if (rscHandler.isAnyCompareOn()) {
+            for (NsharpSoundingElementStateProperty prop : rscHandler
+                    .getComparisonProperties()) {
+                List<NcSoundingLayer> soundingLayeys = prop.getSndLyLst();
+                int colorIndex = prop.getCompColorIndex();
+                NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
+                createRscPressTempCurveShape(world, soundingLayeys, lp, target);
             }
-        } else if (rscHandler.isCompareTmIsOn() && currentStnListIndex >= 0 && currentSndListIndex >= 0) {
-            int colorIndex;
-            for (NsharpOperationElement elm : timeElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable.get(currentStnListIndex)
-                        .get(timeElemList.indexOf(elm)).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(currentStnListIndex)
-                            .get(timeElemList.indexOf(elm)).get(currentSndListIndex).getSndLyLst();
-                    colorIndex = stnTimeSndTable.get(currentStnListIndex).get(timeElemList.indexOf(elm))
-                            .get(currentSndListIndex).getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    createRscPressTempCurveShape(world, soundingLayeys, lp, target);
-                }
-            }
-        } else if (rscHandler.isCompareSndIsOn() & currentStnListIndex >= 0 && currentTimeListIndex >= 0) {
-            int colorIndex;
-
-            List<NsharpResourceHandler.CompSndSelectedElem> sndCompElementList = rscHandler
-                    .getCompSndSelectedElemList();
-            for (NsharpResourceHandler.CompSndSelectedElem compElem : sndCompElementList) {
-                NsharpSoundingElementStateProperty elemProp = stnTimeSndTable.get(compElem.getStnIndex())
-                        .get(compElem.getTimeIndex()).get(compElem.getSndIndex());
-                if (sndElemList.get(compElem.getSndIndex()).getActionState() == NsharpConstants.ActState.ACTIVE
-                        && elemProp != null) {
-                    List<NcSoundingLayer> soundingLayeys = elemProp.getSndLyLst();
-                    colorIndex = elemProp.getCompColorIndex();
-                    NsharpLineProperty lp = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]);
-                    createRscPressTempCurveShape(world, soundingLayeys, lp, target);
-                }
-            }
-
         } else if (rscHandler.isOverlayIsOn() == true) {
-
-            previousSoundingLys = rscHandler.getPreviousSoundingLys();
+            List<NcSoundingLayer> previousSoundingLys = rscHandler.getPreviousSoundingLys();
             createRscPressTempCurveShape(world, this.soundingLys,
                     linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1]), target);
-            if (this.previousSoundingLys != null && !previousSoundingLys.equals(soundingLys)) {
-                createRscPressTempCurveShape(world, this.previousSoundingLys,
+            if (previousSoundingLys != null && !previousSoundingLys.equals(soundingLys)) {
+                createRscPressTempCurveShape(world, previousSoundingLys,
                         linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY2]), target);
             }
 
         } else {
-
             createRscPressTempCurveShape(world, this.soundingLys, null, target);
         }
     }
@@ -3044,7 +2892,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         yRatio = yRatio * skewtHeight / prevHeight;
         omegaYOrig = skewtYOrig;
         omegaWidth = skewtWidth * 0.05f;
-        omegaHeight = skewtHeight;
+        int omegaHeight = skewtHeight;
         omegaYEnd = omegaYOrig + omegaHeight;
         createRscWireFrameShapes();
         if (currentGraphMode == NsharpConstants.GRAPH_SKEWT) {

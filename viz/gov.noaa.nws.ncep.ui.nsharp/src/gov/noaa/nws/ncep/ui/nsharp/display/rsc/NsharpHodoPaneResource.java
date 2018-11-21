@@ -39,6 +39,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      in Volume Browser
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, fixed formatting
+ * Nov 21, 2018 7574        bsteffen    Fix comparison coloring.
  *
  * </pre>
  *
@@ -53,7 +54,6 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpShapeAndLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
@@ -195,63 +195,22 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
         }
 
         world = hodoBackground.computeWorld();
-        boolean compareStnIsOn = rscHandler.isCompareStnIsOn();
-        int currentTimeListIndex = rscHandler.getCurrentTimeElementListIndex();
-        int currentStnListIndex = rscHandler.getCurrentStnElementListIndex();
-        int currentSndListIndex = rscHandler.getCurrentSndElementListIndex();
-        List<NsharpOperationElement> stnElemList = rscHandler.getStnElementList();
-        List<NsharpOperationElement> timeElemList = rscHandler.getTimeElementList();
-        List<NsharpOperationElement> sndElemList = rscHandler.getSndElementList();
-        List<List<List<NsharpSoundingElementStateProperty>>> stnTimeSndTable = rscHandler.getStnTimeSndTable();
-        boolean compareTmIsOn = rscHandler.isCompareTmIsOn();
-        boolean compareSndIsOn = rscHandler.isCompareSndIsOn();
-        boolean overlayIsOn = rscHandler.isOverlayIsOn();
 
-        if (compareStnIsOn && currentTimeListIndex >= 0 && currentSndListIndex >= 0) {
-            for (NsharpOperationElement elm : stnElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable
-                        .get(stnElemList.indexOf(elm)).get(currentTimeListIndex).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(stnElemList.indexOf(elm))
-                            .get(currentTimeListIndex).get(currentSndListIndex).getSndLyLst();
-                    int colorIndex = stnTimeSndTable.get(stnElemList.indexOf(elm)).get(currentTimeListIndex)
-                            .get(currentSndListIndex).getCompColorIndex();
-                    RGB color = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]).getLineColor();
-                    createRscHodoWindShape(world, soundingLayeys, color);
-                }
+        if(rscHandler.isAnyCompareOn()){
+            for(NsharpSoundingElementStateProperty prop : rscHandler.getComparisonProperties()){
+                List<NcSoundingLayer> soundingLayeys = prop.getSndLyLst();
+                int colorIndex = prop.getCompColorIndex();
+                RGB color = linePropertyMap
+                        .get(NsharpConstants.lineNameArray[colorIndex])
+                        .getLineColor();
+                createRscHodoWindShape(world, soundingLayeys, color);
             }
-        } else if (compareTmIsOn && currentStnListIndex >= 0 && currentSndListIndex >= 0) {
-            for (NsharpOperationElement elm : timeElemList) {
-                if (elm.getActionState() == NsharpConstants.ActState.ACTIVE && stnTimeSndTable.get(currentStnListIndex)
-                        .get(timeElemList.indexOf(elm)).get(currentSndListIndex) != null) {
-                    List<NcSoundingLayer> soundingLayeys = stnTimeSndTable.get(currentStnListIndex)
-                            .get(timeElemList.indexOf(elm)).get(currentSndListIndex).getSndLyLst();
-                    int colorIndex = stnTimeSndTable.get(currentStnListIndex).get(timeElemList.indexOf(elm))
-                            .get(currentSndListIndex).getCompColorIndex();
-                    RGB color = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]).getLineColor();
-                    createRscHodoWindShape(world, soundingLayeys, color);
-                }
-            }
-        } else if (compareSndIsOn && currentStnListIndex >= 0 && currentTimeListIndex >= 0) {
-            List<NsharpResourceHandler.CompSndSelectedElem> sndCompElementList = rscHandler
-                    .getCompSndSelectedElemList();
-            for (NsharpResourceHandler.CompSndSelectedElem compElem : sndCompElementList) {
-                NsharpSoundingElementStateProperty elemProp = stnTimeSndTable.get(compElem.getStnIndex())
-                        .get(compElem.getTimeIndex()).get(compElem.getSndIndex());
-                if (sndElemList.get(compElem.getSndIndex()).getActionState() == NsharpConstants.ActState.ACTIVE
-                        && elemProp != null) {
-                    List<NcSoundingLayer> soundingLayeys = elemProp.getSndLyLst();
-                    int colorIndex = elemProp.getCompColorIndex();
-                    RGB color = linePropertyMap.get(NsharpConstants.lineNameArray[colorIndex]).getLineColor();
-                    createRscHodoWindShape(world, soundingLayeys, color);
-                }
-            }
-
-        } else if (overlayIsOn == true) {
-            previousSoundingLys = rscHandler.getPreviousSoundingLys();
+        } else if (rscHandler.isOverlayIsOn()) {
+            List<NcSoundingLayer> previousSoundingLys = rscHandler.getPreviousSoundingLys();
             createRscHodoWindShape(world, this.soundingLys,
                     linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1]).getLineColor());
             if (previousSoundingLys != null && !soundingLys.equals(previousSoundingLys)) {
-                createRscHodoWindShape(world, this.previousSoundingLys, linePropertyMap
+                createRscHodoWindShape(world, previousSoundingLys, linePropertyMap
                         .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY2]).getLineColor());
             }
         } else {

@@ -171,7 +171,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                     min and the max
  *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
  *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
- *                                        and prevent rendering unnecessary projection data
+ *                                      and prevent rendering unnecessary projection data
+ *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
  *
  * </pre>
  *
@@ -662,6 +663,8 @@ public class ContourSupport {
             try {
                 rastPosLatLonToWorldGrid.transform(in, 0, out, 0, 1);
             } catch (TransformException e) {
+                statusHandler.warn("The coordinate [" + in[0] + ", " + in[1] + 
+                        "] could not be transformed. Continuing with remaining coordinates.");
                 continue;
             }
             if (out[0] > minx && out[0] < maxx && out[1] > miny
@@ -1058,7 +1061,8 @@ public class ContourSupport {
                         }
                     } catch (VizException e) {
                         statusHandler.error(
-                                "JTS Compiler error in ContourSupport", e);
+                                "JTS Compiler error while creating "
+                                + "contour lines in ContourSupport", e);
                     }
 
                     if (toLabel) {
@@ -1438,33 +1442,30 @@ public class ContourSupport {
             for (List<StreamLinePoint> line : streamLines.streamLines) {
                 for (StreamLinePoint point : line) {
                     double[] out = new double[2];
+                    float f;
+
+                    if (point.getX() >= 360) {
+                        f = 0;
+                    } else {
+                        f = maxX + 1 - point.getX();
+                    }
+
+                    if (f > 180) {
+                        f = f - 360;
+                    }
 
                     try {
-                        float f;
-
-                        if (point.getX() >= 360) {
-                            f = 0;
-                        } else {
-                            f = maxX + 1 - point.getX();
-                        }
-
-                        if (f > 180) {
-                            f = f - 360;
-                        }
-
-                        try {
-                            rastPosToWorldGrid.transform(
-                                    new double[] { f, point.getY() + minY }, 0,
-                                    out, 0, 1);
-                        } catch (Exception e) {
-                            statusHandler
-                                    .error(ExceptionUtils.getStackTrace(e));
-                        }
-                        pts.add(new Coordinate(f, point.getY() + minY));
-
-                    } catch (Exception e) {
-                        statusHandler.error(ExceptionUtils.getStackTrace(e));
+                        rastPosToWorldGrid.transform(
+                                new double[] { f, point.getY() + minY }, 0,
+                                out, 0, 1);
+                    } catch (TransformException e) {
+                        statusHandler
+                                .error("Error trying to transform point: "
+                                        + "[" + f + ", " + point.getY() + minY + "]. "
+                                        + "Displayed data may be incomplete or "
+                                        + "not entirely correct.", e);
                     }
+                    pts.add(new Coordinate(f, point.getY() + minY));
                     vals.add(out);
                 }
 
@@ -1992,7 +1993,8 @@ public class ContourSupport {
         try {
             jtsCompiler.handle(correctedLnst);
         } catch (VizException e) {
-            e.printStackTrace();
+            statusHandler.error("Error occurred while trying to add a stream line"
+                    + " to the JTSCompiler to handle:", e);
         }
     }
 }

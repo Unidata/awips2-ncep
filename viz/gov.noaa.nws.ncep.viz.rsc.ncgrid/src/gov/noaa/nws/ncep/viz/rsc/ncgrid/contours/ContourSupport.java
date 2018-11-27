@@ -170,6 +170,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                     be limiting the number of rendered contours, not the number or intervals between the
  *                                     min and the max
  *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
+ *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
+ *                                        and prevent rendering unnecessary projection data
  *
  * </pre>
  *
@@ -1299,21 +1301,49 @@ public class ContourSupport {
     }
 
     private void createStreamLines() {
+        int[] rangeHigh = {};
+        int[] rangeLow = {};
+        int x, szX, szY, maxX, maxY, minX, minY = 0;
+
         // Step 1: Get the actual data
         contourGroup.streamlines = target.createWireframeShape(false,
                 descriptor);
 
         FloatBuffer uW = null;
         FloatBuffer vW = null;
-        long[] sz = records.getSizes();
 
         // Step 2: Determine the subgrid, if any
-        int minX = 0, minY = 0;
-        int maxX = (int) sz[0] - 1;
-        int maxY = (int) sz[1] - 1;
-        int szX = (maxX - minX) + 1;
-        int szY = (maxY - minY) + 1;
-        int x = (int) sz[0];
+        if (imageGridGeometry != null) {
+            try {
+                SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
+                        descriptor.getGridGeometry().getEnvelope(),
+                        imageGridGeometry);
+                if (!subGridGeometry.isEmpty()) {
+                    imageGridGeometry = subGridGeometry
+                            .getSubGridGeometry2D();
+                    rangeHigh = subGridGeometry.getGridRangeHigh(false);
+                    rangeLow = subGridGeometry.getGridRangeLow(true);
+                }
+            } catch (Exception ex) {
+                statusHandler.error("Error Creating subGrid for streamlines: ", ex);
+            }
+        }
+
+        if (rangeHigh.length == 2 && rangeLow.length == 2) {
+            x = szX = maxX = rangeHigh[0];
+            szY = maxY = rangeHigh[1];
+            minX = rangeLow[0];
+            minY = rangeLow[1];
+        } else {  // default to the old way so something is at least displayed
+            long[] sz = records.getSizes();
+            minX = 0;
+            minY = 0;
+            maxX = (int) sz[0] - 1;
+            maxY = (int) sz[1] - 1;
+            szX = (maxX - minX) + 1;
+            szY = (maxY - minY) + 1;
+            x = (int) sz[0];
+        }
 
         uW = records.getXdata();
         vW = records.getYdata();

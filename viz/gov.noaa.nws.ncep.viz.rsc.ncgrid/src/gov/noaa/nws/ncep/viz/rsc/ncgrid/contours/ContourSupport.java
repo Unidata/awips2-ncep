@@ -170,6 +170,9 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                     be limiting the number of rendered contours, not the number or intervals between the
  *                                     min and the max
  *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
+ *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
+ *                                      and prevent rendering unnecessary projection data
+ *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
  *
  * </pre>
  *
@@ -660,6 +663,8 @@ public class ContourSupport {
             try {
                 rastPosLatLonToWorldGrid.transform(in, 0, out, 0, 1);
             } catch (TransformException e) {
+                statusHandler.warn("The coordinate [" + in[0] + ", " + in[1] + 
+                        "] could not be transformed. Continuing with remaining coordinates.");
                 continue;
             }
             if (out[0] > minx && out[0] < maxx && out[1] > miny
@@ -1056,7 +1061,8 @@ public class ContourSupport {
                         }
                     } catch (VizException e) {
                         statusHandler.error(
-                                "JTS Compiler error in ContourSupport", e);
+                                "JTS Compiler error while creating "
+                                + "contour lines in ContourSupport", e);
                     }
 
                     if (toLabel) {
@@ -1299,21 +1305,49 @@ public class ContourSupport {
     }
 
     private void createStreamLines() {
+        int[] rangeHigh = {};
+        int[] rangeLow = {};
+        int x, szX, szY, maxX, maxY, minX, minY = 0;
+
         // Step 1: Get the actual data
         contourGroup.streamlines = target.createWireframeShape(false,
                 descriptor);
 
         FloatBuffer uW = null;
         FloatBuffer vW = null;
-        long[] sz = records.getSizes();
 
         // Step 2: Determine the subgrid, if any
-        int minX = 0, minY = 0;
-        int maxX = (int) sz[0] - 1;
-        int maxY = (int) sz[1] - 1;
-        int szX = (maxX - minX) + 1;
-        int szY = (maxY - minY) + 1;
-        int x = (int) sz[0];
+        if (imageGridGeometry != null) {
+            try {
+                SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
+                        descriptor.getGridGeometry().getEnvelope(),
+                        imageGridGeometry);
+                if (!subGridGeometry.isEmpty()) {
+                    imageGridGeometry = subGridGeometry
+                            .getSubGridGeometry2D();
+                    rangeHigh = subGridGeometry.getGridRangeHigh(false);
+                    rangeLow = subGridGeometry.getGridRangeLow(true);
+                }
+            } catch (Exception ex) {
+                statusHandler.error("Error Creating subGrid for streamlines: ", ex);
+            }
+        }
+
+        if (rangeHigh.length == 2 && rangeLow.length == 2) {
+            x = szX = maxX = rangeHigh[0];
+            szY = maxY = rangeHigh[1];
+            minX = rangeLow[0];
+            minY = rangeLow[1];
+        } else {  // default to the old way so something is at least displayed
+            long[] sz = records.getSizes();
+            minX = 0;
+            minY = 0;
+            maxX = (int) sz[0] - 1;
+            maxY = (int) sz[1] - 1;
+            szX = (maxX - minX) + 1;
+            szY = (maxY - minY) + 1;
+            x = (int) sz[0];
+        }
 
         uW = records.getXdata();
         vW = records.getYdata();
@@ -1408,33 +1442,30 @@ public class ContourSupport {
             for (List<StreamLinePoint> line : streamLines.streamLines) {
                 for (StreamLinePoint point : line) {
                     double[] out = new double[2];
+                    float f;
+
+                    if (point.getX() >= 360) {
+                        f = 0;
+                    } else {
+                        f = maxX + 1 - point.getX();
+                    }
+
+                    if (f > 180) {
+                        f = f - 360;
+                    }
 
                     try {
-                        float f;
-
-                        if (point.getX() >= 360) {
-                            f = 0;
-                        } else {
-                            f = maxX + 1 - point.getX();
-                        }
-
-                        if (f > 180) {
-                            f = f - 360;
-                        }
-
-                        try {
-                            rastPosToWorldGrid.transform(
-                                    new double[] { f, point.getY() + minY }, 0,
-                                    out, 0, 1);
-                        } catch (Exception e) {
-                            statusHandler
-                                    .error(ExceptionUtils.getStackTrace(e));
-                        }
-                        pts.add(new Coordinate(f, point.getY() + minY));
-
-                    } catch (Exception e) {
-                        statusHandler.error(ExceptionUtils.getStackTrace(e));
+                        rastPosToWorldGrid.transform(
+                                new double[] { f, point.getY() + minY }, 0,
+                                out, 0, 1);
+                    } catch (TransformException e) {
+                        statusHandler
+                                .error("Error trying to transform point: "
+                                        + "[" + f + ", " + point.getY() + minY + "]. "
+                                        + "Displayed data may be incomplete or "
+                                        + "not entirely correct.", e);
                     }
+                    pts.add(new Coordinate(f, point.getY() + minY));
                     vals.add(out);
                 }
 
@@ -1962,7 +1993,8 @@ public class ContourSupport {
         try {
             jtsCompiler.handle(correctedLnst);
         } catch (VizException e) {
-            e.printStackTrace();
+            statusHandler.error("Error occurred while trying to add a stream line"
+                    + " to the JTSCompiler to handle:", e);
         }
     }
 }

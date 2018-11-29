@@ -1,0 +1,27 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://camel.apache.org/schema/spring
+    http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="nsbnFileChangedStrategy" class="com.raytheon.uf.edex.esb.camel.FileChangedExclusiveReadLockStrategy"/>
+    <bean id="nsbnFileTransferProcess" class="com.raytheon.uf.edex.nsbn.NSBNFileTransfer"></bean>
+    
+    <camelContext id="clusteredNSBNFileTransferProcess"
+        xmlns="http://camel.apache.org/schema/spring"
+        errorHandlerRef="errorHandler">
+        <endpoint id="nsbnFileTransferEndpoint"
+            uri="file:${nsbn.drop.box}?noop=true&amp;delay=5000&amp;maxMessagesPerPoll=1000&amp;exclusiveReadLockStrategy=#nsbnFileChangedStrategy&amp;recursive=true" />
+
+        <route id="nsbnFileScan">
+            <from ref="nsbnFileTransferEndpoint" />
+            <bean ref="nsbnFileTransferProcess"/>
+        </route>
+    </camelContext>
+
+    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
+        <constructor-arg ref="clusteredNSBNFileTransferProcess" />
+    </bean>
+
+</beans>

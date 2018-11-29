@@ -69,6 +69,7 @@ import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordReq
  * Nov 01, 2018 54483      mapeters    Handle {@link GempakProcessingExceptionMessage}s, now
  *                                     safe for request handlers to throw
  *                                     {@link GempakProcessingException}s
+ * Nov 20, 2018 54483      mapeters    More fully prevent Eclipse error pop-ups
  *
  * </pre>
  *
@@ -88,8 +89,8 @@ public class GempakSubprocessor implements IStandaloneComponent {
          */
         try {
             startComponentInternal();
-        } catch (Exception e) {
-            statusHandler.fatal("Error running GEMPAK subprocess", e);
+        } catch (Throwable t) {
+            statusHandler.fatal("Error running GEMPAK subprocess", t);
         }
 
         return IApplication.EXIT_OK;

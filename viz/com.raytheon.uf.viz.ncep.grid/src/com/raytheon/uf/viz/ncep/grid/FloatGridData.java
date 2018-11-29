@@ -1,6 +1,5 @@
 package com.raytheon.uf.viz.ncep.grid;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
@@ -20,6 +19,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *                                         implemented cloneInternal, getSizeInBytes
  * Apr 25, 2016 R17741      S. Gilbert     Modified from NcFloatDataRecord
  * Sep 05, 2018 54480       mapeters       Support DynamicSerialize
+ * Nov 27, 2018 54476       tjensen        Removed allocation of direct memory
  * </pre>
  *
  * @author mli
@@ -150,11 +150,7 @@ public class FloatGridData {
      * @return the converted {@link FloatBuffer}
      */
     private FloatBuffer toFloatBuffer(float[] aFloatData) {
-        ByteBuffer bb = ByteBuffer.allocateDirect(4 * aFloatData.length);
-        FloatBuffer fb = bb.asFloatBuffer();
-        fb.position(0);
-        fb.put(aFloatData);
-        return fb;
+        return FloatBuffer.wrap(aFloatData);
     }
 
     public boolean validateDataSet() {

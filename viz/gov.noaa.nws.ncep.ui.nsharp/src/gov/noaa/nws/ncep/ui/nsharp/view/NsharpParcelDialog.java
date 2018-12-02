@@ -1,30 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
-/**
- * 
- * gov.noaa.nws.ncep.ui.nsharp.palette.NsharpParcelDialog
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 03/23/2010	229			Chin Chen	Initial coding
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
-
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -42,6 +17,30 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
+
+/**
+ * 
+ * 
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer        Description
+ * -------      -------     --------        -----------
+ * 03/23/2010	229         Chin Chen       Initial coding
+ * 07/05/2016   RM#15923    Chin Chen       NSHARP - Native Code replacement
+ * 10/26/2018   DR20904     mgamazaychikov  Changed parcel indices from 
+ *                                          NsharpNativeConstants to NsharpLibSndglib
+ * 
+ * </pre>
+ * 
+ * @author Chin Chen
+ * @version 1.0
+ */
 public class NsharpParcelDialog extends Dialog {
     private static NsharpParcelDialog thisDialog = null;
 
@@ -85,7 +84,7 @@ public class NsharpParcelDialog extends Dialog {
 
     public void reset() {
         userDefdParcelMb = 850;
-        curParcelType = NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE;
+        curParcelType = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
     }
 
     public static NsharpParcelDialog getInstance(Shell parShell) {
@@ -93,17 +92,12 @@ public class NsharpParcelDialog extends Dialog {
         if (thisDialog == null) {
             try {
                 thisDialog = new NsharpParcelDialog(parShell);
-                // System.out.println("new parcel dialog INSTANCE created");
             } catch (VizException e) {
                 e.printStackTrace();
             }
-
-        } else {
-            // System.out.println("current load dialog INSTANCE returned!");
         }
 
         return thisDialog;
-
     }
 
     public static NsharpParcelDialog getAccess() {
@@ -138,7 +132,6 @@ public class NsharpParcelDialog extends Dialog {
                                         .getRscHandler();
                                 if (skewtRsc != null) {
                                     skewtRsc.setCurrentParcel(curParcelType);
-                                    // skewtRsc.setParcelList(parcelList);
                                     editor.refresh();
                                 }
                             }
@@ -154,7 +147,7 @@ public class NsharpParcelDialog extends Dialog {
         curSfcBtn.setEnabled(true);
         curSfcBtn.setBounds(btnGp.getBounds().x + btnGapX, btnGp.getBounds().y
                 + labelGap, btnWidth, btnHeight);
-        curSfcBtn.setData(NsharpNativeConstants.PARCELTYPE_OBS_SFC);
+        curSfcBtn.setData(NsharpLibSndglib.PARCELTYPE_OBS_SFC);
         curSfcBtn.addListener(SWT.MouseUp, radioGpLsner);
 
         frcstBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
@@ -163,7 +156,7 @@ public class NsharpParcelDialog extends Dialog {
         frcstBtn.setBounds(btnGp.getBounds().x + btnGapX,
                 curSfcBtn.getBounds().y + curSfcBtn.getBounds().height
                         + btnGapY, btnWidth, btnHeight);
-        frcstBtn.setData(NsharpNativeConstants.PARCELTYPE_FCST_SFC);
+        frcstBtn.setData(NsharpLibSndglib.PARCELTYPE_FCST_SFC);
         frcstBtn.addListener(SWT.MouseUp, radioGpLsner);
 
         mmlBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
@@ -171,21 +164,21 @@ public class NsharpParcelDialog extends Dialog {
         mmlBtn.setEnabled(true);
         mmlBtn.setBounds(btnGp.getBounds().x + btnGapX, frcstBtn.getBounds().y
                 + frcstBtn.getBounds().height + btnGapY, btnWidth, btnHeight);
-        mmlBtn.setData(NsharpNativeConstants.PARCELTYPE_MEAN_MIXING);
+        mmlBtn.setData(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
         mmlBtn.addListener(SWT.MouseUp, radioGpLsner);
         mupBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
         mupBtn.setText(MUP);
         mupBtn.setEnabled(true);
         mupBtn.setBounds(btnGp.getBounds().x + btnGapX, mmlBtn.getBounds().y
                 + mmlBtn.getBounds().height + btnGapY, btnWidth, btnHeight);
-        mupBtn.setData(NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE);
+        mupBtn.setData(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
         mupBtn.addListener(SWT.MouseUp, radioGpLsner);
         effBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
         effBtn.setText(EFF);
         effBtn.setEnabled(true);
         effBtn.setBounds(btnGp.getBounds().x + btnGapX, mupBtn.getBounds().y
                 + mupBtn.getBounds().height + btnGapY, btnWidth, btnHeight);
-        effBtn.setData(NsharpNativeConstants.PARCELTYPE_EFF);
+        effBtn.setData(NsharpLibSndglib.PARCELTYPE_EFF);
         effBtn.addListener(SWT.MouseUp, radioGpLsner);
 
         udlBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
@@ -193,7 +186,7 @@ public class NsharpParcelDialog extends Dialog {
         udlBtn.setEnabled(true);
         udlBtn.setBounds(btnGp.getBounds().x + btnGapX, effBtn.getBounds().y
                 + effBtn.getBounds().height + btnGapY, btnWidth, btnHeight);
-        udlBtn.setData(NsharpNativeConstants.PARCELTYPE_USER_DEFINED);
+        udlBtn.setData(NsharpLibSndglib.PARCELTYPE_USER_DEFINED);
         udlBtn.addListener(SWT.MouseUp, radioGpLsner);
 
         udlBtn.addSelectionListener(new SelectionAdapter() {
@@ -201,7 +194,6 @@ public class NsharpParcelDialog extends Dialog {
                 // when CR is entered, this fcn is called.
                 // do nothing here.
                 // system will call okPressed() next.
-                // System.out.println("UDL selectied");
             }
         });
 
@@ -234,29 +226,28 @@ public class NsharpParcelDialog extends Dialog {
         if (skewtRsc != null) {
             curParcelType = skewtRsc.getCurrentParcel();
             switch (curParcelType) {
-            case NsharpNativeConstants.PARCELTYPE_OBS_SFC:
+            case NsharpLibSndglib.PARCELTYPE_OBS_SFC:
                 curSfcBtn.setSelection(true);
                 break;
-            case NsharpNativeConstants.PARCELTYPE_EFF:
+            case NsharpLibSndglib.PARCELTYPE_EFF:
                 effBtn.setSelection(true);
                 break;
-            case NsharpNativeConstants.PARCELTYPE_FCST_SFC:
+            case NsharpLibSndglib.PARCELTYPE_FCST_SFC:
                 frcstBtn.setSelection(true);
                 break;
-            case NsharpNativeConstants.PARCELTYPE_MEAN_MIXING:
+            case NsharpLibSndglib.PARCELTYPE_MEAN_MIXING:
                 mmlBtn.setSelection(true);
                 break;
-            case NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE:
+            case NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE:
                 mupBtn.setSelection(true);
                 break;
-            case NsharpNativeConstants.PARCELTYPE_USER_DEFINED:
+            case NsharpLibSndglib.PARCELTYPE_USER_DEFINED:
                 udlBtn.setSelection(true);
                 break;
             default:
                 break;
             }
         }
-
     }
 
     @Override
@@ -266,11 +257,9 @@ public class NsharpParcelDialog extends Dialog {
                 IDialogConstants.OK_LABEL, true);
         okBtn.addListener(SWT.MouseUp, new Listener() {
             public void handleEvent(Event event) {
-                // System.out.println("OK listener is called");
                 String textStr = userDefdMbtext.getText();
                 if ((textStr != null) && !(textStr.isEmpty())) {
                     userDefdParcelMb = Integer.decode(textStr);
-                    // System.out.println(userDefdParcelMb);
                 }
                 NsharpResourceHandler skewtRsc = NsharpEditor
                         .getActiveNsharpEditor().getRscHandler();
@@ -294,9 +283,7 @@ public class NsharpParcelDialog extends Dialog {
     // Override this and move close() from here to OK button Listener
     // So, we only close when "OK" is pressed, not "CR".
     public void okPressed() {
-        // System.out.println("CR is pressed");
         setReturnCode(OK);
-        // close();
     }
 
     /*
@@ -310,7 +297,6 @@ public class NsharpParcelDialog extends Dialog {
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setText("Parcels Display Configuration");
-
     }
 
     @Override
@@ -332,8 +318,6 @@ public class NsharpParcelDialog extends Dialog {
 
     @Override
     public int open() {
-        // System.out.println("parcel dialog opened");
-
         if (this.getShell() == null) {
             this.create();
         }
@@ -341,12 +325,10 @@ public class NsharpParcelDialog extends Dialog {
                 this.getShell().getParent().getLocation().x + 1100,
                 this.getShell().getParent().getLocation().y + 200);
         return super.open();
-
     }
 
     @Override
     public boolean close() {
-        // System.out.println("parcel close called");
         return (super.close());
     }
 

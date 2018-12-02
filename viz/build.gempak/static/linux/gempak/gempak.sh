@@ -139,6 +139,7 @@ function createEclipseConfigurationDir()
 }
 
 createEclipseConfigurationDir
+TMP_VMARGS="--launcher.appendVmargs -vmargs -Djava.io.tmpdir=${eclipseConfigurationDir}"
 
 # takes in a process id
 # kills spawned subprocesses of pid
@@ -168,9 +169,9 @@ fi
 # VERSION_ARGS includes jvm arguments so it must always be at the end of the argument
 # sequence passed to GEMPAK.
 if [ -w $FULL_LOGDIR ] ; then
-    ${dir}/gempak "${SWITCHES[@]}" $* "${VERSION_ARGS[@]}" >/dev/null 2>&1 &
+    ${dir}/gempak "${SWITCHES[@]}" $* ${TMP_VMARGS} "${VERSION_ARGS[@]}" >/dev/null 2>&1 &
 else
-    ${dir}/gempak "${SWITCHES[@]}" $* "${VERSION_ARGS[@]}" &
+    ${dir}/gempak "${SWITCHES[@]}" $* ${TMP_VMARGS} "${VERSION_ARGS[@]}" &
 fi
 pid=$!
 wait $pid

@@ -6,13 +6,14 @@
     http://camel.apache.org/schema/spring/camel-spring.xsd">
 
     <bean id="nsbnFileChangedStrategy" class="com.raytheon.uf.edex.esb.camel.FileChangedExclusiveReadLockStrategy"/>
-    <bean id="nsbnFileTransferProcess" class="com.raytheon.uf.edex.nsbn.NSBNFileTransfer"></bean>
+    <bean id="nsbnFileTransferProcess" class="com.raytheon.uf.edex.nsbn.NSBNFileTransfer"/>
+    <bean id="nsbnIdempotentRepository" class="com.raytheon.uf.edex.nsbn.NSBNIdempotentRepository"/>
     
     <camelContext id="clusteredNSBNFileTransferProcess"
         xmlns="http://camel.apache.org/schema/spring"
         errorHandlerRef="errorHandler">
         <endpoint id="nsbnFileTransferEndpoint"
-            uri="file:${nsbn.drop.box}?noop=true&amp;delay=5000&amp;maxMessagesPerPoll=1000&amp;exclusiveReadLockStrategy=#nsbnFileChangedStrategy&amp;recursive=true" />
+            uri="file:${nsbn.drop.box}?noop=true&amp;idempotent=true&amp;idempotentRepository=#nsbnIdempotentRepository&amp;delay=5000&amp;maxMessagesPerPoll=1000&amp;exclusiveReadLockStrategy=#nsbnFileChangedStrategy&amp;recursive=true" />
 
         <route id="nsbnFileScan">
             <from ref="nsbnFileTransferEndpoint" />

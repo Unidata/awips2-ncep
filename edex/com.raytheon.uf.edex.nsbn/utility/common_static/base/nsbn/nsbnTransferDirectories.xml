@@ -31,7 +31,7 @@
         <destinationDir>/nsbn_store/grib</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>4</threadpoolCount>
+        <threadpoolCount>2</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="sat">
         <scanDir>sat_ingest</scanDir>
@@ -47,7 +47,6 @@
         <destinationDir>/nsbn_store/mosaic</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="ntrans">
         <scanDir>ntrans_ingest</scanDir>
@@ -55,7 +54,6 @@
         <destinationDir>/nsbn_store/ntrans</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="pgen">
         <scanDir>pgen_ingest</scanDir>
@@ -63,7 +61,6 @@
         <destinationDir>/nsbn_store/pgen</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="viirs">
         <scanDir>viirs_ingest</scanDir>
@@ -71,7 +68,6 @@
         <destinationDir>/nsbn_store/viirs</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="solarImage">
         <scanDir>SolarImage_ingest</scanDir>
@@ -79,7 +75,6 @@
         <destinationDir>/nsbn_store/SolarImage</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="geomag">
         <scanDir>GeoMag_ingest</scanDir>
@@ -87,7 +82,6 @@
         <destinationDir>/nsbn_store/GeoMag</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="goesr">
         <scanDir>GOESR_ingest</scanDir>
@@ -95,7 +89,7 @@
         <destinationDir>/nsbn_store/GOESR</destinationDir>
         <exclude></exclude>
         <include></include>
-        <threadpoolCount>1</threadpoolCount>
+        <threadpoolCount>2</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="atcf">
         <scanDir>misc_ingest</scanDir>
@@ -105,7 +99,6 @@
         <include>^aal</include>
         <include>^acp</include>
         <include>^aep</include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="sgwhv">
         <scanDir>misc_ingest</scanDir>
@@ -118,7 +111,6 @@
         <include>^enf</include>
         <include>^atk</include>
         <include>^jason3</include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="stormtrack">
         <scanDir>misc_ingest</scanDir>
@@ -126,7 +118,6 @@
         <destinationDir>/nsbn_store/stormtrack</destinationDir>
         <exclude></exclude>
         <include>cyclone</include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
     <nsbnTransferDirectory id="Ncscat">
         <scanDir>misc_ingest</scanDir>
@@ -136,6 +127,5 @@
         <include>^wsat_</include>
         <include>^ascatd_</include>
         <include>qsct$</include>
-        <threadpoolCount>1</threadpoolCount>
     </nsbnTransferDirectory>
 </nsbnTransferDirectories>

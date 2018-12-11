@@ -69,6 +69,7 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
  *                                      call in the constructor
  * Apr 21, 2016  R17741    S. Gilbert   Calculate speed direction when plotting instead of up front
  * Oct 25, 2018  54483     mapeters     Handle {@link NcgribLogger} refactor
+ * Nov 15, 2018  58493     edebebe      Enabled configurable 'Wind Barb' properties
  * </pre>
  *
  * @author bsteffen
@@ -119,6 +120,10 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     private static final double barbAAMultiplier = 0.707;
 
     private static final double barbSPDIncrease = 2.5;
+
+    //Parameters used to construct 'VectorGraphicsConfig'
+    private static final String PLUGIN_NAME = "NcgridPlugin";
+    private static final String CLASS_NAME = "GriddedVectorDisplay";
 
     /**
      * @param NcFloatDataRecord
@@ -173,22 +178,8 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         setSize(sizeFactor * SIZE);
         setColor(GempakColor.convertToRGB(colorIndex));
 
-        vgconfig = new VectorGraphicsConfig();
-        // Change this to change wind barb size
-        vgconfig.setSizeScaler(0.55);
-        vgconfig.setOffsetRatio(0.0);
-        // Needs to be zero for calm circles to plot
-        vgconfig.setMinimumMagnitude(0.0);
-        vgconfig.setBarbRotationDegrees(75);
-        vgconfig.setBarbRotationRadians(Math.toRadians(65));
-        vgconfig.setBarbLengthRatio(0.3);
-        vgconfig.setBarbSpacingRatio(0.105);
+        vgconfig = new VectorGraphicsConfig(PLUGIN_NAME, CLASS_NAME);
         vgconfig.setBarbFillFiftyTriangle(fillFlag);
-        vgconfig.setCalmCircleMaximumMagnitude(2.5);
-        vgconfig.setCalmCircleSizeRatio(0.075);
-        vgconfig.setArrowHeadSizeRatio(0.1875);
-        vgconfig.setLinearArrowScaleFactor(1.0);
-
     }
 
     /**

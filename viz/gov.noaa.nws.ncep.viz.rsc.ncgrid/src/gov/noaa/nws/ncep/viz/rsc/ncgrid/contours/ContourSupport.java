@@ -1334,10 +1334,12 @@ public class ContourSupport {
         }
 
         if (rangeHigh.length == 2 && rangeLow.length == 2) {
-            x = szX = maxX = rangeHigh[0];
-            szY = maxY = rangeHigh[1];
+            x = maxX = rangeHigh[0];
+            maxY = rangeHigh[1];
             minX = rangeLow[0];
             minY = rangeLow[1];
+            szX = (maxX - minX) + 1;
+            szY = (maxY - minY) + 1;
         } else {  // default to the old way so something is at least displayed
             long[] sz = records.getSizes();
             minX = 0;
@@ -1442,30 +1444,19 @@ public class ContourSupport {
             for (List<StreamLinePoint> line : streamLines.streamLines) {
                 for (StreamLinePoint point : line) {
                     double[] out = new double[2];
-                    float f;
-
-                    if (point.getX() >= 360) {
-                        f = 0;
-                    } else {
-                        f = maxX + 1 - point.getX();
-                    }
-
-                    if (f > 180) {
-                        f = f - 360;
-                    }
 
                     try {
                         rastPosToWorldGrid.transform(
-                                new double[] { f, point.getY() + minY }, 0,
-                                out, 0, 1);
+                                new double[] { point.getX() + minX, point.getY() + minY },
+                                0, out, 0, 1);
                     } catch (TransformException e) {
                         statusHandler
                                 .error("Error trying to transform point: "
-                                        + "[" + f + ", " + point.getY() + minY + "]. "
+                                        + "[" + point.getX() + minX + ", " + point.getY() + minY + "]. "
                                         + "Displayed data may be incomplete or "
                                         + "not entirely correct.", e);
                     }
-                    pts.add(new Coordinate(f, point.getY() + minY));
+                    pts.add(new Coordinate(point.getX(), point.getY()));
                     vals.add(out);
                 }
 

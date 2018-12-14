@@ -29,6 +29,7 @@
  * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
  * 11/13/2018  7576      bsteffen   Unify activation dialogs.
  * 11/21/2018  7574      bsteffen   Fix comparison and overlay coloring.
+ * 12/14/2018  6872      bsteffen   Track time more accurately.
  *
  * </pre>
  * 
@@ -36,12 +37,7 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-import java.text.DateFormatSymbols;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -49,8 +45,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.graphics.RGB;
@@ -76,11 +73,13 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpDataPageProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpElementDescription;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpTimeOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
@@ -113,8 +112,6 @@ public class NsharpResourceHandler {
     private NsharpSpcGraphsPaneResource spcGraphsPaneRsc;
 
     private NsharpAbstractPaneResource futurePaneRsc;
-
-    private String[] defaultDays;
 
     private int displayDataPageMax;
 
@@ -253,7 +250,7 @@ public class NsharpResourceHandler {
 
     private List<NsharpOperationElement> stnElementList = new ArrayList<>();
 
-    private List<NsharpOperationElement> timeElementList = new ArrayList<>();
+    private List<NsharpTimeOperationElement> timeElementList = new ArrayList<>();
 
     private List<NsharpOperationElement> sndElementList = new ArrayList<>();
 
@@ -363,7 +360,7 @@ public class NsharpResourceHandler {
         return stnElementList;
     }
 
-    public List<NsharpOperationElement> getTimeElementList() {
+    public List<NsharpTimeOperationElement> getTimeElementList() {
         return timeElementList;
     }
 
@@ -582,7 +579,7 @@ public class NsharpResourceHandler {
             int timeLineLengthToComp = TIME_COMPARE_STRING.length();
 
             String currentTimeLineToComp = timeElementList
-                    .get(currentTimeElementListIndex).getElementDescription()
+                    .get(currentTimeElementListIndex).getDescription()
                     .substring(0, timeLineLengthToComp);
             // loop through stns list to find "ACTIVE" stns which are within snd
             // comparison radius
@@ -601,7 +598,7 @@ public class NsharpResourceHandler {
                         boolean goodTimeLine = false;
                         if (k != currentTimeElementListIndex) {
                             String timeToCopm1 = timeElementList.get(k)
-                                    .getElementDescription()
+                                    .getDescription()
                                     .substring(0, timeLineLengthToComp);
                             if (currentTimeLineToComp
                                     .equals(timeToCopm1) == true) {
@@ -916,57 +913,6 @@ public class NsharpResourceHandler {
         }
     }
 
-    private class NsharpOperationElementComparator
-            implements Comparator<NsharpOperationElement> {
-
-        @Override
-        public int compare(NsharpOperationElement o1,
-                NsharpOperationElement o2) {
-
-            String s1tok1 = "";
-            String s2tok1 = "";
-            String o1Desc = o1.getElementDescription();
-            StringTokenizer st1 = new StringTokenizer(o1Desc);
-            int tkCount1 = st1.countTokens();
-
-            if (tkCount1 >= 1) {
-                s1tok1 = st1.nextToken();
-            } else {
-                return 0;
-            }
-
-            String o2Desc = o2.getElementDescription();
-            StringTokenizer st2 = new StringTokenizer(o2Desc);
-            int tkCount2 = st2.countTokens();
-
-            if (tkCount2 >= 1) {
-                s2tok1 = st2.nextToken();
-            } else {
-                return 0;
-
-            }
-
-            if (s1tok1.compareTo(s2tok1) == 0) {
-                return 0;
-            } else if (s1tok1.compareTo(s2tok1) < 0) {
-                return 1;
-            } else if (s1tok1.compareTo(s2tok1) > 0) {
-                return -1;
-            }
-            return 0;
-        }
-    }
-
-    private int getIndexFromElementList(String targetDescription,
-            List<NsharpOperationElement> elemLst) {
-        for (NsharpOperationElement sndProp : elemLst) {
-            if (sndProp.getElementDescription().equals(targetDescription))
-                return elemLst.indexOf(sndProp);
-
-        }
-        return -1;
-    }
-
     private void restoreAllSoundingData() {
         for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
             // add a new element for the new sndType to each existing sndlist of
@@ -979,299 +925,61 @@ public class NsharpResourceHandler {
             }
         }
     }
-
-    private int addElemToElemList(String elemDesc,
-            List<NsharpOperationElement> elemList) {
-        NsharpOperationElement elem = new NsharpOperationElement(elemDesc,
-                NsharpConstants.ActState.ACTIVE);
-        elemList.add(elem);
-        Collections.sort(elemList, new NsharpOperationElementComparator());
-        return elemList.indexOf(elem);
-    }
-
-    private void addNewSndToStnTimeSndTable(int sndIndex) {
-        for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
-            // add a new element for the new sndType to each existing sndlist of
-            // each existing time of each existing stnId
-            for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
-                sndtyList.add(sndIndex, null);
-            }
-        }
-    }
-
-    private void addNewStnToStnTimeSndTable(int stnIndex) {
-        // Add new stnid to outer list of stnTimeSndTable
-        List<List<NsharpSoundingElementStateProperty>> listListForNewStn = new ArrayList<>();
-        // based on new stn id, add list for each existing time line
-        for (int i = 0; i < timeElementList.size(); i++) {
-            // based on each time line, add element for each existing sndType
-            List<NsharpSoundingElementStateProperty> sndListForTm = new ArrayList<>();
-            for (int j = 0; j < sndElementList.size(); j++) {
-                sndListForTm.add(null);
-            }
-            listListForNewStn.add(sndListForTm);
-        }
-        stnTimeSndTable.add(stnIndex, listListForNewStn);
-    }
-
-    private void addNewTimeToStnTimeSndTable(int timeIndex) {
-        for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
-            // based on sndTypeElementList
-            // create sndlist for the new time line for each existing stnid
-            List<NsharpSoundingElementStateProperty> newSndList = new ArrayList<>();
-            for (int i = 0; i < sndElementList.size(); i++) {
-                newSndList.add(null);
-            }
-            // add sndlist for the new time line to stn list
-            tlListList.add(timeIndex, newSndList);
-        }
-    }
-
-    private void addElementToTableAndLists(String stnId_timeLine_sndType,
-            String stnId, String tmLine, String sndType,
-            NsharpStationInfo stnInfo, List<NcSoundingLayer> sndLyLst,
-            boolean goodData) {
-
-        NsharpSoundingElementStateProperty newSndPropElem = null;
-        int tmIndex = getIndexFromElementList(tmLine, timeElementList);
-        int stnIndex = getIndexFromElementList(stnId, stnElementList);
-        int sndTpyeIndex = getIndexFromElementList(sndType, sndElementList);
-        currentTimeElementListIndex = tmIndex;
-        currentStnElementListIndex = stnIndex;
-        currentSndElementListIndex = sndTpyeIndex;
-        // based on these 3 indexes, we have 8 cases to handle.
-        if (tmIndex >= 0 && stnIndex >= 0 && sndTpyeIndex >= 0) {
-            // CASE1: All 3 index are good (>=0)
-            if (stnTimeSndTable.get(stnIndex).get(tmIndex)
-                    .get(sndTpyeIndex) != null) {
-                // this sounding element is already loaded
-                return;
-            } else {
-                // replace previously added "null" object with real
-                // NsharpSoundingElementStateProperty object
-                newSndPropElem = new NsharpSoundingElementStateProperty(
-                        stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                        sndLyLst, goodData); // #5929
-                stnTimeSndTable.get(stnIndex).get(tmIndex).set(sndTpyeIndex,
-                        newSndPropElem);
-            }
-        } else if (tmIndex >= 0) {
-            if (stnIndex >= 0) {
-                // CASE2 : tmIndex/stnIndex are good (>=0), sndTpyeIndex is bad
-                // (<0), a new snd type
-                // add new sndType to sndTypeElementList
-                currentSndElementListIndex = addElemToElemList(sndType,
-                        sndElementList);
-                // Add new snd type to each snd type list of stnTimeSndTable
-                addNewSndToStnTimeSndTable(currentSndElementListIndex);
-                // replace previously added "null" object with real
-                // NsharpSoundingElementStateProperty object
-                newSndPropElem = new NsharpSoundingElementStateProperty(
-                        stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                        sndLyLst, goodData);
-                stnTimeSndTable.get(currentStnElementListIndex)
-                        .get(currentTimeElementListIndex)
-                        .set(currentSndElementListIndex, newSndPropElem);
-            } else {
-                if (sndTpyeIndex >= 0) {
-                    // CASE3 : tmIndex/sndTpyeIndex are good, stnIndex is bad
-                    // (<0), a new stnId
-                    // add new stn to stnElementList
-                    currentStnElementListIndex = addElemToElemList(stnId,
-                            stnElementList);
-                    // Add new stnid to outer list of stnTimeSndTable
-                    addNewStnToStnTimeSndTable(currentStnElementListIndex);
-                    // replace previously added "null" object with real
-                    // NsharpSoundingElementStateProperty object
-                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                            stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
-                    stnTimeSndTable.get(currentStnElementListIndex)
-                            .get(currentTimeElementListIndex)
-                            .set(currentSndElementListIndex, newSndPropElem);
-
-                } else {
-                    // CASE4 : tmIndex is good, stnIndex/sndTpyeIndex are bad
-                    // (<0), new stnId and new snd type
-                    // add new stn to stnElementList
-                    currentStnElementListIndex = addElemToElemList(stnId,
-                            stnElementList);
-                    // add new sndType to sndTypeElementList
-                    currentSndElementListIndex = addElemToElemList(sndType,
-                            sndElementList);
-                    // Add new snd type to each snd type list of stnTimeSndTable
-                    addNewSndToStnTimeSndTable(currentSndElementListIndex);
-                    // Add new stnid to outer list of stnTimeSndTable
-                    addNewStnToStnTimeSndTable(currentStnElementListIndex);
-                    // replace previously added "null" object with real
-                    // NsharpSoundingElementStateProperty object
-                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                            stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
-                    stnTimeSndTable.get(currentStnElementListIndex)
-                            .get(currentTimeElementListIndex)
-                            .set(currentSndElementListIndex, newSndPropElem);
-
-                }
-            }
-        } else {
-            if (stnIndex >= 0) {
-                if (sndTpyeIndex >= 0) {
-                    // CASE5 : stnIndex/sndTpyeIndex are good, tmIndex is bad
-                    // (<0)
-                    // add new time line to timeElementList
-                    currentTimeElementListIndex = addElemToElemList(tmLine,
-                            timeElementList);
-                    // add new time line to StnTimeSndTable
-                    addNewTimeToStnTimeSndTable(currentTimeElementListIndex);
-                    // replace previously added "null" object with real
-                    // NsharpSoundingElementStateProperty object
-                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                            stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
-                    stnTimeSndTable.get(currentStnElementListIndex)
-                            .get(currentTimeElementListIndex)
-                            .set(currentSndElementListIndex, newSndPropElem);
-
-                } else {
-                    // CASE6 : stnIndex is good, tmIndex/sndTpyeIndex are bad
-                    // (<0)
-                    // add new time line to timeElementList
-                    currentTimeElementListIndex = addElemToElemList(tmLine,
-                            timeElementList);
-                    // add new sndType to sndTypeElementList
-                    currentSndElementListIndex = addElemToElemList(sndType,
-                            sndElementList);
-                    // Add new snd type to each snd type list of stnTimeSndTable
-                    addNewSndToStnTimeSndTable(currentSndElementListIndex);
-                    // add new time line to StnTimeSndTable
-                    addNewTimeToStnTimeSndTable(currentTimeElementListIndex);
-                    // replace previously added "null" object with real
-                    // NsharpSoundingElementStateProperty object
-                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                            stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
-                    stnTimeSndTable.get(currentStnElementListIndex)
-                            .get(currentTimeElementListIndex)
-                            .set(currentSndElementListIndex, newSndPropElem);
-
-                }
-
-            } else {
-                if (sndTpyeIndex >= 0) {
-                    // CASE7 : sndTpyeIndex is good, tmIndex/stnIndex are bad
-                    // (<0)
-                    // add new time line to timeElementList
-                    currentTimeElementListIndex = addElemToElemList(tmLine,
-                            timeElementList);
-                    // add new stn to stnElementList
-                    currentStnElementListIndex = addElemToElemList(stnId,
-                            stnElementList);
-                    // add new time line to StnTimeSndTable
-                    addNewTimeToStnTimeSndTable(currentTimeElementListIndex);
-                    // Add new stnid to outer list of stnTimeSndTable
-                    addNewStnToStnTimeSndTable(currentStnElementListIndex);
-                    // replace previously added "null" object with real
-                    // NsharpSoundingElementStateProperty object
-                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                            stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
-                    stnTimeSndTable.get(currentStnElementListIndex)
-                            .get(currentTimeElementListIndex)
-                            .set(currentSndElementListIndex, newSndPropElem);
-
-                } else {
-                    // CASE8 : All are bad (<0)
-                    // an element with new time line, new stnId and new sndType
-                    // add new time line to timeElementList
-                    currentTimeElementListIndex = addElemToElemList(tmLine,
-                            timeElementList);
-                    // add new stn to stnElementList
-                    currentStnElementListIndex = addElemToElemList(stnId,
-                            stnElementList);
-                    // add new sndType to sndTypeElementList
-                    currentSndElementListIndex = addElemToElemList(sndType,
-                            sndElementList);
-
-                    // Construct stnTimeSndTable
-                    if (stnTimeSndTable.size() > 0) {
-                        List<List<NsharpSoundingElementStateProperty>> listListForNewStn = new ArrayList<>();
-                        // based on new stn id, add list for each existing time
-                        // line
-                        for (NsharpOperationElement tmElem : timeElementList) {
-                            // based on each time line, add element for each
-                            // existing sndType
-                            List<NsharpSoundingElementStateProperty> sndlistForTm = new ArrayList<>();
-                            for (NsharpOperationElement sndElem : sndElementList) {
-                                if (tmLine
-                                        .equals(tmElem.getElementDescription())
-                                        && sndType.equals(sndElem
-                                                .getElementDescription())) {
-                                    // only one case falls in this route as only
-                                    // one new loaded sounding data
-                                    newSndPropElem = new NsharpSoundingElementStateProperty(
-                                            stnId_timeLine_sndType, stnId,
-                                            tmLine, stnInfo, sndLyLst,
-                                            goodData);
-
-                                    sndlistForTm.add(newSndPropElem);
-                                } else {
-                                    // create for not avail sounding profiles
-                                    sndlistForTm.add(null);
-                                }
-                            }
-                            listListForNewStn.add(sndlistForTm);
-                        }
-
-                        // Now update stnTimeSndTable by adding "dummy"
-                        // NsharpSoundingElementStateProperty to all exiting stn
-                        // listList and time list
-                        // Note that we have NOT added "listListForNewStn" to
-                        // stnTimeSndTable yet.
-                        // we have to update current table now
-                        for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
-                            // add a new element for the new sndType to each
-                            // existing sndlist of each existing time of each
-                            // existing stnId
-                            for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
-                                sndtyList.add(currentSndElementListIndex, null);
-                            }
-                            // based on sndTypeElementList
-                            // add a new sndlist for the new time line for each
-                            // existing stnid
-                            List<NsharpSoundingElementStateProperty> newSndList = new ArrayList<>();
-                            for (int i = 0; i < sndElementList.size(); i++) {
-                                {
-                                    newSndList.add(null);
-                                }
-                            }
-                            tlListList.add(currentTimeElementListIndex,
-                                    newSndList);
-                        }
-                        // finally, add this new stn list to table
-                        stnTimeSndTable.add(currentStnElementListIndex,
-                                listListForNewStn);
-                    } else {
-                        // this is the case, we are adding first element to
-                        // stnTimeSndTable
-                        // need a new stn time line list to stnTimeSndTable
-                        List<NsharpSoundingElementStateProperty> newList = new ArrayList<>();
-                        List<List<NsharpSoundingElementStateProperty>> newListList = new ArrayList<>();
-
-                        newSndPropElem = new NsharpSoundingElementStateProperty(
-                                stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                                sndLyLst, goodData);
-                        newList.add(newSndPropElem);
-                        newListList.add(newList);
-                        stnTimeSndTable.add(newListList);
-                        curSndProfileProp = newSndPropElem;
-                        return;
-                    }
-
+    
+    private void addElementToTableAndLists(NsharpElementDescription desc, NsharpStationInfo stnInfo,
+            List<NcSoundingLayer> sndLyLst, boolean displayData) {
+        boolean goodData = checkDataIntegrity(sndLyLst);
+        NsharpSoundingElementStateProperty newSndPropElem = new NsharpSoundingElementStateProperty(
+                desc.getDescription(), stnInfo, sndLyLst,
+                goodData);
+        NsharpTimeOperationElement tmElem = desc.getTimeElement();
+        NsharpOperationElement stnElem = desc.getStationElement();
+        NsharpOperationElement sndTypeElem = desc.getTypeElement();
+        int tmIndex = timeElementList.indexOf(tmElem);
+        int stnIndex = stnElementList.indexOf(stnElem);
+        int sndTypeIndex = sndElementList.indexOf(sndTypeElem);
+        if (sndTypeIndex < 0) {
+            sndElementList.add(sndTypeElem);
+            Collections.sort(sndElementList, Comparator.reverseOrder());
+            sndTypeIndex = sndElementList.indexOf(sndTypeElem);
+            for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
+                for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
+                    sndtyList.add(sndTypeIndex, null);
                 }
             }
         }
-        setCurSndProfileProp();
+        if (tmIndex < 0) {
+            timeElementList.add(tmElem);
+            Collections.sort(timeElementList, Comparator.reverseOrder());
+            tmIndex = timeElementList.indexOf(tmElem);
+            for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
+                List<NsharpSoundingElementStateProperty> newSndList = new ArrayList<>();
+                newSndList.addAll(
+                        Collections.nCopies(sndElementList.size(), null));
+                tlListList.add(tmIndex, newSndList);
+            }
+        }
+        if (stnIndex < 0) {
+            stnElementList.add(stnElem);
+            Collections.sort(stnElementList, Comparator.reverseOrder());
+            stnIndex = stnElementList.indexOf(stnElem);
+            List<List<NsharpSoundingElementStateProperty>> listListForNewStn = new ArrayList<>();
+            for (int i = 0; i < timeElementList.size(); i++) {
+                List<NsharpSoundingElementStateProperty> sndListForTm = new ArrayList<>();
+                sndListForTm.addAll(
+                        Collections.nCopies(sndElementList.size(), null));
+                listListForNewStn.add(sndListForTm);
+            }
+            stnTimeSndTable.add(stnIndex, listListForNewStn);
+        }
+        stnTimeSndTable.get(stnIndex).get(tmIndex).set(sndTypeIndex,
+                newSndPropElem);
+        if(displayData){
+            currentTimeElementListIndex = tmIndex;
+            currentStnElementListIndex = stnIndex;
+            currentSndElementListIndex = sndTypeIndex;
+            setCurSndProfileProp();
+        }
     }
 
     private void setCurSndProfileProp() {
@@ -1584,58 +1292,6 @@ public class NsharpResourceHandler {
 
     }
 
-    // D2D load data use this route
-    public void addRsc(Map<String, List<NcSoundingLayer>> soundMap,
-            NsharpStationInfo stnInfo, boolean fromNCP) {
-        if (fromNCP) {
-            // this is from NCP do nothing now
-            this.addRsc(true, soundMap, stnInfo, false);
-            // NCP case:
-            // Key String format will be like this for NCUAIR
-            // KGRI 100616/03(Wed)-NCUAIR
-            // and for PFC/Grid sounding will be like this
-            // KGRI 100616/03(Wed)V001-GFSSND
-        } else {
-            // D2D case::::
-            // this is from D2D, edit display and time line string to add short
-            // day-of-week and
-            // also add sounding type to string to solve an issue that data with
-            // same stn, same time line but different
-            // sounding type will not be loaded.
-            // D2D's key string is like this: "KGRI 2010-06-16 03:00:00"
-            // will change it to "KGRI 100616/03(Wed)-GFSSND"
-            Set<String> dataTimelineSet = soundMap.keySet();
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            Calendar cal = Calendar.getInstance();
-            Date date;
-            Map<String, List<NcSoundingLayer>> newmap = new HashMap<>();
-            String sndType = stnInfo.getSndType();
-            for (String timeline : dataTimelineSet) {
-                String dateStr = timeline.substring(timeline.indexOf(' ') + 1);
-                String stnId = timeline.substring(0, timeline.indexOf(' '));
-                try {
-                    date = df.parse(dateStr);
-                    cal.setTime(date);
-                    String dayOfWeek = defaultDays[cal
-                            .get(Calendar.DAY_OF_WEEK)];
-                    String finalTimeStr = String.format(
-                            "%4$s %1$ty%1$tm%1$td/%1$tH(%2$s) %3$s", cal,
-                            dayOfWeek, sndType, stnId);
-                    // put newTimeStr to new map with original value
-                    newmap.put(finalTimeStr, soundMap.get(timeline));
-                } catch (ParseException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            "d2d addRsc exception:", e);
-                    continue;
-                }
-            }
-            // this is from D2D, and it does not want to display new data right
-            // away.
-            this.addRsc(false, newmap, stnInfo, false);
-        }
-    }
-
     private boolean checkDataIntegrity(List<NcSoundingLayer> sndLayers) {
         boolean gooddata = false;
         int numberOfTemp = 0;
@@ -1657,23 +1313,8 @@ public class NsharpResourceHandler {
     // This api peforms real load data function
     private void addRsc(boolean displayNewData,
             Map<String, List<NcSoundingLayer>> soundMap,
-            NsharpStationInfo stnInfo, boolean fromArchive) {
+            NsharpStationInfo stnInfo) {
 
-        /*
-         * testing code : this code is used frequently for development and do
-         * not remove.
-         * 
-         * Set<String> keysettest = new HashSet<String>(soundMap.keySet()); for
-         * (String key : keysettest) { List<NcSoundingLayer> sndLy =
-         * soundMap.remove(key); String newkey= key.replace("NAMS", "SSS");
-         * //String newkey = key.replace("130925", "150102");
-         * soundMap.put(newkey, sndLy); } // //
-         * stnInfo.setSndType(stnInfo.getSndType().replace("NCUAIR", // // //
-         * "gpduair")); // stnInfo.setSndType(stnInfo.getSndType().replace( //
-         * // "NAMS","SSS"));
-         * 
-         * END testing code
-         */
         if (stnInfo.getStnId() != null
                 && stnInfo.getStnId().indexOf(" ") >= 0) {
             // take care stnId with SPACE case.
@@ -1688,9 +1329,21 @@ public class NsharpResourceHandler {
                 String newkey = key.replace(stnId, newStnId);
                 soundMap.put(newkey, sndLy);
             }
-
         }
-
+        
+        Map<NsharpElementDescription, List<NcSoundingLayer>> newSoundMap = new HashMap<>();
+        for(Entry<String, List<NcSoundingLayer>> entry : soundMap.entrySet()){
+            if (entry.getKey().equals("N/A")) {
+                continue;
+            }
+            newSoundMap.put(NsharpElementDescription.parse(entry.getKey()), entry.getValue());
+        }
+        addRsc(stnInfo, newSoundMap, displayNewData);
+    }
+    
+    // This api peforms real load data function
+    public void addRsc(NsharpStationInfo stnInfo, 
+            Map<NsharpElementDescription, List<NcSoundingLayer>> soundMap, boolean displayNewData) {
         if (soundMap.size() <= 0
                 || (skewtPaneRsc == null && hodoPaneRsc == null)) {
             return;
@@ -1702,115 +1355,13 @@ public class NsharpResourceHandler {
             // if no data was loaded since, then display this data any way
             displayNewData = true;
         }
-        // save current timeline and stn state properties if we are NOT loading
-        // new data
-        NsharpOperationElement currentTL = null;
-        NsharpOperationElement currentStn = null;
-        NsharpOperationElement currentSnd = null;
-        NsharpSoundingElementStateProperty currentPreSndProfileProp = null;
-        if (!displayNewData) {
-            currentTL = timeElementList.get(currentTimeElementListIndex);
-            currentStn = stnElementList.get(currentStnElementListIndex);
-            currentSnd = sndElementList.get(currentSndElementListIndex);
-            currentPreSndProfileProp = preSndProfileProp;
-        }
-        // add new data to table
-        Set<String> dataTimelineSet = soundMap.keySet();
-        String[] tempTimeLineArr = dataTimelineSet
-                .toArray(new String[dataTimelineSet.size()]);
-        Arrays.sort(tempTimeLineArr);
-        for (int i = 0; i < tempTimeLineArr.length; i++) {
-            // based on this KEY string format "KGRI 100616/03(Wed)Vxxx GFSSND"
-            String stnId, sndType, timeLine, timeLine_sndType,
-                    stnId_timeLine_sndType;
-            List<NcSoundingLayer> sndLyLst;
-
-            try {
-                stnId_timeLine_sndType = tempTimeLineArr[i].toString();
-                if (stnId_timeLine_sndType.equals("N/A")) {
-                    continue;
-                }
-                sndLyLst = soundMap.get(stnId_timeLine_sndType);
-
-                stnId = stnId_timeLine_sndType.substring(0,
-                        stnId_timeLine_sndType.indexOf(" "));
-                timeLine_sndType = stnId_timeLine_sndType
-                        .substring(stnId_timeLine_sndType.indexOf(" ") + 1);
-                timeLine = timeLine_sndType.substring(0,
-                        timeLine_sndType.indexOf(" "));
-                sndType = timeLine_sndType
-                        .substring(timeLine_sndType.indexOf(" ") + 1);
-            } catch (Exception e) {
-                statusHandler.handle(Priority.PROBLEM, "addRsc exception:", e);
-                return;
-            }
-            if (!fromArchive) {
-                // For those sounding report with forecast time, e.g. model/pfc
-                // sounding
-                if (timeLine.contains("V")) {
-                    // Chin's NOTE:
-                    // Can Not use reference time directly from the stnInfo,
-                    // Timestamp refTime = stnInfo.getReftime()
-                    // AS there is a "BUG" in Timestamp or Database. In some
-                    // cases, Timestamp's "nanos" filelds contains non zero
-                    // value of some nanoseconds and cause "hour" value shifted
-                    // one hour, and therefore when calling refTime.getTime()
-                    // will return unexpected reference time.
-                    // So, use the following way to get referrence time.
-                    // Based on timeline format "100616/03(Wed)Vxxx" do
-                    // the following. to append reference time format of "DD.HH"
-                    // at end of sndType.
-                    SimpleDateFormat df = new SimpleDateFormat("yyMMdd/HH");
-                    String dateStr = timeLine.substring(0, 9);
-                    try {
-                        Date date = df.parse(dateStr);
-                        Calendar cal = Calendar.getInstance();
-                        String vStr = timeLine.substring(15, 18);
-                        int vNum = Integer.parseInt(vStr);
-                        cal.setTimeInMillis(
-                                date.getTime() - vNum * 60 * 60 * 1000);
-                        String dateOfMonthStr, hourStr;
-
-                        if (cal.get(Calendar.DAY_OF_MONTH) < 10) {
-                            dateOfMonthStr = "0"
-                                    + cal.get(Calendar.DAY_OF_MONTH);
-                        } else {
-                            dateOfMonthStr = ""
-                                    + cal.get(Calendar.DAY_OF_MONTH);
-                        }
-                        if (cal.get(Calendar.HOUR_OF_DAY) < 10) {
-                            hourStr = "0" + cal.get(Calendar.HOUR_OF_DAY);
-                        } else {
-                            hourStr = "" + cal.get(Calendar.HOUR_OF_DAY);
-                        }
-                        sndType = dateOfMonthStr + "." + hourStr + "@"
-                                + sndType;
-                    } catch (ParseException e) {
-                        statusHandler.handle(Priority.PROBLEM,
-                                "addRsc exception:", e);
-                    }
-                }
-            }
-            // recreate stnId_timeLine_sndType
-            stnId_timeLine_sndType = stnId + " " + timeLine + " " + sndType;
-            boolean goodData = checkDataIntegrity(sndLyLst);
-            addElementToTableAndLists(stnId_timeLine_sndType, stnId, timeLine,
-                    sndType, stnInfo, sndLyLst, goodData);
-        }
-        if (displayNewData) {
-            // Set default parcel trace data
-            currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
-            currentParcelLayerPressure = NsharpLibSndglib.MU_LAYER_PRESS;
-        } else {
-            // Not display new data. Reset current "parameter"s after adding
-            // data to map/lists
-            currentStnElementListIndex = stnElementList.indexOf(currentStn);
-            currentTimeElementListIndex = timeElementList.indexOf(currentTL);
-            currentSndElementListIndex = sndElementList.indexOf(currentSnd);
-            preSndProfileProp = currentPreSndProfileProp;
-            curSndProfileProp = stnTimeSndTable.get(currentStnElementListIndex)
-                    .get(currentTimeElementListIndex)
-                    .get(currentSndElementListIndex);
+        // add data in order.
+        Map<NsharpElementDescription, List<NcSoundingLayer>> sortedSoundMap = new TreeMap<>();
+        sortedSoundMap.putAll(soundMap);
+        for (Entry<NsharpElementDescription, List<NcSoundingLayer>> entry : sortedSoundMap
+                .entrySet()) {
+            addElementToTableAndLists(entry.getKey(), stnInfo, entry.getValue(),
+                    displayNewData);
         }
         setCurrentSoundingLayerInfo();
         resetData();
@@ -1855,7 +1406,7 @@ public class NsharpResourceHandler {
     public void addRsc(Map<String, List<NcSoundingLayer>> soundMap,
             NsharpStationInfo stnInfo) {
         // by default, display new data
-        this.addRsc(true, soundMap, stnInfo, false);
+        this.addRsc(true, soundMap, stnInfo);
         return;
     }
 
@@ -1863,7 +1414,7 @@ public class NsharpResourceHandler {
     public void addArchiveRsc(Map<String, List<NcSoundingLayer>> soundMap,
             NsharpStationInfo stnInfo) {
         // by default, display new data
-        this.addRsc(true, soundMap, stnInfo, true);
+        this.addRsc(true, soundMap, stnInfo);
         return;
     }
 
@@ -2227,7 +1778,7 @@ public class NsharpResourceHandler {
         Forward, Backward, Cycle
     };
 
-    private int getElemlistActiveNumber(List<NsharpOperationElement> elemlist) {
+    private int getElemlistActiveNumber(List<? extends NsharpOperationElement> elemlist) {
         int n = 0;
         for (NsharpOperationElement elem : elemlist) {
             if (elem.getActionState() == NsharpConstants.ActState.ACTIVE) {
@@ -2864,8 +2415,6 @@ public class NsharpResourceHandler {
         displayDataPageMax = NsharpConstants.PAGE_MAX_NUMBER
                 / dataPageProperty.getNumberPagePerDisplay();
 
-        DateFormatSymbols dfs = new DateFormatSymbols();
-        defaultDays = dfs.getShortWeekdays();
         weatherDataStore = new NsharpWeatherDataStore();
     }
 

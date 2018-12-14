@@ -40,6 +40,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, fixed formatting
  * Nov 21, 2018 7574        bsteffen    Fix comparison coloring.
+ * Dec 14, 2018 6872        bsteffen    Handle missing bunkers.
  *
  * </pre>
  *
@@ -336,34 +337,45 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
         // plot Bunkers Vector,by default plot them
         if ((graphConfigProperty != null) && graphConfigProperty.isSmvBunkersR()
                 || graphConfigProperty.isSmvBunkersL()) {
-            WindComponent[] bunkersStormMotionWindComp = weatherDataStore.getBunkersStormMotionWindComp();
-            if (graphConfigProperty.isSmvBunkersR()) {
-                // use bunkers storm motion right from
-                // bunkersStormMotionWindComp[0]
-                c = new Coordinate(bunkersStormMotionWindComp[0].getUcomp(), bunkersStormMotionWindComp[0].getVcomp());
+            WindComponent[] bunkersStormMotionWindComp = weatherDataStore
+                    .getBunkersStormMotionWindComp();
+            WindComponent rightComp = null;
+            WindComponent leftComp = null;
+            if (bunkersStormMotionWindComp != null) {
+                rightComp = bunkersStormMotionWindComp[0];
+                leftComp = bunkersStormMotionWindComp[1];
+            }
+            if (graphConfigProperty.isSmvBunkersR() && rightComp != null) {
+                c = new Coordinate(rightComp.getUcomp(), rightComp.getVcomp());
                 c = world.map(c);
                 RGB color = NsharpConstants.color_firebrick;
                 target.drawCircle(c.x, c.y, 0, radiusUnit, color, markerWidth);
-                target.drawLine(c.x - radiusUnit, c.y, 0.0, c.x + radiusUnit, c.y, 0.0, color, markerWidth);
-                target.drawLine(c.x, c.y - radiusUnit, 0.0, c.x, c.y + radiusUnit, 0.0, color, markerWidth);
-                textStr = String.format("%.0f/%.0f RM", bunkersStormMotionWindComp[0].getWdir(),
-                        bunkersStormMotionWindComp[0].getWspd());
-                target.drawString(font10, textStr, c.x, c.y + 10 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL, color,
-                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+                target.drawLine(c.x - radiusUnit, c.y, 0.0, c.x + radiusUnit,
+                        c.y, 0.0, color, markerWidth);
+                target.drawLine(c.x, c.y - radiusUnit, 0.0, c.x,
+                        c.y + radiusUnit, 0.0, color, markerWidth);
+                textStr = String.format("%.0f/%.0f RM", rightComp.getWdir(),
+                        rightComp.getWspd());
+                target.drawString(font10, textStr, c.x,
+                        c.y + 10 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
+                        color, HorizontalAlignment.RIGHT, VerticalAlignment.TOP,
+                        null);
             }
-            if (graphConfigProperty.isSmvBunkersL()) {
-                // use bunkers storm motion left from
-                // bunkersStormMotionWindComp[1]
-                c = new Coordinate(bunkersStormMotionWindComp[1].getUcomp(), bunkersStormMotionWindComp[1].getVcomp());
+            if (graphConfigProperty.isSmvBunkersL() && leftComp != null) {
+                c = new Coordinate(leftComp.getUcomp(), leftComp.getVcomp());
                 c = world.map(c);
                 RGB color = NsharpConstants.color_skyblue;
                 target.drawCircle(c.x, c.y, 0, radiusUnit, color, markerWidth);
-                target.drawLine(c.x - radiusUnit, c.y, 0.0, c.x + radiusUnit, c.y, 0.0, color, markerWidth);
-                target.drawLine(c.x, c.y - radiusUnit, 0.0, c.x, c.y + radiusUnit, 0.0, color, markerWidth);
-                textStr = String.format("%.0f/%.0f LM", bunkersStormMotionWindComp[1].getWdir(),
-                        bunkersStormMotionWindComp[1].getWspd());
-                target.drawString(font10, textStr, c.x, c.y - 10 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL, color,
-                        HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+                target.drawLine(c.x - radiusUnit, c.y, 0.0, c.x + radiusUnit,
+                        c.y, 0.0, color, markerWidth);
+                target.drawLine(c.x, c.y - radiusUnit, 0.0, c.x,
+                        c.y + radiusUnit, 0.0, color, markerWidth);
+                textStr = String.format("%.0f/%.0f LM", leftComp.getWdir(),
+                        leftComp.getWspd());
+                target.drawString(font10, textStr, c.x,
+                        c.y - 10 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
+                        color, HorizontalAlignment.LEFT,
+                        VerticalAlignment.BOTTOM, null);
             }
         }
 

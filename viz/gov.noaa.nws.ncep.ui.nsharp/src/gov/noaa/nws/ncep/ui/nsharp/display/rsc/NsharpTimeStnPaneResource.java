@@ -1,31 +1,14 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 04/23/2012	229			Chin Chen	Initial coding
- * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
- * 02/23/2015   Task#5694   Chin Chen   add code to support previous time line format
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
 
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpTimeOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 
 import java.awt.geom.Rectangle2D;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.eclipse.swt.graphics.RGB;
@@ -42,6 +25,27 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
+/**
+ * 
+ * 
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#    Engineer   Description
+ * ------------- ---------- ---------- -----------------------------------------
+ * Apr 23, 2012  229        Chin Chen  Initial coding
+ * Feb 03, 2015  17079      Chin Chen  Soundings listed out of order if frames
+ *                                     go into new month
+ * Feb 23, 2015  Task#5694  Chin Chen  add code to support previous time line
+ *                                     format
+ * Dec 14, 2018  6872       bsteffen   Display more precision when needed
+ * 
+ * </pre>
+ * 
+ * @author Chin Chen
+ */
 public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
     private Rectangle timeLineRectangle;
 
@@ -53,7 +57,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private List<NsharpOperationElement> stnElemList;
 
-    private List<NsharpOperationElement> timeElemList;
+    private List<NsharpTimeOperationElement> timeElemList;
 
     private List<NsharpOperationElement> sndElemList;
 
@@ -215,20 +219,22 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             if (curTimeLineIndex < 0) {
                 tl = timelineStr;
             } else {
+                DateTimeFormatter formatter = NsharpTimeOperationElement
+                        .getDisplayFormatter(timeElemList);
                 timelineStr = tl = timeElemList.get(curTimeLineIndex)
-                        .getElementDescription();
+                        .getDisplayText(formatter);
             }
             if (curSndIndex < 0) {
                 cursndType = sndTypeStr;
             } else {
                 sndTypeStr = cursndType = sndElemList.get(curSndIndex)
-                        .getElementDescription();
+                        .getDescription();
             }
             if (curStnIndex < 0) {
                 stnId = stationStr;
             } else {
                 stationStr = stnId = stnElemList.get(curStnIndex)
-                        .getElementDescription();
+                        .getDescription();
             }
             if (compareStnIsOn)
                 baseStr = "Comp Stn Based on: " + tl + "-" + cursndType;
@@ -244,32 +250,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         }
         target.clearClippingPlane();
 
-    }
-
-    /*
-     * currently time line description is YYMMDD/HHVxxx(day) or YYMMDD/HH(day)
-     * saved in NsharpSoundingElementStateProperty convert it to DD.HH for
-     * displaying
-     */
-    private String convertTimeLineForDisplay(String tl) {
-        String timeLine = tl;
-        timeLine = timeLine.substring(4); // get rid of YYMM
-        if (timeLine.contains("V")) {
-            String[] s1Str = timeLine.split("V"); // split
-                                                  // DD/HH(DOW)Vxxx to
-                                                  // "DD/HH(DOW)" and
-                                                  // "xxx"
-            String[] s2Str = s1Str[0].split("\\("); // split
-                                                    // "DD/HH(DOW)" to
-                                                    // "DD/HH" and
-                                                    // "DOW)"
-            timeLine = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1]; // put
-                                                                   // together
-                                                                   // to
-                                                                   // "DD/HHVxxx(DOW)"
-        }
-        timeLine = timeLine.replace("/", "."); // replace "/" with "."
-        return timeLine;
     }
 
     private void drawNsharpTimelinBox(IGraphicsTarget target, Rectangle rect)
@@ -327,6 +307,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         if (startIndex < 0)
             startIndex = 0;
         if (timeElemList != null) {
+            DateTimeFormatter formatter = NsharpTimeOperationElement.getDisplayFormatter(timeElemList);
             int colorIndex;
             double ly = dtNextPageEnd + charHeight;
             RGB color;
@@ -338,7 +319,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                     && count < numLineToShowPerPage; j++, count++) {
                 x = dtXOrig + 5;
                 boolean avail = false;
-                NsharpOperationElement elm = timeElemList.get(j);
+                NsharpTimeOperationElement elm = timeElemList.get(j);
                 NsharpConstants.ActState sta = elm.getActionState();
 
                 if (sta == NsharpConstants.ActState.ACTIVE
@@ -366,11 +347,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
                 x = x + xGap;
                 RGB tmLnColor = rscHandler.getElementColorMap().get(sta.name());
-                String tmDesStr = elm.getElementDescription();
-                // convert timeDesStr for GUI display
-                if (tmDesStr.contains("/")) // if time string is YYMMDD/HH
-                                            // format
-                    tmDesStr = convertTimeLineForDisplay(tmDesStr);
+                String tmDesStr = elm.getDisplayText(formatter);
                 double tmX = x;
 
                 if (compareTmIsOn
@@ -524,7 +501,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                         null);
             }
             x = x + xGap;
-            String stnId = elm.elementDescription;
+            String stnId = elm.getDescription();
             double stnIdX = x;
             color = rscHandler.getElementColorMap().get(sta.name());
 
@@ -662,7 +639,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                         null);
             }
             x = x + xGap;
-            String sndType = elm.elementDescription;
+            String sndType = elm.getDescription();
             double sndX = x;
             color = rscHandler.getElementColorMap().get(sta.name());
 
@@ -768,17 +745,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     }
 
-    @Override
-    protected void initInternal(IGraphicsTarget target) throws VizException {
-        super.initInternal(target);
-    }
-
-    @Override
-    protected void disposeInternal() {
-
-        super.disposeInternal();
-    }
-
     public Rectangle getTimeLineRectangle() {
         return timeLineRectangle;
     }
@@ -797,7 +763,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     @Override
     public void handleResize() {
-
+        
         super.handleResize();
         IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
         ext.reset();

@@ -53,6 +53,7 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      updates.
  * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for muParcel (line 1140), fixed formatting
  * Sep,18, 2018 DCS20492    mgamazaychikov  Changed call to bunkers_storm_motion method
+ * Dec 14, 2018 6872        bsteffen   Initialize watch warning type to none.
  *
  * </pre>
  *
@@ -530,11 +531,11 @@ public class NsharpWeatherDataStore {
     // 3: MRGL TOR, Gempak color 2 red;
     // 4: TOR, Gempak color 2 red;
     // 5: PDS TOR, Gempak color 7 Magenta;
-    private int wwtype;
+    private int wwtype = 0;
 
-    private RGB wwTypeColor;
+    private RGB wwTypeColor = NsharpConstants.color_gold;
 
-    private String wwtypeStr;
+    private String wwtypeStr = "NONE";
 
     // lapse rate max parameters
     private LapseRateMax lrm;

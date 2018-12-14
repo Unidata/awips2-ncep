@@ -41,7 +41,8 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * 
- * Dialog which allows users to change the {@link ActState} of {@link NsharpOperationElement}s.
+ * Dialog which allows users to change the {@link ActState} of
+ * {@link NsharpOperationElement}s.
  * 
  * <pre>
  *
@@ -50,6 +51,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date          Ticket#  Engineer  Description
  * ------------- -------- --------- -----------------------------------------
  * Nov 13, 2018  7576     bsteffen  Merge three activation dialogs into one.
+ * Dec 14, 2018  6872     bsteffen  Rewrite NsharpOperationElement
  *
  * </pre>
  *
@@ -59,7 +61,7 @@ public class ActivationDialog extends Dialog {
 
     private final String elementDesc;
 
-    private final List<NsharpOperationElement> elementList;
+    private final List<? extends NsharpOperationElement> elementList;
 
     private final int currentIndex;
 
@@ -68,13 +70,19 @@ public class ActivationDialog extends Dialog {
     /**
      * Construct a new ActivationDialog
      * 
-     * @param parentShell the parent shell.
-     * @param elementDesc User friendly name for elements that is presented in title and errors.
-     * @param elementList The list of elements to choose from.
-     * @param currentIndex The currently selected index, this cannot be deactivated.
+     * @param parentShell
+     *            the parent shell.
+     * @param elementDesc
+     *            User friendly name for elements that is presented in title and
+     *            errors.
+     * @param elementList
+     *            The list of elements to choose from.
+     * @param currentIndex
+     *            The currently selected index, this cannot be deactivated.
      */
     protected ActivationDialog(Shell parentShell, String elementDesc,
-            List<NsharpOperationElement> elementList, int currentIndex) {
+            List<? extends NsharpOperationElement> elementList,
+            int currentIndex) {
         super(parentShell);
         this.elementDesc = elementDesc;
         this.elementList = elementList;
@@ -105,7 +113,7 @@ public class ActivationDialog extends Dialog {
 
         fillDialogArea(top);
         populateSelectionList();
-        
+
         return top;
     }
 
@@ -132,8 +140,7 @@ public class ActivationDialog extends Dialog {
 
     private void populateSelectionList() {
         for (NsharpOperationElement elem : elementList) {
-            StringBuilder label = new StringBuilder(
-                    elem.getElementDescription());
+            StringBuilder label = new StringBuilder(elem.getDescription());
             if (elem.getActionState() == NsharpConstants.ActState.INACTIVE)
                 label.append("--(InActive)");
             else {
@@ -146,7 +153,7 @@ public class ActivationDialog extends Dialog {
             selectionList.add(label.toString());
         }
     }
-    
+
     private void validateSelection() {
         for (int i : selectionList.getSelectionIndices()) {
             if (i == currentIndex) {
@@ -166,69 +173,79 @@ public class ActivationDialog extends Dialog {
             elementList.get(i).setActionState(state);
         }
         NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
-        if(editor != null){
+        if (editor != null) {
             editor.refresh();
         }
         close();
     }
 
     /**
-     * Create a dialog for changing the activation state of time lines. 
+     * Create a dialog for changing the activation state of time lines.
      * 
-     * @param parentShell the parent shell.
+     * @param parentShell
+     *            the parent shell.
      */
-    public static ActivationDialog createTimeLineActivationDialog(Shell parentShell){
+    public static ActivationDialog createTimeLineActivationDialog(
+            Shell parentShell) {
         String desc = "Time Line";
-        List<NsharpOperationElement> elementList = Collections.emptyList();
+        List<? extends NsharpOperationElement> elementList = Collections
+                .emptyList();
         int currentIndex = -1;
         NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
-        if(editor != null){
+        if (editor != null) {
             NsharpResourceHandler rsc = editor.getRscHandler();
-            if(rsc != null){
+            if (rsc != null) {
                 elementList = rsc.getTimeElementList();
                 currentIndex = rsc.getCurrentTimeElementListIndex();
             }
         }
-        return new ActivationDialog(parentShell, desc, elementList, currentIndex);
+        return new ActivationDialog(parentShell, desc, elementList,
+                currentIndex);
     }
-    
+
     /**
-     * Create a dialog for changing the activation state of stations. 
+     * Create a dialog for changing the activation state of stations.
      * 
-     * @param parentShell the parent shell.
+     * @param parentShell
+     *            the parent shell.
      */
-    public static ActivationDialog createStationActivationDialog(Shell parentShell){
+    public static ActivationDialog createStationActivationDialog(
+            Shell parentShell) {
         String desc = "Station";
         List<NsharpOperationElement> elementList = Collections.emptyList();
         int currentIndex = -1;
         NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
-        if(editor != null){
+        if (editor != null) {
             NsharpResourceHandler rsc = editor.getRscHandler();
-            if(rsc != null){
+            if (rsc != null) {
                 elementList = rsc.getStnElementList();
                 currentIndex = rsc.getCurrentStnElementListIndex();
             }
         }
-        return new ActivationDialog(parentShell, desc, elementList, currentIndex);
+        return new ActivationDialog(parentShell, desc, elementList,
+                currentIndex);
     }
-    
+
     /**
-     * Create a dialog for changing the activation state of sounding types. 
+     * Create a dialog for changing the activation state of sounding types.
      * 
-     * @param parentShell the parent shell.
+     * @param parentShell
+     *            the parent shell.
      */
-    public static ActivationDialog createSoundingTypeActivationDialog(Shell parentShell){
+    public static ActivationDialog createSoundingTypeActivationDialog(
+            Shell parentShell) {
         String desc = "Sounding Type";
         List<NsharpOperationElement> elementList = Collections.emptyList();
         int currentIndex = -1;
         NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
-        if(editor != null){
+        if (editor != null) {
             NsharpResourceHandler rsc = editor.getRscHandler();
-            if(rsc != null){
+            if (rsc != null) {
                 elementList = rsc.getSndElementList();
                 currentIndex = rsc.getCurrentSndElementListIndex();
             }
         }
-        return new ActivationDialog(parentShell, desc, elementList, currentIndex);
+        return new ActivationDialog(parentShell, desc, elementList,
+                currentIndex);
     }
 }

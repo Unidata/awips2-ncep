@@ -272,9 +272,7 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.gempak.nativelib.linux64"
-         os="linux"
-         arch="x86_64"
+         id="gov.noaa.nws.ncep.viz.gempak.nativelib.macosx"
          download-size="0"
          install-size="0"
          version="0.0.0"

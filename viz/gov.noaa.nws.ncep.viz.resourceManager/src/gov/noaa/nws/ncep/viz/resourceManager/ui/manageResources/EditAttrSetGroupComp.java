@@ -137,8 +137,7 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
             // We could use the match() method but I think the find() will
             // be more user-friendly
             String elemStr = (String) element;
-            return (filterMatcher == null ? true : filterMatcher.find(elemStr,
-                    0, elemStr.length()) != null);
+            return true;
         }
 
         public void setFilterMatcher(StringMatcher sm) {

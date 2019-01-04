@@ -175,16 +175,5 @@
       </nc-resourceParameter>
       
    </extension>
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="LocatorDataSources"
-             recursive="false"
-             value="ncep/LocatorDataSources"
-	         extensionFilter=".xml">
-       </path>
-      </extension>
    
 </plugin>

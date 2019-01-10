@@ -571,38 +571,4 @@
       </contextualMenu>
    </extension>   
    
-      <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Cursors"
-             recursive="true"
-             value="ncep/Cursors"
-	         extensionFilter=".xml,.png">
-       </path>
-      </extension>
-      <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Logos"
-             recursive="true"
-             value="ncep/Logos"
-	         extensionFilter=".tbl,.gif">
-       </path>
-      </extension>
-      <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Animation Controls"
-             recursive="true"
-             value="ncep/LoopControls"
-	         extensionFilter=".tbl">
-       </path>
-      </extension>
-   
 </plugin>

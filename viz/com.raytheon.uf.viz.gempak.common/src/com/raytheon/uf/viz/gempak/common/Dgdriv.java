@@ -132,6 +132,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * 09/26/2018   54483       mapeters        Extracted out data URI and DB data retrieval
  * 10/23/2018   54483       mapeters        Use {@link IPerformanceStatusHandler}
  * 10/25/2018   54483       mapeters        Extracted out navigation and subgrid retrieval
+ * 01/11/2019   57970       mrichardson     Updated to indicate missing data as NPE culprit
  * </pre>
  *
  * @author tlee
@@ -440,8 +441,8 @@ public class Dgdriv {
                         response = dbDataRetriever.getDbData(gempakRequest);
                         if (response == null) {
                             statusHandler
-                                    .error("Received null response for GEMPAK DB data request: "
-                                            + gempakRequest);
+                                    .warn("Null response for GEMPAK DB data request indicates missing data for: "
+                                            + gempakRequest.getDataURI());
                         }
                     } catch (GempakException e) {
                         statusHandler
@@ -822,10 +823,6 @@ public class Dgdriv {
                 gd.gem.dgc_vecr_(time, glevel, gvcord, gdpfun, pfunc, ugrid,
                         vgrid, igx, igy, time1, time2, level1, level2, ivcord,
                         parmu, parmv, iret);
-            }
-            if (!proces) {
-                throw new DgdrivException(
-                        "Error retrieving data record " + errorURI);
             }
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, Native.toString(pfunc), ier);

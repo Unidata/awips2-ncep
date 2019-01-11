@@ -56,6 +56,7 @@ import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Use {@link IPerformanceStatusHandler}
  * Oct 25, 2018 54483      mapeters    Handle {@link NcgribLogger} refactor
+ * Jan 11, 2019 57970      mrichardson More cleanly handle null responses
  *
  * </pre>
  *
@@ -81,25 +82,31 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
     @Override
     public GempakDbDataResponse getDbData(GempakDbDataRequest request) {
         boolean addData = false;
+        boolean responseIsNull = false;
         String dataURI = request.getDataURI();
         int nx = request.getNx();
         int ny = request.getNy();
         long t0 = System.currentTimeMillis();
         NcgridData gData = dataCache.getGridData(dataURI);
-        float[] rData;
+        float[] rData = {};
         ISpatialObject subgSpatialObj = null;
         if (gData == null) {
             addData = true;
             GempakDbDataResponse unprocessedResponse = retrieveDataFromRetriever(
                     dataURI);
-            rData = unprocessedResponse.getData();
-            subgSpatialObj = unprocessedResponse.getSubgSpatialObj();
-            if (rData == null) {
-                if (NcgribLogger.getInstance().isEnableDiagnosticLogs()) {
-                    statusHandler
-                            .debug("??? retrieveDataFromRetriever return NULL for dataURI("
-                                    + dataURI + ")");
+            if (unprocessedResponse == null) {
+                responseIsNull = true;
+            } else {
+                rData = unprocessedResponse.getData();
+                subgSpatialObj = unprocessedResponse.getSubgSpatialObj();
+                if (rData == null) {
+                    responseIsNull = true;
                 }
+            }
+            if (responseIsNull || rData == null) {
+                statusHandler
+                    .warn("??? retrieveDataFromRetriever return NULL for dataURI("
+                            + dataURI + ")");
                 return null;
             }
         } else {
@@ -186,7 +193,7 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
                 statusHandler.debug(
                         "???? getDataRecord --- throw StorageException", s);
             }
-            return null;
+            return new GempakDbDataResponse(null, null);
         }
     }
 

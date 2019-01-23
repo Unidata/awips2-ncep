@@ -21,7 +21,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products 
  *                                      in Volume Browser
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 
+ * 23/01/2019   DR21039      smoorthy   make fonts the same as on 18.1.2
  * </pre>
  * 
  * @author Chin Chen
@@ -2200,7 +2200,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString titleStr = new DrawableString(
                 "Effective Bulk Wind Difference(kt,Yaxis)",
                 NsharpConstants.color_white);
-        titleStr.font = font11;
+        titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
         titleStr.verticallAlignment = VerticalAlignment.TOP;
         xpos = xstart;

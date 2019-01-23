@@ -15,7 +15,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products 
  *                                      in Volume Browser
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 
+ * 01/23/2019   DR21039     smoorthy    make font the same as on 18.1.2
  * </pre>
  * 
  * @author Chin Chen
@@ -271,13 +271,13 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource {
                 target.setupClippingPlane(extent);
                 target.drawWireframeShape(thetaEPressureYRscShape,
                         NsharpConstants.color_yellow, commonLinewidth,
-                        LineStyle.SOLID, font10);
+                        LineStyle.SOLID, font12);
                 target.drawWireframeShape(thetaEPressureWRscShape,
                         NsharpConstants.color_white, commonLinewidth,
-                        LineStyle.SOLID, font10);
+                        LineStyle.SOLID, font12);
                 target.drawWireframeShape(thetaEPressureRRscShape,
                         NsharpConstants.color_red, commonLinewidth,
-                        LineStyle.SOLID, font10);
+                        LineStyle.SOLID, font12);
                 target.clearClippingPlane();
                 // plot possibleWatchType
                 NsharpWGraphics WGc = psblWatchTypeBackground.getWorld();
@@ -296,7 +296,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource {
                 target.setupClippingPlane(extent);
                 target.drawWireframeShape(thetaEHeightYRscShape,
                         NsharpConstants.color_yellow, commonLinewidth,
-                        LineStyle.SOLID, font10);
+                        LineStyle.SOLID, font12);
                 target.drawWireframeShape(thetaEHeightWRscShape,
                         NsharpConstants.color_white, commonLinewidth,
                         LineStyle.SOLID, font10);

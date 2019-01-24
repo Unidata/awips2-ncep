@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -283,8 +284,8 @@ public class NSBNFileTransfer implements Processor {
         String fileParent = srcParentAsFile.getName();
         ThreadPoolExecutor executor;
 
-        for (String directoryKey : nsbnTransferDirectoryMap.keySet()) {
-            currDirectory = nsbnTransferDirectoryMap.get(directoryKey).get(0);
+        for (Entry<String, List<NSBNTransferDirectory>> directory : nsbnTransferDirectoryMap.entrySet()) {
+            currDirectory = nsbnTransferDirectoryMap.get(directory.getKey()).get(0);
             if (fileParent.equals(currDirectory.getScanDir())) {
                 fileAccepted = currDirectory.accept(inFile);
 
@@ -309,11 +310,6 @@ public class NSBNFileTransfer implements Processor {
                                 .append(File.separatorChar);
                     }
 
-                    exchange.getIn().setHeader("header",
-                            path + inFile.getName());
-                    exchange.getIn().setHeader("enqueueTime",
-                            System.currentTimeMillis());
-
                     executor = threadPoolExecutorMap.get(currDirectory.getId());
 
                     if (executor == null) {
@@ -327,10 +323,14 @@ public class NSBNFileTransfer implements Processor {
                             File newFile;
                             try {
                                 newFile = createAndMoveNewFile(path, inFile);
+                                Map<String, Object> headers = new HashMap<>();
+                                headers.put("enqueueTime", System.currentTimeMillis());
+                                
                                 // Notify ingest of the new file
                                 EDEXUtil.getMessageProducer().sendAsyncUri(
                                         "jms-durable:queue:" + destQueue,
-                                        newFile.getPath());
+                                        newFile.getPath(),
+                                        headers);
 
                                 long stopMethodTime = System
                                         .currentTimeMillis();
@@ -428,7 +428,7 @@ public class NSBNFileTransfer implements Processor {
         }
         boolean moved = false;
         int attempt = 1;
-        while (moved == false && attempt < 50) {
+        while (!moved && attempt < 50) {
 
             try {
                 Files.move(oldPath, newPath);

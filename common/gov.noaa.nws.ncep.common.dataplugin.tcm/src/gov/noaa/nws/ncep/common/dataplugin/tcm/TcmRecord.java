@@ -48,6 +48,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298   rjpeter Make getPluginName abstract
  * Feb 11, 2014 2784    rferrel    Remove override of setIdentifier.
  * Jun 11, 2014 2061    bsteffen   Remove IDecoderGettable
+ * Jan 25, 2019 7717    ksunil     Remove 8000 char limitation from bullMessage
  * 
  * </pre>
  * 
@@ -160,7 +161,7 @@ public class TcmRecord extends PluginDataObject {
     private String mndTime;
 
     /** Bulletin messages */
-    @Column(length = 8000)
+    @Column
     @DynamicSerializeElement
     private String bullMessage;
 
@@ -169,7 +170,7 @@ public class TcmRecord extends PluginDataObject {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
     @Index(name = "tcmPosWinds_parentid_idex")
-    private Set<TcmPositionWinds> tcmPosWinds = new HashSet<TcmPositionWinds>();
+    private Set<TcmPositionWinds> tcmPosWinds = new HashSet<>();
 
     /**
      * Default constructor

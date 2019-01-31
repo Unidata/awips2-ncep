@@ -25,6 +25,8 @@
  * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
  * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
  * 10/05/2018   7480        bsteffen    Handle remove from d2d.
+ * 01/20/2019  17377     wkwock     Auto-update new arrival NSHARP display.
+ * 
  * </pre>
  * 
  * @author Chin Chen
@@ -286,6 +288,12 @@ public class NsharpResourceHandler {
 
     // index to 3rd dim of stnTimeSndTable and index to sndElementList
     private int currentSndElementListIndex = -1;
+
+    // index to track the last currentTimeElementListIndex selected by user
+    private int lastUserSelectedTimeLineIndex = -1;
+
+    // The last user selected time line
+    private String lastUserSelectedTimeLine = null;
 
     // use element state, NsharpConstants.LoadState or NsharpConstants.ActState,
     // as key to set color for drawing
@@ -1084,10 +1092,18 @@ public class NsharpResourceHandler {
         // based on these 3 indexes, we have 8 cases to handle.
         if (tmIndex >= 0 && stnIndex >= 0 && sndTpyeIndex >= 0) {
             // CASE1: All 3 index are good (>=0)
-            if (stnTimeSndTable.get(stnIndex).get(tmIndex)
-                    .get(sndTpyeIndex) != null) {
-                // this sounding element is already loaded
-                return;
+            NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
+                    .get(stnIndex).get(tmIndex).get(sndTpyeIndex);
+
+            if (tmpNewSndPropElem != null) {
+                if (sndLyLst.size() > tmpNewSndPropElem.getSndLyLst().size()) {
+                    tmpNewSndPropElem.getSndLyLst().clear();
+                    tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
+                    tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
+                    setCurrentSoundingLayerInfo();
+                } else {
+                    return;
+                }
             } else {
                 // replace previously added "null" object with real
                 // NsharpSoundingElementStateProperty object
@@ -1443,7 +1459,6 @@ public class NsharpResourceHandler {
         }
     }
 
-    
     public boolean deleteRsc(List<String> deletingDataTimeList) {
         boolean curSndDeleted = false;
         for (String dataTmLine : deletingDataTimeList) {
@@ -1898,7 +1913,28 @@ public class NsharpResourceHandler {
         if (win != null)
             currentGraphMode = win.getCurrentGraphMode();
 
-        refreshPane();
+        if (lastUserSelectedTimeLineIndex == 0 && getCurrentIndex() != 0
+                && getSoundingLys() != null) {
+            // stay on the top time line if user selected the top one
+            setCurrentIndex(0);
+        } else if (lastUserSelectedTimeLineIndex > 0
+                && lastUserSelectedTimeLine != null) {
+            int index = getIndexFromElementList(lastUserSelectedTimeLine,
+                    timeElementList);
+            if (index > 0) {
+                // stay on the same time line if user didn't select the top one.
+                setCurrentIndex(index);
+            } else {
+                if (timeElementList.size() > 1) {
+                    // stay on the bottom time line
+                    setCurrentIndex(timeElementList.size() - 1);
+                } else {
+                    refreshPane();
+                }
+            }
+        } else {
+            refreshPane();
+        }
 
     }
 
@@ -2019,6 +2055,9 @@ public class NsharpResourceHandler {
     }
 
     private void handleUserPickNewTimeLine(int index) {
+        lastUserSelectedTimeLineIndex = index;
+        lastUserSelectedTimeLine = timeElementList
+                .get(index).elementDescription;
         previousTimeLineStateListIndex = currentTimeElementListIndex;
         currentTimeElementListIndex = index;
         if (compareStnIsOn) {

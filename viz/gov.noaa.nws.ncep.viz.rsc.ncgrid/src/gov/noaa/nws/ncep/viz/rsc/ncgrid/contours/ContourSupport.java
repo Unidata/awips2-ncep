@@ -26,12 +26,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.measure.unit.SI;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -173,6 +173,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
  *                                      and prevent rendering unnecessary projection data
  *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
+ *    01/31/2019 7726    mrichardson   Downgrade out of bounds coordinate message from warn to info; minor code clean-up
  *
  * </pre>
  *
@@ -208,9 +209,6 @@ public class ContourSupport {
     private float zoom;
 
     private String text;
-
-    /** Maximum number of contour levels */
-    private final static int MAX_CONTOUR_LEVELS = 100;
 
     // calculated values
     private ContourGroup contourGroup = null;
@@ -251,17 +249,18 @@ public class ContourSupport {
 
     private boolean isCntrsCreated;
 
-    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
-
     private GeneralGridGeometry imageGridGeometry;
 
     private NcgridResource resource;
 
-    private NcGridDataProxy ncGridDataProxy = null;
-
     private IGraphicsTarget target;
 
     private List<Integer> fillColorsIndex = null;
+
+    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
+
+    /** Maximum number of contour levels */
+    private static final int MAX_CONTOUR_LEVELS = 100;
 
     private static final int IMAGE_TILE_SIZE = 2048;
 
@@ -314,7 +313,7 @@ public class ContourSupport {
 
         public List<Double> fvalues;
 
-        public HashMap<String, Geometry> latlonContours;
+        public Map<String, Geometry> latlonContours;
 
         public CLRBAR clrbar;
 
@@ -481,10 +480,12 @@ public class ContourSupport {
 
                 /* Set text rotation */
                 if (textAttr.getTextRotation() == 'N') {
-                    rotation = -1; // North relative, to be processed later when
-                                   // location coordinate is available
+                    // North relative, to be processed later when
+                    // location coordinate is available
+                    rotation = -1;
                 } else {
-                    rotation = 0.0; // Screen relative
+                    // Screen relative
+                    rotation = 0.0;
                 }
 
                 /* Set text horizontal alignment */
@@ -600,7 +601,7 @@ public class ContourSupport {
             /*
              * Generate contours and create contour wireframes
              */
-            if (cvalues != null && cvalues.size() > 0) {
+            if (cvalues != null && !cvalues.isEmpty()) {
                 /*
                  * Regenerate contours if new contour intervals requested
                  */
@@ -626,7 +627,7 @@ public class ContourSupport {
              * Create color fills if requested
              */
             List<Double> fvalues = calcFintValue();
-            if (fvalues != null && fvalues.size() > 0) {
+            if (fvalues != null && !fvalues.isEmpty()) {
                 contourGroup.fvalues.clear();
                 contourGroup.fvalues.addAll(fvalues);
                 createColorFills();
@@ -663,7 +664,7 @@ public class ContourSupport {
             try {
                 rastPosLatLonToWorldGrid.transform(in, 0, out, 0, 1);
             } catch (TransformException e) {
-                statusHandler.warn("The coordinate [" + in[0] + ", " + in[1] + 
+                statusHandler.info("The coordinate [" + in[0] + ", " + in[1] + 
                         "] could not be transformed. Continuing with remaining coordinates.");
                 continue;
             }
@@ -877,7 +878,7 @@ public class ContourSupport {
         contourGroup.latlonContours = new HashMap<>();
 
         if (contourGp != null) {
-            if (contourGp.cvalues != null && contourGp.cvalues.size() > 0) {
+            if (contourGp.cvalues != null && !contourGp.cvalues.isEmpty()) {
                 contourGroup.cvalues.addAll(contourGp.cvalues);
             }
             if (contourGp.latlonContours != null
@@ -978,7 +979,7 @@ public class ContourSupport {
         long total_labeling_time = 0;
         long t2 = System.currentTimeMillis();
         if (type.trim().toUpperCase().contains("C")
-                && contourGroup.cvalues.size() > 0) {
+                && !contourGroup.cvalues.isEmpty()) {
             int labelFreq = 1;
             String[] tempLineStrs = attr.getLine().split("/");
             List<Integer> labelValues = null;
@@ -1104,19 +1105,19 @@ public class ContourSupport {
     }
 
     private void createColorFills() {
-
         long t3 = System.currentTimeMillis();
+        NcGridDataProxy ncGridDataProxy = null;
 
         if (type.toUpperCase().contains("F")
                 || type.toUpperCase().contains("I")) {
 
             // Equidistant_Cylindrical image requires special handling
             // (subgridding)
-            if (getProjectionName(
-                    imageGridGeometry.getCoordinateReferenceSystem())
-                            .equals("Equidistant_Cylindrical")
-                    && !getProjectionName(descriptor.getCRS())
-                            .equals("MCIDAS_AREA_NAV")) {
+            if ("Equidistant_Cylindrical".equals(
+                    getProjectionName(
+                            imageGridGeometry.getCoordinateReferenceSystem()))
+                    && !"MCIDAS_AREA_NAV".equals(
+                            getProjectionName(descriptor.getCRS()))) {
 
                 // get original imageGridGeometry, as World wrap may cause
                 // issues (ie. color bands) in some projections
@@ -1280,7 +1281,7 @@ public class ContourSupport {
         double interval = last - first;
 
         // check fill intervals for bounds
-        if (contourGroup.fvalues.size() > 0) {
+        if (!contourGroup.fvalues.isEmpty()) {
             first = Math.min(first, contourGroup.fvalues.get(0));
             last = Math.max(last,
                     contourGroup.fvalues.get(contourGroup.fvalues.size() - 1));
@@ -1340,7 +1341,8 @@ public class ContourSupport {
             minY = rangeLow[1];
             szX = (maxX - minX) + 1;
             szY = (maxY - minY) + 1;
-        } else {  // default to the old way so something is at least displayed
+        } else {
+            // default to the old way so something is at least displayed
             long[] sz = records.getSizes();
             minX = 0;
             minY = 0;
@@ -1354,7 +1356,8 @@ public class ContourSupport {
         uW = records.getXdata();
         vW = records.getYdata();
 
-        if (globalData) { // remove column 360
+        if (globalData) {
+            // remove column 360
             x--;
             szX--;
             maxX--;
@@ -1460,7 +1463,7 @@ public class ContourSupport {
                     vals.add(out);
                 }
 
-                if (pts.size() > 0) {
+                if (!pts.isEmpty()) {
 
                     if (worldWrap) {
                         screen = toScreenRightOfZero(
@@ -1490,7 +1493,7 @@ public class ContourSupport {
                 }
             }
 
-            if (vals.size() > 0) {
+            if (!vals.isEmpty()) {
 
                 double[][] valsArr = vals.toArray(new double[vals.size()][2]);
                 addStreamLineToJTS(valsArr, gf, worldGridToLatlon, jtsCompiler,
@@ -1538,7 +1541,7 @@ public class ContourSupport {
                         .getActiveDisplayPane().getDisplay());
 
                 List<Double> fillIntvls = new ArrayList<>();
-                if (fIntvls != null && fIntvls.size() > 0) {
+                if (fIntvls != null && !fIntvls.isEmpty()) {
                     fillIntvls.addAll(fIntvls);
                 } else {
                     FINT theFillIntervals = new FINT(fint.trim());
@@ -1547,7 +1550,7 @@ public class ContourSupport {
                 }
 
                 List<Integer> fillColors = new ArrayList<>();
-                if (fColors != null && fColors.size() > 0) {
+                if (fColors != null && !fColors.isEmpty()) {
                     fillColors.addAll(fColors);
                 } else {
                     FLine fillColorString = new FLine(fline.trim());
@@ -1641,11 +1644,11 @@ public class ContourSupport {
 
         // create MultiLineStrings so we get all lines for each value
         Map<Float, Geometry> result = new HashMap<>();
-        for (Float f : contourResult.keySet()) {
-            List<LineString> lines = contourResult.get(f);
+        for (Entry<Float, List<LineString>> cr : contourResult.entrySet()) {
+            List<LineString> lines = cr.getValue();
             MultiLineString mls = geomFactory
                     .createMultiLineString(lines.toArray(new LineString[0]));
-            result.put(f, mls);
+            result.put(cr.getKey(), mls);
         }
 
         return result;
@@ -1657,10 +1660,10 @@ public class ContourSupport {
 
         long t1a = System.currentTimeMillis();
         Map<Float, Geometry> contours = fortConBuf(cvalues);
-        for (Float f : contours.keySet()) {
-            Geometry xygeom = contours.get(f);
+        for (Entry<Float, Geometry> c : contours.entrySet()) {
+            Geometry xygeom = contours.get(c.getKey());
             Geometry llgeom = transformGeometry(xygeom, rastPosToLatLon);
-            contourGroup.latlonContours.put(f.toString(), llgeom);
+            contourGroup.latlonContours.put(c.getKey().toString(), llgeom);
         }
         long t2 = System.currentTimeMillis();
         logger.debug(
@@ -1919,7 +1922,7 @@ public class ContourSupport {
 
         int index = 0;
         for (int i = fillColors.size() + 1; i < fillIntvlsSize + 2
-                && fillColors.size() > 0; i++) {
+                && !fillColors.isEmpty(); i++) {
 
             if (index >= fillColors.size()) {
                 index = 0;

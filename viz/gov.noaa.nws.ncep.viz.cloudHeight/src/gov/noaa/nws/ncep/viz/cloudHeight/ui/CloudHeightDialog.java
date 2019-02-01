@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.cloudHeight.ui;
 
-import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
-
 import javax.measure.converter.ConversionException;
 import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Length;
@@ -10,6 +8,7 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -33,22 +32,26 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.viz.ui.dialogs.ICloseCallback;
+import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
+
 /**
  * Cloud Height Dialog.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/30/09		#106		Greg Hull	Initial creation
- * 06/23/09		*109		M. Li		Use NCCursor POINT_SELECT cursor
- * 11/24/09                 Greg Hull   migrate to to11d6; add commented out code for 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 04/30/09     #106        Greg Hull   Initial creation
+ * 06/23/09     *109        M. Li       Use NCCursor POINT_SELECT cursor
+ * 11/24/09                 Greg Hull   migrate to to11d6; add commented out code for
  *                                      STATION_DATA (partially implemented)
- * 11/18/10	     327        M. Li		add isAlreadyOpen
+ * 11/18/10      327        M. Li       add isAlreadyOpen
  * 03/01/12      524        B. Hebbard  - Add 'Take Control' button (and related changes to
  *                                        allow mutual operation with other Modal Tools) (TTR#11)
  *                                      - Make 'Sounding Source Distance' display "N/A" vs. "NaN" (TTR#13)
@@ -59,12 +62,11 @@ import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
  * 09/16/2016    R15716     S. Russell  Updated the open() method.
  *                                      Updated createDialog() method, left
  *                                      justify field names, widen fields
+ * Feb  1, 2019  7570       tgurney     Add close callback support
  * </pre>
- * 
- * @author
- * @version 1
+ *
  */
-public class CloudHeightDialog extends Dialog {
+public class CloudHeightDialog extends Dialog implements ICloseCallbackDialog {
 
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(CloudHeightDialog.class);
@@ -139,26 +141,33 @@ public class CloudHeightDialog extends Dialog {
 
     private UnitConverter hghtUnitsConverter = null;
 
+    private final ListenerList<ICloseCallback> closeListeners;
+
     public CloudHeightDialog(Shell parent, String title) {
         super(parent);
+        this.closeListeners = new ListenerList<>(ListenerList.IDENTITY);
         dlgTitle = title;
 
         // create the Dialog before opening it since the error
         // msg text may be set before opening the dialog.
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
         shell.setText(dlgTitle);
-        shell.setSize(600, 800); // pack later
+        // pack later
+        shell.setSize(600, 800);
         init();
     }
 
     public static CloudHeightDialog getInstance(Shell parShell,
             CloudHeightAction anAction) {
-        if (INSTANCE == null) {
-            try {
-                INSTANCE = new CloudHeightDialog(parShell, "Cloud Height");
-                INSTANCE.associatedCloudHeightAction = anAction;
-            } catch (Exception e) {
-                e.printStackTrace();
+        synchronized (CloudHeightDialog.class) {
+            if (INSTANCE == null) {
+                try {
+                    INSTANCE = new CloudHeightDialog(parShell, "Cloud Height");
+                    INSTANCE.associatedCloudHeightAction = anAction;
+                } catch (Exception e) {
+                    statusHandler.warn("Failed to create cloud height dialog",
+                            e);
+                }
             }
         }
         return INSTANCE;
@@ -210,8 +219,8 @@ public class CloudHeightDialog extends Dialog {
         fd1.left = new FormAttachment(0, 20);
         lon_lbl.setLayoutData(fd1);
 
-        snd_src_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER
-                | SWT.READ_ONLY);
+        snd_src_txt = new Text(top_form,
+                SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         snd_src_txt.setText("");
         fd = new FormData(100, 20);
         fd.top = new FormAttachment(lon_txt, 5, SWT.BOTTOM);
@@ -226,8 +235,8 @@ public class CloudHeightDialog extends Dialog {
         fd1.left = new FormAttachment(0, 20);
         snd_src_lbl.setLayoutData(fd1);
 
-        snd_time_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER
-                | SWT.READ_ONLY);
+        snd_time_txt = new Text(top_form,
+                SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         snd_time_txt.setText("");
         fd = new FormData(100, 20);
         fd.top = new FormAttachment(snd_src_txt, 5, SWT.BOTTOM);
@@ -263,11 +272,12 @@ public class CloudHeightDialog extends Dialog {
         fd.left = new FormAttachment(dist_txt, 10, SWT.RIGHT);
         dist_units_combo.setLayoutData(fd);
 
-        dist_units_combo.add(NonSI.NAUTICAL_MILE.toString()); // "nm" );
-        dist_units_combo.add(SI.KILOMETER.toString()); // "km" );
-        dist_units_combo.add(NonSI.MILE.toString()); // "mi" );
+        dist_units_combo.add(NonSI.NAUTICAL_MILE.toString());
+        dist_units_combo.add(SI.KILOMETER.toString());
+        dist_units_combo.add(NonSI.MILE.toString());
 
         dist_units_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Unit<? extends Length> prevUnits = optsDlg.getSndDistUnits();
 
@@ -279,8 +289,8 @@ public class CloudHeightDialog extends Dialog {
                     optsDlg.setSndDistUnits(NonSI.MILE);
                 }
 
-                distUnitsConverter = distWorkingUnits.getConverterTo(optsDlg
-                        .getSndDistUnits());
+                distUnitsConverter = distWorkingUnits
+                        .getConverterTo(optsDlg.getSndDistUnits());
 
                 // convert the value currently displayed
                 // (Or we could convert back to the working units and then call
@@ -326,10 +336,11 @@ public class CloudHeightDialog extends Dialog {
         fd.left = new FormAttachment(temp_txt, 10, SWT.RIGHT);
         temp_units_combo.setLayoutData(fd);
 
-        temp_units_combo.add(SI.CELSIUS.toString()); // "Celsius" );
-        temp_units_combo.add(SI.KELVIN.toString()); // "Kelvin" );
+        temp_units_combo.add(SI.CELSIUS.toString());
+        temp_units_combo.add(SI.KELVIN.toString());
 
         temp_units_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Unit<? extends Temperature> prevUnits = optsDlg
                         .getTemperatureUnits();
@@ -340,8 +351,8 @@ public class CloudHeightDialog extends Dialog {
                     optsDlg.setTemperatureUnits(SI.KELVIN);
                 }
 
-                tempUnitsConverter = tempWorkingUnits.getConverterTo(optsDlg
-                        .getTemperatureUnits());
+                tempUnitsConverter = tempWorkingUnits
+                        .getConverterTo(optsDlg.getTemperatureUnits());
 
                 // convert the value currently displayed
                 // (Or we could convert back to the working units and then call
@@ -374,10 +385,11 @@ public class CloudHeightDialog extends Dialog {
 
         // if this order changes then need to change code that saves selection
         // to optsDlg
-        hght_units_combo.add(NonSI.FOOT.toString()); // "ft" );
-        hght_units_combo.add(SI.METER.toString()); // "Meters" );
+        hght_units_combo.add(NonSI.FOOT.toString());
+        hght_units_combo.add(SI.METER.toString());
 
         hght_units_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Unit<? extends Length> prevUnits = optsDlg
                         .getCloudHeightUnits();
@@ -388,8 +400,8 @@ public class CloudHeightDialog extends Dialog {
                     optsDlg.setCloudHeightUnits(SI.METER);
                 }
 
-                hghtUnitsConverter = hghtWorkingUnits.getConverterTo(optsDlg
-                        .getCloudHeightUnits());
+                hghtUnitsConverter = hghtWorkingUnits
+                        .getConverterTo(optsDlg.getCloudHeightUnits());
 
                 // convert the value currently displayed
                 // (Or we could convert back to the working units and then call
@@ -408,24 +420,27 @@ public class CloudHeightDialog extends Dialog {
 
                     clearAltCloudHeights();
 
-                    for (int i = 0; i < old_alt_cld_lvls.length; i++) {
-                        String alt_str = old_alt_cld_lvls[i].trim();
+                    for (String old_alt_cld_lvl : old_alt_cld_lvls) {
+                        String alt_str = old_alt_cld_lvl.trim();
 
                         try {
-                            double hght_val = Double.parseDouble(alt_str
-                                    .substring(0, alt_str.indexOf(' ')));
+                            double hght_val = Double.parseDouble(
+                                    alt_str.substring(0, alt_str.indexOf(' ')));
                             hght_val = unitCnvtr.convert(hght_val);
 
-                            double prs_val = Double.parseDouble(alt_str
-                                    .substring(alt_str.indexOf('/') + 1,
+                            double prs_val = Double.parseDouble(
+                                    alt_str.substring(alt_str.indexOf('/') + 1,
                                             alt_str.indexOf("mb") - 1));
 
                             addAltCloudHeight(hght_val, prs_val);
                         } catch (NumberFormatException nfe) {
+                            statusHandler.debug("Failed to parse double value",
+                                    nfe);
                             return;
                         }
                     }
                 } catch (ConversionException ce) {
+                    statusHandler.debug("Height unit conversion failed", ce);
                     return;
                 }
             }
@@ -453,8 +468,8 @@ public class CloudHeightDialog extends Dialog {
         fd.left = new FormAttachment(pres1_txt, 10, SWT.RIGHT);
         pres_units_label.setLayoutData(fd);
 
-        alt_cloud_lvls_list = new List(top_form, SWT.SINGLE | SWT.BORDER
-                | SWT.V_SCROLL);
+        alt_cloud_lvls_list = new List(top_form,
+                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 
         // 44 is minimum to show 2 lines without scrollbars
         fd = new FormData(100, 44);
@@ -472,8 +487,8 @@ public class CloudHeightDialog extends Dialog {
         fd1.left = new FormAttachment(0, 20);
         alt_cl_lbl.setLayoutData(fd1);
 
-        sts_txt = new Text(top_form, SWT.MULTI | SWT.BORDER | SWT.READ_ONLY
-                | SWT.V_SCROLL);
+        sts_txt = new Text(top_form,
+                SWT.MULTI | SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL);
         fd = new FormData(180, 44);
         fd.top = new FormAttachment(alt_cloud_lvls_list, 25, SWT.BOTTOM);
         fd.left = new FormAttachment(0, 20);
@@ -503,6 +518,7 @@ public class CloudHeightDialog extends Dialog {
         close_btn.setLayoutData(fd);
 
         close_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 close();
             }
@@ -516,6 +532,7 @@ public class CloudHeightDialog extends Dialog {
         opts_btn.setLayoutData(fd);
 
         opts_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 //
                 if (closedOnce) {
@@ -536,13 +553,14 @@ public class CloudHeightDialog extends Dialog {
         take_control_btn.setLayoutData(fd);
 
         take_control_btn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 if (associatedCloudHeightAction != null) {
                     AbstractVizPerspectiveManager mgr = VizPerspectiveListener
                             .getCurrentPerspectiveManager();
                     if (mgr != null) {
-                        mgr.getToolManager().selectModalTool(
-                                associatedCloudHeightAction);
+                        mgr.getToolManager()
+                                .selectModalTool(associatedCloudHeightAction);
                         associatedCloudHeightAction.setEnabled(false);
                         try {
                             mgr.getToolManager().activateToolSet(
@@ -576,9 +594,11 @@ public class CloudHeightDialog extends Dialog {
                 double cnvt_val = unitCnvtr.convert(val);
                 txt_wid.setText(String.format("%.2f", cnvt_val));
             } catch (NumberFormatException e) {
+                statusHandler.debug("Failed to format double value", e);
                 txt_wid.setText("Error");
             }
         } catch (ConversionException e) {
+            statusHandler.debug("Failed to convert value", e);
             txt_wid.setText("Error");
         }
         return true;
@@ -614,10 +634,12 @@ public class CloudHeightDialog extends Dialog {
         if (shell == null || shell.isDisposed()) {
             shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
             shell.setText(dlgTitle);
-            shell.setSize(600, 800); // pack later
+            // pack later
+            shell.setSize(600, 800);
         }
 
         shell.addListener(SWT.Close, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 close();
             }
@@ -646,6 +668,10 @@ public class CloudHeightDialog extends Dialog {
         // Closure: Reset cursor and execute modal tool shutdown sequence
 
         parent.setCursor(prevCursor);
+
+        for (ICloseCallback callback : closeListeners) {
+            callback.dialogClosed(null);
+        }
 
         AbstractVizPerspectiveManager mgr = VizPerspectiveListener
                 .getCurrentPerspectiveManager();
@@ -690,14 +716,15 @@ public class CloudHeightDialog extends Dialog {
     public void setSoundingDataDistance(double workingDist) {
         if (Double.isNaN(workingDist)) {
             dist_txt.setText("N/A");
-        } else
+        } else {
             try {
                 double distVal = distUnitsConverter.convert(workingDist);
                 dist_txt.setText(String.format("%.1f", distVal));
             } catch (ConversionException e) {
                 temp_txt.setText("Conversion Error");
-                System.out.println(e.getMessage());
+                statusHandler.debug("Distance unit conversion failed", e);
             }
+        }
     }
 
     public void setPixelValue(String pixValStr) {
@@ -710,7 +737,7 @@ public class CloudHeightDialog extends Dialog {
             temp_txt.setText(String.format("%.2f", tempVal));
         } catch (ConversionException e) {
             temp_txt.setText("Conversion Error");
-            System.out.println(e.getMessage());
+            statusHandler.debug("Temperature unit conversion failed", e);
         }
     }
 
@@ -721,17 +748,17 @@ public class CloudHeightDialog extends Dialog {
         } else {
             try {
                 double cldHght = hghtUnitsConverter.convert(workingHght);
-                hght1_txt.setText(String.format("%.2f", cldHght));// +" ft" );
+                hght1_txt.setText(String.format("%.2f", cldHght));
             } catch (ConversionException e) {
                 hght1_txt.setText("Conversion Error");
-                System.out.println(e.getMessage());
+                statusHandler.debug("Cloud height unit conversion failed", e);
             }
         }
 
         if (Double.isNaN(pres)) {
             pres1_txt.setText("N/A");
         } else {
-            pres1_txt.setText(String.format("%.2f", pres));// +" mb" );
+            pres1_txt.setText(String.format("%.2f", pres));
         }
     }
 
@@ -742,7 +769,7 @@ public class CloudHeightDialog extends Dialog {
     /**
      * input values are in Ft and mb. The height will be converted to the units
      * selected for the primary cloud height.
-     * 
+     *
      * @param workingHght
      * @param pres
      */
@@ -758,9 +785,9 @@ public class CloudHeightDialog extends Dialog {
             // make sure the first lvl is showing in the list
             alt_cloud_lvls_list.setTopIndex(0);
         } catch (ConversionException e) {
-            alt_cloud_lvls_list.add(String.format("%-6s / %-6.1f mb", "Error",
-                    pres));
-            System.out.println(e.getMessage());
+            alt_cloud_lvls_list
+                    .add(String.format("%-6s / %-6.1f mb", "Error", pres));
+            statusHandler.debug("Cloud height unit conversion failed", e);
         }
     }
 
@@ -809,14 +836,14 @@ public class CloudHeightDialog extends Dialog {
             hght_units_combo.select(1);
         }
 
-        distUnitsConverter = distWorkingUnits.getConverterTo(optsDlg
-                .getSndDistUnits());
+        distUnitsConverter = distWorkingUnits
+                .getConverterTo(optsDlg.getSndDistUnits());
 
-        tempUnitsConverter = tempWorkingUnits.getConverterTo(optsDlg
-                .getTemperatureUnits());
+        tempUnitsConverter = tempWorkingUnits
+                .getConverterTo(optsDlg.getTemperatureUnits());
 
-        hghtUnitsConverter = hghtWorkingUnits.getConverterTo(optsDlg
-                .getCloudHeightUnits());
+        hghtUnitsConverter = hghtWorkingUnits
+                .getConverterTo(optsDlg.getCloudHeightUnits());
 
         dist_txt.setText("");
         temp_txt.setText("");
@@ -862,8 +889,9 @@ public class CloudHeightDialog extends Dialog {
      * closes the Cloud Height Dialog
      */
     public void close() {
-        if (shell != null)
+        if (shell != null) {
             shell.dispose();
+        }
         isOpen = false;
         closedOnce = true;
     }
@@ -874,5 +902,10 @@ public class CloudHeightDialog extends Dialog {
 
     public boolean isPixelValueFromSinglePixel() {
         return CloudHeightOptionsDialog.isPixelValueFromSinglePixel();
+    }
+
+    @Override
+    public void addCloseCallback(ICloseCallback callback) {
+        closeListeners.add(callback);
     }
 }

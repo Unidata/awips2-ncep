@@ -5,6 +5,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
@@ -31,11 +33,16 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  * 02/11/13      972        G. Hull     AbstractEditor instead of NCMapEditor
  * 11/07/18      #7552      dgilling    Allow tool to work with arbitrary
  *                                      NcSatResources.
+ * Feb 4, 2018   7570       tgurney     Add close callback to the dialog to
+ *                                      disable the tool when dialog is closed
  *
  * </pre>
  *
  */
 public class AODTAction extends AbstractNcModalTool {
+
+    private final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
     protected IInputHandler mouseHndlr = null;
 
@@ -54,18 +61,23 @@ public class AODTAction extends AbstractNcModalTool {
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                 .getShell();
 
-        if (aodtDlg == null) {
+        synchronized (AODTAction.class) {
+            if (aodtDlg == null) {
 
-            String aodtVersion = null;
-            try {
-                aodtVersion = event.getCommand().getName();
-            } catch (NotDefinedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                String aodtVersion = null;
+                try {
+                    aodtVersion = event.getCommand().getName();
+                } catch (NotDefinedException e) {
+                    statusHandler.warn(e.getLocalizedMessage(), e);
+                    return;
+                }
+
+                aodtDlg = new AODTDialog(shell, aodtVersion);
+                aodtDlg.addCloseCallback((v) -> {
+                    deactivate();
+                });
+                satResource = aodtDlg.getSatResource();
             }
-
-            aodtDlg = new AODTDialog(shell, aodtVersion);
-            satResource = aodtDlg.getSatResource();
         }
 
         aodtProcessor = new AODTProcesser(aodtDlg);
@@ -83,7 +95,9 @@ public class AODTAction extends AbstractNcModalTool {
                 issueAlert();
             }
 
-            aodtDlg = null;
+            synchronized (AODTAction.class) {
+                aodtDlg = null;
+            }
 
             // deactivateTool();
             AbstractVizPerspectiveManager mgr = VizPerspectiveListener
@@ -101,11 +115,12 @@ public class AODTAction extends AbstractNcModalTool {
     private void issueAlert() {
 
         String msg = "Unable to invoke AODT tool.\nPlease load an IR Satellite image!";
-        MessageDialog messageDlg = new MessageDialog(PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getShell(), "Warning", null, msg,
-                MessageDialog.WARNING, new String[] { "OK" }, 0);
+        MessageDialog messageDlg = new MessageDialog(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                "Warning", null, msg, MessageDialog.WARNING,
+                new String[] { "OK" }, 0);
         messageDlg.open();
-
+        deactivate();
     }
 
     @Override
@@ -117,17 +132,18 @@ public class AODTAction extends AbstractNcModalTool {
             aodtProcessor.close();
         }
 
-        // close the Cloud Height dialog
-        if (aodtDlg != null) {
-            aodtDlg.close();
-            aodtDlg = null;
+        synchronized (AODTAction.class) {
+            if (aodtDlg != null) {
+                aodtDlg.close();
+                aodtDlg = null;
+            }
         }
 
     }
 
     public class MouseHandler extends InputAdapter {
 
-        boolean preempt = false;
+        private boolean preempt = false;
 
         @Override
         public boolean handleMouseDown(int x, int y, int button) {

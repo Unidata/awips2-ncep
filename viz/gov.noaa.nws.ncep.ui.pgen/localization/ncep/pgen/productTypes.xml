@@ -4225,6 +4225,8 @@
                 <ns3:Name>TROPICAL_STORM_SH</ns3:Name>
                 <ns3:Name>HURRICANE_SH</ns3:Name>
                 <ns3:Name>TROPICAL_DEPRESSION</ns3:Name>
+                <ns3:Name>LOW_X_FILLED</ns3:Name>
+                <ns3:Name>LETTER_X_FILLED</ns3:Name>
             </ns3:PgenObjects>
         </ns3:PgenClass>
         <ns3:PgenClass Name="Any">
@@ -4246,6 +4248,7 @@
                 <ns3:Name>LINE_DASHED_8</ns3:Name>
                 <ns3:Name>LINE_DASHED_9</ns3:Name>
                 <ns3:Name>LINE_DASHED_10</ns3:Name>
+                <ns3:Name>POINTED_ARROW</ns3:Name>
             </ns3:PgenObjects>
         </ns3:PgenClass>
         <ns3:PgenClass Name="MET">

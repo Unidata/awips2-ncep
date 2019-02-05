@@ -8,7 +8,11 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
+
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
+import com.raytheon.viz.ui.input.InputAdapter;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -24,8 +28,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 
-//import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
-
 /**
  * Implements a modal map tool for PGEN single point drawing.
  * 
@@ -37,13 +39,13 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
  * 04/09            72      S. Gilbert  Modified to use PgenSession and PgenCommands
  * 04/09            88      J. Wu       Added Text drawing
  * 04/24            99      G. Hull     Use NmapUiUtils
-<<<<<<< HEAD
- * 04/09		   103		B. Yin		Extends from AbstractPgenTool
+ * 04/09           103      B. Yin      Extends from AbstractPgenTool
  * 05/09           #42      S. Gilbert  Added pgenType and pgenCategory
- * 05/09			79		B. Yin		Extends from AbstractPgenDrawingTool
- * 06/09		116			B. Yin		Use AbstractDrawableComponent
- * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ * 05/09            79      B. Yin      Extends from AbstractPgenDrawingTool
+ * 06/09           116      B. Yin      Use AbstractDrawableComponent
+ * May 16, 2016   5640      bsteffen    Access triggering component using PgenUtil.
  * 06/15/2016       R13559  bkowal      File cleanup. No longer simulate mouse clicks.
+ * Jan 30, 2019   7553      bhurley     Fixed panning issue when PGEN symbols/markers are selected
  * 
  * </pre>
  * 
@@ -52,11 +54,11 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 
 public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
 
-    static private DECollection dec;
+    private static DECollection dec;
 
     private AbstractDrawableComponent prevElem;
 
-    boolean usePrevColor;
+    private boolean usePrevColor;
 
     public PgenSinglePointDrawingTool() {
 
@@ -113,7 +115,7 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
      * 
      */
 
-    public class PgenSinglePointDrawingHandler extends InputHandlerDefaultImpl {
+    public class PgenSinglePointDrawingHandler extends InputAdapter {
 
         /**
          * An instance of DrawableElementFactory, which is used to create new
@@ -126,23 +128,19 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
          */
         private DrawableElement elem = null;
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         * int, int)
-         */
         @Override
-        public boolean handleMouseDown(int anX, int aY, int button) {
-            if (!isResourceEditable())
+        public boolean handleMouseDown(Event event) {
+            if (!isResourceEditable()) {
                 return false;
+            }
 
             // Check if mouse is in geographic extent
-            Coordinate loc = mapEditor.translateClick(anX, aY);
-            if (loc == null || shiftDown)
+            Coordinate loc = mapEditor.translateClick(event.x, event.y);
+            if (loc == null || isShiftKeyPressed(event)) {
                 return false;
+            }
 
-            if (button == 1) {
+            if (event.button == 1) {
                 // create an element.
                 elem = (DrawableElement) def.create(getDrawableType(),
                         (IAttribute) attrDlg, pgenCategory, pgenType, loc,
@@ -183,7 +181,7 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
 
                 return true;
 
-            } else if (button == 3) {
+            } else if (event.button == 3) {
 
                 return true;
 
@@ -195,22 +193,17 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
 
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseMove(int,
-         * int)
-         */
         @Override
-        public boolean handleMouseMove(int x, int y) {
+        public boolean handleMouseMove(Event event) {
             if (!isResourceEditable()) {
                 return false;
             }
 
             // Check if mouse is in geographic extent
-            Coordinate loc = mapEditor.translateClick(x, y);
-            if (loc == null)
+            Coordinate loc = mapEditor.translateClick(event.x, event.y);
+            if (loc == null) {
                 return false;
+            }
 
             if (attrDlg != null) {
 
@@ -221,6 +214,7 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
                         drawingLayer.getActiveLayer());
                 drawingLayer.setGhostLine(ghost);
                 mapEditor.refresh();
+                mapEditor.setFocus();
 
             }
 
@@ -229,28 +223,23 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
         }
 
         @Override
-        public boolean handleMouseDownMove(int aX, int aY, int button) {
+        public boolean handleMouseDownMove(Event event) {
 
-            if (!isResourceEditable() || shiftDown)
+            if (!isResourceEditable() || isShiftKeyPressed(event)) {
                 return false;
-            else
+            } else {
                 return true;
+            }
 
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int,
-         * int)
-         */
         @Override
-        public boolean handleMouseUp(int x, int y, int mouseButton) {
-            if (!isResourceEditable() || shiftDown) {
+        public boolean handleMouseUp(Event event) {
+            if (!isResourceEditable() || isShiftKeyPressed(event)) {
                 return false;
             }
 
-            if (mouseButton == 3) {
+            if (event.button == 3) {
                 // prevent the click going through to other handlers
                 // in case adding labels to symbols or fronts.
                 if (elem != null && ((SymbolAttrDlg) attrDlg).labelEnabled()) {
@@ -281,8 +270,8 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
                 } else {
                     if (prevElem != null) {
                         usePrevColor = false;
-                        if (prevElem.getParent().getPgenCategory()
-                                .equalsIgnoreCase("OUTLOOK")) {
+                        if ("OUTLOOK".equalsIgnoreCase(
+                                prevElem.getParent().getPgenCategory())) {
                             PgenUtil.loadOutlookDrawingTool();
                         }
                         prevElem = null;
@@ -296,6 +285,18 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
                 return false;
             }
         }
+
+        /**
+         * Tests if the shift key was pressed when the event was generated.
+         * 
+         * @param event
+         *            the generated event
+         * @return true if the shift key was pressed when the event was
+         *         generated; false if otherwise
+         */
+        private boolean isShiftKeyPressed(Event event) {
+            return (event.stateMask & SWT.SHIFT) != 0;
+        }
     }
 
     /**
@@ -306,8 +307,9 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
      */
     private DrawableType getDrawableType() {
         DrawableType which = DrawableType.SYMBOL;
-        if (pgenCategory.equals("Combo"))
+        if ("Combo".equals(pgenCategory)) {
             which = DrawableType.COMBO_SYMBOL;
+        }
         return which;
     }
 
@@ -320,4 +322,5 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
     public static DECollection getCollection() {
         return dec;
     }
+
 }

@@ -185,7 +185,7 @@
          id="org.postgres"
          download-size="0"
          install-size="0"
-         version="9.3.5"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.lang3"

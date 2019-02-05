@@ -310,10 +310,10 @@
 	</otlktype>
 	
 	<otlktype name="EXCE_RAIN" prefix="" makegrid="false" fromline ="true" >
+	    <label name="MRGL" />
 		<label name="SLGT"/>
-		<label name="MDT"/>
+		<label name="MOD"/>
 		<label name="HIGH"/>
-		<label name="5_INCH"/>
 	</otlktype>
 		
 	<otlktype name="ENH00" prefix="enh00">

@@ -33,13 +33,19 @@ import java.util.concurrent.TimeUnit;
 import javax.measure.unit.SI;
 
 import org.eclipse.swt.graphics.RGB;
+import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.referencing.crs.DefaultProjectedCRS;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
 import org.geotools.referencing.operation.projection.MapProjection;
 import org.geotools.referencing.operation.projection.MapProjection.AbstractProvider;
+import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
@@ -53,6 +59,7 @@ import com.raytheon.uf.common.colormap.image.ColorMapData.ColorMapDataType;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.geospatial.CRSCache;
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.geospatial.util.GridGeometryWrapChecker;
 import com.raytheon.uf.common.geospatial.util.SubGridGeometryCalculator;
 import com.raytheon.uf.common.geospatial.util.WorldWrapChecker;
 import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
@@ -113,7 +120,6 @@ import gov.noaa.nws.ncep.gempak.parameters.intext.TextStringParser;
 import gov.noaa.nws.ncep.gempak.parameters.line.LineDataStringParser;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.FrameData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.NcGridDataProxy;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
@@ -169,11 +175,13 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
  *                                     be limiting the number of rendered contours, not the number or intervals between the
  *                                     min and the max
+ *    03/27/2017 R19634  bsteffen      Support subgrids.
  *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
  *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
  *                                      and prevent rendering unnecessary projection data
  *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
  *    01/31/2019 7726    mrichardson   Downgrade out of bounds coordinate message from warn to info; minor code clean-up
+ *    02/01/2019 7720    mrichardson   Incorporated changes for subgrids.
  *
  * </pre>
  *
@@ -1111,36 +1119,94 @@ public class ContourSupport {
         if (type.toUpperCase().contains("F")
                 || type.toUpperCase().contains("I")) {
 
-            // Equidistant_Cylindrical image requires special handling
-            // (subgridding)
+            int worldWidth = GridGeometryWrapChecker
+                    .checkForWrapping(imageGridGeometry);
+            int geomWidth = imageGridGeometry.getGridRange().getSpan(0);
+            /*
+             * Grids larger than the world need to be reduced to render
+             * correctly.
+             */
+            if (worldWidth > 0 && worldWidth < geomWidth) {
+                GridEnvelope gridRange = imageGridGeometry.getGridRange();
+                int[] low = gridRange.getLow().getCoordinateValues();
+                int[] high = gridRange.getHigh().getCoordinateValues();
+
+                high[0] = low[0] + worldWidth;
+
+                gridRange = new GeneralGridEnvelope(low, high);
+
+                imageGridGeometry = new GridGeometry2D(gridRange,
+                        imageGridGeometry.getGridToCRS(),
+                        imageGridGeometry.getCoordinateReferenceSystem());
+
+                // Equidistant_Cylindrical image requires special handling
+                // (subgridding)
             if ("Equidistant_Cylindrical".equals(
                     getProjectionName(
                             imageGridGeometry.getCoordinateReferenceSystem()))
                     && !"MCIDAS_AREA_NAV".equals(
                             getProjectionName(descriptor.getCRS()))) {
-
-                // get original imageGridGeometry, as World wrap may cause
-                // issues (ie. color bands) in some projections
-                ncGridDataProxy = ((FrameData) resource.getCurrentFrame())
-                        .getProxy();
-
-                /*
-                 * The imageGridGeometry passed into this method
-                 * (newSpatialObject, which is 360 degrees) causes problems in
-                 * display when it gets subgridded. Ignore the subgridding if
-                 * the proxy is null. If the proxy is not null, the
-                 * imageGridGeometry associated with it (spatialObject, which is
-                 * 359 degrees) is correct and so you can do the subgridding.
-                 */
-
-                // SpatialObject = 359 degrees, NewSpatialObject = 360 degrees
-                // (has 0th deg added), so it's "new"
-                if (ncGridDataProxy != null
-                        && ncGridDataProxy.getSpatialObject() != null) {
-
-                    imageGridGeometry = MapUtil.getGridGeometry(
-                            ncGridDataProxy.getSpatialObject());
-
+        
+                    /*
+                     * Geotools does not "roll the longitude" for map
+                     * projections with a central meridian of 0. See
+                     * MapProjection.transform() for an explanation.
+                     * 
+                     * Grids larger than the world always have a central
+                     * meridian of 0 because rolling the edges would cause the
+                     * grid to collapse down to the width of a single grid cell.
+                     * 
+                     * For the display we need to ensure that the longitude is
+                     * rolled so that the image is centered on the display
+                     * instead of rendering off the edge of the display.
+                     */
+                    try {
+                        ReferencedEnvelope envelope = new ReferencedEnvelope(
+                                imageGridGeometry.getEnvelope());
+                        /*
+                         * The envelope will span the entire valid width of the
+                         * new CRS. Due to floating point inaccuracies the
+                         * conversion to a new CRS can cause both corners to get
+                         * rolled onto the same side. Reducing the envelope
+                         * slightly accounts for the floating point inaccuracies
+                         * with no noticeable impact on the display.
+                         */
+                        envelope.expandBy(-0.0001, 0);
+                        envelope = envelope
+                                .transform(DefaultGeographicCRS.WGS84, true);
+                        double center = envelope.getMedian(0);
+        
+                        /*
+                         * Copy all the parameters from the existing projection
+                         * except the central meridian
+                         */
+                        MapProjection worldProjection = CRS
+                                .getMapProjection(imageGridGeometry
+                                        .getCoordinateReferenceSystem());
+                        ParameterValueGroup group = worldProjection
+                                .getParameterValues();
+                        group.parameter(AbstractProvider.CENTRAL_MERIDIAN
+                                .getName().getCode()).setValue(center);
+                        String name = "ContourSupportGenerated: CM=" + center;
+                        DefaultProjectedCRS projCrs = MapUtil
+                                .constructProjection(name, group);
+        
+                        envelope = envelope.transform(projCrs, true);
+                        imageGridGeometry = new GridGeometry2D(gridRange,
+                                envelope);
+                    } catch (FactoryException | TransformException e) {
+                        statusHandler.error("Failed to project grid properly",
+                                e);
+                    }
+        
+                    /*
+                     * The imageGridGeometry passed into this method
+                     * (newSpatialObject, which is 360 degrees) causes problems in
+                     * display when it gets subgridded. Ignore the subgridding if
+                     * the proxy is null. If the proxy is not null, the
+                     * imageGridGeometry associated with it (spatialObject, which is
+                     * 359 degrees) is correct and so you can do the subgridding.
+                     */
                     try {
 
                         // create subGrid (same as D2D)

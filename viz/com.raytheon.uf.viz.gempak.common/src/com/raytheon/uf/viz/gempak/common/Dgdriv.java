@@ -128,11 +128,13 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * 04/26/2016   R17741      S. Gilbert      Change to use FloatGridData, and replace NcepLogger
  * 08/18/2016   R17569      K Bugenhagen    Modified calls to NcEnsembleResourceData methods
  *                                          since they are no longer static.
+ * 03/27/2017   R19634      bsteffen        Support subgrids.
  * 09/05/2018   54480       mapeters        Updates to support either running in CAVE or in subprocess
  * 09/26/2018   54483       mapeters        Extracted out data URI and DB data retrieval
  * 10/23/2018   54483       mapeters        Use {@link IPerformanceStatusHandler}
  * 10/25/2018   54483       mapeters        Extracted out navigation and subgrid retrieval
  * 01/11/2019   57970       mrichardson     Updated to indicate missing data as NPE culprit
+ * 02/01/2019   7720        mrichardson     Incorporate changes for subgrids.
  * </pre>
  *
  * @author tlee
@@ -171,15 +173,14 @@ public class Dgdriv {
 
     private String gdfileOriginal;
 
-    private String ncgribPreferences;
-
     private ISpatialObject spatialObj, subgSpatialObj;
 
     private List<DataTime> dataForecastTimes;
 
     private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
 
-    public static final int LLMXGD = 1000000; // Max # grid points
+    // Max # grid points
+    public static final int LLMXGD = 8_000_000;
 
     /*
      * TODO Work around solution - need to find a way to set logging level
@@ -213,13 +214,13 @@ public class Dgdriv {
         setSpatialObject(dataInput.getSpatialObject());
         setGdattim(dataInput.getGdattim());
         setGarea(dataInput.getGarea());
+        setProj(dataInput.getProj());
         setGdfile(dataInput.getGdfile());
         setGdpfun(dataInput.getGdpfun());
         setGlevel(dataInput.getGlevel());
         setGvcord(dataInput.getGvcord());
         setScale(dataInput.getScale());
         setDataSource(dataInput.getDataSource());
-        setPreferences(dataInput.getPreferences());
         setScalar(dataInput.isScalar());
         setArrowVector(dataInput.isArrowVector());
     }
@@ -277,6 +278,10 @@ public class Dgdriv {
         this.garea = garea.toUpperCase();
     }
 
+    public void setProj(String proj) {
+        this.proj = proj.toUpperCase();
+    }
+
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource.trim().toUpperCase();
         if (this.dataSource.contains("GEMPAK")) {
@@ -295,10 +300,6 @@ public class Dgdriv {
 
     public void setSubgSpatialObj(ISpatialObject obj) {
         this.subgSpatialObj = obj;
-    }
-
-    public void setPreferences(String preferences) {
-        this.ncgribPreferences = preferences;
     }
 
     private static final int BUFRLENGTH = 128;
@@ -320,6 +321,8 @@ public class Dgdriv {
     private IntByReference coladd = new IntByReference(0);
 
     private IntByReference gottm = new IntByReference(0);
+
+    private IntByReference drpflg = new IntByReference(0);
 
     private IntByReference level1 = new IntByReference(0);
 
@@ -351,9 +354,11 @@ public class Dgdriv {
 
     private FloatByReference rmin = new FloatByReference(0.F);
 
-    private String skip = "N";
+    private String proj = "CED";
 
-    private String errorURI = "";
+    private String satfil = "";
+
+    private String skip = "N";
 
     private byte[] pfunc = new byte[BUFRLENGTH];
 
@@ -368,20 +373,6 @@ public class Dgdriv {
     private byte[] time2 = new byte[BUFRLENGTH];
 
     private boolean proces = true;
-
-    private DiagnosticsCallback diagCallback = null;
-
-    private ReturnFileNameCallback flnmCallback = null;
-
-    private ReturnCycleForecastHoursCallback fhrsCallback = null;
-
-    private ReturnNavigationCallback navCallback = null;
-
-    private ReturnDataCallback dataCallback = null;
-
-    private ReturnDataURICallback duriCallback = null;
-
-    private ReturnSubgridCRSCallback subgCrsCallback = null;
 
     private class DiagnosticsCallback implements gempak.DbCallbackWithMessage {
 
@@ -450,7 +441,6 @@ public class Dgdriv {
                                         + msg, e);
                     }
                     if (response == null) {
-                        errorURI = msg;
                         proces = false;
                     } else {
                         float[] data = response.getData();
@@ -484,7 +474,6 @@ public class Dgdriv {
                     perfLog.logDuration("Returning data for " + msg, t1 - t0);
                     return true;
                 } else {
-                    errorURI = msg;
                     proces = false;
                     return true;
                 }
@@ -515,7 +504,6 @@ public class Dgdriv {
             } catch (GempakException e) {
                 statusHandler.error("Error getting grid navigation for " + msg,
                         e);
-                errorURI = msg;
                 proces = false;
             }
             return true;
@@ -541,7 +529,6 @@ public class Dgdriv {
                 statusHandler.error(
                         "Error performing GEMPAK data URI request for " + msg,
                         e);
-                errorURI = msg;
                 proces = false;
             }
             return true;
@@ -572,7 +559,6 @@ public class Dgdriv {
                     statusHandler
                             .error("Error performing GEMPAK subgrid coverage request for "
                                     + msg, e);
-                    errorURI = msg;
                     proces = false;
                 }
             }
@@ -614,6 +600,13 @@ public class Dgdriv {
 
     public FloatGridData execute() throws DgdrivException {
 
+        DiagnosticsCallback diagCallback = null;
+        ReturnFileNameCallback flnmCallback = null;
+        ReturnCycleForecastHoursCallback fhrsCallback = null;
+        ReturnNavigationCallback navCallback = null;
+        ReturnDataCallback dataCallback = null;
+        ReturnDataURICallback duriCallback = null;
+        ReturnSubgridCRSCallback subgCrsCallback = null;
         /*
          * Tag the gdfile string for ncgrib dataSource
          */
@@ -767,13 +760,15 @@ public class Dgdriv {
         /*
          * Setup the grid subset that covers the graphics area.
          */
-        if (this.ncgribPreferences != null && proces) {
-            String[] prefs = this.ncgribPreferences.split(";");
-            gd.gem.db_setsubgnav_(new Float(prefs[0]), new Float(prefs[1]),
-                    new Float(prefs[2]), new Float(prefs[3]), iret);
+        if (proces && !"dset".equalsIgnoreCase(garea)) {
+            gd.gem.ggc_maps(Native.toByteArray(proj), Native.toByteArray(garea), satfil, drpflg, iret);
             if (iret.getValue() != 0) {
+                gd.gem.erc_wmsg("DG", iret, "", ier);
                 proces = false;
             }
+
+            long t06 = System.currentTimeMillis();
+            perfLog.logDuration("ggc_maps took: ", t06 - t05);
 
             if (proces) {
                 gd.gem.dgc_subg_(skip, maxgrd, ix1, iy1, ix2, iy2, iret);
@@ -781,10 +776,9 @@ public class Dgdriv {
                     proces = false;
                 }
             }
+            long t07 = System.currentTimeMillis();
+            perfLog.logDuration("dgc_subg", t07 - t06);
         }
-
-        long t06 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_subg", t06 - t05);
 
         /*
          * Return grid dimension for grid diagnostic calculation.
@@ -808,8 +802,8 @@ public class Dgdriv {
             proces = false;
         }
 
-        long t07 = System.currentTimeMillis();
-        perfLog.logDuration("From dgc_nfil to dgc_grid", t07 - t02);
+        long t08 = System.currentTimeMillis();
+        perfLog.logDuration("From dgc_nfil to dgc_grid", t08 - t02);
         /*
          * Compute the requested grid.
          */
@@ -829,8 +823,8 @@ public class Dgdriv {
                 proces = false;
             }
         }
-        long t08 = System.currentTimeMillis();
-        perfLog.logDuration("dgc_grid", t08 - t07);
+        long t09 = System.currentTimeMillis();
+        perfLog.logDuration("dgc_grid", t09 - t08);
 
         /*
          * Compute the scaling factor and scale the grid data.
@@ -875,7 +869,7 @@ public class Dgdriv {
              */
             gd.gem.dg_fall_(iret);
             long t1 = System.currentTimeMillis();
-            perfLog.logDuration("Scaling", t1 - t08);
+            perfLog.logDuration("Scaling", t1 - t09);
             return fds;
         } else {
             /*
@@ -905,7 +899,7 @@ public class Dgdriv {
         String template = this.gdfileOriginal + "_db";
         if (this.gdfileOriginal.contains(":")) {
             template = this.gdfileOriginal.substring(0,
-                    this.gdfileOriginal.indexOf(":")) + "_db";
+                    this.gdfileOriginal.indexOf(':')) + "_db";
         }
         IntByReference iret = new IntByReference(0);
 
@@ -919,8 +913,8 @@ public class Dgdriv {
         StringBuilder sbp = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
         String[] gdfileArray = this.gdfileOriginal
-                .substring(this.gdfileOriginal.indexOf("{") + 1,
-                        this.gdfileOriginal.indexOf("}"))
+                .substring(this.gdfileOriginal.indexOf('{') + 1,
+                        this.gdfileOriginal.indexOf('}'))
                 .split(",");
         for (int igd = 0; igd < gdfileArray.length; igd++) {
             sbp.append(thePath);
@@ -996,7 +990,7 @@ public class Dgdriv {
     }
 
     private String getTaggedGdfile() {
-        if (this.dataSource.equalsIgnoreCase("grid")) {
+        if ("grid".equalsIgnoreCase(this.dataSource)) {
             String tag = "A2DB_";
             /*
              * For gdfile containing event name do not have to do anything as
@@ -1011,8 +1005,8 @@ public class Dgdriv {
             if (this.gdfileOriginal.startsWith("{")
                     && this.gdfileOriginal.endsWith("}")) {
                 String[] gdfileArray = this.gdfileOriginal
-                        .substring(this.gdfileOriginal.indexOf("{") + 1,
-                                this.gdfileOriginal.indexOf("}"))
+                        .substring(this.gdfileOriginal.indexOf('{') + 1,
+                                this.gdfileOriginal.indexOf('}'))
                         .split(",");
                 StringBuilder strb = new StringBuilder();
 
@@ -1170,7 +1164,7 @@ public class Dgdriv {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        String retFileNames = "";
+        StringBuilder retFileNames = new StringBuilder();
         try {
             DbQueryResponse response = (DbQueryResponse) ThriftClient
                     .sendRequest(request);
@@ -1208,19 +1202,23 @@ public class Dgdriv {
 
                     String hh = dts[1].split(":")[0];
                     if (retFileNames.length() > 0) {
-                        retFileNames = retFileNames + "|";
+                        retFileNames.append("|");
                     }
 
-                    retFileNames = retFileNames + prefix + dt + hh + "f"
-                            + CommonDateFormatUtil
-                                    .getForecastTimeString(fcstTimeInSec);
+                    retFileNames
+                        .append(prefix)
+                        .append(dt)
+                        .append(hh)
+                        .append("f")
+                        .append(CommonDateFormatUtil
+                                .getForecastTimeString(fcstTimeInSec));
                 }
             }
         } catch (VizException e) {
             statusHandler.error(
                     "DBQueryRequest failed: " + e.getLocalizedMessage(), e);
         }
-        return retFileNames;
+        return retFileNames.toString();
     }
 
     private String constructTimeStr(String gempakTimeStr) {
@@ -1304,7 +1302,7 @@ public class Dgdriv {
             }
 
             ISpatialObject cov = null;
-            if (responseList.size() > 0) {
+            if (!responseList.isEmpty()) {
                 Object spatialObj = responseList.get(0)
                         .get(GridDBConstants.NAVIGATION_QUERY);
                 if (spatialObj != null

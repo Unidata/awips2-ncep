@@ -1,13 +1,14 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.geotools.coverage.grid.GeneralGridGeometry;
+import org.geotools.geometry.DirectPosition2D;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +45,12 @@ import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.gridcoverage.GridCoverage;
+import com.raytheon.uf.common.gridcoverage.LatLonGridCoverage;
+import com.raytheon.uf.common.gridcoverage.exception.GridCoverageException;
+import com.raytheon.uf.common.gridcoverage.subgrid.SubGrid;
+import com.raytheon.uf.common.localization.ILocalizationFile;
+import com.raytheon.uf.common.localization.IPathManager;
+import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.numeric.DataUtilities;
 import com.raytheon.uf.common.numeric.buffer.FloatBufferWrapper;
 import com.raytheon.uf.common.numeric.source.DataSource;
@@ -45,6 +58,7 @@ import com.raytheon.uf.common.parameter.Parameter;
 import com.raytheon.uf.common.parameter.lookup.ParameterLookupException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.level.SingleLevel;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -65,14 +79,15 @@ import com.raytheon.uf.viz.ncep.grid.util.GridDBConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.ncgrib.request.StoreGridRequest;
 import gov.noaa.nws.ncep.gempak.parameters.colors.COLORS;
-import gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea.GraphicsAreaCoordinates;
+import gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea.MapProjection;
 import gov.noaa.nws.ncep.gempak.parameters.hilo.HILOBuilder;
 import gov.noaa.nws.ncep.gempak.parameters.hilo.HILOStringParser;
 import gov.noaa.nws.ncep.gempak.parameters.hlsym.HLSYM;
 import gov.noaa.nws.ncep.gempak.parameters.intext.TextStringParser;
 import gov.noaa.nws.ncep.gempak.parameters.title.TITLE;
 import gov.noaa.nws.ncep.viz.common.Activator;
-import gov.noaa.nws.ncep.viz.common.preferences.GraphicsAreaPreferences;
+import gov.noaa.nws.ncep.viz.common.area.PredefinedArea;
+import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
 import gov.noaa.nws.ncep.viz.common.ui.HILORelativeMinAndMaxLocator;
 import gov.noaa.nws.ncep.viz.common.ui.ModelListInfo;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
@@ -239,6 +254,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * Dec 05, 2016  26247    A. Su            Removed the setting of
  *                                         NcGridDataProxy object to
  *                                         currentFrame in updateFrameData().
+ * Mar 27, 2017  19634    bsteffen         Support subgrids.
  * Nov 29, 2017  5863     bsteffen         Change dataTimes to a NavigableSet
  * Sep 05, 2018  54480    mapeters         GEMPAK processing done through {@link
  *                                         GempakProcessingManager} instead of
@@ -252,6 +268,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                         in 'NcgridLoaderTask.run()'.
  * Oct 23, 2018  54476    tjensen          Change cache to singleton
  * Oct 25, 2018  54483    mapeters         Handle {@link NcgribLogger} refactor
+ * Feb 01, 2019  7720     mrichardson      Incorporated changes for subgrids.
  *
  * </pre>
  *
@@ -310,8 +327,6 @@ public class NcgridResource
 
     private ContourAttributes[] contourAttributes;
 
-    private TextStringParser text;
-
     // grid preferences
     // lower left latitude/lower left longitude/upper right latitude/upper right
     // longitude
@@ -320,8 +335,14 @@ public class NcgridResource
     // Sub-grid coverage
     private ISpatialObject subgObj = null;
 
-    // expression
-    private final String expr = "((-|\\+)?[0-9]+(\\.[0-9]+)?)+";
+    private String proj;
+
+    /*
+     * Contains the corner points of the subgrid area, defined as four doubles:
+     * the lower left latitude and longitude followed by the upper right
+     * latitude and longitude.
+     */
+    private double[] garea;
 
     // These objects are used as proxys to time match the frames.
     // These are created by querying the db for available times and then
@@ -541,7 +562,8 @@ public class NcgridResource
                     .equalsIgnoreCase(GempakGrid.gempakPluginName)) {
                 try {
                     String dataLocation = null;
-                    try { // if this throws, gdPrxy won't be fully initiated
+                    // if this throws, gdPrxy won't be fully initiated
+                    try {
                         dataLocation = GempakGrid
                                 .getGempakGridPath(gridRscData.getGdfile());
 
@@ -644,7 +666,7 @@ public class NcgridResource
                         responseList = new ArrayList<>(0);
                     }
                     ISpatialObject cov = null;
-                    if (responseList.size() > 0) {
+                    if (!responseList.isEmpty()) {
                         Object spatialObj = responseList.get(0)
                                 .get(GridDBConstants.NAVIGATION_QUERY);
                         if (spatialObj != null
@@ -750,7 +772,7 @@ public class NcgridResource
                                 vectorDisplay[i] = new GriddedVectorDisplay(rec,
                                         displayType, isDirectionalArrow,
                                         getNcMapDescriptor(),
-                                        gdPrxy.getSpatialObject(),
+                                        gdPrxy.getNewSpatialObject(),
                                         contourAttributes[i]);
                                 hasData = true;
                             } else if (ncgribLogger.isEnableDiagnosticLogs()) {
@@ -781,7 +803,7 @@ public class NcgridResource
                                             gridData, displayType,
                                             isDirectionalArrow,
                                             getNcMapDescriptor(),
-                                            gdPrxy.getSpatialObject(),
+                                            gdPrxy.getNewSpatialObject(),
                                             contourAttributes[i]);
                                     hasData = true;
                                 } else if (ncgribLogger
@@ -927,7 +949,8 @@ public class NcgridResource
                     t12 = System.currentTimeMillis();
                     logger.debug("==init contour took:" + (t12 - t11));
                 }
-            } // end of for loop
+                // end of for loop
+            }
 
             frameLoaded = true;
             long t1 = System.currentTimeMillis();
@@ -964,7 +987,11 @@ public class NcgridResource
          */
         private FloatGridData fixVectorSpatialData(FloatGridData data) {
 
-            if (data.getSizes()[0] - 1 == gdPrxy.getSpatialObject().getNx()) {
+            ISpatialObject spatialObj = gdPrxy.getSpatialObject();
+            ISpatialObject newSpatialObj = gdPrxy.getNewSpatialObject();
+
+            if (newSpatialObj instanceof GridCoverage
+                    && newSpatialObj.getNx() == spatialObj.getNx() + 1) {
                 long[] sizes = data.getSizes();
                 long[] newSizes = Arrays.copyOf(sizes, sizes.length);
                 newSizes[0] -= 1;
@@ -992,6 +1019,21 @@ public class NcgridResource
                 }
 
                 data = newData;
+
+                GridCoverage coverage = (GridCoverage) newSpatialObj;
+                SubGrid subGrid = new SubGrid();
+                subGrid.setNX(coverage.getNx() - 1);
+                subGrid.setNY(coverage.getNy());
+                subGrid.setUpperLeftX(0);
+                subGrid.setUpperLeftY(0);
+                coverage = coverage.trim(subGrid);
+                try {
+                    coverage.initialize();
+                    gdPrxy.setNewSpatialObject(coverage);
+                } catch (GridCoverageException e) {
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Error initializing coverage", e);
+                }
             }
             return data;
         }
@@ -1064,7 +1106,7 @@ public class NcgridResource
                                                 gridData, displayType,
                                                 isDirectionalArrow,
                                                 getNcMapDescriptor(),
-                                                gdPrxy.getSpatialObject(),
+                                                gdPrxy.getNewSpatialObject(),
                                                 contourAttributes[i]);
                                     } else if (ncgribLogger
                                             .isEnableDiagnosticLogs()) {
@@ -1176,9 +1218,10 @@ public class NcgridResource
                             }
                         }
                     }
-                } // end of for loop
-
-            } // end of synchronized
+                    // end of for loop
+                }
+                // end of synchronized
+            }
             frameLoaded = true;
             paintAble = true;
             issueRefresh();
@@ -1454,7 +1497,8 @@ public class NcgridResource
                         dataTimes.add(availTime);
                     }
                 }
-            } else { // for grid analysis
+            } else {
+                // for grid analysis
                 dataTimes.add(availTime);
             }
         }
@@ -1547,7 +1591,7 @@ public class NcgridResource
             }
             t0 = initTime;
             separateAttributes();
-            getClippingArea();
+            setSubgridArea();
             getNcgridLoggerCfgInfo();
             this.lastTarget = target;
             queryRecords();
@@ -1678,7 +1722,8 @@ public class NcgridResource
         }
         this.lastTarget = target;
         this.lastPaintProps = paintProps;
-        FrameData currFrame = (FrameData) frmData; // will not be null
+        // will not be null
+        FrameData currFrame = (FrameData) frmData;
         if (!currFrame.isFrameLoaded()) {
             return;
         }
@@ -1847,12 +1892,64 @@ public class NcgridResource
 
         ArrayList<DataTime> dataTimes = new ArrayList<>();
         dataTimes.add(gdPrxy.getDataTime());
+        ISpatialObject spatialObject = gdPrxy.getSpatialObject();
         GempakDataInput dataInput = new GempakDataInput();
         dataInput.setEnsembleMember(gridRscData.getEnsembelMember());
         dataInput.setCycleForecastTimes(dataTimes);
-        dataInput.setSpatialObject(gdPrxy.getSpatialObject());
+        dataInput.setSpatialObject(spatialObject);
         dataInput.setGdattim(gdPrxy.getDataTime().toString());
-        dataInput.setGarea("dset");
+        dataInput.setProj(proj);
+        if (garea == null) {
+            dataInput.setGarea("dset");
+        } else {
+            double right = garea[3];
+            if (spatialObject instanceof LatLonGridCoverage) {
+                LatLonGridCoverage llCoverage = (LatLonGridCoverage) spatialObject;
+                if (llCoverage.getWorldWrapCount() != -1) {
+                    /*
+                     * For world wrapping grids there are problems when the
+                     * right edge of the garea falls on the seam. The seam
+                     * is the area that is right of the center of the
+                     * rightmost gridcell but left of the center of the
+                     * leftmost gridcell. If the right edge of the garea
+                     * falls in this zone then shift it to the left a bit so
+                     * it is left of the center of the rightmost gridcell.
+                     * The problem that this fixes is probably a bug in
+                     * gempak but I don't know how to verify or fix gempak
+                     * so this workaround is the best I can do.
+                     */
+                    double dx = llCoverage.getDx();
+                    try {
+                        double rightEdgeOfSeam = llCoverage
+                                .getLowerLeftLon();
+                        double leftEdgeOfSeam = rightEdgeOfSeam - dx;
+                        double testRight = right;
+                        while (testRight > rightEdgeOfSeam) {
+                            testRight -= 360;
+                        }
+                        while (testRight < leftEdgeOfSeam) {
+                            testRight += 360;
+                        }
+                        if (testRight < rightEdgeOfSeam) {
+                            /*
+                             * 0.5 is for half a grid cell, that is enough
+                             * to make sure it is inside the grid without
+                             * making much difference in the subgrid
+                             * calculations.
+                             */
+                            right = leftEdgeOfSeam - (dx * 0.5);
+                        }
+                    } catch (GridCoverageException e) {
+                        statusHandler.handle(Priority.PROBLEM,
+                                e.getLocalizedMessage(), e);
+                    }
+                }
+            }
+
+            String gareaStr = String.format("%.3f;%.3f;%.3f;%.3f", garea[0],
+                    garea[1], garea[2], right);
+            dataInput.setGarea(gareaStr);
+        }
         dataInput.setGdfile(inputGdfile);
         dataInput.setGdpfun(cattr.getGdpfun());
         dataInput.setGlevel(cattr.getGlevel());
@@ -1910,6 +2007,7 @@ public class NcgridResource
     private GridPointValueDisplay createGridPointValueDisplay(FloatGridData rec,
             NcGridDataProxy gdPrxy, ContourAttributes attr) {
 
+        TextStringParser text;
         if (rec == null || rec.getXdata() == null) {
             return null;
         }
@@ -2221,31 +2319,95 @@ public class NcgridResource
         }
     }
 
-    private void getClippingArea() {
+    private void setSubgridArea() {
+        this.proj = "CED";
+        this.garea = null;
 
-        IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
-        String llLat = prefs.getString(GraphicsAreaPreferences.LLLAT);
-        String llLon = prefs.getString(GraphicsAreaPreferences.LLLON);
-        String urLat = prefs.getString(GraphicsAreaPreferences.URLAT);
-        String urLon = prefs.getString(GraphicsAreaPreferences.URLON);
-        if (llLat == null || llLon == null || urLat == null || urLon == null) {
-            return;
+        try {
+            String areaName = null;
+            String path = "ncep" + IPathManager.SEPARATOR + "grid"
+                    + IPathManager.SEPARATOR + "gridSubArea.txt";
+            ILocalizationFile file = PathManagerFactory.getPathManager()
+                    .getStaticLocalizationFile(path);
+            if (file != null && file.exists()) {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(file.openInputStream()))) {
+                    String line = reader.readLine();
+                    while (line != null) {
+                        line = line.trim();
+                        if (!line.isEmpty() && !line.startsWith("#")
+                                && !line.startsWith("//")) {
+                            areaName = line;
+                            break;
+                        }
+                        line = reader.readLine();
+                    }
+                }
+            }
+
+            if (areaName == null) {
+                return;
+            }
+            PredefinedArea area = PredefinedAreaFactory
+                    .getPredefinedArea(areaName);
+            if (area == null) {
+                statusHandler.debug("No subgrid because " + areaName
+                        + " is not a valid area.");
+                return;
+            }
+            GeneralGridGeometry geom = area.getGridGeometry();
+            CoordinateReferenceSystem crs = geom.getCoordinateReferenceSystem();
+
+            String areaProj = MapProjection.convertToGempakString(crs);
+            if (areaProj == null) {
+                statusHandler.debug(
+                        "No subgrid can be created from " + area.getAreaName());
+                return;
+            }
+            double fullWidth = geom.getEnvelope().getSpan(0);
+            double fullHeight = geom.getEnvelope().getSpan(1);
+            double maxSpan = Math.max(fullWidth, fullHeight);
+            double zoomedSpan = maxSpan
+                    * Double.parseDouble(area.getZoomLevel());
+            double halfZoomedSpan = zoomedSpan / 2;
+            double[] centerLatLon = area.getMapCenter();
+
+            DirectPosition2D centerPosition = new DirectPosition2D(
+                    centerLatLon[0], centerLatLon[1]);
+
+            MathTransform llToCRS = CRS
+                    .findMathTransform(DefaultGeographicCRS.WGS84, crs);
+            llToCRS.transform(centerPosition, centerPosition);
+
+            double left = centerPosition.x - halfZoomedSpan;
+            double right = centerPosition.x + halfZoomedSpan;
+            double lower = centerPosition.y - halfZoomedSpan;
+            double upper = centerPosition.y + halfZoomedSpan;
+
+            Envelope validEnvelope = geom.getEnvelope();
+            left = Math.max(left, validEnvelope.getMinimum(0));
+            right = Math.min(right, validEnvelope.getMaximum(0));
+            lower = Math.max(lower, validEnvelope.getMinimum(1));
+            upper = Math.min(upper, validEnvelope.getMaximum(1));
+
+            DirectPosition2D lowerLeft = new DirectPosition2D(left, lower);
+            DirectPosition2D upperRight = new DirectPosition2D(right, upper);
+
+            MathTransform crsToLL = llToCRS.inverse();
+            crsToLL.transform(lowerLeft, lowerLeft);
+            crsToLL.transform(upperRight, upperRight);
+
+            left = lowerLeft.x;
+            lower = lowerLeft.y;
+            right = upperRight.x;
+            upper = upperRight.y;
+
+            this.garea = new double[] { lower, left, upper, right };
+            this.proj = areaProj;
+        } catch (Exception e) {
+            statusHandler.handle(Priority.DEBUG,
+                    "Error processing subgrid area", e);
         }
-
-        if (!llLat.matches(expr) || !llLon.matches(expr) || !urLat.matches(expr)
-                || !urLon.matches(expr)) {
-            return;
-        }
-
-        String garea = llLat + ";" + llLon + ";" + urLat + ";" + urLon;
-
-        GraphicsAreaCoordinates gareaCoordObj = new GraphicsAreaCoordinates(
-                garea);
-        if (!gareaCoordObj.parseGraphicsAreaString(garea)) {
-            return;
-        }
-
-        ncgribPreferences = new String(garea);
     }
 
     private void getNcgridLoggerCfgInfo() {
@@ -2291,15 +2453,16 @@ public class NcgridResource
     private String substituteAlias(String referencedAlias,
             String referencedFunc, String aFunc) {
 
-        String returnedFunc = aFunc;
+//        String returnedFunc = aFunc;
+        StringBuilder returnedFunc = new StringBuilder();
         /*
          * Process single word functions first
          */
-        if (!returnedFunc.contains("(")) {
-            if (returnedFunc.trim().equalsIgnoreCase(referencedAlias)) {
-                return returnedFunc.replace(referencedAlias, referencedFunc);
+        if (!returnedFunc.toString().contains("(")) {
+            if (returnedFunc.toString().trim().equalsIgnoreCase(referencedAlias)) {
+                return returnedFunc.toString().replace(referencedAlias, referencedFunc);
             }
-            return returnedFunc;
+            return returnedFunc.toString();
         }
 
         /*
@@ -2309,7 +2472,7 @@ public class NcgridResource
         int openParenthesisNumber = 0;
         int closeParenthesisNumber = 0;
 
-        for (char c : returnedFunc.toCharArray()) {
+        for (char c : returnedFunc.toString().toCharArray()) {
             if (c == '(') {
                 openParenthesisNumber++;
             } else if (c == ')') {
@@ -2325,7 +2488,7 @@ public class NcgridResource
             int parenthesisDeficit = openParenthesisNumber
                     - closeParenthesisNumber;
             for (int idef = 0; idef < parenthesisDeficit; idef++) {
-                returnedFunc = returnedFunc + ")";
+                returnedFunc.append(")");
             }
         }
 
@@ -2333,7 +2496,7 @@ public class NcgridResource
          * Find all the words that make up our returnedFunc
          */
         String delims = "[ (),]+";
-        String[] returnedFuncWords = returnedFunc.split(delims);
+        String[] returnedFuncWords = returnedFunc.toString().split(delims);
 
         /*
          * Go over each returnedFunc word and replaced each referencedAlias with
@@ -2351,30 +2514,24 @@ public class NcgridResource
                             .indexOf(component, startInd) - 1;
                     int componentAfterPosition = componentBeforePosition
                             + component.length() + 1;
-                    boolean isRoundedBefore = Character
-                            .toString(returnedFunc
-                                    .charAt(componentBeforePosition))
-                            .equalsIgnoreCase("(")
-                            || Character
-                                    .toString(returnedFunc
-                                            .charAt(componentBeforePosition))
-                                    .equalsIgnoreCase(")")
-                            || Character
-                                    .toString(returnedFunc
-                                            .charAt(componentBeforePosition))
-                                    .equalsIgnoreCase(",");
-                    boolean isRroundedAfter = Character
-                            .toString(
-                                    returnedFunc.charAt(componentAfterPosition))
-                            .equalsIgnoreCase("(")
-                            || Character
-                                    .toString(returnedFunc
-                                            .charAt(componentAfterPosition))
-                                    .equalsIgnoreCase(")")
-                            || Character
-                                    .toString(returnedFunc
-                                            .charAt(componentAfterPosition))
-                                    .equalsIgnoreCase(",");
+                    boolean isRoundedBefore = "(".equalsIgnoreCase(
+                            Character.toString(returnedFunc
+                                    .charAt(componentBeforePosition)))
+                            || ")".equalsIgnoreCase(
+                                    Character.toString(returnedFunc
+                                            .charAt(componentBeforePosition)))
+                            || ",".equalsIgnoreCase(
+                                    Character.toString(returnedFunc
+                                            .charAt(componentBeforePosition)));
+                    boolean isRroundedAfter = "(".equalsIgnoreCase(
+                            Character.toString(
+                                    returnedFunc.charAt(componentAfterPosition)))
+                            || ")".equalsIgnoreCase(
+                                    Character.toString(returnedFunc
+                                            .charAt(componentAfterPosition)))
+                            || ",".equalsIgnoreCase(
+                                    Character.toString(returnedFunc
+                                            .charAt(componentAfterPosition)));
                     if (isRoundedBefore && isRroundedAfter) {
                         /*
                          * De-alias word since surrounded by '(', ')', or ','
@@ -2386,7 +2543,7 @@ public class NcgridResource
                         strb.append(returnedFunc, 0, startIndx);
                         strb.append(referencedFunc);
                         strb.append(returnedFunc, endIndx, returnedFuncLen);
-                        returnedFunc = strb.toString();
+                        returnedFunc = strb;
                         doneDealiasing = true;
                     } else {
                         startInd = componentAfterPosition;
@@ -2397,7 +2554,7 @@ public class NcgridResource
 
         logger.debug("returnedFunc=" + returnedFunc);
 
-        return returnedFunc;
+        return returnedFunc.toString();
     }
 
     /*
@@ -2485,7 +2642,7 @@ public class NcgridResource
         String validTimeString = getTimeString(LEGEND_STRING_VALID_TIME_FORMAT,
                 calendar, timeInSec, isToAddDayOfWeek);
 
-        String newTitleString = new String();
+        StringBuilder newTitleString = new StringBuilder();
         boolean isToEscape = false;
         boolean isToStop = false;
 
@@ -2493,56 +2650,62 @@ public class NcgridResource
             char currentChar = title.charAt(i);
 
             if (isToEscape) {
-                newTitleString += Character.toString(currentChar);
+                newTitleString.append(currentChar);
                 isToEscape = false;
                 continue;
             }
 
             switch (currentChar) {
-            case '\\': // escaping
+            // escaping
+            case '\\':
                 isToEscape = true;
                 break;
-
-            case '!': // start of comment
+            // start of comment
+            case '!':
                 isToStop = true;
                 break;
-
-            case '~': // valid time
-                newTitleString += validTimeString;
+            // valid time
+            case '~':
+                newTitleString.append(validTimeString);
                 break;
-
-            case '^': // forecast time
-                newTitleString += forecastTimeString;
+            // forecast time
+            case '^':
+                newTitleString.append(forecastTimeString);
                 break;
-
-            case '?': // day of the week
+            // day of the week
+            case '?':
                 break;
-
-            case '@': // vertical level
-                newTitleString += gridRscData.getGlevel() + " "
-                        + getVerticalLevelUnits(gridRscData.getGvcord());
+            // vertical level
+            case '@':
+                newTitleString
+                    .append(gridRscData.getGlevel())
+                    .append(" ")
+                    .append(getVerticalLevelUnits(gridRscData.getGvcord()));
                 break;
-
-            case '_': // Grid function
-                newTitleString += gridRscData.getGdpfun().toUpperCase();
+            // Grid function
+            case '_':
+                newTitleString.append(gridRscData.getGdpfun().toUpperCase());
                 break;
-
-            case '$': // nonzero scaling factor
+            // nonzero scaling factor
+            case '$':
                 if (gridRscData.getScale().compareTo("0") != 0) {
-                    newTitleString += "(*10**" + gridRscData.getScale() + ")";
+                    newTitleString
+                        .append("(*10**")
+                        .append(gridRscData.getScale())
+                        .append(")");
                 }
                 break;
-
-            case '#': // Grid point location (not implemented)
+            // Grid point location (not implemented)
+            case '#':
                 break;
 
             default:
-                newTitleString += Character.toString(currentChar);
+                newTitleString.append(currentChar);
                 break;
             }
         }
 
-        return newTitleString;
+        return newTitleString.toString();
     }
 
     private String getTimeString(String timestampFormat, Calendar cal,
@@ -2668,8 +2831,8 @@ public class NcgridResource
                     }
 
                     lastDataObj = rscDataObj;
-
-                } // end while
+                // end while
+                }
 
                 if (!frameMatched) {
 
@@ -2696,7 +2859,8 @@ public class NcgridResource
                 }
 
             }
-        } // end for
+        // end for
+        }
 
         // allow resources to post-process the data after it is added to the
         // frames
@@ -2776,14 +2940,10 @@ public class NcgridResource
 
                 StoreGridRequest sgr = new StoreGridRequest(grid);
                 ThriftClient.sendRequest(sgr);
-            } catch (VizException e) {
+            } catch (VizException | ParameterLookupException e) {
                 statusHandler.handle(UFStatus.Priority.CRITICAL,
                         e.getLocalizedMessage(), e);
 
-                successfulSave = false;
-            } catch (ParameterLookupException e) {
-                statusHandler.handle(UFStatus.Priority.CRITICAL,
-                        e.getLocalizedMessage(), e);
                 successfulSave = false;
             }
         }

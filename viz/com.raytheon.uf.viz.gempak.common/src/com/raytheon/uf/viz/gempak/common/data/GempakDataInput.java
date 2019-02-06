@@ -19,7 +19,6 @@
  **/
 package com.raytheon.uf.viz.gempak.common.data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -43,6 +42,7 @@ import com.raytheon.uf.common.time.DataTime;
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
  * Oct 23, 2018 54483      mapeters    Add {@link #toString()}
  * Oct 25, 2018 54483      mapeters    Use {@link List} interface for lists
+ * Feb 01, 2019 7720       mrichardson Add proj used with sub-gridding
  *
  * </pre>
  *
@@ -88,6 +88,9 @@ public class GempakDataInput {
     private String preferences;
 
     @DynamicSerializeElement
+    private String proj;
+
+    @DynamicSerializeElement
     private boolean scalar;
 
     @DynamicSerializeElement
@@ -119,7 +122,7 @@ public class GempakDataInput {
      * @param cycleForecastTimes
      *            the cycleForecastTimes to set
      */
-    public void setCycleForecastTimes(ArrayList<DataTime> cycleForecastTimes) {
+    public void setCycleForecastTimes(List<DataTime> cycleForecastTimes) {
         this.cycleForecastTimes = cycleForecastTimes;
     }
 
@@ -271,6 +274,21 @@ public class GempakDataInput {
      */
     public void setPreferences(String preferences) {
         this.preferences = preferences;
+    }
+
+    /**
+     * @param proj
+     */
+    public String getProj() {
+        return proj;
+    }
+
+    /**
+     * @param proj
+     *            the projection to set
+     */
+    public void setProj(String proj) {
+        this.proj = proj;
     }
 
     /**

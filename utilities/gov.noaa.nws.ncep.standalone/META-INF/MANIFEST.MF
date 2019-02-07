@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Standalone Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.standalone; singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.standalone.Activator
 Export-Package: gov.noaa.nws.ncep.standalone,
  gov.noaa.nws.ncep.standalone.colormapConverter,
@@ -22,8 +22,9 @@ Require-Bundle: org.eclipse.ui,
  org.geotools,
  org.junit;bundle-version="1.0.0",
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.staticdata;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+ gov.noaa.nws.ncep.common.staticdata;bundle-version="1.0.0",
+ javax.xml.bind
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.message,

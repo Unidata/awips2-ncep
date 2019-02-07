@@ -2,13 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Ncgrib Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ncgrib
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ncgrib
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.apache.camel,
  com.raytheon.uf.common.localization,
- com.raytheon.uf.common.serialization
+ com.raytheon.uf.common.serialization,
+ javax.xml.bind
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.dataplugin.grid,

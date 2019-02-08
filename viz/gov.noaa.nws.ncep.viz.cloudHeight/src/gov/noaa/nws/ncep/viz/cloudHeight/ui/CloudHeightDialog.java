@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.dialogs.ICloseCallback;
 import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
@@ -63,6 +62,8 @@ import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
  *                                      Updated createDialog() method, left
  *                                      justify field names, widen fields
  * Feb  1, 2019  7570       tgurney     Add close callback support
+ * Feb  8, 2018  7579       tgurney     Fix "Take Control" to actually activate
+ *                                      the tool
  * </pre>
  *
  */
@@ -561,16 +562,7 @@ public class CloudHeightDialog extends Dialog implements ICloseCallbackDialog {
                     if (mgr != null) {
                         mgr.getToolManager()
                                 .selectModalTool(associatedCloudHeightAction);
-                        associatedCloudHeightAction.setEnabled(false);
-                        try {
-                            mgr.getToolManager().activateToolSet(
-                                    associatedCloudHeightAction.getCommandId());
-                        } catch (VizException ve) {
-                            statusHandler.error(
-                                    "Error handling Cloud Height Dialog Event",
-                                    ve);
-
-                        }
+                        associatedCloudHeightAction.activate();
                     }
                 }
             }

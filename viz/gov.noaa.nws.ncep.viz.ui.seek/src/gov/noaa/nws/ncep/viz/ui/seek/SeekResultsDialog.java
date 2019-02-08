@@ -48,7 +48,6 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
-import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.dialogs.ICloseCallback;
 import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
@@ -86,40 +85,29 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * 02/22/2012    #644      Q.Zhou       Added unit NM. Fixed point1 text(double units).
  * Nov 29, 2018  #7563     dgilling     Add missing direction display option,
  *                                      code cleanup.
+ * Feb  8, 2018  7579       tgurney     Fix "Take Control" to actually activate
+ *                                      the tool
  * </pre>
  *
  * @author mli
  */
 public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
-    private final IUFStatusHandler statusHandler = UFStatus
-            .getHandler(getClass());
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(SeekResultsDialog.class);
 
-    // added the SeekResultsAction object
-
-    SeekResultsAction associatedSeekAction;
+    private SeekResultsAction associatedSeekAction;
 
     private Table resultTableTop;
 
     // The expandable List Widget.
     private List resultList2;
 
-    /**
-     * Dialog shell.
-     */
     private Shell shell;
 
-    /**
-     * @return the shell
-     */
-    protected Shell getShell() {// added by archana
+    protected Shell getShell() {
         return shell;
     }
-
-    /**
-     * Return object.
-     */
-    private final Boolean returnValue = false;
 
     /**
      * Font used for the list controls.
@@ -144,15 +132,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     private Button clickPoint1 = null;
 
-    private Button clickPoint2 = null;
-
     private Label point1 = null;
 
     private Label point2 = null;
 
     private Text distance = null;
-
-    private Button button12 = null;
 
     private Combo distCombo = null;
 
@@ -164,22 +148,19 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     private SeekPointData[] closePoints = null;
 
-    // private ArrayList<LocatorDataSource> list = null;
-
-    // private PointDataResource mypoint = null;
-
     private Coordinate coordinate = null;
 
     private int currentPointID = 0;
 
     private ClickPointData[] clickPtData = new ClickPointData[] {
-            new ClickPointData(), new ClickPointData() };// 2];
+            new ClickPointData(), new ClickPointData() };
 
     private boolean isClicked = false;
 
     private double pointDistance = -999.99;
 
-    private int pointOrder = 0; // 0 = point 1->2, 1 = point 2->1;
+    // 0 = point 1->2, 1 = point 2->1;
+    private int pointOrder = 0;
 
     private static SeekResultsDialog INSTANCE = null;
 
@@ -193,13 +174,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     private SeekPointData[] closePoints1 = null, closePoints2 = null;
 
     // Composites for the expandable List Widget
-    Composite resultsComp = null;
+    private Composite resultsComp = null;
 
-    Composite distComp = null;
+    private Composite distComp = null;
 
-    // GridData gd = null;
-
-    Composite centeredComp = null;
+    private Composite centeredComp = null;
 
     // Flag for opening the expandable List Widget
     private static boolean NotFirstOpen = false;
@@ -213,6 +192,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     private static final String DIRECTIONUNIT_OPTIONS[] = { "16 point",
             "degrees" };
+
+    private static final String LATLON = "LATLON";
 
     private final ListenerList<ICloseCallback> closeListeners;
 
@@ -229,16 +210,16 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     }
 
     public static SeekResultsDialog getInstance(Shell parShell,
-            SeekResultsAction anAction) { /*
-                                           * archana - added the
-                                           * SeekResultsAction parameter
-                                           */
-        if (INSTANCE == null) {
-            try {
-                INSTANCE = new SeekResultsDialog(parShell);
-                INSTANCE.associatedSeekAction = anAction;
-            } catch (Exception e) {
-                e.printStackTrace();
+            SeekResultsAction anAction) {
+        synchronized (SeekResultsDialog.class) {
+            if (INSTANCE == null) {
+                try {
+                    INSTANCE = new SeekResultsDialog(parShell);
+                    INSTANCE.associatedSeekAction = anAction;
+                } catch (Exception e) {
+                    statusHandler.warn("Failed to create Seek Results dialog",
+                            e);
+                }
             }
         }
         return INSTANCE;
@@ -255,8 +236,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         Cursor prevCursor = parent.getCursor();
         Cursor crossCursor = NCCursors.getCursor(display,
                 NCCursors.CursorRef.POINT_SELECT);
-        // Cursor crossCursor = new Cursor(display,SWT.CURSOR_CROSS);
-        shell = new Shell(parent, SWT.DIALOG_TRIM);// | SWT.APPLICATION_MODAL);
+        shell = new Shell(parent, SWT.DIALOG_TRIM);
         shell.setText("Seek Results");
         parent.setCursor(crossCursor);
 
@@ -271,13 +251,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         // Initialize all of the controls and layouts
         initializeComponents();
-        // setCurrentData();
 
         shell.pack();
 
         shell.open();
 
-        // parent.setCursor(arrowCursor);
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {
                 display.sleep();
@@ -287,12 +265,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         font.dispose();
         crossCursor.dispose();
 
-        // copy with Widget disposed Exception
         try {
             parent.setCursor(prevCursor);
         } catch (Exception e) {
-            System.out.println("___ SeekResultsDialog open(): Exception: "
-                    + e.getMessage());
+            // Widget is disposed
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
         for (ICloseCallback callback : closeListeners) {
@@ -305,7 +282,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             mgr.getToolManager().deselectModalTool(associatedSeekAction);
         }
 
-        return returnValue;
+        return false;
     }
 
     /**
@@ -325,8 +302,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         addSeparator();
         createCloseButton();
 
-        setResults(); // ???
-        setClickPtText(); // ???
+        setResults();
+        setClickPtText();
         setDrawing();
     }
 
@@ -429,14 +406,12 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         Label limitLabel = new Label(dspGroup, SWT.NONE);
         limitLabel.setText("       Limit: ");
         limitLabel.setLayoutData(new GridData());
-        // limitLabel.setEnabled(false);
 
         final Spinner spinner = new Spinner(dspGroup, SWT.BORDER);
         spinner.setLayoutData(new GridData());
         spinner.setMinimum(1);
         spinner.setMaximum(25);
-        spinner.setSelection(limitNo);// 25);
-        // spinner.setEnabled(false);
+        spinner.setSelection(limitNo);
 
         spinner.addListener(SWT.Selection, new Listener() {
             @Override
@@ -473,14 +448,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                // old code moved into doKeyPressed()
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-
                 doKeyPressed(0, combo1, text1, e);
-
             }
 
         });
@@ -488,7 +460,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         combo1 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         String[] stationTypeOptions = SeekInfo.getStnTypes();
         if (CollectionUtil.isNullOrEmpty(stationTypeOptions)) {
-            stationTypeOptions = new String[] { "LATLON" };
+            stationTypeOptions = new String[] { LATLON };
         }
         combo1.setItems(stationTypeOptions);
 
@@ -529,7 +501,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         combo2 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         combo2.setItems(stationTypeOptions);
 
-        clickPoint2 = new Button(clickComp, SWT.PUSH);
+        Button clickPoint2 = new Button(clickComp, SWT.PUSH);
         clickPoint2.setText("Click Point");
         clickPoint2.setLayoutData(new GridData(100, SWT.DEFAULT));
 
@@ -626,9 +598,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             point2.setText(point2Txt);
         }
 
-        button12 = new Button(distComp, SWT.PUSH);
+        Button button12 = new Button(distComp, SWT.PUSH);
 
-        // button12.setLayoutData(new GridData(SWT.DEFAULT, 30));
         Font arrowFont = new Font(shell.getDisplay(), "Monospace", 5, SWT.BOLD);
         button12.setFont(arrowFont);
         button12.setText("--->\n<---");
@@ -657,10 +628,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         GridLayout gl = new GridLayout(3, true);
         centeredComp.setLayout(gl);
         GridData gd = new GridData(SWT.FILL, SWT.DEFAULT, true, false);
-        // gd.horizontalSpan = 3;
         centeredComp.setLayoutData(gd);
-
-        // gd = new GridData(90, SWT.DEFAULT);
 
         Button takeCtrlBtn = new Button(centeredComp, SWT.NONE);
         takeCtrlBtn.setText("Take Control");
@@ -674,18 +642,9 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                     if (mgr != null) {
                         mgr.getToolManager()
                                 .selectModalTool(associatedSeekAction);
-                        associatedSeekAction.setEnabled(false);
-                        try {
-                            mgr.getToolManager().activateToolSet(
-                                    associatedSeekAction.getCommandId());
-                        } catch (VizException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
+                        associatedSeekAction.activate();
                     }
-
                 }
-
             }
         });
 
@@ -708,16 +667,11 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         closeBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                // shell.dispose();/*changed to close() by archana*/
                 close();
             }
         });
 
     }
-
-    // public boolean isOpen() {
-    // return shell != null && !shell.isDisposed();
-    // }
 
     public void setPosition(Coordinate ll) {
 
@@ -765,7 +719,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         String locName = clickPtData[currentPointID].getLocatorName();
 
-        if ("LATLON".equals(locName)) {
+        if (LATLON.equals(locName)) {
             resultTableTop.removeAll();
             disposeList2(resultsComp);
             return;
@@ -794,7 +748,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         String locName = clickPtData[currentPointID].getLocatorName();
         String displayText = null;
 
-        if (locName.equals("LATLON")) {
+        if (LATLON.equals(locName)) {
             displayText = String.format("%6.2f %7.2f",
                     clickPtData[currentPointID].getCoord().y,
                     clickPtData[currentPointID].getCoord().x);
@@ -923,7 +877,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         // format distance
         String distStr = LocatorUtil.distanceDisplay(dist, 1,
                 distCombo.getText());
-        // + distCombo.getText().toLowerCase();
 
         // format direction
         String dirStr = "-";
@@ -992,7 +945,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             for (ResourcePair r : rscs) {
                 if (r.getResource() instanceof SeekDrawingLayer) {
                     seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                    // seekDrawingLayer. drawClickPtLine(c1, c2);
                     seekDrawingLayer.getResourceData().setFirstPt(c1);
                     seekDrawingLayer.getResourceData().setLastPt(c2);
                     theEditor.refresh();
@@ -1010,7 +962,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         return (clickPoint1 != null) && (!clickPoint1.isDisposed());
     }
 
-    // added by archana
     public void close() {
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.dispose();
@@ -1131,13 +1082,9 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         // get the points
         try {
-
             closePoints = SeekInfo.getMatchedPoints(prefix, stnType, id);
-
         } catch (Exception e) {
-            System.out.println(
-                    "_____________ SeekResultsDialog: pointSearch2(): Error: "
-                            + e.getMessage());
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
         if (closePoints != null && closePoints.length > 0) {
@@ -1168,7 +1115,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
                 // only one station, directly put into the Text field.
             } else {
-                selectStn(0, text);
+                selectStn(0);
             }
             // NO station returned, close the expandable List if it is open.
         } else if (closePoints != null && closePoints.length == 0) {
@@ -1214,7 +1161,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                     txtNotSet2 = true;
                 }
 
-                selectStn(resultList2.getSelectionIndex(), null);
+                selectStn(resultList2.getSelectionIndex());
             }
 
         });
@@ -1255,10 +1202,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
      * @param text:
      *            the Text to be set.
      */
-    private void selectStn(int index, Text text) {
-        // int index = resultList2.getSelectionIndex();
+    private void selectStn(int index) {
         if (closePoints != null) {
-
             Coordinate c = new Coordinate(closePoints[index].getLon(),
                     closePoints[index].getLat());
             clickPtData[currentPointID].setCoord(c);
@@ -1297,10 +1242,10 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         }
 
         // some keys are treated differently
-        if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {// press 'Enter'
-                                                                // to search
+        if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
+            // press 'Enter' to search
 
-            if (combo.getText().equals("LATLON")) {
+            if (LATLON.equals(combo.getText())) {
 
                 stringToLatlon(text.getText());
                 drawLine(clickPtData[0].getCoord(), clickPtData[1].getCoord());
@@ -1310,19 +1255,15 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                     pointSearch2(text, combo.getText().trim(), id);
                 }
             }
-        } else if (e.keyCode == SWT.BS || e.keyCode == SWT.HOME) {// NO auto set
-                                                                  // for
-                                                                  // backspace/home;
-                                                                  // user manual
-                                                                  // input.
-
+        } else if (e.keyCode == SWT.BS || e.keyCode == SWT.HOME) {
+            // NO auto set for backspace/home; user manual input.
             if (currentPointID == 0) {
                 txtNotSet1 = false;
             } else {
                 txtNotSet2 = false;
             }
 
-            if ((!combo.getText().equals("LATLON"))
+            if (!LATLON.equals(combo.getText())
                     && text.getText().trim().length() > 2) {
                 pointSearch2(text, combo.getText().trim(), id);
             } else {
@@ -1330,12 +1271,10 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             }
 
         } else {
-            if (!combo.getText().equals("LATLON")
+            if (!LATLON.equals(combo.getText())
                     && text.getText().trim().length() > 2) {
-
                 pointSearch2(text, combo.getText().trim(), id);
             } else if (text.getText().trim().length() < 3) {
-
                 disposeList2(resultsComp);
             }
         }
@@ -1386,7 +1325,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         String locName = clickPtData[currentPointID].getLocatorName();
         String displayText = null;
 
-        if (locName.equals("LATLON")) {
+        if (LATLON.equals(locName)) {
             displayText = String.format("%6.2f %7.2f",
                     clickPtData[currentPointID].getCoord().y,
                     clickPtData[currentPointID].getCoord().x);

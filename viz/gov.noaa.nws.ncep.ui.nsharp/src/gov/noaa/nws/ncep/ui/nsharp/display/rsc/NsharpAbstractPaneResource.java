@@ -1,7 +1,7 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
@@ -50,14 +50,16 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
  *                                        - Reformat the lower left data page
  * 11/29/2017   5863         bsteffen     Change dataTimes to a NavigableSet
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, 5863, fixed formatting
+ * Apr 15, 2019 7480         bhurley      Code cleanup
+ * 
  *
  * </pre>
  *
  * @author Chin Chen
  * @version 1.0
  */
-public class NsharpAbstractPaneResource
-        extends AbstractVizResource<AbstractResourceData, NsharpAbstractPaneDescriptor> {
+public class NsharpAbstractPaneResource extends
+        AbstractVizResource<AbstractResourceData, NsharpAbstractPaneDescriptor> {
 
     protected IGraphicsTarget target = null;
 
@@ -67,9 +69,11 @@ public class NsharpAbstractPaneResource
 
     protected PixelExtent pe;
 
-    protected static final UnitConverter celciusToFahrenheit = SI.CELSIUS.getConverterTo(NonSI.FAHRENHEIT);
+    protected static final UnitConverter celciusToFahrenheit = SI.CELSIUS
+            .getConverterTo(NonSI.FAHRENHEIT);
 
-    protected static final UnitConverter celciusToKelvin = SI.CELSIUS.getConverterTo(SI.KELVIN);
+    protected static final UnitConverter celciusToKelvin = SI.CELSIUS
+            .getConverterTo(SI.KELVIN);
 
     protected List<NcSoundingLayer> soundingLys = null;
 
@@ -79,7 +83,7 @@ public class NsharpAbstractPaneResource
 
     protected NsharpGraphProperty graphConfigProperty = null;
 
-    protected HashMap<String, NsharpLineProperty> linePropertyMap = null;
+    protected Map<String, NsharpLineProperty> linePropertyMap = null;
 
     protected int currentSoundingLayerIndex = 0;
 
@@ -133,8 +137,8 @@ public class NsharpAbstractPaneResource
 
     protected NsharpWeatherDataStore weatherDataStore;
 
-    public NsharpAbstractPaneResource(AbstractResourceData resourceData, LoadProperties loadProperties,
-            NsharpAbstractPaneDescriptor desc) {
+    public NsharpAbstractPaneResource(AbstractResourceData resourceData,
+            LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
         super(resourceData, loadProperties, false);
         descriptor = desc;
 
@@ -171,7 +175,8 @@ public class NsharpAbstractPaneResource
     }
 
     @Override
-    protected void paintInternal(IGraphicsTarget target, PaintProperties paintProps) throws VizException {
+    protected void paintInternal(IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
         this.paintProps = paintProps;
         this.target = target;
         if (rscHandler == null || rscHandler.getSoundingLys() == null) {
@@ -186,7 +191,7 @@ public class NsharpAbstractPaneResource
             handleZooming();
 
         }
-        if (this.resize == true) {
+        if (this.resize) {
             handleResize();
         }
     }
@@ -213,13 +218,15 @@ public class NsharpAbstractPaneResource
         this.font12.setScaleFont(false);
         this.font20.setSmoothing(false);
         this.font20.setScaleFont(false);
-        commonLinewidth = getCapability(OutlineCapability.class).getOutlineWidth();
+        commonLinewidth = getCapability(OutlineCapability.class)
+                .getOutlineWidth();
         commonLineStyle = getCapability(OutlineCapability.class).getLineStyle();
         this.resize = true;
 
     }
 
-    public void resetData(List<NcSoundingLayer> soundingLys, List<NcSoundingLayer> prevsoundingLys) {
+    public void resetData(List<NcSoundingLayer> soundingLys,
+            List<NcSoundingLayer> prevsoundingLys) {
         this.soundingLys = soundingLys;
         this.previousSoundingLys = prevsoundingLys;
         descriptor.setFramesInfo(new FramesInfo(0));
@@ -232,7 +239,8 @@ public class NsharpAbstractPaneResource
 
     protected void adjustFontSize(float canvasW, float canvasH) {
         // TODO: this is likely to need work after the LX upgrade changes
-        float font8Size, font9Size, font10Size, font11Size, font12Size, font20Size;
+        float font8Size, font9Size, font10Size, font11Size, font12Size,
+                font20Size;
 
         float fontAdjusted = 0;
         float fontBaseH = 90f;
@@ -318,11 +326,12 @@ public class NsharpAbstractPaneResource
 
     }
 
-    public HashMap<String, NsharpLineProperty> getLinePropertyMap() {
+    public Map<String, NsharpLineProperty> getLinePropertyMap() {
         return linePropertyMap;
     }
 
-    public void setLinePropertyMap(HashMap<String, NsharpLineProperty> linePropertyMap) {
+    public void setLinePropertyMap(
+            Map<String, NsharpLineProperty> linePropertyMap) {
         this.linePropertyMap = linePropertyMap;
 
     }
@@ -331,9 +340,11 @@ public class NsharpAbstractPaneResource
         return graphConfigProperty;
     }
 
-    public void setGraphConfigProperty(NsharpGraphProperty graphConfigProperty) {
+    public void setGraphConfigProperty(
+            NsharpGraphProperty graphConfigProperty) {
         this.graphConfigProperty = graphConfigProperty;
-        paneConfigurationName = this.graphConfigProperty.getPaneConfigurationName();
+        paneConfigurationName = this.graphConfigProperty
+                .getPaneConfigurationName();
 
     }
 
@@ -355,8 +366,10 @@ public class NsharpAbstractPaneResource
 
     public void handleResize() {
         this.resize = false;
-        if (paintProps != null && (currentCanvasBoundWidth != paintProps.getCanvasBounds().width
-                || currentCanvasBoundHeight != paintProps.getCanvasBounds().height)) {
+        if (paintProps != null && (currentCanvasBoundWidth != paintProps
+                .getCanvasBounds().width
+                || currentCanvasBoundHeight != paintProps
+                        .getCanvasBounds().height)) {
             currentCanvasBoundWidth = paintProps.getCanvasBounds().width;
             currentCanvasBoundHeight = paintProps.getCanvasBounds().height;
             adjustFontSize(currentCanvasBoundWidth, currentCanvasBoundHeight);
@@ -384,10 +397,13 @@ public class NsharpAbstractPaneResource
         if (paintProps == null) {
             return;
         }
-        DrawableString str = new DrawableString("CHINCHEN", NsharpConstants.color_black);
+        DrawableString str = new DrawableString("CHINCHEN",
+                NsharpConstants.color_black);
         str.font = font;
-        double vertRatio = paintProps.getView().getExtent().getHeight() / paintProps.getCanvasBounds().height;
-        double horizRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
+        double vertRatio = paintProps.getView().getExtent().getHeight()
+                / paintProps.getCanvasBounds().height;
+        double horizRatio = paintProps.getView().getExtent().getWidth()
+                / paintProps.getCanvasBounds().width;
         charHeight = target.getStringsBounds(str).getHeight() * vertRatio;
         lineHeight = charHeight * 1.2;
         charWidth = target.getStringsBounds(str).getWidth() * horizRatio / 8;
@@ -400,7 +416,8 @@ public class NsharpAbstractPaneResource
          * "YYMMDD/HH(DOW)" or "YYMMDD/HH(DOW)Vxxx". Convert them to
          * "DD.HH(DOW)" or "DD.HHVxxx(DOW)" for GUI display.
          */
-        String rtnStr = timeDescription.substring(4); // get rid of YYMM
+        // get rid of YYMM
+        String rtnStr = timeDescription.substring(4);
         if (rtnStr.contains("V")) {
             // split DD/HH(DOW)Vxxx to "DD/HH(DOW)" and "xxx"
             String[] s1Str = rtnStr.split("V");
@@ -409,7 +426,7 @@ public class NsharpAbstractPaneResource
             // put together to "DD/HHVxxx(DOW)"
             rtnStr = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1];
         }
-        rtnStr = rtnStr.replace("/", "."); // replace "/" with "."
+        rtnStr = rtnStr.replace("/", ".");
         return rtnStr;
     }
 
@@ -427,7 +444,8 @@ public class NsharpAbstractPaneResource
             rtnStr = s1Str[0] + " " + rtnStr + " " + s1Str[2];
             return rtnStr;
         } else {
-            return pickedStnInfoStr; // not a good input, just return it
+            // not a good input, just return it
+            return pickedStnInfoStr;
         }
     }
 }

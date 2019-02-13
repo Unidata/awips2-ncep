@@ -13,6 +13,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * 04/23/2012	229			Chin Chen	Initial coding
  * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
  * 02/23/2015   Task#5694   Chin Chen   add code to support previous time line format
+ * 11/05/2018   6800        bsteffen    Eliminate some duplicate fields from the resource handler.
  *
  * </pre>
  * 
@@ -41,6 +42,7 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
     private Rectangle timeLineRectangle;
@@ -79,15 +81,11 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private int numLineToShowPerPage = 1;
 
-    private int paneWidth = NsharpConstants.TIMESTN_PANE_REC_WIDTH;
-
     private int paneHeight = NsharpConstants.TIMESTN_PANE_REC_HEIGHT;
 
     private int dtXOrig = NsharpConstants.DATA_TIMELINE_X_ORIG;
 
     private int dtYOrig = NsharpConstants.DATA_TIMELINE_Y_ORIG;
-
-    private int dtXEnd = NsharpConstants.DATA_TIMELINE_X_END;
 
     private int dtWidth = NsharpConstants.DATA_TIMELINE_WIDTH;
 
@@ -99,8 +97,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private int stnYOrig = NsharpConstants.STATION_ID_Y_ORIG;
 
-    private int stnXEnd = NsharpConstants.STATION_ID_X_END;
-
     private int stnWidth = NsharpConstants.STATION_ID_WIDTH;
 
     private int stnHeight = NsharpConstants.STATION_ID_HEIGHT;
@@ -108,8 +104,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
     private int sndXOrig = NsharpConstants.SND_TYPE_X_ORIG;
 
     private int sndYOrig = NsharpConstants.SND_TYPE_Y_ORIG;
-
-    private int sndXEnd = NsharpConstants.SND_TYPE_X_END;
 
     private int sndWidth = NsharpConstants.SND_TYPE_WIDTH;
 
@@ -127,11 +121,11 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private float yRatio = 1;
 
-    private static String sndTypeStr = "NA";
+    private String sndTypeStr = "NA";
 
-    private static String timelineStr = "NA";
+    private String timelineStr = "NA";
 
-    private static String stationStr = "NA";
+    private String stationStr = "NA";
 
     private boolean compareStnIsOn;
 
@@ -485,7 +479,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
         }
 
-        int startIndex = (rscHandler.getCurStnIdPage() - 1)
+        int startIndex = (curStnIdPage - 1)
                 * numLineToShowPerPage;
         if (startIndex < 0)
             startIndex = 0;
@@ -623,7 +617,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
         }
 
-        int startIndex = (rscHandler.getCurSndPage() - 1)
+        int startIndex = (curSndPage - 1)
                 * numLineToShowPerPage;
         if (startIndex < 0)
             startIndex = 0;
@@ -739,12 +733,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         curTimeLineIndex = rscHandler.getCurrentTimeElementListIndex();
         curStnIndex = rscHandler.getCurrentStnElementListIndex();
         curSndIndex = rscHandler.getCurrentSndElementListIndex();
-        curTimeLinePage = rscHandler.getCurTimeLinePage();
-        curStnIdPage = rscHandler.getCurStnIdPage();
-        curSndPage = rscHandler.getCurSndPage();
-        totalTimeLinePage = rscHandler.getTotalTimeLinePage();
-        totalStnIdPage = rscHandler.getTotalStnIdPage();
-        totalSndPage = rscHandler.getTotalSndPage();
+        calculateTimeStnBoxData();
         compareStnIsOn = rscHandler.isCompareStnIsOn();
         compareSndIsOn = rscHandler.isCompareSndIsOn();
         compareTmIsOn = rscHandler.isCompareTmIsOn();
@@ -766,6 +755,23 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         // plot color notations
         drawNsharpColorNotation(target, colorNoteRectangle);
 
+    }
+    
+    private void calculateTimeStnBoxData() {
+        totalTimeLinePage = timeElemList.size() / numLineToShowPerPage;
+        if (timeElemList.size() % numLineToShowPerPage != 0)
+            totalTimeLinePage = totalTimeLinePage + 1;
+        curTimeLinePage = curTimeLineIndex / numLineToShowPerPage + 1;
+        
+        totalStnIdPage = stnElemList.size() / numLineToShowPerPage;
+        if (stnElemList.size() % numLineToShowPerPage != 0)
+            totalStnIdPage++;
+        curStnIdPage = curStnIndex / numLineToShowPerPage + 1;
+        
+        totalSndPage = sndElemList.size() / numLineToShowPerPage;
+        if (sndElemList.size() % numLineToShowPerPage != 0)
+            totalSndPage++;
+        curSndPage = curSndIndex / numLineToShowPerPage + 1;
     }
 
     @Override
@@ -808,7 +814,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         getDescriptor().setNewPe(pe);
         defineCharHeight(font12);
         paneHeight = (int) ext.getHeight();
-        paneWidth = (int) (ext.getWidth());
+        int paneWidth = (int) (ext.getWidth());
         xRatio = 1;
         yRatio = 1;
         // if pane height is less than 10 char height, then just plot time line.
@@ -826,15 +832,14 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         }
         dtXOrig = (int) (ext.getMinX());
         dtWidth = paneWidth * 40 / 100;
-        dtXEnd = dtXOrig + dtWidth;
+        int dtXEnd = dtXOrig + dtWidth;
         stnXOrig = dtXEnd;
         stnYOrig = dtYOrig;
         stnWidth = paneWidth * 25 / 100;
-        stnXEnd = stnXOrig + stnWidth;
+        int stnXEnd = stnXOrig + stnWidth;
         sndXOrig = stnXEnd;
         sndYOrig = stnYOrig;
         sndWidth = paneWidth * 35 / 100;
-        sndXEnd = sndXOrig + sndWidth;
         stnHeight = dtHeight;
         cnXOrig = dtXOrig;
         cnYOrig = dtYOrig + dtHeight;
@@ -854,8 +859,74 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             if (numLineToShowPerPage < 1)
                 numLineToShowPerPage = 1;
         }
-        rscHandler.setTimeStnBoxData(cnYOrig, dtNextPageEnd, dtYOrig, dtXOrig,
-                dtWidth, charHeight, lineHeight, numLineToShowPerPage);
+    }
+    
+    public int getUserClickedSndIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {
+            // change to next/previous page
+            if (totalSndPage == 1)
+                return -1;
+            if ((c.x - dtXOrig) < (dtWidth / 2)) {
+                curSndPage++;
+                if (curSndPage > totalSndPage) {
+                    curSndPage = 1;
+                }
+            } else {
+                curSndPage--;
+                if (curSndPage <= 0) {
+                    curSndPage = totalSndPage;
+                }
+            }
+            return -1;
+        }
+        double dIndex = (c.y - dtNextPageEnd) / lineHeight
+                + (curSndPage - 1) * numLineToShowPerPage;
+        return (int) dIndex;
+    }
+    
+    public int getUserClickedTimeIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {
+            // change to next/previous page
+            if (totalTimeLinePage == 1) {
+                return -1;
+            }
+            if ((c.x - dtXOrig) < (dtWidth / 2)) {
+                curTimeLinePage++;
+                if (curTimeLinePage > totalTimeLinePage) {
+                    curTimeLinePage = 1;
+                }
+            } else {
+                curTimeLinePage--;
+                if (curTimeLinePage <= 0) {
+                    curTimeLinePage = totalTimeLinePage;
+                }
+            }
+            return -1;
+        }
+        double dIndex = (c.y - dtNextPageEnd) / lineHeight
+                + (curTimeLinePage - 1) * numLineToShowPerPage;
+        return (int) dIndex;
+    }
+    
+    public int getUserClickedStationIdIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {// d2dlite
+            // change to next/previous page
+            if (totalStnIdPage == 1)
+                return -1;
+            if ((c.x - (dtXOrig + dtWidth)) < (dtWidth / 2)) {
+                curStnIdPage++;
+                if (curStnIdPage > totalStnIdPage)
+                    curStnIdPage = 1;
+            } else {
+                curStnIdPage--;
+                if (curStnIdPage <= 0)
+                    curStnIdPage = totalStnIdPage;
+            }
+            return -1;
+        }
+        double dIndex = ((c.y - dtNextPageEnd)) / lineHeight
+                + (curStnIdPage - 1) * numLineToShowPerPage;
 
+        return (int) dIndex;
     }
 }

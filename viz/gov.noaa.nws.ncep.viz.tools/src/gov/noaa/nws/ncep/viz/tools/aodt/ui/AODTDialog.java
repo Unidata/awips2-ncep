@@ -15,7 +15,6 @@ import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -52,6 +51,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
 import gov.noaa.nws.ncep.viz.tools.aodt.natives.AODTv64Native;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -74,6 +74,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * 11/07/18      #7552      dgilling    Allow tool to work with arbitrary
  *                                      NcSatResources.
  * Feb  1, 2019  7570       tgurney     Add close callback support
+ * Feb 15, 2019  7562       tgurney     Correctly set the previous cursor
+ *                                      when closing the dialog.
  *
  * </pre>
  *
@@ -184,10 +186,10 @@ public class AODTDialog extends Dialog implements ICloseCallbackDialog {
         Display display = parent.getDisplay();
 
         // Set cursor to cross
-        Cursor prevCursor = parent.getCursor();
-        Cursor crossCursor = NCCursors.getCursor(display,
+        CursorRef prevCursorRef = NCCursors.getInstance()
+                .getCursorRef(parent.getCursor()).orElse(null);
+        NCCursors.getInstance().setCursor(parent,
                 NCCursors.CursorRef.POINT_SELECT);
-        parent.setCursor(crossCursor);
 
         shell = new Shell(parent, SWT.DIALOG_TRIM);
         shell.setText(dlgTitle);
@@ -215,8 +217,7 @@ public class AODTDialog extends Dialog implements ICloseCallbackDialog {
         }
 
         font.dispose();
-        crossCursor.dispose();
-        parent.setCursor(prevCursor);
+        NCCursors.getInstance().setCursor(parent, prevCursorRef);
 
         for (ICloseCallback callback : closeListeners) {
             callback.dialogClosed(null);

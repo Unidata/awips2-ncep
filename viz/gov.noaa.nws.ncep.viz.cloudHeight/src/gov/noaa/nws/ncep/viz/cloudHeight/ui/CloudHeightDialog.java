@@ -12,7 +12,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -37,6 +36,7 @@ import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
 
 /**
  * Cloud Height Dialog.
@@ -62,8 +62,11 @@ import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
  *                                      Updated createDialog() method, left
  *                                      justify field names, widen fields
  * Feb  1, 2019  7570       tgurney     Add close callback support
- * Feb  8, 2018  7579       tgurney     Fix "Take Control" to actually activate
+ * Feb  8, 2019  7579       tgurney     Fix "Take Control" to actually activate
  *                                      the tool
+ * Feb 15, 2019  7562       tgurney     Correctly set the previous cursor
+ *                                      when closing the dialog. Set cursor
+ *                                      after clicking "Take Control"
  * </pre>
  *
  */
@@ -565,6 +568,8 @@ public class CloudHeightDialog extends Dialog implements ICloseCallbackDialog {
                         associatedCloudHeightAction.activate();
                     }
                 }
+                NCCursors.getInstance().setCursor(getParent(),
+                        NCCursors.CursorRef.POINT_SELECT);
             }
         });
 
@@ -616,12 +621,10 @@ public class CloudHeightDialog extends Dialog implements ICloseCallbackDialog {
     public Object open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
-
-        Cursor prevCursor = parent.getCursor();
-        Cursor crossCursor = NCCursors.getCursor(display,
+        CursorRef prevCursorRef = NCCursors.getInstance()
+                .getCursorRef(parent.getCursor()).orElse(null);
+        NCCursors.getInstance().setCursor(parent,
                 NCCursors.CursorRef.POINT_SELECT);
-
-        parent.setCursor(crossCursor);
 
         if (shell == null || shell.isDisposed()) {
             shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
@@ -659,7 +662,7 @@ public class CloudHeightDialog extends Dialog implements ICloseCallbackDialog {
 
         // Closure: Reset cursor and execute modal tool shutdown sequence
 
-        parent.setCursor(prevCursor);
+        NCCursors.getInstance().setCursor(parent, prevCursorRef);
 
         for (ICloseCallback callback : closeListeners) {
             callback.dialogClosed(null);

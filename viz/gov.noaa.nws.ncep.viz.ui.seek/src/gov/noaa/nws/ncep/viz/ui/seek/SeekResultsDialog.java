@@ -18,7 +18,6 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
@@ -59,6 +58,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import gov.noaa.nws.ncep.viz.common.LocatorUtil;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -85,8 +85,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * 02/22/2012    #644      Q.Zhou       Added unit NM. Fixed point1 text(double units).
  * Nov 29, 2018  #7563     dgilling     Add missing direction display option,
  *                                      code cleanup.
- * Feb  8, 2018  7579       tgurney     Fix "Take Control" to actually activate
+ * Feb  8, 2019  7579      tgurney      Fix "Take Control" to actually activate
  *                                      the tool
+ * Feb 15, 2019  7562      tgurney      Correctly set the previous cursor
+ *                                      when closing the dialog. Set cursor
+ *                                      after clicking "Take Control"
  * </pre>
  *
  * @author mli
@@ -233,12 +236,12 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     public Object open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
-        Cursor prevCursor = parent.getCursor();
-        Cursor crossCursor = NCCursors.getCursor(display,
-                NCCursors.CursorRef.POINT_SELECT);
+        CursorRef prevCursorRef = NCCursors.getInstance()
+                .getCursorRef(parent.getCursor()).orElse(null);
         shell = new Shell(parent, SWT.DIALOG_TRIM);
         shell.setText("Seek Results");
-        parent.setCursor(crossCursor);
+        NCCursors.getInstance().setCursor(parent,
+                NCCursors.CursorRef.POINT_SELECT);
 
         // Create the main layout for the shell.
         GridLayout mainLayout = new GridLayout(1, true);
@@ -263,14 +266,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         }
 
         font.dispose();
-        crossCursor.dispose();
 
-        try {
-            parent.setCursor(prevCursor);
-        } catch (Exception e) {
-            // Widget is disposed
-            statusHandler.debug(e.getLocalizedMessage(), e);
-        }
+        NCCursors.getInstance().setCursor(parent, prevCursorRef);
 
         for (ICloseCallback callback : closeListeners) {
             callback.dialogClosed(null);
@@ -644,6 +641,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                                 .selectModalTool(associatedSeekAction);
                         associatedSeekAction.activate();
                     }
+                    NCCursors.getInstance().setCursor(getParent(),
+                            NCCursors.CursorRef.POINT_SELECT);
                 }
             }
         });

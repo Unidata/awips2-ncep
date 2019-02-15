@@ -81,7 +81,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     private final ISpatialObject gridLocation;
 
-    private final int SIZE = 64;
+    private static final int SIZE = 64;
 
     private float lineWidth = 1;
 
@@ -105,7 +105,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     private boolean directional;
 
-    private static NcgribLogger ncgribLogger;
+    private static NcgribLogger ncgribLogger  = NcgribLogger.getInstance();
 
     private VectorGraphicsConfig vgconfig = null;
 
@@ -120,6 +120,8 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     private static final double barbAAMultiplier = 0.707;
 
     private static final double barbSPDIncrease = 2.5;
+    
+    private static final double barbSizeScaler = 0.55;
 
     //Parameters used to construct 'VectorGraphicsConfig'
     private static final String PLUGIN_NAME = "NcgridPlugin";
@@ -137,7 +139,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         long t1 = System.currentTimeMillis();
         this.data = rec;
         this.contourAttributes = attrs;
-        ncgribLogger = NcgribLogger.getInstance();
 
         long t2 = System.currentTimeMillis();
         logger.debug(
@@ -167,7 +168,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                 attr[3] = attr[3].trim();
                 if (attr[3].length() >= 3) {
                     flagFill = attr[3].substring(2);
-                    if (flagFill.equals("2")) {
+                    if ("2".equals(flagFill)) {
                         fillFlag = true;
                     }
                 }
@@ -179,6 +180,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         setColor(GempakColor.convertToRGB(colorIndex));
 
         vgconfig = new VectorGraphicsConfig(PLUGIN_NAME, CLASS_NAME);
+        vgconfig.setSizeScaler(barbSizeScaler);
         vgconfig.setBarbFillFiftyTriangle(fillFlag);
     }
 
@@ -257,6 +259,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
             } catch (VizException e) {
                 lastShape = null;
+                logger.error("Error creating wire frame: " + e);
             }
         }
     }

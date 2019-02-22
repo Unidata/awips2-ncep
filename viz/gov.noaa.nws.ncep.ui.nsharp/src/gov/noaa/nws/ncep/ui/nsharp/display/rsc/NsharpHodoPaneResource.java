@@ -41,6 +41,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, fixed formatting
  * Nov 21, 2018 7574        bsteffen    Fix comparison coloring.
  * Dec 14, 2018 6872        bsteffen    Handle missing bunkers.
+ * Feb 11, 2019 7574        bhurley     Added checks to prevent NPEs
  *
  * </pre>
  *
@@ -87,19 +88,22 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
 
     private float yRatio = 1;
 
-    public NsharpHodoPaneResource(AbstractResourceData resourceData, LoadProperties loadProperties,
-            NsharpHodoPaneDescriptor desc) {
+    public NsharpHodoPaneResource(AbstractResourceData resourceData,
+            LoadProperties loadProperties, NsharpHodoPaneDescriptor desc) {
         super(resourceData, loadProperties, desc);
 
-        hodoBackground = new NsharpHodoPaneBackground((NsharpHodoPaneDescriptor) descriptor);
+        hodoBackground = new NsharpHodoPaneBackground(
+                (NsharpHodoPaneDescriptor) descriptor);
     }
 
-    private void createRscHodoWindShape(NsharpWGraphics world, List<NcSoundingLayer> soundingLays, RGB incolor) {
+    private void createRscHodoWindShape(NsharpWGraphics world,
+            List<NcSoundingLayer> soundingLays, RGB incolor) {
 
         Coordinate c0 = null;
         Coordinate c1;
         NsharpShapeAndLineProperty shNcolor;
-        IWireframeShape shapeR = null, shapeG = null, shapeY = null, shapeC = null, shapeV = null, shapeIn = null;
+        IWireframeShape shapeR = null, shapeG = null, shapeY = null,
+                shapeC = null, shapeV = null, shapeIn = null;
         if (incolor == null) {
             // creating regular Hodo shape with 5 colors
             shNcolor = new NsharpShapeAndLineProperty();
@@ -150,7 +154,8 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
             float wdir = layer.getWindDirection();
             c1 = NsharpLibWinds.uvComp(wspd, wdir);
             if (c0 != null) {
-                double[][] lines = { { world.mapX(c0.x), world.mapY(c0.y) }, { world.mapX(c1.x), world.mapY(c1.y) } };
+                double[][] lines = { { world.mapX(c0.x), world.mapY(c0.y) },
+                        { world.mapX(c1.x), world.mapY(c1.y) } };
                 if (incolor == null) {
                     // use MSL here, so Converts height from (meters) AGL to
                     // MSL.
@@ -160,7 +165,7 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
                         shapeG.addLineSegment(lines);
                     } else if (layer.getGeoHeight() < (9000 + surfaceLevel)) {
                         shapeY.addLineSegment(lines);
-                    } else if (layer.getGeoHeight() < (12000 + surfaceLevel)) {
+                    } else if (layer.getGeoHeight() < (12_000 + surfaceLevel)) {
                         shapeC.addLineSegment(lines);
                     } else {
                         shapeV.addLineSegment(lines);
@@ -185,10 +190,11 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
     }
 
     public void createRscHodoWindShapeAll() {
-        if (target == null || rscHandler == null || soundingLys == null || hodoWindRscShapeList == null) {
+        if (target == null || rscHandler == null || soundingLys == null
+                || hodoWindRscShapeList == null) {
             return;
         }
-        if (hodoWindRscShapeList.size() > 0) {
+        if (!hodoWindRscShapeList.isEmpty()) {
             for (NsharpShapeAndLineProperty shapeColor : hodoWindRscShapeList) {
                 shapeColor.getShape().dispose();
             }
@@ -197,22 +203,31 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
 
         world = hodoBackground.computeWorld();
 
-        if(rscHandler.isAnyCompareOn()){
-            for(NsharpSoundingElementStateProperty prop : rscHandler.getComparisonProperties()){
-                List<NcSoundingLayer> soundingLayeys = prop.getSndLyLst();
-                int colorIndex = prop.getCompColorIndex();
-                RGB color = linePropertyMap
-                        .get(NsharpConstants.lineNameArray[colorIndex])
-                        .getLineColor();
-                createRscHodoWindShape(world, soundingLayeys, color);
+        if (rscHandler.isAnyCompareOn()) {
+            for (NsharpSoundingElementStateProperty prop : rscHandler
+                    .getComparisonProperties()) {
+                if (prop != null) {
+                    List<NcSoundingLayer> soundingLayeys = prop.getSndLyLst();
+                    int colorIndex = prop.getCompColorIndex();
+                    RGB color = linePropertyMap
+                            .get(NsharpConstants.lineNameArray[colorIndex])
+                            .getLineColor();
+                    createRscHodoWindShape(world, soundingLayeys, color);
+                }
             }
         } else if (rscHandler.isOverlayIsOn()) {
-            List<NcSoundingLayer> previousSoundingLys = rscHandler.getPreviousSoundingLys();
+            List<NcSoundingLayer> previousSoundingLys = rscHandler
+                    .getPreviousSoundingLys();
             createRscHodoWindShape(world, this.soundingLys,
-                    linePropertyMap.get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1]).getLineColor());
-            if (previousSoundingLys != null && !soundingLys.equals(previousSoundingLys)) {
-                createRscHodoWindShape(world, previousSoundingLys, linePropertyMap
-                        .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY2]).getLineColor());
+                    linePropertyMap
+                            .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY1])
+                            .getLineColor());
+            if (previousSoundingLys != null
+                    && !soundingLys.equals(previousSoundingLys)) {
+                createRscHodoWindShape(world, previousSoundingLys,
+                        linePropertyMap
+                                .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_OVERLAY2])
+                                .getLineColor());
             }
         } else {
             createRscHodoWindShape(world, this.soundingLys, null);
@@ -220,7 +235,8 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
 
     }
 
-    private void plotHodoEditPoints(IGraphicsTarget target, RGB color) throws VizException {
+    private void plotHodoEditPoints(IGraphicsTarget target, RGB color)
+            throws VizException {
 
         Coordinate c1;
         for (NcSoundingLayer layer : this.soundingLys) {
@@ -230,12 +246,14 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
             float wspd = layer.getWindSpeed();
             float wdir = layer.getWindDirection();
             c1 = WxMath.uvComp(wspd, wdir);
-            target.drawPoint(world.mapX(c1.x), world.mapY(c1.y), 0.0, color, PointStyle.CIRCLE);
+            target.drawPoint(world.mapX(c1.x), world.mapY(c1.y), 0.0, color,
+                    PointStyle.CIRCLE);
 
         }
     }
 
-    private void plotNsharpHodoVectors(IGraphicsTarget target, float zoomLevel) throws VizException {
+    private void plotNsharpHodoVectors(IGraphicsTarget target, float zoomLevel)
+            throws VizException {
         double radiusUnit = 5 * xRatio;
         Coordinate c;
         String textStr;
@@ -243,8 +261,11 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
          * smvtype: 1: small circle, 2 large circle, 3: square
          */
         // plot Mean Wind Vector, yellow square, by default plot it
-        if (((graphConfigProperty != null) && (graphConfigProperty.isMeanWind())) || (graphConfigProperty == null)) {
-            NsharpWeatherDataStore.ParcelMiscParams parcelMiscParams = weatherDataStore.getParcelMiscParamsMap()
+        if (((graphConfigProperty != null)
+                && (graphConfigProperty.isMeanWind()))
+                || (graphConfigProperty == null)) {
+            NsharpWeatherDataStore.ParcelMiscParams parcelMiscParams = weatherDataStore
+                    .getParcelMiscParamsMap()
                     .get(rscHandler.getCurrentParcel());
             // the default mean wind used here is from LFC to El according
             // to original mean wind computation at bigsharp
@@ -253,26 +274,34 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
                 meanWind = parcelMiscParams.getMeanWindCompLfcToEl();
             }
 
-            if (meanWind != null && NsharpLibBasics.qc(meanWind.getWdir()) && NsharpLibBasics.qc(meanWind.getWspd())) {
+            if (meanWind != null && NsharpLibBasics.qc(meanWind.getWdir())
+                    && NsharpLibBasics.qc(meanWind.getWspd())) {
                 // get wind uv component
                 c = new Coordinate(meanWind.getUcomp(), meanWind.getVcomp());
                 c = world.map(c);
 
-                PixelExtent pe = new PixelExtent(c.x - radiusUnit, c.x + radiusUnit, c.y - radiusUnit,
-                        c.y + radiusUnit);
-                target.drawRect(pe, NsharpConstants.color_yellow, markerWidth * 2, 1.0f);
-                textStr = String.format("%.0f/%.0f MW", meanWind.getWdir(), meanWind.getWspd());
-                target.drawString(font10, textStr, c.x - radiusUnit, c.y + radiusUnit + 5, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+                PixelExtent pe = new PixelExtent(c.x - radiusUnit,
+                        c.x + radiusUnit, c.y - radiusUnit, c.y + radiusUnit);
+                target.drawRect(pe, NsharpConstants.color_yellow,
+                        markerWidth * 2, 1.0f);
+                textStr = String.format("%.0f/%.0f MW", meanWind.getWdir(),
+                        meanWind.getWspd());
+                target.drawString(font10, textStr, c.x - radiusUnit,
+                        c.y + radiusUnit + 5, 0.0, TextStyle.NORMAL,
+                        NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
+                        VerticalAlignment.TOP, null);
 
             }
         }
         // plot 15/85 and/or 30/75 SMV, by default dont plot it
-        if ((graphConfigProperty != null) && (graphConfigProperty.isSmv1585() || graphConfigProperty.isSmv3075())) {
+        if ((graphConfigProperty != null) && (graphConfigProperty.isSmv1585()
+                || graphConfigProperty.isSmv3075())) {
             // get surface to 6 km mean wind
-            WindComponent meanWind6k = weatherDataStore.stormTypeToMeanWindMap.get("SFC-6km");
+            WindComponent meanWind6k = weatherDataStore.stormTypeToMeanWindMap
+                    .get("SFC-6km");
 
-            if (NsharpLibBasics.qc(meanWind6k.getWdir()) && NsharpLibBasics.qc(meanWind6k.getWspd())) {
+            if (NsharpLibBasics.qc(meanWind6k.getWdir())
+                    && NsharpLibBasics.qc(meanWind6k.getWspd())) {
                 // Plot 30/75 Storm Motion Vector; a small red circle
                 if (graphConfigProperty.isSmv3075()) {
 
@@ -284,9 +313,12 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
                     c = world.map(c);
 
                     RGB color = NsharpConstants.color_red;
-                    target.drawCircle(c.x, c.y, 0, radiusUnit, color, markerWidth * 2);
-                    target.drawLine(c.x - radiusUnit / 2, c.y, 0.0, c.x + radiusUnit / 2, c.y, 0.0, color, markerWidth);
-                    target.drawLine(c.x, c.y - radiusUnit / 2, 0.0, c.x, c.y + radiusUnit / 2, 0.0, color, markerWidth);
+                    target.drawCircle(c.x, c.y, 0, radiusUnit, color,
+                            markerWidth * 2);
+                    target.drawLine(c.x - radiusUnit / 2, c.y, 0.0,
+                            c.x + radiusUnit / 2, c.y, 0.0, color, markerWidth);
+                    target.drawLine(c.x, c.y - radiusUnit / 2, 0.0, c.x,
+                            c.y + radiusUnit / 2, 0.0, color, markerWidth);
 
                 }
                 // ----- Plot 15/85 Storm Motion Vector ----- small green
@@ -300,9 +332,12 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
                     c = world.map(c);
 
                     RGB color = NsharpConstants.color_green;
-                    target.drawCircle(c.x, c.y, 0, radiusUnit, color, markerWidth * 2);
-                    target.drawLine(c.x - radiusUnit / 2, c.y, 0.0, c.x + radiusUnit / 2, c.y, 0.0, color, markerWidth);
-                    target.drawLine(c.x, c.y - radiusUnit / 2, 0.0, c.x, c.y + radiusUnit / 2, 0.0, color, markerWidth);
+                    target.drawCircle(c.x, c.y, 0, radiusUnit, color,
+                            markerWidth * 2);
+                    target.drawLine(c.x - radiusUnit / 2, c.y, 0.0,
+                            c.x + radiusUnit / 2, c.y, 0.0, color, markerWidth);
+                    target.drawLine(c.x, c.y - radiusUnit / 2, 0.0, c.x,
+                            c.y + radiusUnit / 2, 0.0, color, markerWidth);
 
                 }
 
@@ -312,27 +347,34 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
         // plot it
         if ((graphConfigProperty != null) && graphConfigProperty.isCorfidiV()) {
 
-            WindComponent[] cofidiWindComp = weatherDataStore.getCofidiShearWindComp();
+            WindComponent[] cofidiWindComp = weatherDataStore
+                    .getCofidiShearWindComp();
             // Downwind-Propagating MCS motion vector is saved in
             // cofidiWindComp[0]
             // use cofidi down shear wind here
-            c = new Coordinate(cofidiWindComp[0].getUcomp(), cofidiWindComp[0].getVcomp());
+            c = new Coordinate(cofidiWindComp[0].getUcomp(),
+                    cofidiWindComp[0].getVcomp());
             c = world.map(c);
             RGB color = NsharpConstants.color_lightblue;
             target.drawCircle(c.x, c.y, 0, radiusUnit / 2, color, markerWidth);
-            textStr = String.format("DP= %.0f/%.0f", cofidiWindComp[0].getWdir(), cofidiWindComp[0].getWspd());
-            target.drawString(font10, textStr, c.x, c.y, 0.0, TextStyle.NORMAL, color, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            textStr = String.format("DP= %.0f/%.0f",
+                    cofidiWindComp[0].getWdir(), cofidiWindComp[0].getWspd());
+            target.drawString(font10, textStr, c.x, c.y, 0.0, TextStyle.NORMAL,
+                    color, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
 
             // Upwind-Propagating MCS motion vector is saved in
             // cofidiWindComp[1]
             // use cofidi up shear wind here
-            c = new Coordinate(cofidiWindComp[1].getUcomp(), cofidiWindComp[1].getVcomp());
+            c = new Coordinate(cofidiWindComp[1].getUcomp(),
+                    cofidiWindComp[1].getVcomp());
             c = world.map(c);
             target.drawCircle(c.x, c.y, 0, radiusUnit / 2, color, markerWidth);
-            textStr = String.format("UP= %.0f/%.0f", cofidiWindComp[1].getWdir(), cofidiWindComp[1].getWspd());
-            target.drawString(font10, textStr, c.x, c.y, 0.0, TextStyle.NORMAL, color, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            textStr = String.format("UP= %.0f/%.0f",
+                    cofidiWindComp[1].getWdir(), cofidiWindComp[1].getWspd());
+            target.drawString(font10, textStr, c.x, c.y, 0.0, TextStyle.NORMAL,
+                    color, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         // plot Bunkers Vector,by default plot them
         if ((graphConfigProperty != null) && graphConfigProperty.isSmvBunkersR()
@@ -380,16 +422,23 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
         }
 
         // plot current storm motion vector (mouse click) marker
-        Coordinate hodoStmCenter = NsharpLibWinds.uvComp(weatherDataStore.getSmspd(), weatherDataStore.getSmdir());
+        Coordinate hodoStmCenter = NsharpLibWinds.uvComp(
+                weatherDataStore.getSmspd(), weatherDataStore.getSmdir());
         hodoStmCenter = world.map(hodoStmCenter);
-        target.drawCircle(hodoStmCenter.x, hodoStmCenter.y, 0, radiusUnit, NsharpConstants.color_white, markerWidth);
-        target.drawLine(hodoStmCenter.x - radiusUnit, hodoStmCenter.y, 0.0, hodoStmCenter.x + radiusUnit,
-                hodoStmCenter.y, 0.0, NsharpConstants.color_white, markerWidth);
-        target.drawLine(hodoStmCenter.x, hodoStmCenter.y - radiusUnit, 0.0, hodoStmCenter.x,
-                hodoStmCenter.y + radiusUnit, 0.0, NsharpConstants.color_white, markerWidth);
-        textStr = String.format("%.0f/%.0f", weatherDataStore.getSmdir(), weatherDataStore.getSmspd());
-        target.drawString(font10, textStr, hodoStmCenter.x, hodoStmCenter.y + radiusUnit * 2, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.CENTER, VerticalAlignment.TOP, null);
+        target.drawCircle(hodoStmCenter.x, hodoStmCenter.y, 0, radiusUnit,
+                NsharpConstants.color_white, markerWidth);
+        target.drawLine(hodoStmCenter.x - radiusUnit, hodoStmCenter.y, 0.0,
+                hodoStmCenter.x + radiusUnit, hodoStmCenter.y, 0.0,
+                NsharpConstants.color_white, markerWidth);
+        target.drawLine(hodoStmCenter.x, hodoStmCenter.y - radiusUnit, 0.0,
+                hodoStmCenter.x, hodoStmCenter.y + radiusUnit, 0.0,
+                NsharpConstants.color_white, markerWidth);
+        textStr = String.format("%.0f/%.0f", weatherDataStore.getSmdir(),
+                weatherDataStore.getSmspd());
+        target.drawString(font10, textStr, hodoStmCenter.x,
+                hodoStmCenter.y + radiusUnit * 2, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.CENTER,
+                VerticalAlignment.TOP, null);
 
         // draw lines from storm motion to top and bottom of effective layer
         float botWindU = weatherDataStore.getEffLayerBotWindUComp();
@@ -397,45 +446,50 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
         if (NsharpLibBasics.qc(botWindU) && NsharpLibBasics.qc(botWindV)) {
             c = new Coordinate(botWindU, botWindV);
             c = world.map(c);
-            target.drawLine(hodoStmCenter.x, hodoStmCenter.y, 0.0, c.x, c.y, 0.0, NsharpConstants.color_skyblue,
-                    markerWidth);
+            target.drawLine(hodoStmCenter.x, hodoStmCenter.y, 0.0, c.x, c.y,
+                    0.0, NsharpConstants.color_skyblue, markerWidth);
         }
         float topWindU = weatherDataStore.getEffLayerTopWindUComp();
         float topWindV = weatherDataStore.getEffLayerTopWindVComp();
         if (NsharpLibBasics.qc(topWindU) && NsharpLibBasics.qc(topWindV)) {
             c = new Coordinate(topWindU, topWindV);
             c = world.map(c);
-            target.drawLine(hodoStmCenter.x, hodoStmCenter.y, 0.0, c.x, c.y, 0.0, NsharpConstants.color_skyblue,
-                    markerWidth);
+            target.drawLine(hodoStmCenter.x, hodoStmCenter.y, 0.0, c.x, c.y,
+                    0.0, NsharpConstants.color_skyblue, markerWidth);
         }
     }
 
-    private void drawHodoDynamicData(IGraphicsTarget target, double zoomLevel) throws VizException {
+    private void drawHodoDynamicData(IGraphicsTarget target, double zoomLevel)
+            throws VizException {
         // draw running temp, theta, height etc data at window palette bottom
         double dispX, xmin;
         double dispY, ymin, ymax;
         // display wind direction, speed in m/s and knots
         // Line 1 - wind direction, speed
         IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
-        xmin = ext.getMinX(); // Extent's viewable envelope min x and y
+        // Extent's viewable envelope min x and y
+        xmin = ext.getMinX();
         ymin = ext.getMinY();
         dispX = xmin + 20 * zoomLevel * xRatio;
         dispY = ymin + 40 * zoomLevel * yRatio;
-        target.drawString(fixedFont, sWindDirection + "  " + sWindSpeed, dispX, dispY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+        target.drawString(fixedFont, sWindDirection + "  " + sWindSpeed, dispX,
+                dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
         // plot critical angle
         float ca = weatherDataStore.getCriticalAngle();
         if (ca != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA) {
             ymax = ext.getMaxY();
             dispY = ymax - 20 * zoomLevel;
             String textStr = String.format("Critical Angle = %.0f", ca);
-            target.drawString(fixedFont, textStr, dispX, dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+            target.drawString(fixedFont, textStr, dispX, dispY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_cyan,
                     HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
         }
     }
 
     @Override
-    protected void paintInternal(IGraphicsTarget target, PaintProperties paintProps) throws VizException {
+    protected void paintInternal(IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
         super.paintInternal(target, paintProps);
         if (rscHandler == null) {
             return;
@@ -454,9 +508,11 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
             // plot HODO
             PixelExtent extent = new PixelExtent(hodoBackground.getRectangle());
             target.setupClippingPlane(extent);
-            if (((graphConfigProperty != null) && graphConfigProperty.isHodo()) || (graphConfigProperty == null)) {
+            if (((graphConfigProperty != null) && graphConfigProperty.isHodo())
+                    || (graphConfigProperty == null)) {
                 for (NsharpShapeAndLineProperty shapeNColor : hodoWindRscShapeList) {
-                    target.drawWireframeShape(shapeNColor.getShape(), shapeNColor.getLp().getLineColor(),
+                    target.drawWireframeShape(shapeNColor.getShape(),
+                            shapeNColor.getLp().getLineColor(),
                             commonLinewidth * 2, commonLineStyle, font10);
                 }
             }
@@ -492,7 +548,7 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
 
     @Override
     protected void disposeInternal() {
-        if (hodoWindRscShapeList.size() > 0) {
+        if (!hodoWindRscShapeList.isEmpty()) {
             for (NsharpShapeAndLineProperty shapeColor : hodoWindRscShapeList) {
                 shapeColor.getShape().dispose();
             }
@@ -517,12 +573,15 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
                 c = hodoBackground.getWorld().unMap(c.x, c.y);
                 c = NsharpLibWinds.speedDir((float) c.x, (float) c.y);
 
-                sWindDirection = String.format("%.0f%c", c.y, NsharpConstants.DEGREE_SYMBOL);
-                sWindSpeed = String.format("%.0f Knots (%.0f m/s)", c.x, c.x * NsharpConstants.KnotsToMetersPerSecond);
+                sWindDirection = String.format("%.0f%c", c.y,
+                        NsharpConstants.DEGREE_SYMBOL);
+                sWindSpeed = String.format("%.0f Knots (%.0f m/s)", c.x,
+                        c.x * NsharpConstants.KnotsToMetersPerSecond);
             }
 
         } catch (Exception e) {
-            UFStatus.getHandler().handle(Priority.PROBLEM, "Exception translating coordinate", e);
+            UFStatus.getHandler().handle(Priority.PROBLEM,
+                    "Exception translating coordinate", e);
         }
     }
 
@@ -554,7 +613,8 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource {
     }
 
     @Override
-    public void setGraphConfigProperty(NsharpGraphProperty graphConfigProperty) {
+    public void setGraphConfigProperty(
+            NsharpGraphProperty graphConfigProperty) {
         super.setGraphConfigProperty(graphConfigProperty);
         hodoBackground.setPaneConfigurationName(paneConfigurationName);
     }

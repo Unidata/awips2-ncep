@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
- * 11/05/2018   6800        bsteffen    Eliminate some duplicate fields from the resource handler.
 
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
@@ -35,14 +34,16 @@ import com.vividsolutions.jts.geom.Coordinate;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date          Ticket#    Engineer   Description
- * ------------- ---------- ---------- -----------------------------------------
- * Apr 23, 2012  229        Chin Chen  Initial coding
- * Feb 03, 2015  17079      Chin Chen  Soundings listed out of order if frames
- *                                     go into new month
- * Feb 23, 2015  Task#5694  Chin Chen  add code to support previous time line
- *                                     format
- * Dec 14, 2018  6872       bsteffen   Display more precision when needed
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Apr 23, 2012  229      Chin Chen  Initial coding
+ * Feb 03, 2015  17079    Chin Chen  Soundings listed out of order if frames go
+ *                                   into new month
+ * Feb 23, 2015  5694     Chin Chen  add  code to support previous time line
+ *                                   format
+ * Nov 05, 2018  6800     bsteffen   Eliminate some duplicate fields from the
+ *                                   resource handler.
+ * Dec 14, 2018  6872     bsteffen   Display more precision when needed
  * 
  * </pre>
  * 

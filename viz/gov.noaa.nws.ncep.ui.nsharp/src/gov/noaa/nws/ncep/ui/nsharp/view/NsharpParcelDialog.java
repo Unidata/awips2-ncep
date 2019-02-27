@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
-
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -20,6 +15,12 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.viz.core.exception.VizException;
+
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
+
 /**
  * 
  * gov.noaa.nws.ncep.ui.nsharp.palette.NsharpParcelDialog
@@ -30,11 +31,13 @@ import org.eclipse.swt.widgets.Text;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date          Ticket#  Engineer   Description
- * ------------- -------- ---------- -----------------------------------------
- * Mar 23, 2010  229      Chin Chen  Initial coding
- * Jul 05, 2016  15923    Chin Chen  NSHARP - Native Code replacement
- * Dec 20, 2018  7575     bsteffen   Use Parcel numbers from NsharpLibSndglib
+ * Date          Ticket#  Engineer       Description
+ * ------------- -------- -------------- -----------------------------------------
+ * Mar 23, 2010  229      Chin Chen      Initial coding
+ * Jul 05, 2016  15923    Chin Chen      NSHARP - Native Code replacement
+ * 10/26/2018   DR20904   mgamazaychikov Changed parcel indices from 
+ *                                          NsharpNativeConstants to NsharpLibSndglib
+ * Dec 20, 2018  7575     bsteffen       Use Parcel numbers from NsharpLibSndglib
  * 
  * </pre>
  * 
@@ -161,7 +164,6 @@ public class NsharpParcelDialog extends Dialog {
                 // when CR is entered, this fcn is called.
                 // do nothing here.
                 // system will call okPressed() next.
-                // System.out.println("UDL selectied");
             }
         });
 
@@ -218,7 +220,6 @@ public class NsharpParcelDialog extends Dialog {
             }
         }
         userDefdMbtext.setText(Integer.toString(userDefdParcelMb));
-
     }
 
     @Override
@@ -229,11 +230,9 @@ public class NsharpParcelDialog extends Dialog {
         okBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
             public void handleEvent(Event event) {
-                // System.out.println("OK listener is called");
                 String textStr = userDefdMbtext.getText();
                 if ((textStr != null) && !(textStr.isEmpty())) {
                     userDefdParcelMb = Integer.decode(textStr);
-                    // System.out.println(userDefdParcelMb);
                 }
                 NsharpResourceHandler skewtRsc = NsharpEditor
                         .getActiveNsharpEditor().getRscHandler();
@@ -266,7 +265,6 @@ public class NsharpParcelDialog extends Dialog {
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setText("Parcels Display Configuration");
-
     }
 
     @Override
@@ -295,7 +293,6 @@ public class NsharpParcelDialog extends Dialog {
                 this.getShell().getParent().getLocation().x + 1100,
                 this.getShell().getParent().getLocation().y + 200);
         return super.open();
-
     }
 
 }

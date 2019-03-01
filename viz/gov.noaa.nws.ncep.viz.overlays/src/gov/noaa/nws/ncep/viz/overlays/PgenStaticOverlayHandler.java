@@ -17,7 +17,7 @@
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
  **/
-package gov.noaa.nws.ncep.ui.pgen.tools;
+package gov.noaa.nws.ncep.viz.overlays;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -26,32 +26,39 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.raytheon.viz.ui.tools.AbstractTool;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.controls.RetrieveActivityDialog;
+import gov.noaa.nws.ncep.viz.overlays.dialogs.PgenStaticOverlayDialog;
 
 /**
- * Define a handler that retrieves PGEN activities without the Palette.
+ *
+ * Handler for creating the PGEN Static Overlay Dialog
  *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * Dec 18, 2017 7180        njensen     Initial Creation
- * Mar 05, 2019 7752        tjensen     Removed btnName from dialog constructor
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Mar 1, 2019  7752       tjensen     Initial creation
  *
  * </pre>
  *
+ * @author tjensen
  */
-public class RetrieveDisplayHandler extends AbstractTool {
+public class PgenStaticOverlayHandler extends AbstractTool {
+
+    private PgenStaticOverlayDialog dialog;
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         Shell shell = HandlerUtil.getActiveShell(event);
-        PgenSession.getInstance().getPgenResource().setEditable(false);
 
-        RetrieveActivityDialog retrieveDlg = new RetrieveActivityDialog(shell);
-        retrieveDlg.setBlockOnOpen(true);
-        retrieveDlg.open();
+        if (dialog == null || dialog.getShell() == null
+                || dialog.isDisposed()) {
+            dialog = new PgenStaticOverlayDialog(shell);
+            dialog.open();
+        } else {
+            dialog.bringToTop();
+        }
 
         return null;
     }

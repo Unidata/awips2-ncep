@@ -1,5 +1,22 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import org.eclipse.swt.graphics.RGB;
+
+import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.map.IMapDescriptor;
+import com.raytheon.uf.viz.core.map.MapDescriptor;
+import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
 import gov.noaa.nws.ncep.ui.pgen.display.AbstractElementContainer;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayProperties;
 import gov.noaa.nws.ncep.ui.pgen.display.ElementContainerFactory;
@@ -9,58 +26,47 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
 import gov.noaa.nws.ncep.ui.pgen.file.ProductConverter;
 import gov.noaa.nws.ncep.ui.pgen.file.Products;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
-import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.swt.graphics.RGB;
-
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.raytheon.uf.viz.core.map.MapDescriptor;
-import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
-
 /**
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 12-20-11                 ghull        Initial creation
- * 12-23-11	    579         jzeng        Implementation
- * 12-18-12     861         ghull        allow display of original element colors from pgen product.
- * 02-17-16     #13554      dgilling     Implement IStaticDataNatlCntrsResource.
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Dec 20, 2011           ghull     Initial creation
+ * Dec 23, 2011  579      jzeng     Implementation
+ * Dec 18, 2012  861      ghull     allow display of original element colors
+ *                                  from pgen product.
+ * Feb 17, 2016  13554    dgilling  Implement IStaticDataNatlCntrsResource.
+ * Feb 28, 2019  7752     tjensen   Add capability to load product from
+ *                                  database.
+ *
  * </pre>
- * 
+ *
  * @author
- * @version 1.0
  */
 public class PgenStaticOverlayResource extends
         AbstractVizResource<PgenStaticOverlayResourceData, IMapDescriptor>
         implements IStaticDataNatlCntrsResource {
-    private PgenStaticOverlayResourceData pgenOverlayRscData;
+    private final PgenStaticOverlayResourceData pgenOverlayRscData;
 
     /** Whether the resource is ready to be drawn */
 
     /** The list of points */
-    List<Product> prds = null;
+    private List<Product> prds = null;
 
-    DisplayProperties dprops = new DisplayProperties();
+    private final DisplayProperties dprops = new DisplayProperties();
 
     /**
      * Create a PGEN XML Overlay resource.
-     * 
+     *
      * @throws VizException
      */
     protected PgenStaticOverlayResource(
@@ -73,49 +79,63 @@ public class PgenStaticOverlayResource extends
     @Override
     public void initInternal(IGraphicsTarget target) throws VizException {
 
-        String lFileName = pgenOverlayRscData.getPgenStaticProductLocation()
-                + File.separator
-                + pgenOverlayRscData.getPgenStaticProductName();
-
-        // NcPathConstants.PGEN_XML_OVERLAYS + File.separator +
-        // pgenOverlayRscData.getPgenProductName();
-        File productFile = null;
-
-        if (lFileName.startsWith(NcPathConstants.NCEP_ROOT)) {
-            productFile = NcPathManager.getInstance().getStaticFile(lFileName);
+        /*
+         * If a dataURI is set in the resource data, retrieve the product from
+         * the database. Else try to get products from the xml specified in the
+         * resource data.
+         */
+        String dataURI = pgenOverlayRscData.getPgenStaticProductDataURI();
+        if (dataURI != null && !(dataURI.isEmpty())) {
+            try {
+                prds = StorageUtils.retrieveProduct(dataURI);
+            } catch (PgenStorageException e) {
+                statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(),
+                        e);
+            }
         } else {
-            // TODO : this should be considered temporary since soon the PGEN
-            // Files will be stored on the server and
-            // this option will not work.
-            productFile = new File(lFileName);
-        }
+            String lFileName = pgenOverlayRscData.getPgenStaticProductLocation()
+                    + File.separator
+                    + pgenOverlayRscData.getPgenStaticProductName();
 
-        if (productFile == null || !productFile.exists()) {
-            throw new VizException("Error. PGEN product: " + lFileName
-                    + ", doesn't exist");
-        }
+            File productFile = null;
 
-        // get the PGEN product data, and convert into format ready for display
-        // during paint
-        //
-        try {
-            Products products = FileTools.read(productFile.getCanonicalPath());
-            prds = ProductConverter.convert(products);
+            if (lFileName.startsWith(NcPathConstants.NCEP_ROOT)) {
+                productFile = NcPathManager.getInstance()
+                        .getStaticFile(lFileName);
+            } else {
+                // TODO : this should be considered temporary since soon the
+                // PGEN
+                // Files will be stored on the server and
+                // this option will not work.
+                productFile = new File(lFileName);
+            }
 
-            resourceAttrsModified();
-            // dprops.setLayerMonoColor( pgenOverlayRscData.monoColorEnable );
-            // RGB rgb = pgenOverlayRscData.getColor();
-            // dprops.setLayerColor( new Color( rgb.red, rgb.green, rgb.blue )
-            // );
-        } catch (IOException e) {
-            throw new VizException("Error reading PGEN Product, "
-                    + productFile.getAbsolutePath());
+            if (productFile == null || !productFile.exists()) {
+                throw new VizException("Error. PGEN product: " + lFileName
+                        + ", doesn't exist");
+            }
+
+            /*
+             * get the PGEN product data, and convert into format ready for
+             * display during paint
+             */
+
+            try {
+                Products products = FileTools
+                        .read(productFile.getCanonicalPath());
+                prds = ProductConverter.convert(products);
+
+            } catch (IOException e) {
+                throw new VizException("Error reading PGEN Product, "
+                        + productFile.getAbsolutePath(), e);
+            }
         }
+        resourceAttrsModified();
     }
 
     @Override
-    public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException, NullPointerException {
+    public void paintInternal(IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
 
         if (paintProps != null && prds != null) {
             // Loop through all products in the PGEN drawing layer,

@@ -43,6 +43,30 @@
             renderingOrderId="MAP_OUTLINE">
       </resource>
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.handlers">
+       <handler
+            class="gov.noaa.nws.ncep.viz.overlays.PgenStaticOverlayHandler"
+            commandId="gov.noaa.nws.ncep.viz.overlays.staticOverlay">
+       </handler>
+   </extension>
+   
+   <extension
+       point="org.eclipse.ui.menus">
+        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette">
+            <command
+                commandId="gov.noaa.nws.ncep.viz.overlays.staticOverlay"
+                label="PGEN Static Overlay">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+   </extension>
+   
    <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-Resource">
       <nc-resource

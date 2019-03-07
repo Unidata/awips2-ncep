@@ -257,7 +257,7 @@ public class NsharpResourceHandler {
     private int lastUserSelectedTimeLineIndex = -1;
 
     // The last user selected time line
-    private String lastUserSelectedTimeLine = null;
+    private NsharpTimeOperationElement lastUserSelectedTimeLine = null;
 
     // use element state, NsharpConstants.LoadState or NsharpConstants.ActState,
     // as key to set color for drawing
@@ -978,7 +978,6 @@ public class NsharpResourceHandler {
             currentTimeElementListIndex = tmIndex;
             currentStnElementListIndex = stnIndex;
             currentSndElementListIndex = sndTypeIndex;
-                }
             setCurSndProfileProp();
         }
     }
@@ -1415,8 +1414,7 @@ public class NsharpResourceHandler {
             setCurrentIndex(0);
         } else if (lastUserSelectedTimeLineIndex > 0
                 && lastUserSelectedTimeLine != null) {
-            int index = getIndexFromElementList(lastUserSelectedTimeLine,
-                    timeElementList);
+            int index = timeElementList.indexOf(lastUserSelectedTimeLine);
             if (index > 0) {
                 // stay on the same time line if user didn't select the top one.
                 setCurrentIndex(index);
@@ -1511,8 +1509,7 @@ public class NsharpResourceHandler {
 
     private void handleUserPickNewTimeLine(int index) {
         lastUserSelectedTimeLineIndex = index;
-        lastUserSelectedTimeLine = timeElementList
-                .get(index).elementDescription;
+        lastUserSelectedTimeLine = timeElementList.get(index);
         currentTimeElementListIndex = index;
         if (!compareStnIsOn && compareSndIsOn) {
             if (currentStnElementListIndex >= 0

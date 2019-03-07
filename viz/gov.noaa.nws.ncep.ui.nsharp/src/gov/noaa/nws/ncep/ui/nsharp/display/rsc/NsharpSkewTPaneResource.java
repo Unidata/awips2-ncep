@@ -100,6 +100,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * Apr 18, 2018   17341 mgamazaychikov  Fix the cursor plotting for station with negative surface elevation,
  *                                      add scaling for pressure surface height labels
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070
+ * Jan, 13, 2019 21039     smoorthy     make fonts the same as on 18.1.2
  *
  * </pre>
  *
@@ -1665,20 +1666,20 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     drawHeightMark(target);
                     // draw EL, LFC, LCL, FZL, -20C, -30C lines
                     if (lclShape != null) {
-                        target.drawWireframeShape(lclShape, NsharpConstants.color_green, 2, LineStyle.SOLID, font9);
+                        target.drawWireframeShape(lclShape, NsharpConstants.color_green, 2, LineStyle.SOLID, font10);
                     }
                     if (elShape != null) {
-                        target.drawWireframeShape(elShape, NsharpConstants.color_magenta, 2, LineStyle.SOLID, font9);
+                        target.drawWireframeShape(elShape, NsharpConstants.color_magenta, 2, LineStyle.SOLID, font10);
                     }
                     if (mplShape != null) {
-                        target.drawWireframeShape(mplShape, NsharpConstants.color_red, 2, LineStyle.SOLID, font9);
+                        target.drawWireframeShape(mplShape, NsharpConstants.color_red, 2, LineStyle.SOLID, font10);
                     }
                     if (lfcShape != null) {
-                        target.drawWireframeShape(lfcShape, NsharpConstants.color_yellow, 2, LineStyle.SOLID, font9);
+                        target.drawWireframeShape(lfcShape, NsharpConstants.color_yellow, 2, LineStyle.SOLID, font10);
                     }
 
                     if (lrmShape != null) {
-                        target.drawWireframeShape(lrmShape, weatherDataStore.getLrmColor(), 2, LineStyle.SOLID, font9);
+                        target.drawWireframeShape(lrmShape, weatherDataStore.getLrmColor(), 2, LineStyle.SOLID, font10);
                     }
 
                     NsharpConstants.SPCGraph leftGraph = NsharpPaletteWindow.getLeftGraph();
@@ -1687,28 +1688,28 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     if (fzlShape != null) {
                         if ((leftGraph != NsharpConstants.SPCGraph.WINTER)
                                 && (rightGraph != NsharpConstants.SPCGraph.WINTER)) {
-                            target.drawWireframeShape(fzlShape, NsharpConstants.color_cyan, 2, LineStyle.SOLID, font9);
+                            target.drawWireframeShape(fzlShape, NsharpConstants.color_cyan, 2, LineStyle.SOLID, font10);
                         }
                     }
                     if (dendriticShape != null) {
                         if ((leftGraph == NsharpConstants.SPCGraph.WINTER)
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(dendriticShape, NsharpConstants.color_gold, 2, LineStyle.SOLID,
-                                    font9);
+                                    font10);
                         }
                     }
                     if (frzShape != null) {
                         if ((leftGraph == NsharpConstants.SPCGraph.WINTER)
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(frzShape, NsharpConstants.color_orangered, 2, LineStyle.SOLID,
-                                    font9);
+                                    font10);
                         }
                     }
                     if (wbzShape != null) {
                         if ((leftGraph == NsharpConstants.SPCGraph.WINTER)
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(wbzShape, NsharpConstants.color_lawngreen, 2, LineStyle.SOLID,
-                                    font9);
+                                    font10);
                         }
                     }
 

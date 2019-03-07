@@ -70,6 +70,7 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
  * Nov 21, 2018  7574       bsteffen    Remove unused override
  * Dec 20, 2018  7575       bsteffen    Remove some NsharpNativeConstants.
  *
+ * 01/23/2018   DR21039     smoorthy        make text the same size as on 18.1.2
  * </pre>
  *
  * @author Chin Chen
@@ -109,7 +110,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
     private float yRatio = 1;
 
-    private IFont defaultFont = font8;
+    private IFont defaultFont = font10;
 
     private boolean initDone = false;
 
@@ -316,7 +317,15 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         panelRectArray[1] = dataPanel2Background.getRectangle();
         dataPanel1Background.initInternal(target);
         dataPanel2Background.initInternal(target);
-        defaultFont = font8;
+        
+        
+        if (numberPagePerDisplay == 1) {
+            defaultFont = font12;
+        } else {
+            defaultFont = font10;
+        }
+        
+        
         handleResize();
         initDone = true;
     }
@@ -419,7 +428,15 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private void drawPanel1(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
 
-        myfont = defaultFont;
+        
+        
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+            myfont = font9;
+        } else {
+            myfont = defaultFont;
+        }
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -1024,7 +1041,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE:::: This pages based on BigNsharp show_shear_new() at
          * xwvid3.c
          */
-        myfont = defaultFont;
+        
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+            myfont = font10;
+        } else {
+            myfont = defaultFont;
+        }
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -1407,6 +1431,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private void drawPanel3(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
+        
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -2420,8 +2447,16 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
     private void drawPanel9(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
-        myfont = defaultFont;
-
+        
+        
+        
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+            myfont = font11;
+        } else {
+            myfont = defaultFont;
+        }
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -2659,8 +2694,17 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     }
 
     private void drawPanel10(IGraphicsTarget target, Rectangle rect) throws VizException {
-        IFont myfont = defaultFont;
-
+        
+        
+        IFont myfont;
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+            myfont = font11;
+        } else {
+            myfont = defaultFont;
+        }
+        
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -2838,8 +2882,19 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private void drawPanel11(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
 
-        myfont = defaultFont;
-
+       
+        if (paneConfigurationName
+                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
+                || paneConfigurationName
+                        .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+            myfont = font11;
+        } else {
+            myfont = defaultFont;
+        }
+        
+        
+        
+        
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -3222,7 +3277,13 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         if (initDone) {
 
-            defaultFont = font8;
+            
+            if (this.numberPagePerDisplay == 1) {
+                defaultFont = font12;
+            } else {
+                defaultFont = font10;
+            }
+            
 
             handleResize();
         }

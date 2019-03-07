@@ -28,6 +28,7 @@
  * 10/16/2018  6835      bsteffen   Extract printing logic.
  * 11/05/2018   6800     bsteffen   Extract click indexing to time/station resource.
  * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
+ * 01/20/2019  17377     wkwock     Auto-update new arrival NSHARP display.
  * 11/13/2018  7576      bsteffen   Unify activation dialogs.
  * 11/21/2018  7574      bsteffen   Fix comparison and overlay coloring.
  * 12/14/2018  6872      bsteffen   Track time more accurately.
@@ -251,6 +252,12 @@ public class NsharpResourceHandler {
 
     // index to 3rd dim of stnTimeSndTable and index to sndElementList
     private int currentSndElementListIndex = -1;
+
+    // index to track the last currentTimeElementListIndex selected by user
+    private int lastUserSelectedTimeLineIndex = -1;
+
+    // The last user selected time line
+    private String lastUserSelectedTimeLine = null;
 
     // use element state, NsharpConstants.LoadState or NsharpConstants.ActState,
     // as key to set color for drawing
@@ -953,12 +960,25 @@ public class NsharpResourceHandler {
             }
             stnTimeSndTable.add(stnIndex, listListForNewStn);
         }
+        NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
+                .get(stnIndex).get(tmIndex).get(sndTypeIndex);
+        if (tmpNewSndPropElem != null) {
+            if (sndLyLst.size() > tmpNewSndPropElem.getSndLyLst().size()) {
+                tmpNewSndPropElem.getSndLyLst().clear();
+                tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
+                tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
+                setCurrentSoundingLayerInfo();
+            } else {
+                return;
+            }
+        }
         stnTimeSndTable.get(stnIndex).get(tmIndex).set(sndTypeIndex,
                 newSndPropElem);
         if(displayData){
             currentTimeElementListIndex = tmIndex;
             currentStnElementListIndex = stnIndex;
             currentSndElementListIndex = sndTypeIndex;
+                }
             setCurSndProfileProp();
         }
     }
@@ -1389,7 +1409,28 @@ public class NsharpResourceHandler {
             currentGraphMode = win.getCurrentGraphMode();
         }
 
-        refreshPane();
+        if (lastUserSelectedTimeLineIndex == 0 && getCurrentIndex() != 0
+                && getSoundingLys() != null) {
+            // stay on the top time line if user selected the top one
+            setCurrentIndex(0);
+        } else if (lastUserSelectedTimeLineIndex > 0
+                && lastUserSelectedTimeLine != null) {
+            int index = getIndexFromElementList(lastUserSelectedTimeLine,
+                    timeElementList);
+            if (index > 0) {
+                // stay on the same time line if user didn't select the top one.
+                setCurrentIndex(index);
+            } else {
+                if (timeElementList.size() > 1) {
+                    // stay on the bottom time line
+                    setCurrentIndex(timeElementList.size() - 1);
+                } else {
+                    refreshPane();
+                }
+            }
+        } else {
+            refreshPane();
+        }
 
     }
 
@@ -1469,6 +1510,9 @@ public class NsharpResourceHandler {
     }
 
     private void handleUserPickNewTimeLine(int index) {
+        lastUserSelectedTimeLineIndex = index;
+        lastUserSelectedTimeLine = timeElementList
+                .get(index).elementDescription;
         currentTimeElementListIndex = index;
         if (!compareStnIsOn && compareSndIsOn) {
             if (currentStnElementListIndex >= 0

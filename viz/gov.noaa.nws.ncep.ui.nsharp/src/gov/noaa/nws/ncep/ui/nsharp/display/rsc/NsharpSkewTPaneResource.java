@@ -101,6 +101,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *                                      add scaling for pressure surface height labels
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070
  * 11/21/2018   7574        bsteffen    Fix comparison coloring.
+ * 01/13/2019   21039       smoorthy    make fonts the same as on 18.1.2
  * 01/15/2019   7697        bsteffen    Display aircraft info for ACARS
  * 02/11/2019   7574        bhurley     Added checks to prevent NPEs
  * 
@@ -1704,28 +1705,28 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     if (lclShape != null) {
                         target.drawWireframeShape(lclShape,
                                 NsharpConstants.color_green, 2, LineStyle.SOLID,
-                                font9);
+                                font10);
                     }
                     if (elShape != null) {
                         target.drawWireframeShape(elShape,
                                 NsharpConstants.color_magenta, 2,
-                                LineStyle.SOLID, font9);
+                                LineStyle.SOLID, font10);
                     }
                     if (mplShape != null) {
                         target.drawWireframeShape(mplShape,
                                 NsharpConstants.color_red, 2, LineStyle.SOLID,
-                                font9);
+                                font10);
                     }
                     if (lfcShape != null) {
                         target.drawWireframeShape(lfcShape,
                                 NsharpConstants.color_yellow, 2,
-                                LineStyle.SOLID, font9);
+                                LineStyle.SOLID, font10);
                     }
 
                     if (lrmShape != null) {
                         target.drawWireframeShape(lrmShape,
                                 weatherDataStore.getLrmColor(), 2,
-                                LineStyle.SOLID, font9);
+                                LineStyle.SOLID, font10);
                     }
 
                     NsharpConstants.SPCGraph leftGraph = NsharpPaletteWindow
@@ -1738,7 +1739,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 && (rightGraph != NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(fzlShape,
                                     NsharpConstants.color_cyan, 2,
-                                    LineStyle.SOLID, font9);
+                                    LineStyle.SOLID, font10);
                         }
                     }
                     if (dendriticShape != null) {
@@ -1746,7 +1747,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(dendriticShape,
                                     NsharpConstants.color_gold, 2,
-                                    LineStyle.SOLID, font9);
+                                    LineStyle.SOLID, font10);
                         }
                     }
                     if (frzShape != null) {
@@ -1754,7 +1755,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(frzShape,
                                     NsharpConstants.color_orangered, 2,
-                                    LineStyle.SOLID, font9);
+                                    LineStyle.SOLID, font10);
                         }
                     }
                     if (wbzShape != null) {
@@ -1762,7 +1763,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 || (rightGraph == NsharpConstants.SPCGraph.WINTER)) {
                             target.drawWireframeShape(wbzShape,
                                     NsharpConstants.color_lawngreen, 2,
-                                    LineStyle.SOLID, font9);
+                                    LineStyle.SOLID, font10);
                         }
                     }
 

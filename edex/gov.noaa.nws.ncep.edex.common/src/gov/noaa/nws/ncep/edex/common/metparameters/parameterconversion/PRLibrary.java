@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.measure.quantity.Temperature;
 import javax.measure.quantity.VolumetricDensity;
@@ -8,11 +9,8 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import org.opengis.coverage.grid.InvalidRangeException;
-
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.common.status.UFStatus.Priority;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 
@@ -28,7 +26,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
  *                                      to convert to Celsius if the units are
  *                                      not Celsius.
  * 12/13/2016   R27046      S.Russell   Added method prPWSAD()
- * Mar 8, 2019  7581        tgurney     Improved error logging + cleanup
+ * Mar  8, 2019 7581        tgurney     Improved error logging + cleanup
+ * Mar 15, 2019 7581        tgurney     Further logging improvements and cleanup
  * </pre>
  *
  */
@@ -69,11 +68,11 @@ public final class PRLibrary {
                 .convert(selv.doubleValue());
         double exponent = -(GempakConstants.GRAVTY
                 / (GempakConstants.GAMUSD * GempakConstants.RDGAS) * 1000);
-        double base = (1.0
-                - (hgtk * GempakConstants.GAMUSD / seaLevelTempInKelvin));
+        double base = 1.0
+                - hgtk * GempakConstants.GAMUSD / seaLevelTempInKelvin;
         double altm = Math.pow(base, exponent);
         double altp = pres.doubleValue() * altm;
-        return (new Amount(altp, NonSI.INCH_OF_MERCURY));
+        return new Amount(altp, NonSI.INCH_OF_MERCURY);
     }
 
     /***
@@ -84,7 +83,6 @@ public final class PRLibrary {
      * @param selv
      *            - Station elevation in meters
      * @return The ceiling converted to Mean Sea Level in hundreds of feet
-     * @throws NullPointerException
      *
      */
     public static final Amount prCmsl(Amount ceil, Amount selv) {
@@ -96,8 +94,8 @@ public final class PRLibrary {
                 NcUnits.HUNDREDS_OF_FEET);
         ceil = checkAndConvertInputAmountToExpectedUnits(ceil,
                 NcUnits.HUNDREDS_OF_FEET);
-        return (new Amount(selv.doubleValue() + ceil.doubleValue(),
-                NcUnits.HUNDREDS_OF_FEET));
+        return new Amount(selv.doubleValue() + ceil.doubleValue(),
+                NcUnits.HUNDREDS_OF_FEET);
     }
 
     /**
@@ -110,7 +108,6 @@ public final class PRLibrary {
      * @param vX
      *            - V component of velocity
      * @return The wind direction in degrees
-     * @throws NullPointerException
      *
      */
     public static final Amount prDrct(Amount uX, Amount vX) {
@@ -129,13 +126,13 @@ public final class PRLibrary {
         uXVal = uX.doubleValue();
         double prDrct = 0.0;
 
-        if ((uXVal != 0) || (vXVal != 0)) {
+        if (uXVal != 0 || vXVal != 0) {
             prDrct = Math.atan2(-uXVal, -vXVal) * GempakConstants.RTD;
             if (prDrct <= 0) {
                 prDrct += 360;
             }
         }
-        return (new Amount(prDrct, NonSI.DEGREE_ANGLE));
+        return new Amount(prDrct, NonSI.DEGREE_ANGLE);
 
     }
 
@@ -148,8 +145,6 @@ public final class PRLibrary {
      * @param tmpc
      *            - Temperature in Celsius
      * @return Density of dry air in kg/(m**3)
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prDden(Amount pres, Amount tmpc) {
@@ -166,11 +161,12 @@ public final class PRLibrary {
 
         double tmpcVal = tmpc.doubleValue();
         if (tmpcVal < -GempakConstants.TMCK) {
-            statusHandler.handle(Priority.INFO,
-                    "From prDden: temperature must be greater than or equal to -273.15 ");
+            String msg = "Temperature must be greater than or equal to "
+                    + -GempakConstants.TMCK + ". Actual value: " + tmpcVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(VolumetricDensity.UNIT);
         }
-        /* Convert temperature and compute */
+        // Convert temperature and compute
         double tmpk = tmpc.getUnit().getConverterTo(SI.KELVIN).convert(tmpcVal);
         prdden = 100 * pres.doubleValue() / (GempakConstants.RDGAS * tmpk);
 
@@ -217,7 +213,6 @@ public final class PRLibrary {
      * @param tdxc
      *            - Local midnight max temperature at 00 LST, Celsius
      * @return The maximum of the 3 temperature values (in Farenheit)
-     * @throws NullPointerException
      *
      */
     public static final Amount prDmax(Amount t00x, Amount t06x, Amount tdxc) {
@@ -237,17 +232,17 @@ public final class PRLibrary {
             Arrays.sort(tempArray);
             double newTemp = SI.CELSIUS.getConverterTo(NonSI.FAHRENHEIT)
                     .convert(tempArray[2]);
-            return (new Amount(newTemp, NonSI.FAHRENHEIT));
-        } else {
-            double t00xVal = t00x.doubleValue();
-            double t06xVal = t06x.doubleValue();
-            Amount dmax = (t00xVal > t06xVal
-                    ? checkAndConvertInputAmountToExpectedUnits(t00x,
-                            NonSI.FAHRENHEIT)
-                    : checkAndConvertInputAmountToExpectedUnits(t06x,
-                            NonSI.FAHRENHEIT));
-            return dmax;
+            return new Amount(newTemp, NonSI.FAHRENHEIT);
         }
+
+        double t00xVal = t00x.doubleValue();
+        double t06xVal = t06x.doubleValue();
+        Amount dmax = t00xVal > t06xVal
+                ? checkAndConvertInputAmountToExpectedUnits(t00x,
+                        NonSI.FAHRENHEIT)
+                : checkAndConvertInputAmountToExpectedUnits(t06x,
+                        NonSI.FAHRENHEIT);
+        return dmax;
 
     }
 
@@ -265,7 +260,6 @@ public final class PRLibrary {
      *            - 6-hour minimum temperature at 18Z, deg Celsius
      * @return the minimum temperature (in Farenheit) after comparing the two
      *         input values, if they exist
-     * @throws NullPointerException
      *
      */
     public static final Amount prDmin(Amount t12n, Amount t18n) {
@@ -276,10 +270,9 @@ public final class PRLibrary {
 
         t12n = checkAndConvertInputAmountToExpectedUnits(t12n, SI.CELSIUS);
         t18n = checkAndConvertInputAmountToExpectedUnits(t18n, SI.CELSIUS);
-        Amount minValue = (t12n.doubleValue() < t18n.doubleValue() ? t12n
-                : t18n);
-        return (checkAndConvertInputAmountToExpectedUnits(minValue,
-                NonSI.FAHRENHEIT));
+        Amount minValue = t12n.doubleValue() < t18n.doubleValue() ? t12n : t18n;
+        return checkAndConvertInputAmountToExpectedUnits(minValue,
+                NonSI.FAHRENHEIT);
 
     }
 
@@ -294,7 +287,6 @@ public final class PRLibrary {
      *            temperature)
      * @return the dewpoint in the same units as ( in the same units as the
      *         temperature)
-     * @throws NullPointerException
      *
      */
     public static final Amount prDwdp(Amount tmpx, Amount dpdx) {
@@ -325,8 +317,6 @@ public final class PRLibrary {
      * @param pres
      *            - the pressure (in mb)
      * @return the dewpoint (in Celsius), if both the input values are valid
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prDwpt(Amount rmix, Amount pres) {
@@ -342,24 +332,26 @@ public final class PRLibrary {
         double mixingRatioValue = rmix.doubleValue();
         double pressureValue = pres.doubleValue();
         if (mixingRatioValue <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prDwpt() - mixing ratio must be greater than 0");
+            String msg = "Mixing ratio must be greater than 0. "
+                    + "Actual value: " + mixingRatioValue;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.CELSIUS);
         }
         if (pressureValue <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prDwpt() - pres must be greater than 0");
+            String msg = "Pressure must be greater than 0. Actual value: "
+                    + pressureValue;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.CELSIUS);
         }
         /* Convert gram/kilogram to gram/gram */
         double ratio = mixingRatioValue / 1000;
 
         /* Calculate vapor pressure from mixing ratio and pressure */
-        double vaporPressure = (pressureValue * ratio) / (0.62197 + ratio);
+        double vaporPressure = pressureValue * ratio / (0.62197 + ratio);
 
         /* Correct vapor pressure */
         vaporPressure = vaporPressure
-                / (1.001 + ((pressureValue - 100.0) / 900) * .0034);
+                / (1.001 + (pressureValue - 100.0) / 900 * .0034);
 
         /* Calculate dewpoint */
         double dewPointValue = Math.log(vaporPressure / 6.112) * 243.5
@@ -379,7 +371,6 @@ public final class PRLibrary {
      * @param sped
      *            - Wind speed in meters/second
      * @return the Fosberg index
-     * @throws NullPointerException
      *
      */
     public static final Amount prFosb(Amount tmpc, Amount relh, Amount sped) {
@@ -423,7 +414,7 @@ public final class PRLibrary {
             fw = G + H * relhVal * relhVal - P * relhVal * tf - Q * relhVal;
         }
 
-        double sss = (Math.sqrt(1. + (smph * smph)));
+        double sss = Math.sqrt(1. + smph * smph);
         double fwd = fw / 30;
         double fwd2 = fwd * fwd;
         double fwd3 = fwd2 * fwd;
@@ -431,9 +422,9 @@ public final class PRLibrary {
 
         /* Find the Fosberg Index */
 
-        double prfosb = (fire * sss) / R;
+        double prfosb = fire * sss / R;
 
-        return (new Amount(prfosb, Unit.ONE));
+        return new Amount(prfosb, Unit.ONE);
     }
 
     /**
@@ -461,7 +452,6 @@ public final class PRLibrary {
      * are valid values
      * </pre>
      *
-     * @throws NullPointerException
      *
      */
     public static final Amount prHeat(Amount tmpf, Amount relh) {
@@ -502,11 +492,10 @@ public final class PRLibrary {
                  * Adjust for high regression at low relative humidity for
                  * temperatures above 80 degrees F.
                  */
-                if ((relhVal <= 13.0)
-                        && ((tmpfVal >= 80.0) && (tmpfVal <= 112.0))) {
+                if (relhVal <= 13.0 && tmpfVal >= 80.0 && tmpfVal <= 112.0) {
                     float adj1 = (float) ((13. - relhVal) / 4);
-                    float adj2 = (float) (Math
-                            .sqrt((17 - Math.abs(tmpfVal - 95)) / 17));
+                    float adj2 = (float) Math
+                            .sqrt((17 - Math.abs(tmpfVal - 95)) / 17);
                     float adj = adj1 * adj2;
                     prheat -= adj;
                 }
@@ -514,8 +503,7 @@ public final class PRLibrary {
                  * Adjust for low regression at high relative humidity and
                  * temperatures in the mid-80s
                  */
-                else if ((relhVal > 85)
-                        && ((tmpfVal >= 80.0) && (tmpfVal <= 87.0))) {
+                else if (relhVal > 85 && tmpfVal >= 80.0 && tmpfVal <= 87.0) {
                     float adj1 = (float) ((relhVal - 85.0) / 10.0);
                     float adj2 = (float) ((87.0 - tmpfVal) / 5);
                     float adj = adj1 * adj2;
@@ -523,7 +511,7 @@ public final class PRLibrary {
                 }
             }
         }
-        return (new Amount(prheat, NonSI.FAHRENHEIT));
+        return new Amount(prheat, NonSI.FAHRENHEIT);
     }
 
     /**
@@ -537,8 +525,6 @@ public final class PRLibrary {
      *            - the dew point (in Farenheit)
      * @return the humiture index if both the air temperature and the dewpoint
      *         temperature are valid values
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prHmtr(Amount tmpf, Amount dwpf) {
@@ -562,7 +548,7 @@ public final class PRLibrary {
 
         prhmtr = tmpf.doubleValue() + (vapr.doubleValue() - 21);
 
-        return (new Amount(prhmtr, Unit.ONE));
+        return new Amount(prhmtr, Unit.ONE);
     }
 
     /**
@@ -582,9 +568,6 @@ public final class PRLibrary {
      * @return the rate of ice growth if all the input values are valid and lie
      *         between specific limits and if the rate of ice growth that is
      *         computed is greater than or equal to 0,
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prIgro(Amount tmpc, Amount sstc, Amount sped) {
 
@@ -608,38 +591,43 @@ public final class PRLibrary {
         double spedVal = sped.doubleValue();
 
         /* Check that these values are within the valid range */
-
         if (spedVal < 0 || spedVal > 50) {
-            statusHandler.handle(Priority.INFO,
-                    "From prIgro: The wind speed must lie between 0 and 50. Both limits inclusive");
+            String msg = "The wind speed must lie between 0 and 50. "
+                    + "Both limits inclusive. Actual value: " + spedVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         if (tmpcVal < -20 || tmpcVal > 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prIgro: The observed surface air temperature must lie between -20 and 0. Both limits inclusive");
+            String msg = "The observed surface air temperature must lie "
+                    + "between -20 and 0. Both limits inclusive. Actual value: "
+                    + tmpcVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         if (sstcVal < -1.7f || sstcVal > 12) {
-            statusHandler.handle(Priority.INFO,
-                    "From prIgro: The observed sea surface temperature must lie between -1.7 and 12. Both limits inclusive");
+            String msg = "The observed sea surface temperature must lie "
+                    + "between -1.7 and 12. Both limits inclusive. Actual value: "
+                    + sstcVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
+
         double A = 0.0273f;
         double B = 0.000291f;
         double C = 0.00000184f;
         // to convert cm/hr to in per 3 hours
         double cvfac = 1.1811f;
         // Compute the Priesendorfer regression
-        double pr = ((spedVal * (-1.7 - tmpcVal))
-                / (1 + 0.4 * (sstcVal + 1.7)));
+        double pr = spedVal * (-1.7 - tmpcVal) / (1 + 0.4 * (sstcVal + 1.7));
         double pr2 = pr * pr;
         prigro = (A * pr + B * pr2 + C * pr * pr2) * cvfac;
         if (prigro < 0) {
-            statusHandler.handle(Priority.INFO,
-                    "The rate of ice growth must be greater than or equal to 0");
+            String msg = "The rate of ice growth must be greater than or "
+                    + "equal to 0. Actual value: " + prigro;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
-        return (new Amount(prigro, NcUnits.INCHES_PER_THREE_HOURS));
+        return new Amount(prigro, NcUnits.INCHES_PER_THREE_HOURS);
     }
 
     /**
@@ -651,7 +639,6 @@ public final class PRLibrary {
      *            - the input temperature (in Celsius)
      * @return the latent heat of vaporization at constant pressure if the input
      *         temperature is valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prLhvp(Amount tmpc) {
@@ -663,7 +650,7 @@ public final class PRLibrary {
         tmpc = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
         double latentHeatOfVapr = (float) ((2.500
                 - 0.00237 * tmpc.doubleValue()) * 1_000_000);
-        return (new Amount(latentHeatOfVapr, NcUnits.JOULES_PER_KILOGRAM));
+        return new Amount(latentHeatOfVapr, NcUnits.JOULES_PER_KILOGRAM);
     }
 
     /**
@@ -678,9 +665,6 @@ public final class PRLibrary {
      *            - Lifted pressure in millibar
      * @return the lifted temperature in Celsius, if all the input parameters
      *         are valid
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prLtmp(Amount thta, Amount thte, Amount pres) {
 
@@ -704,9 +688,8 @@ public final class PRLibrary {
         checkNullOrInvalidValue(tmpe);
         checkNullOrInvalidValue(tmpd);
         /*
-         * ( Non-Javadoc ) The correct parcel temperature is the warmer of the
-         * temperature on the dry adiabat and the temperature on the moist
-         * adiabat.
+         * The correct parcel temperature is the warmer of the temperature on
+         * the dry adiabat and the temperature on the moist adiabat.
          */
 
         double tmpeVal = tmpe.doubleValue();
@@ -717,7 +700,7 @@ public final class PRLibrary {
             prltmp = SI.KELVIN.getConverterTo(SI.CELSIUS).convert(tmpdVal);
         }
 
-        return (new Amount(prltmp, SI.CELSIUS));
+        return new Amount(prltmp, SI.CELSIUS);
     }
 
     /**
@@ -729,7 +712,6 @@ public final class PRLibrary {
      *            - Mountain obscuration threshold in 100's of ft
      * @return The mountain obscuration threshold met indicator if the input
      *         values are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prMobs(Amount cmsl, Amount otval) {
@@ -742,8 +724,8 @@ public final class PRLibrary {
                 NcUnits.HUNDREDS_OF_FEET);
         otval = checkAndConvertInputAmountToExpectedUnits(otval,
                 NcUnits.HUNDREDS_OF_FEET);
-        return (cmsl.doubleValue() < otval.doubleValue()
-                ? new Amount(1, Unit.ONE) : new Amount(1, Unit.ONE));
+        return cmsl.doubleValue() < otval.doubleValue()
+                ? new Amount(1, Unit.ONE) : new Amount(1, Unit.ONE);
     }
 
     /**
@@ -760,7 +742,6 @@ public final class PRLibrary {
      *            - the pressure ( in mb)
      * @return the missing ratio ( in grams / kilograms ) if both the input
      *         parameters are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prMixr(Amount dwpc, Amount pres) {
@@ -786,14 +767,14 @@ public final class PRLibrary {
         double pressureValue = pres.doubleValue();
         double vaporPressureValue = vapr.doubleValue();
         /*
-         * (Non-Javadoc) corr is a correction to the vapor pressure since the
-         * atmosphere is not an ideal gas.
+         * corr is a correction to the vapor pressure since the atmosphere is
+         * not an ideal gas.
          */
-        double corr = 1.001 + ((pressureValue - 100) / 900) * 0.0034;
+        double corr = 1.001 + (pressureValue - 100) / 900 * 0.0034;
         double e = corr * vaporPressureValue;
 
         /* Test for unphysical case of large E at low PRES */
-        if (e <= (0.5 * pressureValue)) {
+        if (e <= 0.5 * pressureValue) {
             /* Calculate mixing ratio */
             prmixr = new Amount(0.62197 * (e / (pressureValue - e)) * 1000,
                     NcUnits.GRAMS_PER_KILOGRAM);
@@ -808,7 +789,6 @@ public final class PRLibrary {
      * @param p03d
      *            - Pressure tendency information
      * @return the pressure change ( in mb )
-     * @throws NullPointerException
      *
      */
     // TODO : remove it to make it a part of display options or let it stay?
@@ -822,13 +802,13 @@ public final class PRLibrary {
         double p03dVal = p03d.doubleValue();
         float[] psign = { 1, 1, 1, 1, 0, -1, -1, -1, -1 };
         int itendc = (int) (p03dVal / 1000);
-        float ptend = ((int) p03dVal) % 1000 / 10f;
+        float ptend = (int) p03dVal % 1000 / 10f;
         // TODO: compare tests with legacy
         if (itendc < psign.length) {
             prp03c = psign[itendc] * ptend;
         }
 
-        return (new Amount(prp03c, NcUnits.MILLIBAR));
+        return new Amount(prp03c, NcUnits.MILLIBAR);
     }
 
     /**
@@ -841,7 +821,6 @@ public final class PRLibrary {
      * @param PTSY
      *            - Pressure Tendency
      * @return P03C - Pressure Change 3 Hours, Signed
-     * @throws NullPointerException
      *
      */
     public static final Amount prP03CAbsVal(Amount p03cav, Amount ptsy) {
@@ -890,7 +869,7 @@ public final class PRLibrary {
         double s = hosw.doubleValue();
         double sght = 0.0d;
 
-        sght = Math.sqrt(((Math.pow(w, 2)) + (Math.pow(s, 2))));
+        sght = Math.sqrt(Math.pow(w, 2) + Math.pow(s, 2));
 
         return new Amount(sght, SI.METER);
 
@@ -907,7 +886,6 @@ public final class PRLibrary {
      * @param selv
      *            - Station elevation in meters
      * @return the pressure in millibars if none of the input values are missing
-     * @throws NullPointerException
      *
      */
     public static final Amount prPalt(Amount altm, Amount selv) {
@@ -923,15 +901,15 @@ public final class PRLibrary {
                 .convert(selv.doubleValue());
 
         /* Calculate the exponent */
-        double expo = (GempakConstants.GRAVTY
-                / (GempakConstants.GAMUSD * GempakConstants.RDGAS) * 1000.0f);
+        double expo = GempakConstants.GRAVTY
+                / (GempakConstants.GAMUSD * GempakConstants.RDGAS) * 1000.0f;
 
         /* Calculate pressure */
-        double prpalt = (altm.doubleValue()
-                * Math.pow((1 - (hgtk * GempakConstants.GAMUSD
-                        / (GempakConstants.TMCK + 15))), expo));
+        double prpalt = altm.doubleValue() * Math.pow(
+                1 - hgtk * GempakConstants.GAMUSD / (GempakConstants.TMCK + 15),
+                expo);
 
-        return (new Amount(prpalt, NcUnits.MILLIBAR));
+        return new Amount(prpalt, NcUnits.MILLIBAR);
     }
 
     /**
@@ -948,7 +926,6 @@ public final class PRLibrary {
      *            - Temperature ( in Kelvin ) at the lifted condensation level
      * @return the pressure at the lifted condensation level, if all the inputs
      *         are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prPlcl(Amount tmpc, Amount pres, Amount tlcl) {
@@ -967,8 +944,8 @@ public final class PRLibrary {
         double tclValue = tlcl.doubleValue();
         double tmpkValue = tmpk.doubleValue();
         double presValue = pres.doubleValue();
-        prplcl = presValue * Math.pow((tclValue / tmpkValue),
-                (1 / GempakConstants.RKAPPA));
+        prplcl = presValue
+                * Math.pow(tclValue / tmpkValue, 1 / GempakConstants.RKAPPA);
         return new Amount(prplcl, NcUnits.MILLIBAR);
     }
 
@@ -989,10 +966,6 @@ public final class PRLibrary {
      * param selv - the station elevation ( in meters )
      * return the mean sea level pressure ( in mb ) if all the inputs are valid
      * </pre>
-     *
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prPmsl(Amount pres, Amount tmpc, Amount dwpc,
             Amount selv) {
@@ -1015,12 +988,12 @@ public final class PRLibrary {
         /* deltaV and tVave */
         double selvVal = selv.doubleValue();
         double deltaV = selvVal * GempakConstants.GAMUSD / 1000;
-        double tVave = tv.doubleValue() + (deltaV / 2);
-        double mathFormula = (GempakConstants.GRAVTY * selvVal)
+        double tVave = tv.doubleValue() + deltaV / 2;
+        double mathFormula = GempakConstants.GRAVTY * selvVal
                 / (GempakConstants.RDGAS * tVave);
-        double prpmsl = (pres.doubleValue() * Math.exp(mathFormula));
+        double prpmsl = pres.doubleValue() * Math.exp(mathFormula);
 
-        return (new Amount(prpmsl, NcUnits.MILLIBAR));
+        return new Amount(prpmsl, NcUnits.MILLIBAR);
     }
 
     /**
@@ -1036,7 +1009,6 @@ public final class PRLibrary {
      * @param p04
      *            - Fourth precipitation amount
      * @return the maximum precipitation
-     * @throws NullPointerException
      *
      */
 
@@ -1061,7 +1033,7 @@ public final class PRLibrary {
         }
 
         Arrays.sort(tempDblArray);
-        return (new Amount(tempDblArray[3], NonSI.INCH));
+        return new Amount(tempDblArray[3], NonSI.INCH);
     }
 
     /**
@@ -1077,8 +1049,6 @@ public final class PRLibrary {
      * @param p04
      *            - Fourth 6-hour precipitation amount
      * @return the total 24-hour precipitation amount
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prPr24(Amount p01, Amount p02, Amount p03,
@@ -1121,11 +1091,12 @@ public final class PRLibrary {
         }
 
         if (p24Val < 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prPr24: the total 24 hour precipitation amount cannot be less than 0 inches");
+            String msg = "The total 24 hour precipitation amount cannot be "
+                    + "less than 0 inches. Actual value: " + p24Val;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NonSI.INCH);
         }
-        return (new Amount(p24Val, NonSI.INCH));
+        return new Amount(p24Val, NonSI.INCH);
     }
 
     /**
@@ -1138,9 +1109,6 @@ public final class PRLibrary {
      * @param thta
      *            - potential temperature ( in Kelvin )
      * @return the station pressure ( in mb ) if both the inputs are valid
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prPres(Amount tmpc, Amount thta) {
 
@@ -1152,22 +1120,26 @@ public final class PRLibrary {
         thta = checkAndConvertInputAmountToExpectedUnits(thta, SI.KELVIN);
         double tmpcVal = tmpc.doubleValue();
         double thtaVal = thta.doubleValue();
+
         if (tmpcVal <= -GempakConstants.TMCK) {
-            statusHandler.handle(Priority.INFO,
-                    "From prPres: the temperature must be greater than -273.15");
+            String msg = "The temperature must be greater than "
+                    + -GempakConstants.TMCK + ". Actual value: " + tmpcVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.MILLIBAR);
         }
         if (thtaVal <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prPres: the potential temperature must be greater than 0");
+            String msg = "The potential temperature must be greater than 0. "
+                    + "Actual value: " + thtaVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(NcUnits.MILLIBAR);
         }
+
         double tmpkVal = tmpc.getUnit().getConverterTo(SI.KELVIN)
                 .convert(tmpcVal);
         double prpres = (float) (1000
                 * Math.pow(tmpkVal / thtaVal, 1 / GempakConstants.RKAPPA));
 
-        return (new Amount(prpres, NcUnits.MILLIBAR));
+        return new Amount(prpres, NcUnits.MILLIBAR);
     }
 
     /**
@@ -1177,7 +1149,6 @@ public final class PRLibrary {
      * @param p03d
      *            - the pressure tendency information
      * @return the pressure tendency symbol code if the input is valid
-     * @throws NullPointerException
      *
      */
     // TODO add it to the Met Parameters or remove it and make it part of the
@@ -1191,9 +1162,9 @@ public final class PRLibrary {
         double p03dVal = p03d.doubleValue();
         int prptsy = -9999;
         if (!(p03dVal < 0) & !(p03dVal >= 9000)) {
-            prptsy = ((int) (p03dVal / 1000)) * 1000 + 999;
+            prptsy = (int) (p03dVal / 1000) * 1000 + 999;
         }
-        return (new Amount(prptsy, Unit.ONE));
+        return new Amount(prptsy, Unit.ONE);
     }
 
     /**
@@ -1208,7 +1179,6 @@ public final class PRLibrary {
      *            - dewpoint ( in Celsius)
      * @return the relative humidity ( in percent ) if both inputs are valid and
      *         RMISSD ( -9999.0 ) otherwise
-     * @throws NullPointerException
      *
      */
     public static final Amount prRelh(Amount tmpc, Amount dwpc) {
@@ -1237,7 +1207,7 @@ public final class PRLibrary {
         }
 
         /* Calculate humidity */
-        prrelh = (e.doubleValue() / es.doubleValue()) * 100;
+        prrelh = e.doubleValue() / es.doubleValue() * 100;
 
         return new Amount(prrelh, NonSI.PERCENT);
 
@@ -1254,8 +1224,6 @@ public final class PRLibrary {
      * @return the dewpoint in ( deg Celsius), if both inputs are valid and the
      *         value of the vapor pressure computed is greater than ( 1*
      *         e^(-30))
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prRhdp(Amount tmpc, Amount relh) {
@@ -1283,7 +1251,7 @@ public final class PRLibrary {
         double prrhdp = -191;
         Amount dewpointAmount = null;
         // legacy checks for 1.E-30
-        if (vapr >= (Math.pow(Math.E, -30))) {
+        if (vapr >= Math.pow(Math.E, -30)) {
             prrhdp = 243.5 * (Math.log(6.112) - Math.log(vapr))
                     / (Math.log(vapr) - Math.log(6.112) - 17.67);
 
@@ -1294,8 +1262,9 @@ public final class PRLibrary {
              */
 
             if (prrhdp < -190) {
-                statusHandler.handle(Priority.INFO,
-                        "From prRhdp: dewpoint is less than -190 C");
+                String msg = "Dewpoint is less than -190 C. Actual value: "
+                        + prrhdp;
+                statusHandler.info(msg, new IllegalArgumentException(msg));
                 return new Amount(SI.CELSIUS);
             }
         }
@@ -1312,7 +1281,6 @@ public final class PRLibrary {
      * @param vWnd
      *            - V component of velocity
      * @return the computed windspeed if both inputs are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prSped(Amount uWnd, Amount vWnd) {
@@ -1328,8 +1296,8 @@ public final class PRLibrary {
                     .convert(vWnd.doubleValue());
             vWnd = new Amount(vWndVal, uWndUnits);
         }
-        double prsped = (Math.sqrt((Math.pow(uWnd.doubleValue(), 2)
-                + Math.pow(vWnd.doubleValue(), 2))));
+        double prsped = Math.sqrt(Math.pow(uWnd.doubleValue(), 2)
+                + Math.pow(vWnd.doubleValue(), 2));
         return new Amount(prsped, uWndUnits);
     }
 
@@ -1343,8 +1311,6 @@ public final class PRLibrary {
      *            - The pressure ( in mb )
      * @return the potential temperature ( in Kelvin ), if both inputs are valid
      *         .
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static Amount prThta(Amount tmpc, Amount pres) {
@@ -1360,8 +1326,9 @@ public final class PRLibrary {
                 NcUnits.MILLIBAR);
         double pressureValue = pres.doubleValue();
         if (pressureValue <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prThta( ) - pressure must be > 0 ");
+            String msg = "Pressure must be greater than 0. Actual value "
+                    + pressureValue;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.KELVIN);
         }
 
@@ -1371,7 +1338,7 @@ public final class PRLibrary {
 
         /* Calculate theta using Poisson's equation */
         double prthta = temperatureInKelvin
-                * Math.pow((1000 / pres.doubleValue()), GempakConstants.RKAPPA);
+                * Math.pow(1000 / pres.doubleValue(), GempakConstants.RKAPPA);
         return new Amount(prthta, SI.KELVIN);
     }
 
@@ -1392,9 +1359,6 @@ public final class PRLibrary {
      *            - the dewpoint ( in Celsius )
      * @return the the equivalent potential temperature ( in Kelvin ), if all
      *         the input values are valid
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prThte(Amount pres, Amount tmpc, Amount dwpc) {
 
@@ -1404,8 +1368,9 @@ public final class PRLibrary {
         }
 
         if (pres.doubleValue() <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prThte() - Input pressure must be greater than 0 ");
+            String msg = "Input pressure must be greater than 0. Actual value: "
+                    + pres.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.KELVIN);
         }
 
@@ -1429,9 +1394,8 @@ public final class PRLibrary {
         double pressureVal = pres.doubleValue();
         double tempVal = tmpk.doubleValue();
 
-        double e = (GempakConstants.RKAPPA
-                * (1 - (0.28 * 0.001 * mixingRatioVal)));
-        double thtam = (tempVal * Math.pow(1000 / pressureVal, e));
+        double e = GempakConstants.RKAPPA * (1 - 0.28 * 0.001 * mixingRatioVal);
+        double thtam = tempVal * Math.pow(1000 / pressureVal, e);
 
         /* Find the temperature at the lifted condensation level */
         Amount tlcl = prTlcl(tmpc, dwpc);
@@ -1441,9 +1405,9 @@ public final class PRLibrary {
         }
 
         double lclTemp = tlcl.doubleValue();
-        e = ((3.376f / lclTemp) - 0.00254f)
+        e = (3.376f / lclTemp - 0.00254f)
                 * (mixingRatioVal * (1 + 0.81f * 0.001f * mixingRatioVal));
-        double prthte = (thtam * Math.exp(e));
+        double prthte = thtam * Math.exp(e);
         Amount equivPotentialTempAmount = new Amount(prthte, SI.KELVIN);
         return equivPotentialTempAmount;
     }
@@ -1463,9 +1427,6 @@ public final class PRLibrary {
      *            - Dewpoint ( in Celsius )
      * @return The wet bulb potential temperature ( in Celsius ) if all inputs
      *         are valid
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prThwc(Amount pres, Amount tmpc, Amount dwpc) {
 
@@ -1482,10 +1443,12 @@ public final class PRLibrary {
         double presVal = pres.doubleValue();
 
         if (presVal <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prThwc: Pressure must be greater than 0 mb");
+            String msg = "Pressure must be greater than 0 mb. Actual value: "
+                    + presVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.CELSIUS);
         }
+
         /* Compute the thte */
         Amount thte = prThte(pres, tmpc, dwpc);
 
@@ -1519,31 +1482,40 @@ public final class PRLibrary {
      * @return the lifted condensation level temperature In Kelvin, if both
      *         input values are valid
      *
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prTlcl(Amount tmpc, Amount dwpc) {
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(dwpc)) {
             return new Amount(SI.KELVIN);
         }
-
-        if (tmpc.doubleValue() < -GempakConstants.TMCK
-                || dwpc.doubleValue() < -GempakConstants.TMCK) {
-            statusHandler.handle(Priority.INFO,
-                    "From prTlcl: Input temperature cannot be less than -273.15");
+        if (tmpc.doubleValue() < -GempakConstants.TMCK) {
+            String msg = "Temperature cannot be less than "
+                    + -GempakConstants.TMCK + ". Actual value: "
+                    + tmpc.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.KELVIN);
         }
+        if (dwpc.doubleValue() < -GempakConstants.TMCK) {
+            String msg = "Dewpoint cannot be less than " + -GempakConstants.TMCK
+                    + ". Actual value: " + dwpc.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
+            return new Amount(SI.KELVIN);
+        }
+
         Amount tmpk = checkAndConvertInputAmountToExpectedUnits(tmpc,
                 SI.KELVIN);
+
         Amount dwpk = checkAndConvertInputAmountToExpectedUnits(dwpc,
                 SI.KELVIN);
+
         double tempVal = tmpk.doubleValue();
+
         double dewpointVal = dwpk.doubleValue();
-        double lclTemp = (800 * (dewpointVal - 56)
-                / (800 + (dewpointVal - 56) * Math.log(tempVal / dewpointVal)))
+
+        double lclTemp = 800 * (dewpointVal - 56)
+                / (800 + (dewpointVal - 56) * Math.log(tempVal / dewpointVal))
                 + 56;
+
         Amount prtlcl = new Amount(lclTemp, SI.KELVIN);
 
         return prtlcl;
@@ -1559,8 +1531,6 @@ public final class PRLibrary {
      * @param thta
      *            - the potential temperature ( in Kelvin )
      * @return the temperature ( in Kelvin )
-     * @throws InvalidRangeException
-     * @throws NullPointerException
      *
      */
     public static final Amount prTmpk(Amount pres, Amount thta) {
@@ -1577,14 +1547,14 @@ public final class PRLibrary {
         double thtaValue = thta.doubleValue();
         if (pressureValue >= 0) {
             double temperature = thtaValue
-                    * (Math.pow(pressureValue / 1000f, GempakConstants.RKAPPA));
+                    * Math.pow(pressureValue / 1000f, GempakConstants.RKAPPA);
             prtmpk = new Amount(temperature, SI.KELVIN);
             return prtmpk;
-        } else {
-            statusHandler.handle(Priority.INFO,
-                    "From prTmpk() - pressure cannot be less than 0 mb");
-            return new Amount(SI.KELVIN);
         }
+        String msg = "Pressure cannot be less than 0 mb. Actual value: "
+                + pressureValue;
+        statusHandler.info(msg, new IllegalArgumentException(msg));
+        return new Amount(SI.KELVIN);
     }
 
     /**
@@ -1609,8 +1579,6 @@ public final class PRLibrary {
      * (without being extreme) and if a convergence is obtained within 100 iterations
      * </pre>
      *
-     * @throws NullPointerException
-     *
      */
     public static final Amount prTmst(Amount thte, Amount pres, Amount tguess) {
         double prtmst = GempakConstants.RMISSD;
@@ -1629,26 +1597,32 @@ public final class PRLibrary {
         double tguessVal = tguess.doubleValue();
 
         if (thteVal <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prTmst(): Potential temperature must be greater than 0");
-            return new Amount(SI.KELVIN);
-        } else if (presVal <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prTmst(): Pressure must be greater than 0");
-            return new Amount(SI.KELVIN);
-        } else if (tguessVal < 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prTmst(): First guess temperature must be greater than or equal to 0");
+            String msg = "Potential temperature must be greater than 0. "
+                    + "Actual value: " + thteVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.KELVIN);
         }
+        if (presVal <= 0) {
+            String msg = "Pressure must be greater than 0. Actual value: "
+                    + presVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
+            return new Amount(SI.KELVIN);
+        }
+        if (tguessVal < 0) {
+            String msg = "First guess temperature must be greater than or "
+                    + "equal to 0. Actual value: " + tguessVal;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
+            return new Amount(SI.KELVIN);
+        }
+
         double tg = tguess.doubleValue();
 
         /* If tguess is passed as 0. it is computed from an MIT scheme */
         if (tg == 0) {
             double diffVar = thte.doubleValue() - 270;
             double mathFormula1 = diffVar > 0 ? diffVar : 0.0;
-            tg = (thte.doubleValue() - .5f * (Math.pow(mathFormula1, 1.05f)))
-                    * (Math.pow(pres.doubleValue() / 1000.0f, 0.2f));
+            tg = (thte.doubleValue() - .5f * Math.pow(mathFormula1, 1.05f))
+                    * Math.pow(pres.doubleValue() / 1000.0f, 0.2f);
         }
 
         /* Set convergence and initial guess in degrees Celsius */
@@ -1667,8 +1641,8 @@ public final class PRLibrary {
             Amount tenu = prThte(pres, tgnuAmount, tgnuAmount);
             Amount tenup = prThte(pres, tgnupAmount, tgnupAmount);
 
-            if ((!checkNullOrInvalidValue(tenu)
-                    || !checkNullOrInvalidValue(tenup))) {
+            if (!checkNullOrInvalidValue(tenu)
+                    || !checkNullOrInvalidValue(tenup)) {
                 return new Amount(SI.KELVIN);
             }
 
@@ -1678,7 +1652,7 @@ public final class PRLibrary {
             double cor = (thteVal - tenuVal) / (tenupVal - tenuVal);
             tgnu += cor;
 
-            if ((cor < epsi) && (-cor < epsi)) {
+            if (cor < epsi && -cor < epsi) {
 
                 /* return on convergence */
                 prtmst = tgnuAmount.getUnit().getConverterTo(SI.KELVIN)
@@ -1711,7 +1685,6 @@ public final class PRLibrary {
      * @param pres
      *            - Pressure (mb)
      * @return Wet bulb temperature (K) if all inputs are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prTmwb(Amount tmpc, Amount rmix, Amount pres) {
@@ -1742,7 +1715,7 @@ public final class PRLibrary {
         }
         /* Compute the specific heat of moist air */
         double rmixVal = rmix.doubleValue() / 1000;
-        double cp = (1005.7 * (1.0 + 0.887 * rmixVal));
+        double cp = 1005.7 * (1.0 + 0.887 * rmixVal);
 
         double rlocp = lvap.doubleValue() / cp;
 
@@ -1762,10 +1735,10 @@ public final class PRLibrary {
             iter++;
             double bt = B * twb;
             double tpc = twb + C;
-            double d = ((presVal / A) * Math.exp((-bt) / tpc));
+            double d = presVal / A * Math.exp(-bt / tpc);
             double dm1 = d - 1;
-            double f = (tmpVal - twb) - rlocp * (EPSI / dm1 - rmixVal);
-            double df = (-G) / (tpc * tpc);
+            double f = tmpVal - twb - rlocp * (EPSI / dm1 - rmixVal);
+            double df = -G / (tpc * tpc);
             df = d * df * rlocp * EPSI / (dm1 * dm1) - 1;
             double cor = f / df;
             twb = twb - cor;
@@ -1799,7 +1772,6 @@ public final class PRLibrary {
      * @param pres
      *            - Pressure ( in mb )
      * @return the virtual temperature ( in Kelvin )
-     * @throws NullPointerException
      *
      */
     public static final Amount prTvrk(Amount tmpc, Amount dwpc, Amount pres) {
@@ -1810,30 +1782,29 @@ public final class PRLibrary {
         }
 
         /* If dewpoint is missing, return temperature */
-
         if (!checkNullOrInvalidValue(dwpc)) {
             return checkAndConvertInputAmountToExpectedUnits(tmpc, SI.KELVIN);
-        } else {
-            /* Change temperature to Kelvin. */
-            Amount tmpk = checkAndConvertInputAmountToExpectedUnits(tmpc,
-                    SI.KELVIN);
-
-            /* Find mixing ratio in g/kg; if missing, return temperature */
-            Amount rmix = prMixr(dwpc, pres);
-
-            double virtualTemp;
-            if (rmix.doubleValue() == GempakConstants.RMISSD) {
-                virtualTemp = tmpc.getUnit().getConverterTo(SI.KELVIN)
-                        .convert(tmpc.doubleValue());
-            } else {
-                double mixingRatioVal = rmix.doubleValue();
-                double temp = tmpk.doubleValue();
-                virtualTemp = temp * (1 + 0.001 * mixingRatioVal / 0.62197)
-                        / (1 + 0.001 * mixingRatioVal);
-
-            }
-            prtvrk = new Amount(virtualTemp, SI.KELVIN);
         }
+
+        /* Change temperature to Kelvin. */
+        Amount tmpk = checkAndConvertInputAmountToExpectedUnits(tmpc,
+                SI.KELVIN);
+
+        /* Find mixing ratio in g/kg; if missing, return temperature */
+        Amount rmix = prMixr(dwpc, pres);
+
+        double virtualTemp;
+        if (rmix.doubleValue() == GempakConstants.RMISSD) {
+            virtualTemp = tmpc.getUnit().getConverterTo(SI.KELVIN)
+                    .convert(tmpc.doubleValue());
+        } else {
+            double mixingRatioVal = rmix.doubleValue();
+            double temp = tmpk.doubleValue();
+            virtualTemp = temp * (1 + 0.001 * mixingRatioVal / 0.62197)
+                    / (1 + 0.001 * mixingRatioVal);
+
+        }
+        prtvrk = new Amount(virtualTemp, SI.KELVIN);
         return prtvrk;
     }
 
@@ -1845,7 +1816,6 @@ public final class PRLibrary {
      * @param drct
      *            - wind direction
      * @return The 'U' component of the wind if both inputs are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prUwnd(Amount sped, Amount drct) {
@@ -1855,8 +1825,8 @@ public final class PRLibrary {
         }
         drct = checkAndConvertInputAmountToExpectedUnits(drct,
                 NonSI.DEGREE_ANGLE);
-        double pruwnd = ((-Math.sin(drct.doubleValue() * GempakConstants.DTR))
-                * sped.doubleValue());
+        double pruwnd = -Math.sin(drct.doubleValue() * GempakConstants.DTR)
+                * sped.doubleValue();
         // TODO :verify the units
         return new Amount(pruwnd, sped.getUnit());
     }
@@ -1869,7 +1839,6 @@ public final class PRLibrary {
      * @param drct
      *            - wind direction
      * @return The 'V' component of the wind if both inputs are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prVwnd(Amount sped, Amount drct) {
@@ -1879,8 +1848,8 @@ public final class PRLibrary {
         }
         drct = checkAndConvertInputAmountToExpectedUnits(drct,
                 NonSI.DEGREE_ANGLE);
-        double prvwnd = ((-Math.cos(drct.doubleValue() * GempakConstants.DTR))
-                * sped.doubleValue());
+        double prvwnd = -Math.cos(drct.doubleValue() * GempakConstants.DTR)
+                * sped.doubleValue();
         // TODO :verify the units
         return new Amount(prvwnd, sped.getUnit());
     }
@@ -1894,7 +1863,6 @@ public final class PRLibrary {
      *            - the dewpoint temperature ( in Celsius )
      * @return the vapor pressure ( in mb) from the dewpoint temperature if it
      *         is valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prVapr(Amount dwpc) {
@@ -1905,14 +1873,15 @@ public final class PRLibrary {
         dwpc = checkAndConvertInputAmountToExpectedUnits(dwpc, SI.CELSIUS);
         double dewpointValue = dwpc.doubleValue();
         if (dewpointValue >= -240.0f) {
-            return (new Amount((6.112 * (Math
-                    .exp((17.67 * dewpointValue) / (dewpointValue + 243.5)))),
-                    NcUnits.MILLIBAR));
-        } else {
-            statusHandler.handle(Priority.INFO,
-                    "From prVapr() - dewpoint cannot be less than -240 ");
-            return new Amount(NcUnits.MILLIBAR);
+            return new Amount(
+                    6.112 * Math.exp(
+                            17.67 * dewpointValue / (dewpointValue + 243.5)),
+                    NcUnits.MILLIBAR);
         }
+        String msg = "Dewpoint cannot be less than -240. Actual value: "
+                + dewpointValue;
+        statusHandler.info(msg, new IllegalArgumentException(msg));
+        return new Amount(NcUnits.MILLIBAR);
     }
 
     /**
@@ -1926,7 +1895,6 @@ public final class PRLibrary {
      *            - Wind speed ( in knots )
      * @return the wind chill equivalent temperature ( in Farenheit ), if the
      *         inputs are valid
-     * @throws NullPointerException
      *
      */
     public static final Amount prWceq(Amount tmpf, Amount sknt) {
@@ -1959,14 +1927,14 @@ public final class PRLibrary {
              * Dec 1968.
              */
             if (sped.getUnit() == SI.METERS_PER_SECOND) {
-                float windChill = (float) (33.0 - ((33.0 - tmpc.doubleValue())
-                        * wci(sped.doubleValue()) / wci(1.34f)));
+                float windChill = (float) (33.0 - (33.0 - tmpc.doubleValue())
+                        * wci(sped.doubleValue()) / wci(1.34f));
                 prwceq = tmpc.getUnit().getConverterTo(NonSI.FAHRENHEIT)
                         .convert(windChill);
             }
         }
 
-        return (new Amount(prwceq, NonSI.FAHRENHEIT));
+        return new Amount(prwceq, NonSI.FAHRENHEIT);
     }
 
     /**
@@ -1979,7 +1947,6 @@ public final class PRLibrary {
      *            - Wind speed ( in knots )
      * @return the wind chill temperature ( in Farenheit ) if none of the inputs
      *         are missing
-     * @throws NullPointerException
      *
      */
     public static final Amount prWcht(Amount tmpf, Amount sknt) {
@@ -2012,9 +1979,9 @@ public final class PRLibrary {
             float wcht = (float) (35.74 + 0.6215 * tmpfVal
                     - 35.75 * Math.pow(smphVal, 0.16)
                     + 0.4275 * tmpfVal * Math.pow(smphVal, 0.16));
-            prwrcht = (wcht > tmpfVal ? tmpfVal : wcht);
+            prwrcht = wcht > tmpfVal ? tmpfVal : wcht;
         }
-        return (new Amount(prwrcht, NonSI.FAHRENHEIT));
+        return new Amount(prwrcht, NonSI.FAHRENHEIT);
     }
 
     /**
@@ -2029,7 +1996,6 @@ public final class PRLibrary {
      *            - the direction of the desired component
      * @return the component of the wind (in m/s) if none of the input
      *         parameters are missing
-     * @throws NullPointerException
      *
      */
     public static final Amount prWcmp(Amount drct, Amount sped, Amount dcmp) {
@@ -2048,8 +2014,8 @@ public final class PRLibrary {
 
         /* Calculate wind speed toward specified direction */
         double prwcmp = sped.doubleValue()
-                * (-Math.cos((drct.doubleValue() - dcmp.doubleValue())
-                        * GempakConstants.DTR));
+                * -Math.cos((drct.doubleValue() - dcmp.doubleValue())
+                        * GempakConstants.DTR);
 
         return new Amount(prwcmp, SI.METERS_PER_SECOND);
     }
@@ -2068,9 +2034,6 @@ public final class PRLibrary {
      * @return a component of the wind in m/s if the input wind speed and
      *         direction are valid and if the specified wind direction is
      *         between 0 degrees and 360 degrees.
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prWnml(Amount drct, Amount sped, Amount dcmp) {
 
@@ -2085,16 +2048,18 @@ public final class PRLibrary {
                 NonSI.DEGREE_ANGLE);
         sped = checkAndConvertInputAmountToExpectedUnits(sped,
                 SI.METERS_PER_SECOND);
-        if ((dcmp.doubleValue() < 0) && (dcmp.doubleValue() > 360)) {
-            statusHandler.handle(Priority.INFO,
-                    "From prWnml - the wind direction 'dcmp'  mus be greater than or equal to 0 and less than or equal to 360");
+        if (dcmp.doubleValue() < 0 && dcmp.doubleValue() > 360) {
+            String msg = "The wind direction 'dcmp'  must be greater "
+                    + "than or equal to 0 and less than or equal to 360. "
+                    + "Actual value: " + dcmp.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.METERS_PER_SECOND);
         }
         /* Calculate wind speed 90 degrees to left of given direction. */
         double prwnml = (float) (sped.doubleValue()
-                * (-Math.cos((drct.doubleValue() - dcmp.doubleValue() - 90)
-                        * GempakConstants.DTR)));
-        return (new Amount(prwnml, SI.METERS_PER_SECOND));
+                * -Math.cos((drct.doubleValue() - dcmp.doubleValue() - 90)
+                        * GempakConstants.DTR));
+        return new Amount(prwnml, SI.METERS_PER_SECOND);
     }
 
     /**
@@ -2106,7 +2071,6 @@ public final class PRLibrary {
      * @param txvf
      *            - Temporary / probability categorical id of flight rules
      * @return The worst case categorical id of flight rules
-     * @throws NullPointerException
      *
      */
     public static final Amount prWxvf(Amount xvfr, Amount txvf) {
@@ -2119,7 +2083,7 @@ public final class PRLibrary {
 
             if (txvfVal != GempakConstants.RMISSD
                     && xvfrVal != GempakConstants.RMISSD) {
-                prwxvf = (xvfrVal < txvfVal ? xvfrVal : txvfVal);
+                prwxvf = xvfrVal < txvfVal ? xvfrVal : txvfVal;
             } else if (xvfrVal == GempakConstants.RMISSD
                     && txvfVal != GempakConstants.RMISSD) {
                 prwxvf = xvfrVal;
@@ -2129,7 +2093,7 @@ public final class PRLibrary {
             }
         }
 
-        return (new Amount(prwxvf, Unit.ONE));
+        return new Amount(prwxvf, Unit.ONE);
     }
 
     /**
@@ -2143,8 +2107,6 @@ public final class PRLibrary {
      *     2 - MVFR
      *     3 - VFR
      * </pre>
-     *
-     * @throws NullPointerException
      *
      */
     public static final Amount prXvfr(Amount ceil, Amount vsby) {
@@ -2177,8 +2139,8 @@ public final class PRLibrary {
             vc = 1;
         } else if (ceilVal <= 30) {
             vc = 2;
-        } else if ((vsbyVal > 5) || (vsbyVal < 0)
-                || (vsbyVal == GempakConstants.RMISSD)) {
+        } else if (vsbyVal > 5 || vsbyVal < 0
+                || vsbyVal == GempakConstants.RMISSD) {
             prxvfr = 3;
         }
 
@@ -2203,10 +2165,10 @@ public final class PRLibrary {
         } else if (vs == GempakConstants.RMISSD) {
             prxvfr = vc;
         } else {
-            prxvfr = (vc < vs ? vc : vs);
+            prxvfr = vc < vs ? vc : vs;
         }
 
-        return (new Amount(prxvfr, Unit.ONE));
+        return new Amount(prxvfr, Unit.ONE);
 
     }
 
@@ -2223,9 +2185,6 @@ public final class PRLibrary {
      *            - Pressure in millibars
      * @return the height ( in meters ) if neither input value is missing and
      *         both input values are greater than zero.
-     * @throws NullPointerException
-     *
-     * @throws InvalidRangeException
      */
     public static final Amount prZalt(Amount altm, Amount pres) {
 
@@ -2237,25 +2196,29 @@ public final class PRLibrary {
                 NcUnits.MILLIBAR);
         altm = checkAndConvertInputAmountToExpectedUnits(altm,
                 NcUnits.MILLIBAR);
+
         if (altm.doubleValue() <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prZalt:  altm must be greater than 0 mb");
+            String msg = "Altimeter must be greater than 0 mb. Actual value: "
+                    + altm.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.METER);
         }
         if (pres.doubleValue() <= 0) {
-            statusHandler.handle(Priority.INFO,
-                    "From prZalt:  pres must be greater than 0 mb");
+            String msg = "Pressure must be greater than 0 mb. Actual value: "
+                    + pres.doubleValue();
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return new Amount(SI.METER);
         }
+
         double to = GempakConstants.TMCK + 15;
         double gamma = GempakConstants.GAMUSD / 1000;
 
         /* Calculate the exponent and pressure ratio. */
-        double expo = (gamma * GempakConstants.RDGAS) / GempakConstants.GRAVTY;
+        double expo = gamma * GempakConstants.RDGAS / GempakConstants.GRAVTY;
         double prat = pres.doubleValue() / altm.doubleValue();
-        double przalt = (to * (1 - Math.pow(prat, expo))) / gamma;
+        double przalt = to * (1 - Math.pow(prat, expo)) / gamma;
 
-        return (new Amount(przalt, SI.METER));
+        return new Amount(przalt, SI.METER);
     }
 
     /**
@@ -2272,7 +2235,7 @@ public final class PRLibrary {
          * from R. Falconer, "Windchill, A Useful Wintertime Weather Variable",
          * Weatherwise, Dec 1968.
          */
-        return (10 * Math.sqrt(d) + 10.45 - d);
+        return 10 * Math.sqrt(d) + 10.45 - d;
 
     }
 
@@ -2296,20 +2259,17 @@ public final class PRLibrary {
             return false;
         }
         double amountValue = amountToCheck.doubleValue();
-        try {
-            if (amountValue == GempakConstants.RMISSD) {
-                throw new IllegalArgumentException(
-                        "Input amount cannot be " + GempakConstants.RMISSD);
-            } else if (Double.isNaN(amountValue)) {
-                throw new IllegalArgumentException(
-                        "Input amount cannot be NaN");
-            } else {
-                return true;
-            }
-        } catch (IllegalArgumentException e) {
-            statusHandler.warn(e.getLocalizedMessage(), e);
+        if (amountValue == GempakConstants.RMISSD) {
+            String msg = "Input amount cannot be " + GempakConstants.RMISSD;
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return false;
         }
+        if (Double.isNaN(amountValue)) {
+            String msg = "Input amount cannot be NaN";
+            statusHandler.info(msg, new IllegalArgumentException(msg));
+            return false;
+        }
+        return true;
     }
 
     public static final class InvalidValueException extends Exception {
@@ -2340,8 +2300,6 @@ public final class PRLibrary {
      *            - Parcel temperature in Kelvin
      * @return Pressure in millibars
      *
-     * @throws NullPointerException
-     * @throws InvalidRangeException
      */
 
     public static Amount prPmst(Amount thte, Amount tmpk) {
@@ -2385,8 +2343,8 @@ public final class PRLibrary {
                     / (teup.getValueAs(SI.KELVIN).doubleValue()
                             - tedn.getValueAs(SI.KELVIN).doubleValue());
 
-            double pgdnVal = (pgdn.getValueAs(NcUnits.MILLIBAR).doubleValue()
-                    + cor);
+            double pgdnVal = pgdn.getValueAs(NcUnits.MILLIBAR).doubleValue()
+                    + cor;
             pgdn = new Amount(pgdnVal, NcUnits.MILLIBAR);
             if (Math.abs(cor) < epsi) {
                 prpmst = new Amount(pgdnVal, NcUnits.MILLIBAR);
@@ -2411,12 +2369,20 @@ public final class PRLibrary {
      *            d
      * @param WindSpeed
      *            s
-     * @return PKNT or PSPD as an amount
+     * @return PKNT or PSPD as an amount, or null if either of the input
+     *         parameters is invalid
      */
     public static Amount prPWSAD(Amount winddirection, Amount windspeed) {
-
-        if (!winddirection.hasValidValue() || !windspeed.hasValidValue()) {
-            statusHandler.debug("Exiting prPKNT due to invalid arguments.");
+        if (!winddirection.hasValidValue()) {
+            String msg = "Wind direction is invalid. Actual value: "
+                    + Objects.toString(winddirection.getValue());
+            statusHandler.info(msg, new IllegalArgumentException(msg));
+            return null;
+        }
+        if (!windspeed.hasValidValue()) {
+            String msg = "Wind speed is invalid. Actual value: "
+                    + Objects.toString(windspeed.getValue());
+            statusHandler.info(msg, new IllegalArgumentException(msg));
             return null;
         }
 

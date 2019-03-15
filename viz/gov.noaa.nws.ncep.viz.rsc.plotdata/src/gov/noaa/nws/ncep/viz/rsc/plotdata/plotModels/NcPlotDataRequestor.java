@@ -14,7 +14,8 @@ import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -95,6 +96,7 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
  *                                        Cleanup.
  * 03/05/2017   18784        wkwock       Handle not integer stationNum(stationID in DB)
  * Mar 14, 2019 7581         tgurney      Improved error logging and cleanup
+ * Mar 18, 2019 7581         tgurney      Fix locking issue
  *
  * </pre>
  */
@@ -167,7 +169,7 @@ public class NcPlotDataRequestor {
 
     private Set<String> condDerivedMetParamNames = null;
 
-    private Semaphore sem1 = new Semaphore(1);
+    private Lock lock = new ReentrantLock();
 
     private ConditionalFilter conditionalFilter = null;
 
@@ -1474,34 +1476,37 @@ public class NcPlotDataRequestor {
                 if (pdc == null) {
                     if (!stationIdToDataTimeMap.isEmpty()) {
 
-                        sem1.acquireUninterruptibly();
-
-                        Tracer.print(
-                                "About to call PointDataRequest.requestPointDataAllLevels(...) for frame: "
-                                        + Tracer.shortTimeString(time)
-                                        + "datastore query map = " + map
-                                        + " Plugin " + this.plugin
-                                        + " Parameters "
-                                        + this.namesOfParametersToQuery
-                                        + " Stations "
-                                        + stationIdToDataTimeMap.keySet()
-                                                .toArray(new String[0]));
-                        pdc = PointDataRequest.requestPointDataAllLevels(
-                                this.plugin, this.namesOfParametersToQuery,
-                                stationIdToDataTimeMap.keySet()
-                                        .toArray(new String[0]),
-                                map);
-                        Tracer.print(
-                                "Done with call PointDataRequest.requestPointDataAllLevels(...) for frame: "
-                                        + Tracer.shortTimeString(time)
-                                        + "datastore query map = " + map
-                                        + " Plugin " + this.plugin
-                                        + " Parameters "
-                                        + this.namesOfParametersToQuery
-                                        + " Stations "
-                                        + stationIdToDataTimeMap.keySet()
-                                                .toArray(new String[0]));
-                        sem1.release();
+                        lock.lock();
+                        try {
+                            Tracer.print(
+                                    "About to call PointDataRequest.requestPointDataAllLevels(...) for frame: "
+                                            + Tracer.shortTimeString(time)
+                                            + "datastore query map = " + map
+                                            + " Plugin " + this.plugin
+                                            + " Parameters "
+                                            + this.namesOfParametersToQuery
+                                            + " Stations "
+                                            + stationIdToDataTimeMap.keySet()
+                                                    .toArray(new String[0]));
+                            pdc = PointDataRequest
+                                    .requestPointDataAllLevels(this.plugin,
+                                            this.namesOfParametersToQuery,
+                                            stationIdToDataTimeMap.keySet()
+                                                    .toArray(new String[0]),
+                                            map);
+                            Tracer.print(
+                                    "Done with call PointDataRequest.requestPointDataAllLevels(...) for frame: "
+                                            + Tracer.shortTimeString(time)
+                                            + "datastore query map = " + map
+                                            + " Plugin " + this.plugin
+                                            + " Parameters "
+                                            + this.namesOfParametersToQuery
+                                            + " Stations "
+                                            + stationIdToDataTimeMap.keySet()
+                                                    .toArray(new String[0]));
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
 
@@ -1549,380 +1554,402 @@ public class NcPlotDataRequestor {
                 // better either by a synchronize on the map, or remove
                 // dependency on the shared storage by instead using temporary
                 // storage in local or thread-local variables.
-                sem1.acquireUninterruptibly();
+                lock.lock();
+                try {
+                    for (int uriCounter = 0; uriCounter < pdcSize; uriCounter++) {
 
-                for (int uriCounter = 0; uriCounter < pdcSize; uriCounter++) {
+                        PointDataView pdv = pdc.readRandom(uriCounter);
 
-                    PointDataView pdv = pdc.readRandom(uriCounter);
+                        if (pdv == null) {
+                            Tracer.print(Tracer.shortTimeString(time)
+                                    + " PDV is null for station " + uriCounter
+                                    + " -- skipping");
+                            continue;
+                        }
 
-                    if (pdv == null) {
-                        Tracer.print(Tracer.shortTimeString(time)
-                                + " PDV is null for station " + uriCounter
-                                + " -- skipping");
-                        continue;
-                    }
+                        //
+                        // 3. Get lat/lon from PDV, use as key to stationMap,
+                        // get
+                        // Station, sanity check
+                        //
 
-                    //
-                    // 3. Get lat/lon from PDV, use as key to stationMap, get
-                    // Station, sanity check
-                    //
+                        String key = new String(
+                                formatLatLonKey(pdv.getFloat(LAT_DB_NAME_LABEL),
+                                        pdv.getFloat(LON_DB_NAME_LABEL)));
 
-                    String key = new String(
-                            formatLatLonKey(pdv.getFloat(LAT_DB_NAME_LABEL),
-                                    pdv.getFloat(LON_DB_NAME_LABEL)));
+                        Station currentStation = stationMap.get(key);
+                        if (currentStation == null) {
+                            Tracer.print(Tracer.shortTimeString(time) + " "
+                                    + " stationMap entry not found for key "
+                                    + key + " -- skipping");
+                            continue;
+                        }
 
-                    Station currentStation = stationMap.get(key);
-                    if (currentStation == null) {
-                        Tracer.print(Tracer.shortTimeString(time) + " "
-                                + " stationMap entry not found for key " + key
-                                + " -- skipping");
-                        continue;
-                    }
+                        String stationId = currentStation.info.stationId;
 
-                    String stationId = currentStation.info.stationId;
+                        DataTime dataTime = stationIdToDataTimeMap
+                                .get(stationId);
 
-                    DataTime dataTime = stationIdToDataTimeMap.get(stationId);
+                        // Caution: Single-element constructor; assumes this is
+                        // an
+                        // observation time, and not a forecast time. See below.
+                        DataTime retrievedDataTime = new DataTime(
+                                new Date(pdv.getLong(REFTIME_DB_NAME_LABEL)));
 
-                    // Caution: Single-element constructor; assumes this is an
-                    // observation time, and not a forecast time. See below.
-                    DataTime retrievedDataTime = new DataTime(
-                            new Date(pdv.getLong(REFTIME_DB_NAME_LABEL)));
+                        // Since the constraints we use (if
+                        // plotProp.hasDistinctStationId) are "stationID" IN
+                        // list-of-all-stationIDs -AND- dataTime IN
+                        // list-of-all-dataTimes, a station could be retrieved
+                        // for more data times than its unique time-matched time
+                        // (for this frame) -- IF it happens to share another
+                        // data
+                        // time with another station legitimately time-matched
+                        // to
+                        // that other time. Here we check to make sure the time
+                        // we retrieved is the one we wanted for this station;
+                        // if not, ignore this obs. (An obs with the desired
+                        // time should appear elsewhere in the PDC).
+                        // Note that we exempt forecast (e.g., MOS) data times
+                        // from this check, since we don't retrieve forecast
+                        // hour from the DB for retrievedDataTime -- see above.
+                        if (!dataTime.getUtilityFlags().contains(FLAG.FCST_USED)
+                                && !dataTime.equals(retrievedDataTime)) {
+                            Tracer.print(Tracer.shortTimeString(time)
+                                    + " Retrieved dataTime for station "
+                                    + stationId + " is " + retrievedDataTime
+                                    + " but matched dataTime is " + dataTime
+                                    + " -- skipping");
+                            continue;
+                        }
 
-                    // Since the constraints we use (if
-                    // plotProp.hasDistinctStationId) are "stationID" IN
-                    // list-of-all-stationIDs -AND- dataTime IN
-                    // list-of-all-dataTimes, a station could be retrieved
-                    // for more data times than its unique time-matched time
-                    // (for this frame) -- IF it happens to share another data
-                    // time with another station legitimately time-matched to
-                    // that other time. Here we check to make sure the time
-                    // we retrieved is the one we wanted for this station;
-                    // if not, ignore this obs. (An obs with the desired
-                    // time should appear elsewhere in the PDC).
-                    // Note that we exempt forecast (e.g., MOS) data times
-                    // from this check, since we don't retrieve forecast
-                    // hour from the DB for retrievedDataTime -- see above.
-                    if (!dataTime.getUtilityFlags().contains(FLAG.FCST_USED)
-                            && !dataTime.equals(retrievedDataTime)) {
-                        Tracer.print(Tracer.shortTimeString(time)
-                                + " Retrieved dataTime for station " + stationId
-                                + " is " + retrievedDataTime
-                                + " but matched dataTime is " + dataTime
-                                + " -- skipping");
-                        continue;
-                    }
+                        //
+                        // 4. For each parameter to plot, get AMP object, insert
+                        // as
+                        // target of parametersToPlot map entry
+                        //
 
-                    //
-                    // 4. For each parameter to plot, get AMP object, insert as
-                    // target of parametersToPlot map entry
-                    //
-
-                    synchronized (parametersToPlot) {
-                        Set<String> pkeySet = parametersToPlot.keySet();
-                        synchronized (pkeySet) {
-                            try {
-                                for (String prmToPlotKey : pkeySet) {
-                                    AbstractMetParameter prmToPlot = parametersToPlot
-                                            .get(prmToPlotKey);
-                                    if (prmToPlot != null) {
-                                        prmToPlot.setValueToMissing();
-                                    } else {
-                                        // Tracer... prmToPlot==null
+                        synchronized (parametersToPlot) {
+                            Set<String> pkeySet = parametersToPlot.keySet();
+                            synchronized (pkeySet) {
+                                try {
+                                    for (String prmToPlotKey : pkeySet) {
+                                        AbstractMetParameter prmToPlot = parametersToPlot
+                                                .get(prmToPlotKey);
+                                        if (prmToPlot != null) {
+                                            prmToPlot.setValueToMissing();
+                                        } else {
+                                            // Tracer... prmToPlot==null
+                                        }
                                     }
+                                } catch (Exception e) {
+                                    statusHandler.warn(e.getLocalizedMessage(),
+                                            e);
                                 }
-                            } catch (Exception e) {
-                                statusHandler.warn(e.getLocalizedMessage(), e);
                             }
                         }
-                    }
-                    List<Boolean> displayStationPlotBoolList = new ArrayList<>(
-                            0);
+                        List<Boolean> displayStationPlotBoolList = new ArrayList<>(
+                                0);
 
-                    //
-                    // 5. For each String in dbParamNamesForQuery...
-                    // - set met param from PDV
-                    // - put in parametersToPlot and dbParametersMap
-                    // - add boolean to displayStationPlotBoolList
-                    //
+                        //
+                        // 5. For each String in dbParamNamesForQuery...
+                        // - set met param from PDV
+                        // - put in parametersToPlot and dbParametersMap
+                        // - add boolean to displayStationPlotBoolList
+                        //
 
-                    synchronized (dbParamNamesForQuery) {
+                        synchronized (dbParamNamesForQuery) {
 
-                        for (String dbPrm : dbParamNamesForQuery) {
-                            AbstractMetParameter metPrm = dbParamToMetParamMap
-                                    .get(dbPrm);
-                            if (metPrm == null) {
-                                continue;
-                            }
-
-                            // get the fillValue from the parameterDescription
-                            // and use it to set the missingValue
-                            // Sentinel for the metParameter
-                            try {
-                                ParameterDescription pDesc = pdc
-                                        .getDescription(dbPrm);
-                                if (pDesc != null) {
-                                    if (pdv.getType(dbPrm) == null) {
-                                        continue;
-                                    }
-                                    if (pDesc.getFillValue() == null) {
-                                        statusHandler.info(
-                                                "Sanity Check: ParameterDescription fill Value is null");
-                                        statusHandler.info(
-                                                "Update the DataStoreFactory.py and H5pyDataStore.py files");
-                                        continue;
-                                    }
-                                    switch (pdv.getType(dbPrm)) {
-                                    case FLOAT:
-                                        metPrm.setMissingDataSentinel(pDesc
-                                                .getFillValue().floatValue());
-                                        break;
-                                    case LONG:
-                                        metPrm.setMissingDataSentinel(pDesc
-                                                .getFillValue().longValue());
-                                        break;
-                                    case INT:
-                                        metPrm.setMissingDataSentinel(pDesc
-                                                .getFillValue().intValue());
-                                        break;
-                                    case STRING:
-                                        break;
-                                    default:
-                                        break;
-                                    }
-                                }
-                            } catch (Exception e) {
-                                Tracer.print("param " + dbPrm + " not found.");
-                                statusHandler.warn(e.getLocalizedMessage(), e);
-                            }
-
-                            /*
-                             * Set the value for Met parameters from the
-                             * corresponding database value
-                             */
-                            setMetParamFromPDV(metPrm, pdv, dbPrm, dataTime);
-
-                            if (parametersToPlot
-                                    .containsKey(metPrm.getMetParamName())) {
-                                parametersToPlot.put(metPrm.getMetParamName(),
-                                        metPrm);
-                            }
-
-                            dbParamToMetParamMap.put(dbPrm, metPrm);
-
-                            if (condFilterMap != null
-                                    && !condFilterMap.isEmpty()) {
-                                displayStationPlotBoolList
-                                        .add(doesStationPassTheFilterForThisMetParam(
-                                                metPrm));
-                            }
-
-                        }
-                    }
-
-                    //
-                    // 6. Handle derived parameters
-                    //
-
-                    List<AbstractMetParameter> metParamsToDisplay;
-
-                    /*
-                     * If the raw report contains temperature or dewpoint in
-                     * tenths (separate field in hdf5) change the value of the
-                     * temperature and/or dewpoint met parameters to contain the
-                     * value in tenths instead of less granular integer value
-                     * given.
-                     */
-                    validateAndAddParam(DEWPOINT_FROM_TENTHS_LABEL,
-                            DEWPOINT_LABEL);
-                    validateAndAddParam(TEMPERATURE_FROM_TENTHS_LABEL,
-                            TEMPERATURE_LABEL);
-
-                    Collection<AbstractMetParameter> collectionOfMetParamsWithDBValues = dbParamToMetParamMap
-                            .values();
-
-                    synchronized (derivedParameters) {
-                        for (AbstractMetParameter derivedParam : derivedParameters) {
-                            try {
-                                synchronized (collectionOfMetParamsWithDBValues) {
-                                    derivedParam.derive(
-                                            collectionOfMetParamsWithDBValues);
-                                }
-                                AbstractMetParameter clonedDerivedPrm = newInstance(
-                                        derivedParam);
-                                if (clonedDerivedPrm == null) {
-                                    Tracer.print(Tracer.shortTimeString(time)
-                                            + " "
-                                            + Tracer.shortTimeString(dataTime)
-                                            + " clonedDerivedPrm NULL "
-                                            + currentStation.info.stationId
-                                            + " " + derivedParam
-                                            + " -- skipping");
+                            for (String dbPrm : dbParamNamesForQuery) {
+                                AbstractMetParameter metPrm = dbParamToMetParamMap
+                                        .get(dbPrm);
+                                if (metPrm == null) {
                                     continue;
                                 }
-                                clonedDerivedPrm.setValidTime(dataTime);
-                                currentStation.parametersToPlot
-                                        .add(clonedDerivedPrm);
-                                allMetParamsMap.put(
-                                        clonedDerivedPrm.getMetParamName(),
-                                        clonedDerivedPrm);
-                                // Save the derived parameter so it gets painted
+
+                                // get the fillValue from the
+                                // parameterDescription
+                                // and use it to set the missingValue
+                                // Sentinel for the metParameter
+                                try {
+                                    ParameterDescription pDesc = pdc
+                                            .getDescription(dbPrm);
+                                    if (pDesc != null) {
+                                        if (pdv.getType(dbPrm) == null) {
+                                            continue;
+                                        }
+                                        if (pDesc.getFillValue() == null) {
+                                            statusHandler.info(
+                                                    "Sanity Check: ParameterDescription fill Value is null");
+                                            statusHandler.info(
+                                                    "Update the DataStoreFactory.py and H5pyDataStore.py files");
+                                            continue;
+                                        }
+                                        switch (pdv.getType(dbPrm)) {
+                                        case FLOAT:
+                                            metPrm.setMissingDataSentinel(
+                                                    pDesc.getFillValue()
+                                                            .floatValue());
+                                            break;
+                                        case LONG:
+                                            metPrm.setMissingDataSentinel(
+                                                    pDesc.getFillValue()
+                                                            .longValue());
+                                            break;
+                                        case INT:
+                                            metPrm.setMissingDataSentinel(pDesc
+                                                    .getFillValue().intValue());
+                                            break;
+                                        case STRING:
+                                            break;
+                                        default:
+                                            break;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    Tracer.print(
+                                            "param " + dbPrm + " not found.");
+                                    statusHandler.warn(e.getLocalizedMessage(),
+                                            e);
+                                }
+
+                                /*
+                                 * Set the value for Met parameters from the
+                                 * corresponding database value
+                                 */
+                                setMetParamFromPDV(metPrm, pdv, dbPrm,
+                                        dataTime);
+
                                 if (parametersToPlot.containsKey(
-                                        clonedDerivedPrm.getMetParamName())) {
+                                        metPrm.getMetParamName())) {
                                     parametersToPlot.put(
+                                            metPrm.getMetParamName(), metPrm);
+                                }
+
+                                dbParamToMetParamMap.put(dbPrm, metPrm);
+
+                                if (condFilterMap != null
+                                        && !condFilterMap.isEmpty()) {
+                                    displayStationPlotBoolList
+                                            .add(doesStationPassTheFilterForThisMetParam(
+                                                    metPrm));
+                                }
+
+                            }
+                        }
+
+                        //
+                        // 6. Handle derived parameters
+                        //
+
+                        List<AbstractMetParameter> metParamsToDisplay;
+
+                        /*
+                         * If the raw report contains temperature or dewpoint in
+                         * tenths (separate field in hdf5) change the value of
+                         * the temperature and/or dewpoint met parameters to
+                         * contain the value in tenths instead of less granular
+                         * integer value given.
+                         */
+                        validateAndAddParam(DEWPOINT_FROM_TENTHS_LABEL,
+                                DEWPOINT_LABEL);
+                        validateAndAddParam(TEMPERATURE_FROM_TENTHS_LABEL,
+                                TEMPERATURE_LABEL);
+
+                        Collection<AbstractMetParameter> collectionOfMetParamsWithDBValues = dbParamToMetParamMap
+                                .values();
+
+                        synchronized (derivedParameters) {
+                            for (AbstractMetParameter derivedParam : derivedParameters) {
+                                try {
+                                    synchronized (collectionOfMetParamsWithDBValues) {
+                                        derivedParam.derive(
+                                                collectionOfMetParamsWithDBValues);
+                                    }
+                                    AbstractMetParameter clonedDerivedPrm = newInstance(
+                                            derivedParam);
+                                    if (clonedDerivedPrm == null) {
+                                        Tracer.print(
+                                                Tracer.shortTimeString(time)
+                                                        + " "
+                                                        + Tracer.shortTimeString(
+                                                                dataTime)
+                                                        + " clonedDerivedPrm NULL "
+                                                        + currentStation.info.stationId
+                                                        + " " + derivedParam
+                                                        + " -- skipping");
+                                        continue;
+                                    }
+                                    clonedDerivedPrm.setValidTime(dataTime);
+                                    currentStation.parametersToPlot
+                                            .add(clonedDerivedPrm);
+                                    allMetParamsMap.put(
                                             clonedDerivedPrm.getMetParamName(),
                                             clonedDerivedPrm);
+                                    // Save the derived parameter so it gets
+                                    // painted
+                                    if (parametersToPlot
+                                            .containsKey(clonedDerivedPrm
+                                                    .getMetParamName())) {
+                                        parametersToPlot.put(
+                                                clonedDerivedPrm
+                                                        .getMetParamName(),
+                                                clonedDerivedPrm);
+                                    }
+                                } catch (NotDerivableException e) {
+                                    statusHandler.warn(e.getLocalizedMessage(),
+                                            e);
                                 }
-                            } catch (NotDerivableException e) {
-                                statusHandler.warn(e.getLocalizedMessage(), e);
+                                // end for derivedParam loop
                             }
-                            // end for derivedParam loop
                         }
-                    }
 
-                    /*
-                     * 7. Validate the station against a conditional derived
-                     * MetParameter
-                     *
-                     * foreach cond met param in condDerivedMetParams foreach
-                     * AMP in derivedParameters
-                     */
-                    if (condFilterMap != null && !condFilterMap.isEmpty()) {
-                        for (String condMetParamName : condDerivedMetParamNames) {
-                            synchronized (derivedParameters) {
-                                for (AbstractMetParameter condDerivedParamToCheck : derivedParameters) {
-                                    if (condDerivedParamToCheck
-                                            .getMetParamName()
-                                            .equals(condMetParamName)) {
+                        /*
+                         * 7. Validate the station against a conditional derived
+                         * MetParameter
+                         *
+                         * foreach cond met param in condDerivedMetParams
+                         * foreach AMP in derivedParameters
+                         */
+                        if (condFilterMap != null && !condFilterMap.isEmpty()) {
+                            for (String condMetParamName : condDerivedMetParamNames) {
+                                synchronized (derivedParameters) {
+                                    for (AbstractMetParameter condDerivedParamToCheck : derivedParameters) {
                                         if (condDerivedParamToCheck
-                                                .hasValidValue()) {
-                                            displayStationPlotBoolList
-                                                    .add(doesStationPassTheFilterForThisMetParam(
-                                                            condDerivedParamToCheck));
+                                                .getMetParamName()
+                                                .equals(condMetParamName)) {
+                                            if (condDerivedParamToCheck
+                                                    .hasValidValue()) {
+                                                displayStationPlotBoolList
+                                                        .add(doesStationPassTheFilterForThisMetParam(
+                                                                condDerivedParamToCheck));
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    //
-                    // 8. Build list of parametersToPlot for this Station
-                    //
+                        //
+                        // 8. Build list of parametersToPlot for this Station
+                        //
 
-                    /*
-                     * Clear the existing list of parameters to plot in each
-                     * station - to guarantee an updated list if there is a
-                     * re-query for parameters by editing the plot model
-                     */
-                    if (!currentStation.parametersToPlot.isEmpty()) {
-                        currentStation.parametersToPlot.clear();
-                    }
-                    metParamsToDisplay = new ArrayList<>(
-                            parametersToPlot.values());
-
-                    synchronized (metParamsToDisplay) {
-                        try {
-                            for (AbstractMetParameter metParam : metParamsToDisplay) {
-                                /*
-                                 * Creating a fresh copy of the met parameter
-                                 * seems to be the only way that each station
-                                 * retains a unique set of values as queried (or
-                                 * derived).Otherwise all stations in a frame
-                                 * get the MetParameter values of the last
-                                 * station being processed since the list
-                                 * currentStation.listOfParamsToPlot references
-                                 * the AbstractMetParametervalues from
-                                 * paramsToPlot
-                                 */
-                                AbstractMetParameter newPrm = newInstance(
-                                        metParam);
-                                if (newPrm == null) {
-                                    continue;
-                                }
-
-                                currentStation.parametersToPlot.add(newPrm);
-                            }
-
-                        } catch (Exception e) {
-                            statusHandler.warn(e.getLocalizedMessage(), e);
+                        /*
+                         * Clear the existing list of parameters to plot in each
+                         * station - to guarantee an updated list if there is a
+                         * re-query for parameters by editing the plot model
+                         */
+                        if (!currentStation.parametersToPlot.isEmpty()) {
+                            currentStation.parametersToPlot.clear();
                         }
-                    }
+                        metParamsToDisplay = new ArrayList<>(
+                                parametersToPlot.values());
 
-                    /*
-                     * 9. Process the conditional parameter(s) (if any) for the
-                     * station
-                     */
-                    if (condColoringParamNames != null
-                            && !condColoringParamNames.isEmpty()) {
-                        Collection<AbstractMetParameter> dbMetParamColl = dbParamToMetParamMap
-                                .values();
-                        synchronized (condColoringParamNames) {
-                            for (String condColorParamName : condColoringParamNames) {
-                                currentStation = processConditionalParameterForOneStation(
-                                        dbMetParamColl, currentStation,
-                                        condColorParamName);
-                                currentStation = processConditionalParameterForOneStation(
-                                        derivedParameters, currentStation,
-                                        condColorParamName);
-                            }
-                        }
-                    }
-
-                    /*
-                     * 10. Evaluate the station against the conditional filter
-                     * to decide if it needs to be plotted at all
-                     */
-
-                    if (condFilterMap != null && !condFilterMap.isEmpty()) {
-                        displayStationPlot = true;
-                        synchronized (displayStationPlotBoolList) {
-                            for (Boolean b : displayStationPlotBoolList) {
-                                displayStationPlot = displayStationPlot && b;
-                            }
-                        }
-
-                        synchronized (stationMap) {
-                            if (displayStationPlot) {
-                                stationMap.put(key, currentStation);
-                            } else {
-                                stationMap.remove(key);
-                            }
-                        }
-                    } else {
-                        stationMap.put(key, currentStation);
-                    }
-
-                    //
-                    // 11. Update parametersToPlot map
-                    //
-
-                    synchronized (parametersToPlot) {
-                        Set<String> pkeySet = parametersToPlot.keySet();
-                        synchronized (pkeySet) {
+                        synchronized (metParamsToDisplay) {
                             try {
-                                for (String prmToPlotKey : pkeySet) {
-                                    AbstractMetParameter prmToPlot = parametersToPlot
-                                            .get(prmToPlotKey);
-                                    if (prmToPlot != null) {
-                                        prmToPlot.setValueToMissing();
+                                for (AbstractMetParameter metParam : metParamsToDisplay) {
+                                    /*
+                                     * Creating a fresh copy of the met
+                                     * parameter seems to be the only way that
+                                     * each station retains a unique set of
+                                     * values as queried (or derived).Otherwise
+                                     * all stations in a frame get the
+                                     * MetParameter values of the last station
+                                     * being processed since the list
+                                     * currentStation.listOfParamsToPlot
+                                     * references the AbstractMetParametervalues
+                                     * from paramsToPlot
+                                     */
+                                    AbstractMetParameter newPrm = newInstance(
+                                            metParam);
+                                    if (newPrm == null) {
+                                        continue;
                                     }
+
+                                    currentStation.parametersToPlot.add(newPrm);
                                 }
 
                             } catch (Exception e) {
                                 statusHandler.warn(e.getLocalizedMessage(), e);
                             }
                         }
-                    }
-                    // end foreach URI counter (Station)
-                }
 
+                        /*
+                         * 9. Process the conditional parameter(s) (if any) for
+                         * the station
+                         */
+                        if (condColoringParamNames != null
+                                && !condColoringParamNames.isEmpty()) {
+                            Collection<AbstractMetParameter> dbMetParamColl = dbParamToMetParamMap
+                                    .values();
+                            synchronized (condColoringParamNames) {
+                                for (String condColorParamName : condColoringParamNames) {
+                                    currentStation = processConditionalParameterForOneStation(
+                                            dbMetParamColl, currentStation,
+                                            condColorParamName);
+                                    currentStation = processConditionalParameterForOneStation(
+                                            derivedParameters, currentStation,
+                                            condColorParamName);
+                                }
+                            }
+                        }
+
+                        /*
+                         * 10. Evaluate the station against the conditional
+                         * filter to decide if it needs to be plotted at all
+                         */
+
+                        if (condFilterMap != null && !condFilterMap.isEmpty()) {
+                            displayStationPlot = true;
+                            synchronized (displayStationPlotBoolList) {
+                                for (Boolean b : displayStationPlotBoolList) {
+                                    displayStationPlot = displayStationPlot
+                                            && b;
+                                }
+                            }
+
+                            synchronized (stationMap) {
+                                if (displayStationPlot) {
+                                    stationMap.put(key, currentStation);
+                                } else {
+                                    stationMap.remove(key);
+                                }
+                            }
+                        } else {
+                            stationMap.put(key, currentStation);
+                        }
+
+                        //
+                        // 11. Update parametersToPlot map
+                        //
+
+                        synchronized (parametersToPlot) {
+                            Set<String> pkeySet = parametersToPlot.keySet();
+                            synchronized (pkeySet) {
+                                try {
+                                    for (String prmToPlotKey : pkeySet) {
+                                        AbstractMetParameter prmToPlot = parametersToPlot
+                                                .get(prmToPlotKey);
+                                        if (prmToPlot != null) {
+                                            prmToPlot.setValueToMissing();
+                                        }
+                                    }
+
+                                } catch (Exception e) {
+                                    statusHandler.warn(e.getLocalizedMessage(),
+                                            e);
+                                }
+                            }
+                        }
+                        // end foreach URI counter (Station)
+                    }
+                } finally {
+                    lock.unlock();
+                }
             } catch (VizException | DataCubeException e) {
                 statusHandler.warn(e.getLocalizedMessage(), e);
             }
 
         }
-
-        sem1.release();
 
         StringJoiner stations = new StringJoiner(" ");
         for (Station s : stationMap.values()) {

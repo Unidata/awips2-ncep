@@ -50,9 +50,6 @@ public class PgenStaticOverlayResourceData extends AbstractNatlCntrsResourceData
     @XmlElement
     private String pgenStaticProductName;
 
-    @XmlElement
-    private String pgenStaticProductDataURI;
-
     // override the original colors saved in the xml file
     @XmlElement
     protected boolean monoColorEnable;
@@ -96,14 +93,6 @@ public class PgenStaticOverlayResourceData extends AbstractNatlCntrsResourceData
         this.pgenStaticProductName = pgenStaticProductName;
     }
 
-    public String getPgenStaticProductDataURI() {
-        return pgenStaticProductDataURI;
-    }
-
-    public void setPgenStaticProductDataURI(String pgenStaticProductDataURI) {
-        this.pgenStaticProductDataURI = pgenStaticProductDataURI;
-    }
-
     public boolean getMonoColorEnable() {
         return monoColorEnable;
     }
@@ -127,8 +116,6 @@ public class PgenStaticOverlayResourceData extends AbstractNatlCntrsResourceData
         int result = 1;
         result = prime * result + ((color == null) ? 0 : color.hashCode());
         result = prime * result + (monoColorEnable ? 1231 : 1237);
-        result = prime * result + ((pgenStaticProductDataURI == null) ? 0
-                : pgenStaticProductDataURI.hashCode());
         result = prime * result + ((pgenStaticProductLocation == null) ? 0
                 : pgenStaticProductLocation.hashCode());
         result = prime * result + ((pgenStaticProductName == null) ? 0
@@ -156,14 +143,6 @@ public class PgenStaticOverlayResourceData extends AbstractNatlCntrsResourceData
             return false;
         }
         if (monoColorEnable != other.monoColorEnable) {
-            return false;
-        }
-        if (pgenStaticProductDataURI == null) {
-            if (other.pgenStaticProductDataURI != null) {
-                return false;
-            }
-        } else if (!pgenStaticProductDataURI
-                .equals(other.pgenStaticProductDataURI)) {
             return false;
         }
         if (pgenStaticProductLocation == null) {

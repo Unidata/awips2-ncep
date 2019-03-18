@@ -17,6 +17,8 @@ import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
+import gov.noaa.nws.ncep.ui.pgen.controls.ActivityCollection;
+import gov.noaa.nws.ncep.ui.pgen.controls.ActivityElement;
 import gov.noaa.nws.ncep.ui.pgen.display.AbstractElementContainer;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayProperties;
 import gov.noaa.nws.ncep.ui.pgen.display.ElementContainerFactory;
@@ -79,24 +81,10 @@ public class PgenStaticOverlayResource extends
     @Override
     public void initInternal(IGraphicsTarget target) throws VizException {
 
-        /*
-         * If a dataURI is set in the resource data, retrieve the product from
-         * the database. Else try to get products from the xml specified in the
-         * resource data.
-         */
-        String dataURI = pgenOverlayRscData.getPgenStaticProductDataURI();
-        if (dataURI != null && !(dataURI.isEmpty())) {
-            try {
-                prds = StorageUtils.retrieveProduct(dataURI);
-            } catch (PgenStorageException e) {
-                statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(),
-                        e);
-            }
-        } else {
+        if (pgenOverlayRscData.getPgenStaticProductLocation() != null) {
             String lFileName = pgenOverlayRscData.getPgenStaticProductLocation()
                     + File.separator
                     + pgenOverlayRscData.getPgenStaticProductName();
-
             File productFile = null;
 
             if (lFileName.startsWith(NcPathConstants.NCEP_ROOT)) {
@@ -119,15 +107,46 @@ public class PgenStaticOverlayResource extends
              * get the PGEN product data, and convert into format ready for
              * display during paint
              */
-
             try {
                 Products products = FileTools
                         .read(productFile.getCanonicalPath());
                 prds = ProductConverter.convert(products);
 
             } catch (IOException e) {
-                throw new VizException("Error reading PGEN Product, "
+                throw new VizException("Error reading PGEN Product from file: "
                         + productFile.getAbsolutePath(), e);
+            }
+        } else {
+            /*
+             * If a dataURI is set in the resource data, retrieve the product
+             * from the database. Else try to get products from the xml
+             * specified in the resource data.
+             */
+            ActivityCollection ac = new ActivityCollection();
+            ActivityElement myElem = null;
+            for (ActivityElement elem : ac.getCurrentActivityList()) {
+                if (elem.getActivityLabel()
+                        .equals(pgenOverlayRscData.getPgenStaticProductName())
+                        && (myElem == null || elem.getRefTime()
+                                .after(myElem.getRefTime()))) {
+                    myElem = elem;
+                }
+            }
+            if (myElem != null) {
+                String dataURI = myElem.getDataURI();
+                if (dataURI != null && !(dataURI.isEmpty())) {
+                    try {
+                        prds = StorageUtils.retrieveProduct(dataURI);
+                    } catch (PgenStorageException e) {
+                        statusHandler.handle(Priority.PROBLEM,
+                                e.getLocalizedMessage(), e);
+                    }
+                }
+            } else {
+                throw new VizException(
+                        "Error retrieving PGEN product from database:"
+                                + pgenOverlayRscData
+                                        .getPgenStaticProductName());
             }
         }
         resourceAttrsModified();

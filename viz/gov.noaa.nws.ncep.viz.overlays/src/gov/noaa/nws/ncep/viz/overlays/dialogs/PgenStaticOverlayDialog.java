@@ -94,8 +94,6 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
     private ColorWheelComp displayColorWheel;
 
-    private ColorWheelComp legendColorWheel;
-
     private Button monoColorBtn;
 
     private Button okBtn;
@@ -129,11 +127,6 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         ColorData initialDisplay = new ColorData(WHITE);
         displayColorWheel = new ColorWheelComp(shell, " Display Color ", true);
         displayColorWheel.setColor(initialDisplay);
-
-        // Create the color wheel for the legend.
-        ColorData initialLegend = new ColorData(WHITE);
-        legendColorWheel = new ColorWheelComp(shell, " Legend Color ", true);
-        legendColorWheel.setColor(initialLegend);
 
         monoColorBtn = new Button(shell, SWT.CHECK);
         GridData gridData = new GridData(SWT.DEFAULT, SWT.DEFAULT);
@@ -228,10 +221,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         if (activityList.isEnabled()) {
             String[] selection = activityList.getSelection();
             if (selection.length != 0) {
-                ActivityElement selectedElem = dbEntries.get(selection[0]);
-                productName = selectedElem.getActivityLabel();
-                resourceData
-                        .setPgenStaticProductDataURI(selectedElem.getDataURI());
+                productName = dbEntries.get(selection[0]).getActivityLabel();
             }
         }
 
@@ -240,7 +230,6 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
                     "Unable to determine PGEN activity from selected inputs.");
         }
         resourceData.setPgenStaticProductName(productName);
-        resourceData.setLegendColor(legendColorWheel.getColorData().rgbColor);
         resourceData.setMonoColorEnable(monoColorBtn.getSelection());
         resourceData.setColor(displayColorWheel.getColorData().rgbColor);
         resourceData.setIsEdited(true);

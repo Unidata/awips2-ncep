@@ -1,21 +1,39 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.tools.GfaFormatAttrDlg
- * 
+ *
  * June 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.BOS;
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.CHI;
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.DFW;
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.MIA;
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.SFO;
-import static gov.noaa.nws.ncep.ui.pgen.gfa.Gfa.SLC;
-import static org.eclipse.jface.dialogs.IDialogConstants.CANCEL_ID;
-import static org.eclipse.jface.dialogs.IDialogConstants.CANCEL_LABEL;
-import static org.eclipse.jface.dialogs.IDialogConstants.OK_ID;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+
+import com.raytheon.uf.viz.core.exception.VizException;
+
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
@@ -26,44 +44,22 @@ import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenGfaFormatTool;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.xml.bind.JAXBException;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-
-import com.raytheon.uf.viz.core.exception.VizException;
-
 /**
  * Create a dialog for PGEN format action.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 06/10		#223		M.Laryukhin	Initial creation
- * 07/11		?			B. Yin		Use fixed font for text message.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 06/10        #223        M.Laryukhin Initial creation
+ * 07/11        ?           B. Yin      Use fixed font for text message.
  * 04/29        #977        S. Gilbert  PGEN Database support
- * 07/13		?			J. Wu		Reposition "Generate" and "Cancel".
- * 
+ * 07/13        ?           J. Wu       Reposition "Generate" and "Cancel".
+ * 03/20/2019   #7572       dgilling    Don't enable Generate button unless all necessary
+ *                                      options have been selected.
+ *
  * </pre>
- * 
+ *
  * @author M.Laryukhin
  */
 public class GfaFormatAttrDlg extends AttrDlg {
@@ -80,24 +76,12 @@ public class GfaFormatAttrDlg extends AttrDlg {
 
     private static final String WEST = "WEST";
 
-    static GfaFormatAttrDlg instance;
-
-    private Composite top;
+    private static GfaFormatAttrDlg instance;
 
     // radio buttons
     private Button nrmlBtn;
 
     private Button testBtn;
-
-    private static final int BTN_WIDTH = 90;
-
-    private static final int BTN_HEIGHT = 23;
-
-    private static final int TEXT_WIDTH = 660;
-
-    private static final int TEXT_HEIGHT = 300;
-
-    static private Font txtFt = null;
 
     private static final String SAVE_LABEL = "Generate/Save";
 
@@ -125,47 +109,32 @@ public class GfaFormatAttrDlg extends AttrDlg {
 
     /**
      * Private constructor
-     * 
+     *
      * @param parShell
      * @throws VizException
      */
-    private GfaFormatAttrDlg(Shell parShell) throws VizException {
-
+    private GfaFormatAttrDlg(Shell parShell) {
         super(parShell);
-
     }
 
     /**
      * Creates an extrapolation dialog if the dialog does not exist and returns
      * the instance. If the dialog exists, return the instance.
-     * 
+     *
      * @param parShell
      * @return
      */
-    public static GfaFormatAttrDlg getInstance(Shell parShell) {
+    public static synchronized GfaFormatAttrDlg getInstance(Shell parShell) {
         if (instance == null) {
-            try {
-                instance = new GfaFormatAttrDlg(parShell);
-
-            } catch (VizException e) {
-                e.printStackTrace();
-            }
+            instance = new GfaFormatAttrDlg(parShell);
         }
 
         return instance;
     }
 
-    /*
-     * (non-Javadoc) Create all of the widgets on the Dialog
-     * 
-     * @see
-     * org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets
-     * .Composite)
-     */
     @Override
     public Control createDialogArea(Composite parent) {
-
-        top = (Composite) super.createDialogArea(parent);
+        Composite top = (Composite) super.createDialogArea(parent);
 
         // Create the main layout for the shell.
         GridLayout mainLayout = new GridLayout(1, false);
@@ -174,33 +143,32 @@ public class GfaFormatAttrDlg extends AttrDlg {
         top.setLayout(mainLayout);
 
         // Initialize all of the menus, controls, and layouts
-        initializeComponents();
+        initializeComponents(top);
 
         return top;
     }
 
     /**
      * Creates buttons, menus, and other controls in the dialog area
-     * 
-     * @param listener
+     *
+     * @param parent
      */
-    private void initializeComponents() {
+    private void initializeComponents(Composite parent) {
+        getShell().setText("AIRMET Format");
 
-        this.getShell().setText("AIRMET Format");
+        createFirstRowBtns(parent);
 
-        createFirstRowBtns();
+        createWCEBtns(parent);
 
-        createWCEBtns();
+        createSierraTangoZuluBtns(parent);
 
-        createSierraTangoZuluBtns();
-
-        createTextArea();
+        createTextArea(parent);
 
         addSelectionlisteners();
     }
 
-    private void createFirstRowBtns() {
-        Composite comp = createComposite();
+    private void createFirstRowBtns(Composite parent) {
+        Composite comp = createComposite(parent, 2);
 
         nrmlBtn = new Button(comp, SWT.RADIO);
         nrmlBtn.setSelection(lastNrml);
@@ -210,72 +178,71 @@ public class GfaFormatAttrDlg extends AttrDlg {
         testBtn.setText("TEST");
     }
 
-    private Composite createComposite() {
-        // centered, bordered, filled to the borders
-        Group group = new Group(top, SWT.NONE);
-        GridData gridData = new GridData(GridData.BEGINNING);
-        gridData.horizontalAlignment = GridData.FILL;
-        group.setLayoutData(gridData);
-        GridLayout layout = new GridLayout(2, false);
+    private Composite createComposite(Composite parent, int columns) {
+        Composite borderComp = new Composite(parent, SWT.BORDER);
+        borderComp.setLayout(new GridLayout());
+        borderComp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        Composite comp = new Composite(borderComp, SWT.NONE);
+        GridLayout layout = new GridLayout(columns, true);
         layout.marginHeight = 0;
         layout.marginWidth = 0;
-        group.setLayout(layout);
-
-        Composite comp = new Composite(group, SWT.NONE);
-        layout = new GridLayout(3, false);
-        layout.marginHeight = 3;
-        layout.marginWidth = 3;
         comp.setLayout(layout);
-        comp.setLayoutData(new GridData(SWT.CENTER, SWT.DEFAULT, true, false));
+        comp.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, true, false));
         return comp;
     }
 
-    private void createWCEBtns() {
-
-        Composite comp = createComposite();
+    private void createWCEBtns(Composite parent) {
+        Composite comp = createComposite(parent, 3);
 
         westBtn = createCheckBtn(comp, WEST, lastWest);
         centralBtn = createCheckBtn(comp, CENTRAL, lastCentral);
         eastBtn = createCheckBtn(comp, EAST, lastEast);
-        slcBtn = createCheckBtn(comp, SLC, lastSlc);
-        chiBtn = createCheckBtn(comp, CHI, lastChi);
-        bosBtn = createCheckBtn(comp, BOS, lastBos);
-        sfoBtn = createCheckBtn(comp, SFO, lastSfo);
-        dfwBtn = createCheckBtn(comp, DFW, lastDfw);
-        miaBtn = createCheckBtn(comp, MIA, lastMia);
+        slcBtn = createCheckBtn(comp, Gfa.SLC, lastSlc);
+        chiBtn = createCheckBtn(comp, Gfa.CHI, lastChi);
+        bosBtn = createCheckBtn(comp, Gfa.BOS, lastBos);
+        sfoBtn = createCheckBtn(comp, Gfa.SFO, lastSfo);
+        dfwBtn = createCheckBtn(comp, Gfa.DFW, lastDfw);
+        miaBtn = createCheckBtn(comp, Gfa.MIA, lastMia);
     }
 
     private Button createCheckBtn(Composite comp, String str, boolean lastUsed) {
         Button btn = new Button(comp, SWT.CHECK);
         btn.setText(str);
-        GridData gd = new GridData(BTN_WIDTH, BTN_HEIGHT);
-        btn.setLayoutData(gd);
         btn.setSelection(lastUsed);
+        btn.setLayoutData(new GridData());
         return btn;
     }
 
-    private void createSierraTangoZuluBtns() {
-        Composite comp = createComposite();
+    private void createSierraTangoZuluBtns(Composite parent) {
+        Composite comp = createComposite(parent, 3);
 
         sierraBtn = createCheckBtn(comp, SIERRA, lastSierra);
         tangoBtn = createCheckBtn(comp, TANGO, lastTango);
         zuluBtn = createCheckBtn(comp, ZULU, lastZulu);
     }
 
-    private void createTextArea() {
-        int style = SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.WRAP;
-        text = new Text(top, style);
-        GridData gd = new GridData(TEXT_WIDTH, TEXT_HEIGHT);
-        gd.verticalAlignment = GridData.BEGINNING;
-        text.setLayoutData(gd);
+    private void createTextArea(Composite parent) {
+        text = new Text(parent,
+                SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
         text.setEditable(false);
-        text.addTraverseListener(new GfaAttrDlg.TraverseListenerTab());
-
-        if (txtFt == null) {
-            txtFt = new Font(this.getShell().getDisplay(), "Courier New", 12,
-                    SWT.NORMAL);
-        }
+        Font txtFt = new Font(this.getShell().getDisplay(), "Monospace", 12,
+                SWT.NORMAL);
         text.setFont(txtFt);
+
+        GC gc = new GC(text);
+        int charWidth = gc.getFontMetrics().getAverageCharWidth();
+        int charHeight = text.getLineHeight();
+        gc.dispose();
+        Rectangle size = text.computeTrim(0, 0, 65 * charWidth,
+                15 * charHeight);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gd.widthHint = size.width;
+        gd.heightHint = size.height;
+        text.setLayoutData(gd);
+
+        text.addDisposeListener((e) -> {
+            txtFt.dispose();
+        });
     }
 
     private void addSelectionlisteners() {
@@ -301,27 +268,17 @@ public class GfaFormatAttrDlg extends AttrDlg {
 
     @Override
     public void createButtonsForButtonBar(Composite parent) {
-
         super.createButtonsForButtonBar(parent);
-        this.getButton(OK_ID).setText(SAVE_LABEL);
-        this.getButton(CANCEL_ID).setText(CANCEL_LABEL);
-    }
-
-    @Override
-    public void setDefaultControlButtonSize() {
-        setButtonSize(ctrlBtnWidth + 50, ctrlBtnHeight);
+        getButton(IDialogConstants.OK_ID).setText(SAVE_LABEL);
+        getButton(IDialogConstants.CANCEL_ID)
+                .setText(IDialogConstants.CANCEL_LABEL);
     }
 
     @Override
     public void okPressed() {
         // do not close here, just generate
 
-        String dataURI = null;
-        ArrayList<String> areas = getChecked();
-
-        ArrayList<String> categories = getSelectedCategories();
-
-        ArrayList<AbstractDrawableComponent> all = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> all = new ArrayList<>();
         Product prod = null;
         if (drawingLayer != null) {
             prod = drawingLayer.getActiveProduct();
@@ -331,6 +288,7 @@ public class GfaFormatAttrDlg extends AttrDlg {
             }
         }
 
+        String dataURI = null;
         if (prod != null) {
             try {
                 prod.setOutputFile(drawingLayer.buildActivityLabel(prod));
@@ -341,7 +299,7 @@ public class GfaFormatAttrDlg extends AttrDlg {
             }
         }
 
-        ArrayList<Gfa> allGfa = new ArrayList<Gfa>();
+        ArrayList<Gfa> allGfa = new ArrayList<>();
         for (AbstractDrawableComponent adc : all) {
             if ((adc instanceof Gfa) && !((Gfa) adc).isSnapshot()) {
                 allGfa.add((Gfa) adc);
@@ -349,49 +307,55 @@ public class GfaFormatAttrDlg extends AttrDlg {
         }
 
         // tool
-        StringBuilder sb;
         try {
-            sb = pgenGfaFormatTool.generate(drawingLayer, allGfa, areas,
-                    categories, dataURI);
+            StringBuilder sb = pgenGfaFormatTool.generate(drawingLayer, allGfa,
+                    getChecked(), getSelectedCategories(), dataURI);
             text.setText(sb.toString());
         } catch (IOException e) {
             text.setText("I/O Error");
-            // logger.error(e);
-            e.printStackTrace();
+            statusHandler.error("I/O error generating AIRMET.", e);
         } catch (JAXBException e) {
             text.setText("Serialization Error");
-            // logger.error(e);
-            e.printStackTrace();
+            statusHandler.error("Serialization error generating AIRMET.", e);
         }
 
-        getButton(OK_ID).setEnabled(false);
+        enableGenerateButton(false);
     }
 
-    private ArrayList<String> getChecked() {
-        ArrayList<String> checked = new ArrayList<String>();
-        if (slcBtn.getSelection())
-            checked.add(SLC);
-        if (sfoBtn.getSelection())
-            checked.add(SFO);
-        if (chiBtn.getSelection())
-            checked.add(CHI);
-        if (dfwBtn.getSelection())
-            checked.add(DFW);
-        if (bosBtn.getSelection())
-            checked.add(BOS);
-        if (miaBtn.getSelection())
-            checked.add(MIA);
+    private List<String> getChecked() {
+        List<String> checked = new ArrayList<>();
+        if (slcBtn.getSelection()) {
+            checked.add(Gfa.SLC);
+        }
+        if (sfoBtn.getSelection()) {
+            checked.add(Gfa.SFO);
+        }
+        if (chiBtn.getSelection()) {
+            checked.add(Gfa.CHI);
+        }
+        if (dfwBtn.getSelection()) {
+            checked.add(Gfa.DFW);
+        }
+        if (bosBtn.getSelection()) {
+            checked.add(Gfa.BOS);
+        }
+        if (miaBtn.getSelection()) {
+            checked.add(Gfa.MIA);
+        }
         return checked;
     }
 
-    private ArrayList<String> getSelectedCategories() {
-        ArrayList<String> cats = new ArrayList<String>();
-        if (sierraBtn.getSelection())
+    private List<String> getSelectedCategories() {
+        List<String> cats = new ArrayList<>();
+        if (sierraBtn.getSelection()) {
             cats.add(SIERRA);
-        if (tangoBtn.getSelection())
+        }
+        if (tangoBtn.getSelection()) {
             cats.add(TANGO);
-        if (zuluBtn.getSelection())
+        }
+        if (zuluBtn.getSelection()) {
             cats.add(ZULU);
+        }
         return cats;
     }
 
@@ -404,6 +368,7 @@ public class GfaFormatAttrDlg extends AttrDlg {
     /**
      * Set the location of the dialog
      */
+    @Override
     public int open() {
 
         if (this.getShell() == null) {
@@ -415,6 +380,7 @@ public class GfaFormatAttrDlg extends AttrDlg {
 
         int op = super.open();
         super.enableButtons();
+        enableGenerateButton(true);
 
         return op;
     }
@@ -433,16 +399,14 @@ public class GfaFormatAttrDlg extends AttrDlg {
     /**
      * Gets values of all attributes of the dialog.
      */
-    public HashMap<String, Object> getAttrFromDlg() {
-
-        HashMap<String, Object> attr = new HashMap<String, Object>();
-
-        return attr;
+    public Map<String, Object> getAttrFromDlg() {
+        return Collections.emptyMap();
     }
 
     /**
      * Sets values of all attributes of the dialog.
      */
+    @Override
     public void setAttrForDlg(IAttribute attr) {
     }
 
@@ -461,14 +425,23 @@ public class GfaFormatAttrDlg extends AttrDlg {
         lastTango = tangoBtn.getSelection();
         lastZulu = zuluBtn.getSelection();
 
-        getButton(OK_ID).setEnabled(true);
+        enableGenerateButton(true);
+    }
+
+    private void enableGenerateButton(boolean isEnabled) {
+        if (isEnabled && !getSelectedCategories().isEmpty()
+                && !getChecked().isEmpty()) {
+            getButton(IDialogConstants.OK_ID).setEnabled(true);
+        } else {
+            getButton(IDialogConstants.OK_ID).setEnabled(false);
+        }
     }
 
     /**
      * Selection listener class handles selections.
-     * 
+     *
      * @author mlaryukhin
-     * 
+     *
      */
     private class ChkBtnSelectionListener extends SelectionAdapter {
 

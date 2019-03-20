@@ -1,20 +1,12 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.vaaDialog.CcfpMsgDlg
- * 
+ *
  * 20 September 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog;
-
-import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.CcfpInfo;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 import java.io.File;
 
@@ -26,33 +18,40 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.CcfpInfo;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
  * Singleton text product dialog for CCFP.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ---------	--------	----------	--------------------------
- * 09/10		322			G. Zhang 	Initial Creation.
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 09/10         322        G. Zhang    Initial Creation.
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * 03/20/2019   #7572       dgilling    Code cleanup.
  * </pre>
- * 
+ *
  * @author gzhang
  */
-
 public class CcfpMsgDlg extends AttrDlg {
 
     // Constant for Button Update
-    private static final int CCFP_CONSTANT_UPDATE = 20101007;
+    private static final int CCFP_CONSTANT_UPDATE = IDialogConstants.CLIENT_ID
+            + 1;
 
     public static final String PGEN_CCFP_XSLT = "xslt" + File.separator
             + "ccfp" + File.separator + "ccfpXml2Txt.xslt";
@@ -77,38 +76,32 @@ public class CcfpMsgDlg extends AttrDlg {
     private Text txtSave;
 
     // variables holding directory and file content.
-    private String dirLocal = ".", txtFileContent = "", txtFileName = "";
+    private String txtFileContent = "", txtFileName = "";
 
     // width
     private static final int LAYOUT_WIDTH = 2;
 
     /**
      * constructor for this class
-     * 
+     *
      * @param Shell
      *            : parent Shell of this class
      * @throws VizException
      */
-    public CcfpMsgDlg(Shell parShell) throws VizException {
+    public CcfpMsgDlg(Shell parShell) {
         super(parShell);
-        // TODO Auto-generated constructor stub
     }
 
     /**
      * singleton creation method for this class
-     * 
+     *
      * @param Shell
      *            : parent Shell of this class
      * @return
      */
-    public static CcfpMsgDlg getInstance(Shell parShell) {
-
+    public static synchronized CcfpMsgDlg getInstance(Shell parShell) {
         if (INSTANCE == null) {
-            try {
-                INSTANCE = new CcfpMsgDlg(parShell);
-            } catch (VizException e) {
-                e.printStackTrace();
-            }
+            INSTANCE = new CcfpMsgDlg(parShell);
         }
         return INSTANCE;
     }
@@ -123,51 +116,44 @@ public class CcfpMsgDlg extends AttrDlg {
      */
     @Override
     public void createButtonsForButtonBar(Composite parent) {
-
-        ((GridLayout) parent.getLayout()).verticalSpacing = 0;
-        ((GridLayout) parent.getLayout()).marginHeight = 3;
-
         createButton(parent, CCFP_CONSTANT_UPDATE, "Update", true);
         createButton(parent, IDialogConstants.OK_ID, "Save", true);
         createButton(parent, IDialogConstants.CANCEL_ID,
                 IDialogConstants.CANCEL_LABEL, false);
+    }
 
-        this.getButton(CCFP_CONSTANT_UPDATE).addListener(SWT.Selection,
-                new Listener() {
-                    public void handleEvent(Event e) {
+    @Override
+    protected void buttonPressed(int buttonId) {
+        switch (buttonId) {
+        case CCFP_CONSTANT_UPDATE:
+            product = CcfpInfo.getCcfpPrds(getIssueTime(), getValidTime());
 
-                        product = CcfpInfo.getCcfpPrds(getIssueTime(),
-                                getValidTime());
+            String activityXML;
+            try {
+                activityXML = StorageUtils.serializeProduct(product);
+            } catch (PgenStorageException e1) {
+                StorageUtils.showError(e1);
+                return;
+            }
+            String txtFileContent = CcfpInfo.convertXml2Txt(activityXML,
+                    PgenStaticDataProvider.getProvider()
+                            .getFileAbsolutePath(PgenStaticDataProvider
+                                    .getProvider().getPgenLocalizationRoot()
+                                    + PGEN_CCFP_XSLT));
+            txtInfo.setText(txtFileContent.trim());
+            break;
 
-                        String activityXML;
-                        try {
-                            activityXML = StorageUtils
-                                    .serializeProduct(product);
-                        } catch (PgenStorageException e1) {
-                            StorageUtils.showError(e1);
-                            return;
-                        }
-                        String txtFileContent = CcfpInfo
-                                .convertXml2Txt(
-                                        activityXML,
-                                        PgenStaticDataProvider
-                                                .getProvider()
-                                                .getFileAbsolutePath(
-                                                        PgenStaticDataProvider
-                                                                .getProvider()
-                                                                .getPgenLocalizationRoot()
-                                                                + PGEN_CCFP_XSLT));
-                        txtInfo.setText(txtFileContent.trim());
+        case IDialogConstants.OK_ID:
+            okPressed();
+            break;
 
-                    }
-                });
+        case IDialogConstants.CANCEL_ID:
+            cancelPressed();
+            break;
 
-        this.getButton(IDialogConstants.CANCEL_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-        this.getButton(IDialogConstants.OK_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-        this.getButton(CCFP_CONSTANT_UPDATE).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
+        default:
+            break;
+        }
     }
 
     /**
@@ -198,9 +184,6 @@ public class CcfpMsgDlg extends AttrDlg {
      */
     @Override
     public void okPressed() {
-
-        // FileTools.writeFile(PgenUtil.getPgenActivityTextProdPath()
-        // + File.separator + txtSave.getText(), txtInfo.getText());
         try {
             String dataURI = CcfpInfo.storeCcfpXmlFile(product);
 
@@ -232,9 +215,6 @@ public class CcfpMsgDlg extends AttrDlg {
 
         this.getShell().setText("Collective Convection Forecast Message");
 
-        // this.volcano = this.volAttrDlgInstance.getVolcano();//TODO: already
-        // set in attrDlg before this is open 20100309
-
         txtInfo = new Text(top, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL
                 | SWT.V_SCROLL);
         GridData gData = new GridData(800, 300);
@@ -245,7 +225,7 @@ public class CcfpMsgDlg extends AttrDlg {
         txtInfo.setLayoutData(gData);
         txtInfo.setFont(new Font(this.getShell().getDisplay(), "Monospace", 11,
                 SWT.NORMAL));
-        txtInfo.setText(getFileContent());// getFileContent());
+        txtInfo.setText(getFileContent());
 
         Group top_3 = new Group(top, SWT.LEFT);
         top_3.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true,
@@ -255,7 +235,7 @@ public class CcfpMsgDlg extends AttrDlg {
         Label lblFileName = new Label(top_3, SWT.LEFT);
         lblFileName.setText("File Name: ");
 
-        txtSave = new Text(top_3, SWT.BORDER);// | SWT.READ_ONLY);
+        txtSave = new Text(top_3, SWT.BORDER);
         txtSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
                 1, 1));
         txtSave.setText(getFileName());
@@ -266,18 +246,19 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * set the content for the text field; called by CcfpTimeDlg.java
-     * 
+     *
      * @param txt
      */
     public void setFileContent(String txt) {
         txtFileContent = txt;
-        if (txtInfo != null && (!txtInfo.isDisposed()))
+        if (txtInfo != null && (!txtInfo.isDisposed())) {
             txtInfo.setText(txtFileContent);
+        }
     }
 
     /**
      * set the name of the text file; called by CcfpTimeDlg.java
-     * 
+     *
      * @param name
      */
     public void setFileName(String name) {
@@ -304,7 +285,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * return the CcfpTimeDlg instance
-     * 
+     *
      * @return CcfpTimeDlg instance
      */
     public CcfpTimeDlg getTimeDlg() {
@@ -313,7 +294,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * set the CcfpTimeDlg instance
-     * 
+     *
      * @param timeDlg
      *            : CcfpTimeDlg instance
      */
@@ -323,7 +304,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * getter for Issue time
-     * 
+     *
      * @return issue time String
      */
     public String getIssueTime() {
@@ -332,7 +313,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * setter for issue time
-     * 
+     *
      * @param issueTime
      */
     public void setIssueTime(String issueTime) {
@@ -341,7 +322,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * getter for valid time
-     * 
+     *
      * @return valid time String
      */
     public String getValidTime() {
@@ -350,7 +331,7 @@ public class CcfpMsgDlg extends AttrDlg {
 
     /**
      * setter for valid time
-     * 
+     *
      * @param validTime
      */
     public void setValidTime(String validTime) {

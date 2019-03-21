@@ -99,8 +99,8 @@ public class AbstractEditResourceAttrsInteractiveDialog
         canBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                rscData.setRscAttrSet(new ResourceAttrSet(editedRscAttrSet));
-                close(false);
+                ok = false;
+                shell.close();
             }
         });
 
@@ -111,16 +111,10 @@ public class AbstractEditResourceAttrsInteractiveDialog
         okBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                close(true);
+                ok = true;
+                shell.close();
             }
         });
-    }
-
-    private void close(boolean ok) {
-        NcEditorUtil
-                .refreshGUIElements(NcDisplayMngr.getActiveNatlCntrsEditor());
-        this.ok = ok;
-        shell.dispose();
     }
 
     @Override
@@ -143,9 +137,15 @@ public class AbstractEditResourceAttrsInteractiveDialog
             }
         }
 
-        editedRscAttrSet = new ResourceAttrSet(rscData.getRscAttrSet());
-        rscData.setRscAttrSet(editedRscAttrSet);
-        rscData.setIsEdited(ok);
+        if (ok) {
+            editedRscAttrSet = new ResourceAttrSet(rscData.getRscAttrSet());
+            rscData.setRscAttrSet(editedRscAttrSet);
+            rscData.setIsEdited(true);
+        } else {
+            rscData.setRscAttrSet(new ResourceAttrSet(editedRscAttrSet));
+        }
+        NcEditorUtil
+                .refreshGUIElements(NcDisplayMngr.getActiveNatlCntrsEditor());
 
         dispose();
 

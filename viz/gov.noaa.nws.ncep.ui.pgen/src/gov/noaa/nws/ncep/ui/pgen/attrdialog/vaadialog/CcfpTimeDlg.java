@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.vaaDialog.CcfpTimeDlg
- * 
+ *
  * 20 September 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -8,19 +8,12 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.CcfpInfo;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -31,6 +24,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -44,20 +38,27 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.raytheon.uf.viz.core.exception.VizException;
+import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.CcfpInfo;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 /**
  * Singleton dialog for CCFP issue and valid times.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ---------	--------	----------	--------------------------
- * 09/10		322			G. Zhang 	Initial Creation.  
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 09/10         322        G. Zhang    Initial Creation.
  * 07/11        #450        G. Hull     NcPathManager
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * 03/20/2019   #7572       dgilling    Code cleanup.
  * </pre>
- * 
+ *
  * @author gzhang
  */
 
@@ -83,12 +84,12 @@ public class CcfpTimeDlg extends AttrDlg {
     /**
      * map each issue time to some valid times
      */
-    public Map<String, String[]> issueValidTimeMap = new HashMap<String, String[]>();
+    public Map<String, String[]> issueValidTimeMap = new HashMap<>();
 
     /**
      * map each issue time to certain Calendar day
      */
-    public Map<String, String> issueTimeDayMap = new HashMap<String, String>();
+    public Map<String, String> issueTimeDayMap = new HashMap<>();
 
     // parent for widgets
     protected Composite top = null;
@@ -99,23 +100,18 @@ public class CcfpTimeDlg extends AttrDlg {
     private Combo cmbVaTime;
 
     // editableAttrStartTime;
-    private String ccfpIssueTime = "";// this.getTimes(false)[0];//"";
+    private String ccfpIssueTime = "";
 
     // editableAttrEndTime;
-    private String ccfpValidTime = "";// this.getTimes(true)[0];//"";
+    private String ccfpValidTime = "";
 
-    public CcfpTimeDlg(Shell parShell) throws VizException {
+    public CcfpTimeDlg(Shell parShell) {
         super(parShell);
-        // TODO Auto-generated constructor stub
     }
 
-    public static CcfpTimeDlg getInstance(Shell parShell) {
+    public static synchronized CcfpTimeDlg getInstance(Shell parShell) {
         if (INSTANCE == null) {
-            try {
-                INSTANCE = new CcfpTimeDlg(parShell);
-            } catch (VizException e) {
-                e.printStackTrace();
-            }
+            INSTANCE = new CcfpTimeDlg(parShell);
         }
         return INSTANCE;
     }
@@ -138,23 +134,13 @@ public class CcfpTimeDlg extends AttrDlg {
 
     @Override
     public void createButtonsForButtonBar(Composite parent) {
-        // super.createButtonsForButtonBar(parent);
+        Button continueBtn = createButton(parent, IDialogConstants.OK_ID,
+                "Continue", true);
+        continueBtn.setEnabled(true);
 
-        ((GridLayout) parent.getLayout()).verticalSpacing = 0;
-        ((GridLayout) parent.getLayout()).marginHeight = 3;
-
-        createButton(parent, IDialogConstants.OK_ID, "Continue", true);
-        createButton(parent, IDialogConstants.CANCEL_ID,
+        Button cancelBtn = createButton(parent, IDialogConstants.CANCEL_ID,
                 IDialogConstants.CANCEL_LABEL, false);
-
-        this.getButton(IDialogConstants.CANCEL_ID).setEnabled(true);
-        this.getButton(IDialogConstants.OK_ID).setEnabled(true);
-
-        this.getButton(IDialogConstants.CANCEL_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-        this.getButton(IDialogConstants.OK_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-
+        cancelBtn.setEnabled(true);
     }
 
     @Override
@@ -292,8 +278,8 @@ public class CcfpTimeDlg extends AttrDlg {
      */
     private String[] parseCcfpTimesFile() {
 
-        ArrayList<String> issueTimes = new ArrayList<String>();
-        ArrayList<String[]> validTimes = new ArrayList<String[]>();
+        List<String> issueTimes = new ArrayList<>();
+        List<String[]> validTimes = new ArrayList<>();
 
         Document doc = null;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -308,25 +294,23 @@ public class CcfpTimeDlg extends AttrDlg {
             DocumentBuilder builder = factory.newDocumentBuilder();
             doc = builder.parse(file.getAbsoluteFile());
         } catch (Exception e) {
-            System.out.println("-----------" + e.getMessage());
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
         NodeList nlist = doc.getElementsByTagNameNS("*", "*");
 
         for (int i = 0; i < nlist.getLength(); i++) {
+            // each element, like: Time, etc
+            Node nElem = nlist.item(i);
 
-            Node nElem = nlist.item(i);// each element, like: Time, etc
-
-            // String elemName = nElem.getNodeName().trim();
             NamedNodeMap nnMap = nElem.getAttributes();
 
-            ArrayList<String> vtimes = new ArrayList<String>();
+            List<String> vtimes = new ArrayList<>();
             String itime = "";
 
             for (int j = 0; j < nnMap.getLength(); j++) {
-
-                Node nAttr = nnMap.item(j);// each attribute of an element,
-                                           // like: issue, valid1, or valid2
+                // each attribute of an element, like: issue, valid1, or valid2
+                Node nAttr = nnMap.item(j);
 
                 if (CCFP_ISSUE_TIME.equalsIgnoreCase(nAttr.getNodeName())) {
 
@@ -343,8 +327,9 @@ public class CcfpTimeDlg extends AttrDlg {
 
         }
 
-        for (int k = 0; k < issueTimes.size(); k++)
+        for (int k = 0; k < issueTimes.size(); k++) {
             issueValidTimeMap.put(issueTimes.get(k), validTimes.get(k + 1));
+        }
 
         return issueTimes.toArray(new String[] {});
 
@@ -353,8 +338,8 @@ public class CcfpTimeDlg extends AttrDlg {
     /*
      * process hour info
      */
-    public void handleTime(ArrayList<String> list, String hour,
-            boolean isIssueTime, String itime) {
+    public void handleTime(List<String> list, String hour, boolean isIssueTime,
+            String itime) {
 
         Boolean hourOnly = null, today = true, tomorrow = false;
         ;
@@ -365,11 +350,13 @@ public class CcfpTimeDlg extends AttrDlg {
             fh = Integer.parseInt(hour);
             ih = Integer.parseInt(itime);
         } catch (Exception e) {
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
         if (isIssueTime) {
+            // fh+100: from legacy code
             String day = (fh + 100) < ch ? getDayOrHour(tomorrow)
-                    : getDayOrHour(today);// fh+100: from legacy code
+                    : getDayOrHour(today);
             list.add(day + "_" + hour);
             issueTimeDayMap.put(itime, day);
         } else {
@@ -395,7 +382,8 @@ public class CcfpTimeDlg extends AttrDlg {
         SimpleDateFormat sdft = new SimpleDateFormat("HH00");
         sdft.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-        return isToday == null ? sdft.format(today.getTime())// today's hour
+        // today's hour
+        return isToday == null ? sdft.format(today.getTime())
                 : isToday ? sdf.format(today.getTime()) : sdf.format(tomorrow
                         .getTime());
     }
@@ -406,6 +394,7 @@ public class CcfpTimeDlg extends AttrDlg {
     private void addCmbListeners() {
 
         cmbIssTime.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
 
                 String it = cmbIssTime.getText().trim();
@@ -419,6 +408,7 @@ public class CcfpTimeDlg extends AttrDlg {
         });
 
         cmbVaTime.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
 
                 ccfpValidTime = cmbVaTime.getText().trim();
@@ -426,5 +416,4 @@ public class CcfpTimeDlg extends AttrDlg {
             }
         });
     }
-
 }

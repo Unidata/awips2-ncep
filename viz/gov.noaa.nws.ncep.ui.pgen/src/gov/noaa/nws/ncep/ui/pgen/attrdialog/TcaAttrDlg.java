@@ -1,22 +1,12 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.TcaAttrDlg
- * 
+ *
  * 03 June 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
-
-import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.tca.Basin;
-import gov.noaa.nws.ncep.ui.pgen.tca.BreakpointPair;
-import gov.noaa.nws.ncep.ui.pgen.tca.ITca;
-import gov.noaa.nws.ncep.ui.pgen.tca.StormAdvisoryNumber;
-import gov.noaa.nws.ncep.ui.pgen.tca.TropicalCycloneAdvisory;
-import gov.noaa.nws.ncep.ui.pgen.tools.PgenTcaTool;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,31 +42,49 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.common.serialization.SerializationUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.tca.Basin;
+import gov.noaa.nws.ncep.ui.pgen.tca.BreakpointPair;
+import gov.noaa.nws.ncep.ui.pgen.tca.ITca;
+import gov.noaa.nws.ncep.ui.pgen.tca.StormAdvisoryNumber;
+import gov.noaa.nws.ncep.ui.pgen.tca.TropicalCycloneAdvisory;
+import gov.noaa.nws.ncep.ui.pgen.tools.PgenTcaTool;
+
 /**
  * Singleton attribute dialog for text.
- * 
+ *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 06/09					S. Gilbert   	Initial Creation.
- * 05/12		769			B. Yin			Move the creation of UTC time and 
- * 										isTimeValid, getInitialTime to PgenUtil
- * 										so that Watch can also use them.
- * 03/13        #928        B. Yin      Made the button bar smaller.
- * 04/29        #977        S. Gilbert  PGEN Database support
- * 12/13		TTR800		B. Yin		USe UTC time class
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Jun 2009                S. Gilbert   Initial creation
+ * May 2012       769      B. Yin       Move the creation of UTC time and isTimeValid,
+ *                                      getInitialTime to PgenUtil so that Watch can
+ *                                      also use them.
+ * Mar 2013      #928      B. Yin       Made the button bar smaller.
+ * Apr 2013      #977      S. Gilbert   PGEN Database support
+ * Dec 2013      TTR800    B. Yin       Use UTC time class
+ * Mar 20, 2019  #7572     dgilling     Code cleanup.
+ *
  * </pre>
- * 
+ *
  * @author S. Gilbert
  */
-
 public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
-    static TcaAttrDlg INSTANCE = null;
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(TcaAttrDlg.class);
+
+    private static TcaAttrDlg INSTANCE = null;
 
     private static TcaAttrInfo info = null;
 
@@ -96,21 +104,19 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
     public static final String PGEN_TCA_ATTR_INFO = "TCAinfo.xml";
 
-    private final String APPLY = "Apply";
+    private static final String APPLY = "Apply";
 
-    private final String DELETE_SEGMENT = "Delete Segment";
+    private static final String DELETE_SEGMENT = "Delete Segment";
 
-    private final String NEW_SEGMENT = "New Segment";
+    private static final String NEW_SEGMENT = "New Segment";
 
-    private final String SEV_TROPICAL_STORM = "Tropical Storm";
+    private static final String SEV_TROPICAL_STORM = "Tropical Storm";
 
-    private final String ADVISORY_WATCH = "Watch";
+    private static final String ADVISORY_WATCH = "Watch";
 
-    private final String BREAKPOINT_OFFICIAL = "Official";
+    private static final String BREAKPOINT_OFFICIAL = "Official";
 
-    private final String GEOG_TYPE_NONE = "None";
-
-    private Composite top = null;
+    private static final String GEOG_TYPE_NONE = "None";
 
     private Combo statusItems = null;
 
@@ -156,49 +162,36 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
     /**
      * Private constructor
-     * 
+     *
      * @param parShell
      * @throws VizException
      */
-    private TcaAttrDlg(Shell parShell) throws VizException {
-
+    private TcaAttrDlg(Shell parShell) {
         super(parShell);
 
-        advisories = new java.util.ArrayList<TropicalCycloneAdvisory>();
-
+        advisories = new ArrayList<>();
     }
 
     /**
      * Creates a TCA attribute dialog if the dialog does not exist and returns
      * the instance. If the dialog exists, return the instance.
-     * 
+     *
      * @param parShell
      * @return
      */
-    public static TcaAttrDlg getInstance(Shell parShell) {
-
+    public static synchronized TcaAttrDlg getInstance(Shell parShell) {
         if (INSTANCE == null) {
-
-            try {
-
-                INSTANCE = new TcaAttrDlg(parShell);
-
-            } catch (VizException e) {
-
-                e.printStackTrace();
-
-            }
+            INSTANCE = new TcaAttrDlg(parShell);
         }
 
         readOptions();
 
         return INSTANCE;
-
     }
 
     /*
      * Clear out advisories list each time attribute dialog is opened
-     * 
+     *
      * @see gov.noaa.nws.ncep.ui.pgen.attrDialog.AttrDlg#open()
      */
     @Override
@@ -214,34 +207,22 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
      */
     @Override
     public void createButtonsForButtonBar(Composite parent) {
-
-        ((GridLayout) parent.getLayout()).verticalSpacing = 0;
-        ((GridLayout) parent.getLayout()).marginHeight = 3;
-
         // used to save the current TCA element to a file
-        createButton(parent, SAVE_ID, SAVE_LABEL, true);
-        getButton(SAVE_ID).setEnabled(false);
+        Button saveBtn = createButton(parent, SAVE_ID, SAVE_LABEL, true);
+        saveBtn.setEnabled(false);
 
         // used to create a TCV (vtec) message for the current advisory
-        createButton(parent, CREATE_TEXT_ID, CREATE_TEXT_LABEL, true);
-        getButton(CREATE_TEXT_ID).setEnabled(false);
+        Button createBtn = createButton(parent, CREATE_TEXT_ID,
+                CREATE_TEXT_LABEL, true);
+        createBtn.setEnabled(false);
 
         // used to cancel all current watches and warnings
-        createButton(parent, CANCEL_ID, CANCEL_LABEL, true);
-        getButton(CANCEL_ID).setEnabled(false);
+        Button cancelBtn = createButton(parent, CANCEL_ID, CANCEL_LABEL, true);
+        cancelBtn.setEnabled(false);
 
         // close dialog button
         createButton(parent, IDialogConstants.CLOSE_ID,
                 IDialogConstants.CLOSE_LABEL, true);
-
-        this.getButton(CANCEL_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-        this.getButton(IDialogConstants.CLOSE_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
-        this.getButton(CREATE_TEXT_ID).setLayoutData(
-                new GridData(ctrlBtnWidth + 10, ctrlBtnHeight));
-        this.getButton(SAVE_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
     }
 
     /**
@@ -250,7 +231,7 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
     @Override
     public Control createDialogArea(Composite parent) {
 
-        top = (Composite) super.createDialogArea(parent);
+        Composite top = (Composite) super.createDialogArea(parent);
         this.getShell().setText("TCA Attributes");
 
         // Create the main layout for the dialog.
@@ -319,8 +300,9 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         fd.top = new FormAttachment(statusLabel, 5, SWT.BOTTOM);
         statusItems.setLayoutData(fd);
         int idx = statusItems.indexOf("Operational");
-        if (idx != -1)
+        if (idx != -1) {
             statusItems.select(idx);
+        }
 
         /*
          * Storm Type label
@@ -436,14 +418,6 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         validDate.setLayoutData(fd);
 
         /*
-         * validTime = new DateTime(g1, SWT.BORDER | SWT.TIME | SWT.SHORT); fd =
-         * new FormData(); fd.top = new FormAttachment(stormNameField,10,
-         * SWT.BOTTOM); fd.left = new FormAttachment(validDate, 0, SWT.RIGHT);
-         * fd.right = new FormAttachment(stormTypes, 0, SWT.RIGHT);
-         * validTime.setLayoutData(fd);
-         */
-
-        /*
          * valid Time text field ---- REPLACED WITH DateTime WIDGETS ABOVE
          */
 
@@ -485,8 +459,9 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
             @Override
             public void verifyText(VerifyEvent e) {
                 e.doit = validateAdvisoryNumber(e);
-                if (!e.doit)
+                if (!e.doit) {
                     Display.getCurrent().beep();
+                }
             }
         });
 
@@ -512,8 +487,9 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
             public void widgetSelected(SelectionEvent e) {
                 int num = StormAdvisoryNumber.getRegularAdvisory(advisoryNumber
                         .getText());
-                if (num < 999)
+                if (num < 999) {
                     num++;
+                }
                 advisoryNumber.setText(Integer.toString(num));
                 if (!advisories.isEmpty()) {
                     getButton(CANCEL_ID).setEnabled(true);
@@ -550,8 +526,9 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
                         .getText());
                 if ((num > 1)
                         && !StormAdvisoryNumber.isIntermediate(advisoryNumber
-                                .getText()))
+                                .getText())) {
                     num--;
+                }
                 advisoryNumber.setText(Integer.toString(num));
             }
 
@@ -559,7 +536,8 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
         ((FormData) upArrow.getLayoutData()).width = 20;
         ((FormData) downArrow.getLayoutData()).width = 20;
-        advisoryNumber.setText("1"); // initialize w/ default value
+        // initialize w/ default value
+        advisoryNumber.setText("1");
 
         /*
          * Time Zone label
@@ -779,7 +757,6 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                // System.out.println(breakpointList.getSelectionIndex()+breakpointList.getSelection().toString());
                 /*
                  * If same item in list is selected twice in a row, assume the
                  * second select is actually a deselect
@@ -787,10 +764,10 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
                 if (breakpointList.getSelectionIndex() == lastSelected) {
                     breakpointList.deselect(breakpointList.getSelectionIndex());
                     lastSelected = -1;
-                    resetAdvisoryInfo(); // reset advisory info section of dlg
-                                         // to defaults
-                    tcaTool.deselectAdvisory(); // Notify TCA drawing tool that
-                                                // no adv is selected
+                    // reset advisory info section of dlg to defaults
+                    resetAdvisoryInfo();
+                    // Notify TCA drawing tool that no adv is selected
+                    tcaTool.deselectAdvisory();
                     return;
                 }
 
@@ -875,12 +852,6 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         resetAdvisoryInfo();
     }
 
-    /*
-     * 
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
-     */
     @Override
     protected void buttonPressed(int buttonId) {
 
@@ -954,9 +925,10 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
             confirmDlg.open();
 
             if (confirmDlg.getReturnCode() == MessageDialog.OK) {
-                if (!advisories.isEmpty())
+                if (!advisories.isEmpty()) {
                     setTextLocation(advisories.get(0).getSegment()
                             .getBreakpoints().get(0).getLocation());
+                }
                 breakpointList.removeAll();
                 advisories.clear();
                 getButton(SAVE_ID).setEnabled(false);
@@ -993,6 +965,7 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
     /**
      * Sets values of all attributes of the dialog.
      */
+    @Override
     public void setAttrForDlg(IAttribute attr) {
 
         if (attr instanceof ITca) {
@@ -1027,10 +1000,10 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
                         + PGEN_TCA_ATTR_INFO);
 
         try {
-            info = (TcaAttrInfo) SerializationUtil.jaxbUnmarshalFromXmlFile(
+            info = SerializationUtil.jaxbUnmarshalFromXmlFile(
                     TcaAttrInfo.class, tcainfoFile.getAbsoluteFile());
         } catch (Exception e) {
-            e.printStackTrace();
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
     }
@@ -1045,11 +1018,12 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
         if (ve.widget instanceof Text) {
             Text advnum = (Text) ve.widget;
-            StringBuffer str = new StringBuffer(advnum.getText());
+            StringBuilder str = new StringBuilder(advnum.getText());
             str.replace(ve.start, ve.end, ve.text);
 
-            if (str.toString().isEmpty())
+            if (str.toString().isEmpty()) {
                 return true;
+            }
             stat = StormAdvisoryNumber.isValid(str.toString());
         }
 
@@ -1062,11 +1036,13 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
      */
     private String generateVTECFilename() {
         String basin = Basin.getBasinAbbrev(getBasin()).toUpperCase();
-        if (basin.equals("AL"))
+        if ("AL".equals(basin)) {
             basin = new String("AT");
+        }
         int num = getStormNumber() % 5;
-        if (num == 0)
+        if (num == 0) {
             num = 5;
+        }
         String name = String.format("%sTCV%2s%1d", PgenUtil.getCurrentOffice(),
                 basin, num);
         // return PgenUtil.getPgenActivityTextProdPath() + File.separator +
@@ -1076,11 +1052,11 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
     /*
      * Returns list of watch/warning advisories
-     * 
+     *
      * @see gov.noaa.nws.ncep.ui.pgen.tca.ITca#getAdvisories()
      */
     @Override
-    public ArrayList<TropicalCycloneAdvisory> getAdvisories() {
+    public java.util.List<TropicalCycloneAdvisory> getAdvisories() {
         return advisories;
     }
 
@@ -1111,15 +1087,16 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         StringBuilder sb = new StringBuilder(advisory.getSeverity() + "\t"
                 + advisory.getAdvisoryType() + "\t");
         sb.append(advisory.getSegment().getBreakpoints().get(0).getName());
-        if (advisory.getSegment() instanceof BreakpointPair)
+        if (advisory.getSegment() instanceof BreakpointPair) {
             sb.append("\t"
                     + advisory.getSegment().getBreakpoints().get(1).getName());
+        }
         return sb.toString();
     }
 
     /*
      * Return advisory number
-     * 
+     *
      * @see gov.noaa.nws.ncep.ui.pgen.tca.ITca#getAdvisoryNumber()
      */
     @Override
@@ -1163,8 +1140,8 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
     @Override
     public Coordinate getTextLocation() {
-        return textLocation; // this attribute does not appear in Attribute
-                             // Dialog
+        // this attribute does not appear in Attribute Dialog
+        return textLocation;
     }
 
     public void setTextLocation(Coordinate loc) {
@@ -1200,9 +1177,6 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
         validTime.setText(String.format("%02d%02d",
                 time.get(Calendar.HOUR_OF_DAY), time.get(Calendar.MINUTE)));
-        // validTime.setHours( time.get(Calendar.HOUR_OF_DAY));
-        // validTime.setMinutes( time.get(Calendar.MINUTE));
-        // validTime.setSeconds(0);
     }
 
     @Override
@@ -1230,7 +1204,7 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
 
     /*
      * Called when Apply, Delete Segment, or New Segment button is pressed
-     * 
+     *
      * @see
      * org.eclipse.swt.events.SelectionListener#widgetSelected(org.eclipse.swt
      * .events.SelectionEvent)
@@ -1245,10 +1219,11 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
              * Notify the Drawing Tool to allow new breakpoints to be selected
              */
             if (b.getText().equals(NEW_SEGMENT)) {
-                if (getGeogType().equals(GEOG_TYPE_NONE))
+                if (getGeogType().equals(GEOG_TYPE_NONE)) {
                     tcaTool.setPairMode();
-                else
+                } else {
                     tcaTool.setSingleMode();
+                }
             }
 
             /*
@@ -1262,10 +1237,11 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
                             .getBreakpoints().get(0).getLocation());
                     breakpointList.remove(idx);
                     advisories.remove(idx);
-                    if (advisories.isEmpty())
+                    if (advisories.isEmpty()) {
                         getButton(SAVE_ID).setEnabled(false);
-                    else
+                    } else {
                         getButton(SAVE_ID).setEnabled(true);
+                    }
                 }
                 resetAdvisoryInfo();
                 tcaTool.advisoryDeleted();
@@ -1281,10 +1257,11 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
                 tca.setAdvisoryType(advisoryTypes.getText());
                 // advisories.set(idx, tca);
                 breakpointList.setItem(idx, toListString(tca));
-                if (advisories.isEmpty())
+                if (advisories.isEmpty()) {
                     getButton(SAVE_ID).setEnabled(false);
-                else
+                } else {
                     getButton(SAVE_ID).setEnabled(true);
+                }
                 tcaTool.updateTcaElement();
                 tcaTool.selectAdvisory(idx);
             }
@@ -1312,7 +1289,7 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
     /**
      * Registers the drawing tool, so that it can be notified of changes in the
      * attr dialog.
-     * 
+     *
      * @param tcaTool
      *            the tcaTool to set
      */

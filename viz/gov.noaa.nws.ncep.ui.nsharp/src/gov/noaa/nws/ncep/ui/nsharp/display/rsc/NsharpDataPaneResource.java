@@ -24,7 +24,6 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.graphing.LineStroke;
 import com.raytheon.viz.core.graphing.WindBarbFactory;
-import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
@@ -68,7 +67,9 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
  * 05/05/2018   DCS20492    mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting.
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
  * 10/26/2018   DR20904     mgamazaychikov  Changed how parcel indices are set in drawPanel4.
+ * Oct 16, 2018  6845       bsteffen  Remove unnecessary jna code.
  *
  * 01/23/2018   DR21039     smoorthy        make text the same size as on 18.1.2
  * </pre>
@@ -1885,9 +1886,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_gradient() in xwvid3.c
          */
-        FloatByReference Surfpressure = new FloatByReference(0);
-        FloatByReference surfTemp = new FloatByReference(0);
-        FloatByReference surfDewpt = new FloatByReference(0);
         target.drawString(myfont, NsharpNativeConstants.OPC_LOW_LEVEL_STR, rect.x + rect.width / 3, curY, 0.0,
                 TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;

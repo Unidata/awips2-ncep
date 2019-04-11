@@ -20,18 +20,7 @@
 	<camelContext id="nctext-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		
-		<endpoint id="nctextFileEndpoint" uri="file:${edex.home}/data/sbn/nctext?noop=true&amp;idempotent=false" />		
-		<route id="nctextFileConsumerRoute">
-			<from ref="nctextFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>nctext</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:ingest.nctext" />
-		</route>
 
-		 
 		<route id="nctextIngestRoute">
 			<from uri="jms-durable:queue:ingest.nctext" />
 			<setHeader headerName="pluginName">

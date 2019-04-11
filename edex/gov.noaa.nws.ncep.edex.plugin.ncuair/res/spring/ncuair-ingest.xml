@@ -20,18 +20,8 @@
 
 	<camelContext id="ncuair-camel" xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<endpoint id="ncuairFileEndpoint" uri="file:${edex.home}/data/sbn/ncuair?noop=true&amp;idempotent=false"/>
 
 		<!-- Begin ncUair routes -->
-		<route id="ncuairFileConsumerRoute">
-			<from ref="ncuairFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>ncuair</constant>
-			</setHeader>
-			<!-- chin to uri="jms-durable:queue:Ingest.AlphaNumeric" /-->
-			<to uri="jms-durable:queue:Ingest.ncuair" />
-		</route>
 		<!-- Chin, decodes and persist one batch of records at one time for better performance -->
 		<route id="ncuairIngestRoute">
 			

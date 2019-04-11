@@ -26,18 +26,8 @@
 	<camelContext id="ssha-camel" 
 	              xmlns="http://camel.apache.org/schema/spring" 
 	              errorHandlerRef="errorHandler">
-		<endpoint id="sshaFileEndpoint" uri="file:${edex.home}/data/sbn/ssha?noop=true&amp;idempotent=false" />
 
 		<!-- Begin Ssha routes -->
-		<route id="sshaFileConsumerRoute">
-			<from ref="sshaFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>ssha</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.ssha" />
-		</route>
-
 		<route id="sshaIngestRoute">
 			<from uri="jms-durable:queue:Ingest.ssha"/>
 			<setHeader headerName="pluginName">

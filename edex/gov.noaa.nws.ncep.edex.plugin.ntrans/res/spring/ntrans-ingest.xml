@@ -21,19 +21,8 @@
 	<camelContext id="ntrans-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<endpoint id="ntransFileEndpoint" uri="file:${edex.home}/data/sbn/ntrans??noop=true&amp;idempotent=false" />
 
 		<!-- Begin Ntrans routes -->
-		<route id="ntransFileConsumerRoute">
-			<from ref="ntransFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>ntrans</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.Ntrans" />
-		</route>
-
-
 		<route id="ntransIngestRoute">
 			<from uri="jms-durable:queue:Ingest.Ntrans" />
 		<!-- 	<setHeader headerName="pluginName">

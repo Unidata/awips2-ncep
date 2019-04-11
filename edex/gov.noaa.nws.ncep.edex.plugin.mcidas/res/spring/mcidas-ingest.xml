@@ -29,18 +29,7 @@
 	<camelContext id="mcidas-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<endpoint id="mcidasFileEndpoint" uri="file:${edex.home}/data/sbn/mcidas?noop=true&amp;idempotent=false"/>
 
-		<!-- Begin McIDAS routes -->
-		<route id="mcidasFileConsumerRoute">
-			<from ref="mcidasFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>mcidas</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.mcidas" />
-		</route>
-		
 		<route id="mcidasIngestRoute">
 			<from uri="jms-durable:queue:Ingest.mcidas" />
 			<doTry>

@@ -73,6 +73,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
  * 06/16/2016   R18370      B. Yin      Set focus back to map editor when multi-selecting
  * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
+ * 01/23/2019   7716        K. Sunil    return true in createButtonBar call in case of PgenInterpDlg.
+ 
  * 
  * </pre>
  * 
@@ -81,9 +83,9 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 
 public abstract class AttrDlg extends Dialog implements IAttribute {
 
-    public static int ctrlBtnWidth = 70;
+    public static final int ctrlBtnWidth = 70;
 
-    public static int ctrlBtnHeight = 28;
+    public static final int ctrlBtnHeight = 28;
 
     /**
      * A handler to the current PGEN drawing layer, which is used to get the
@@ -169,7 +171,8 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 || PgenSession.getInstance().getPgenPalette()
                         .getCurrentCategory()
                         .equalsIgnoreCase(PgenConstant.CATEGORY_MET)
-                || this instanceof CycleDlg) {
+                || this instanceof CycleDlg 
+                || this instanceof PgenInterpDlg) { 
 
             Control bar = super.createButtonBar(parent);
             GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
@@ -238,12 +241,10 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
             if (de instanceof Jet.JetBarb) {
                 DECollection wind = (DECollection) de.getParent();
                 if (wind != null
-                        && wind.getCollectionName()
-                                .equalsIgnoreCase("WindInfo")) {
+                        && "WindInfo".equalsIgnoreCase(wind.getCollectionName())) {
                     DECollection parent = (DECollection) wind.getParent();
                     if (parent != null
-                            && parent.getCollectionName().equalsIgnoreCase(
-                                    "jet")) {
+                            && "jet".equalsIgnoreCase(parent.getCollectionName())) {
                         Jet oldJet = (Jet) parent;
                         Jet newJet = oldJet.copy();
                         DECollection newWind = wind.copy();
@@ -289,7 +290,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         } else {
 
             ArrayList<AbstractDrawableComponent> adcList = null;
-            ArrayList<AbstractDrawableComponent> newList = new ArrayList<AbstractDrawableComponent>();
+            ArrayList<AbstractDrawableComponent> newList = new ArrayList<>();
 
             // get the list of selected elements
             if (drawingLayer != null) {
@@ -346,8 +347,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                     AttrSettings.getInstance().setSettings(newEl);
                 }
 
-                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<AbstractDrawableComponent>(
-                        adcList);
+                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(adcList);
                 drawingLayer.replaceElements(null, oldList, newList);
             }
 
@@ -413,9 +413,9 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 // while (Display.getDefault().readAndDispatch()) {
                 // wait for events to finish before continue
                 // }
-                if (!(shell == null || shell.isDisposed())) { // make sure the
-                                                              // dialog is not
-                                                              // closed
+            	
+                // make sure the dialog is not closed
+                if (!(shell == null || shell.isDisposed())) { 
                     shell.addFocusListener(new FocusListener() {
 
                         @Override

@@ -1,6 +1,6 @@
 /*****************************************************************************************
  * COPYRIGHT (c), 2007, RAYTHEON COMPANY
- * ALL RIGHTS RESERVED, An Unpublished Work 
+ * ALL RIGHTS RESERVED, An Unpublished Work
  *
  * RAYTHEON PROPRIETARY
  * If the end user is not the U.S. Government or any agency thereof, use
@@ -26,20 +26,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.measure.unit.SI;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.eclipse.swt.graphics.RGB;
+import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.referencing.crs.DefaultProjectedCRS;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
 import org.geotools.referencing.operation.projection.MapProjection;
 import org.geotools.referencing.operation.projection.MapProjection.AbstractProvider;
+import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
@@ -53,6 +59,7 @@ import com.raytheon.uf.common.colormap.image.ColorMapData.ColorMapDataType;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.geospatial.CRSCache;
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.geospatial.util.GridGeometryWrapChecker;
 import com.raytheon.uf.common.geospatial.util.SubGridGeometryCalculator;
 import com.raytheon.uf.common.geospatial.util.WorldWrapChecker;
 import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
@@ -78,6 +85,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.DataSourceTileImageCreator;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
+import com.raytheon.uf.viz.ncep.grid.FloatGridData;
+import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
 import com.raytheon.viz.core.contours.util.ContourContainer;
 import com.raytheon.viz.core.contours.util.FortConBuf;
 import com.raytheon.viz.core.contours.util.FortConConfig;
@@ -110,43 +119,40 @@ import gov.noaa.nws.ncep.gempak.parameters.infill.FLine;
 import gov.noaa.nws.ncep.gempak.parameters.intext.TextStringParser;
 import gov.noaa.nws.ncep.gempak.parameters.line.LineDataStringParser;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.FrameData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.NcGridDataProxy;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * ContourSupport
- * 
+ *
  * Provides contouring wrapper
- * 
+ *
  * <pre>
- * 
+ *
  *    SOFTWARE HISTORY
- * 
+ *
  *    Date       Ticket# Engineer      Description
  *    ---------- ------- -----------   --------------------------
  *    10/22/2007         chammack      Initial Creation.
  *    05/26/2009 #2172   chammack      Use zoomLevel to calculate label spacing
- *    03/10/2010 #164    M. Li         Control increments on zoom   
+ *    03/10/2010 #164    M. Li         Control increments on zoom
  *    05/18/2011         M. Li         Add contour label frequency capability
  *    05/26/2011         M. Li         Add a new method createContourLabel
  *    08/18/2011         M. li         fixed reproject problems for streamline
- *    11/08/2011         X. Guo        Checked centeral_meridian and 
- *                                        added vertices twice after subtract 360  
+ *    11/08/2011         X. Guo        Checked centeral_meridian and
+ *                                        added vertices twice after subtract 360
  *    02/15/2012         X. Guo        Used cached contour information to re-create
  *                                        wired frame
  *    03/01/2012         X. Guo        Handle five zoom levels
  *    03/13/2012         X. Guo        Handle multi-threads
  *    03/15/2012         X. Guo        Refactor
- *    03/27/2012         X. Guo        Used contour lock instead of "synchronized" 
+ *    03/27/2012         X. Guo        Used contour lock instead of "synchronized"
  *    05/23/2012         X. Guo        Loaded ncgrib logger
  *    04/26/2013         B. Yin        Fixed the world wrap problem for centeral line 0/180.
  *    06/06/2013         B. Yin        fixed the half-degree grid porblem.
- *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil 
+ *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil
  *    08/19/2013 #743    S. Gurung     Added clrbar and corresponding getter/setter method (from Archana's branch) and
  *                                        fix for editing clrbar related attribute changess not being applied from right click legend.
  *    09/17/2013 #1036   S. Gurung     Added TEXT attribute related changes to create labels with various parameters
@@ -167,11 +173,18 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                     In general fix/verify that map/scalebar are correct when number of colors
  *                                     are less than, equal too or greater than number of increments
  *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
- *                                     be limiting the number of rendered contours, not the number or intervals between the 
+ *                                     be limiting the number of rendered contours, not the number or intervals between the
  *                                     min and the max
- * 
+ *    03/27/2017 R19634  bsteffen      Support subgrids.
+ *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
+ *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
+ *                                      and prevent rendering unnecessary projection data
+ *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
+ *    01/31/2019 7726    mrichardson   Downgrade out of bounds coordinate message from warn to info; minor code clean-up
+ *    02/01/2019 7720    mrichardson   Incorporated changes for subgrids.
+ *
  * </pre>
- * 
+ *
  */
 public class ContourSupport {
     private static final IUFStatusHandler statusHandler = UFStatus
@@ -204,9 +217,6 @@ public class ContourSupport {
     private float zoom;
 
     private String text;
-
-    /** Maximum number of contour levels */
-    private final static int MAX_CONTOUR_LEVELS = 100;
 
     // calculated values
     private ContourGroup contourGroup = null;
@@ -247,23 +257,24 @@ public class ContourSupport {
 
     private boolean isCntrsCreated;
 
-    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
-
     private GeneralGridGeometry imageGridGeometry;
 
     private NcgridResource resource;
-
-    private NcGridDataProxy ncGridDataProxy = null;
 
     private IGraphicsTarget target;
 
     private List<Integer> fillColorsIndex = null;
 
+    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
+
+    /** Maximum number of contour levels */
+    private static final int MAX_CONTOUR_LEVELS = 100;
+
     private static final int IMAGE_TILE_SIZE = 2048;
 
     /**
      * Constructor
-     * 
+     *
      * @param records
      * @param level
      * @param extent
@@ -310,7 +321,7 @@ public class ContourSupport {
 
         public List<Double> fvalues;
 
-        public HashMap<String, Geometry> latlonContours;
+        public Map<String, Geometry> latlonContours;
 
         public CLRBAR clrbar;
 
@@ -476,19 +487,23 @@ public class ContourSupport {
                         textAttr.getTextSize(), styles);
 
                 /* Set text rotation */
-                if (textAttr.getTextRotation() == 'N')
-                    rotation = -1; // North relative, to be processed later when
-                                   // location coordinate is available
-                else
-                    rotation = 0.0; // Screen relative
+                if (textAttr.getTextRotation() == 'N') {
+                    // North relative, to be processed later when
+                    // location coordinate is available
+                    rotation = -1;
+                } else {
+                    // Screen relative
+                    rotation = 0.0;
+                }
 
                 /* Set text horizontal alignment */
-                if (textAttr.getTextJustification() == 'L')
+                if (textAttr.getTextJustification() == 'L') {
                     justification = HorizontalAlignment.LEFT;
-                else if (textAttr.getTextJustification() == 'R')
+                } else if (textAttr.getTextJustification() == 'R') {
                     justification = HorizontalAlignment.RIGHT;
-                else
+                } else {
                     justification = HorizontalAlignment.CENTER;
+                }
 
                 String border = textAttr.getTextBorder() + "";
 
@@ -552,8 +567,9 @@ public class ContourSupport {
         this.target = target;
         this.cntrData = new ContourGridData(records);
         this.centralMeridian = getCentralMeridian(descriptor);
-        if (centralMeridian == -180)
+        if (centralMeridian == -180) {
             centralMeridian = 180;
+        }
         this.worldWrapChecker = new WorldWrapChecker(
                 descriptor.getGridGeometry().getEnvelope()).needsChecking();
         this.corrector = new WorldWrapCorrector(descriptor.getGridGeometry());
@@ -593,7 +609,7 @@ public class ContourSupport {
             /*
              * Generate contours and create contour wireframes
              */
-            if (cvalues != null && cvalues.size() > 0) {
+            if (cvalues != null && !cvalues.isEmpty()) {
                 /*
                  * Regenerate contours if new contour intervals requested
                  */
@@ -605,8 +621,9 @@ public class ContourSupport {
                      */
                     genContour(cvalues);
 
-                    if (!isCntrsCreated)
+                    if (!isCntrsCreated) {
                         return;
+                    }
                     contourGroup.cvalues.clear();
                     contourGroup.cvalues.addAll(cvalues);
                 }
@@ -618,7 +635,7 @@ public class ContourSupport {
              * Create color fills if requested
              */
             List<Double> fvalues = calcFintValue();
-            if (fvalues != null && fvalues.size() > 0) {
+            if (fvalues != null && !fvalues.isEmpty()) {
                 contourGroup.fvalues.clear();
                 contourGroup.fvalues.addAll(fvalues);
                 createColorFills();
@@ -655,6 +672,8 @@ public class ContourSupport {
             try {
                 rastPosLatLonToWorldGrid.transform(in, 0, out, 0, 1);
             } catch (TransformException e) {
+                statusHandler.info("The coordinate [" + in[0] + ", " + in[1] + 
+                        "] could not be transformed. Continuing with remaining coordinates.");
                 continue;
             }
             if (out[0] > minx && out[0] < maxx && out[1] > miny
@@ -679,9 +698,10 @@ public class ContourSupport {
             string.horizontalAlignment = contourGroup.labelParms.justification;
             string.verticallAlignment = VerticalAlignment.MIDDLE;
 
-            if (contourGroup.labelParms.textStyle != null)
+            if (contourGroup.labelParms.textStyle != null) {
                 string.addTextStyle(contourGroup.labelParms.textStyle,
                         contourGroup.labelParms.boxColor);
+            }
 
             if (contourGroup.labelParms.rotation == -1) {
                 // North relative rotation
@@ -760,8 +780,9 @@ public class ContourSupport {
     private static Geometry polyToLine(Polygon poly) {
         GeometryFactory gf = new GeometryFactory();
 
-        if (poly.getNumInteriorRing() == 0)
+        if (poly.getNumInteriorRing() == 0) {
             return poly;
+        }
 
         poly.normalize();
         LineString outerPoly = poly.getExteriorRing();
@@ -826,8 +847,9 @@ public class ContourSupport {
             }
 
             if (intx != null) {
-                if (max.compareTo(intx) == -1)
+                if (max.compareTo(intx) == -1) {
                     max = intx;
+                }
             }
         }
 
@@ -842,8 +864,9 @@ public class ContourSupport {
             double centralMeridian = group.parameter(
                     AbstractProvider.CENTRAL_MERIDIAN.getName().getCode())
                     .doubleValue();
-            if (centralMeridian > 180)
+            if (centralMeridian > 180) {
                 centralMeridian -= 360;
+            }
             return centralMeridian;
         }
         return -999;
@@ -863,7 +886,7 @@ public class ContourSupport {
         contourGroup.latlonContours = new HashMap<>();
 
         if (contourGp != null) {
-            if (contourGp.cvalues != null && contourGp.cvalues.size() > 0) {
+            if (contourGp.cvalues != null && !contourGp.cvalues.isEmpty()) {
                 contourGroup.cvalues.addAll(contourGp.cvalues);
             }
             if (contourGp.latlonContours != null
@@ -923,14 +946,17 @@ public class ContourSupport {
 
     private void initZoomIndex() {
         zoomLevelIndex = level + 1;
-        if (zoomLevelIndex < 1)
+        if (zoomLevelIndex < 1) {
             zoomLevelIndex = 1;
+        }
         int maxZoomLevel = 5;
         String cint = attr.getCint();
-        if (cint != null)
+        if (cint != null) {
             maxZoomLevel = cint.trim().split(">").length;
-        if (zoomLevelIndex > maxZoomLevel)
+        }
+        if (zoomLevelIndex > maxZoomLevel) {
             zoomLevelIndex = maxZoomLevel;
+        }
     }
 
     private List<Double> calcCintValue() {
@@ -961,7 +987,7 @@ public class ContourSupport {
         long total_labeling_time = 0;
         long t2 = System.currentTimeMillis();
         if (type.trim().toUpperCase().contains("C")
-                && contourGroup.cvalues.size() > 0) {
+                && !contourGroup.cvalues.isEmpty()) {
             int labelFreq = 1;
             String[] tempLineStrs = attr.getLine().split("/");
             List<Integer> labelValues = null;
@@ -999,10 +1025,11 @@ public class ContourSupport {
                         }
                     }
                 } else {
-                    if (labelFreq == 0)
+                    if (labelFreq == 0) {
                         toLabel = false;
-                    else
+                    } else {
                         toLabel = (n % labelFreq == 0) ? true : false;
+                    }
                 }
 
                 Geometry g = contourGroup.latlonContours.get(cval.toString());
@@ -1043,7 +1070,8 @@ public class ContourSupport {
                         }
                     } catch (VizException e) {
                         statusHandler.error(
-                                "JTS Compiler error in ContourSupport", e);
+                                "JTS Compiler error while creating "
+                                + "contour lines in ContourSupport", e);
                     }
 
                     if (toLabel) {
@@ -1065,9 +1093,10 @@ public class ContourSupport {
         long t3 = System.currentTimeMillis();
         logger.debug("===Creating label wireframes for (" + name + ") took: "
                 + total_labeling_time);
-        if (ncgribLogger.enableCntrLogs())
+        if (ncgribLogger.isEnableContourLogs()) {
             logger.debug("===Creating contour line wireframes for (" + name
                     + ")took: " + (t3 - t2));
+        }
     }
 
     // get MapProjection name for the given CoordinateReferenceSystem
@@ -1084,42 +1113,100 @@ public class ContourSupport {
     }
 
     private void createColorFills() {
-
         long t3 = System.currentTimeMillis();
+        NcGridDataProxy ncGridDataProxy = null;
 
         if (type.toUpperCase().contains("F")
                 || type.toUpperCase().contains("I")) {
 
-            // Equidistant_Cylindrical image requires special handling
-            // (subgridding)
-            if (getProjectionName(
-                    imageGridGeometry.getCoordinateReferenceSystem())
-                            .equals("Equidistant_Cylindrical")
-                    && !getProjectionName(descriptor.getCRS())
-                            .equals("MCIDAS_AREA_NAV")) {
+            int worldWidth = GridGeometryWrapChecker
+                    .checkForWrapping(imageGridGeometry);
+            int geomWidth = imageGridGeometry.getGridRange().getSpan(0);
+            /*
+             * Grids larger than the world need to be reduced to render
+             * correctly.
+             */
+            if (worldWidth > 0 && worldWidth < geomWidth) {
+                GridEnvelope gridRange = imageGridGeometry.getGridRange();
+                int[] low = gridRange.getLow().getCoordinateValues();
+                int[] high = gridRange.getHigh().getCoordinateValues();
 
-                // get original imageGridGeometry, as World wrap may cause
-                // issues (ie. color bands) in some projections
-                ncGridDataProxy = ((FrameData) resource.getCurrentFrame())
-                        .getProxy();
+                high[0] = low[0] + worldWidth;
 
-                /*
-                 * The imageGridGeometry passed into this method
-                 * (newSpatialObject, which is 360 degrees) causes problems in
-                 * display when it gets subgridded. Ignore the subgridding if
-                 * the proxy is null. If the proxy is not null, the
-                 * imageGridGeometry associated with it (spatialObject, which is
-                 * 359 degrees) is correct and so you can do the subgridding.
-                 */
+                gridRange = new GeneralGridEnvelope(low, high);
 
-                // SpatialObject = 359 degrees, NewSpatialObject = 360 degrees
-                // (has 0th deg added), so it's "new"
-                if (ncGridDataProxy != null
-                        && ncGridDataProxy.getSpatialObject() != null) {
+                imageGridGeometry = new GridGeometry2D(gridRange,
+                        imageGridGeometry.getGridToCRS(),
+                        imageGridGeometry.getCoordinateReferenceSystem());
 
-                    imageGridGeometry = MapUtil.getGridGeometry(
-                            ncGridDataProxy.getSpatialObject());
-
+                // Equidistant_Cylindrical image requires special handling
+                // (subgridding)
+            if ("Equidistant_Cylindrical".equals(
+                    getProjectionName(
+                            imageGridGeometry.getCoordinateReferenceSystem()))
+                    && !"MCIDAS_AREA_NAV".equals(
+                            getProjectionName(descriptor.getCRS()))) {
+        
+                    /*
+                     * Geotools does not "roll the longitude" for map
+                     * projections with a central meridian of 0. See
+                     * MapProjection.transform() for an explanation.
+                     * 
+                     * Grids larger than the world always have a central
+                     * meridian of 0 because rolling the edges would cause the
+                     * grid to collapse down to the width of a single grid cell.
+                     * 
+                     * For the display we need to ensure that the longitude is
+                     * rolled so that the image is centered on the display
+                     * instead of rendering off the edge of the display.
+                     */
+                    try {
+                        ReferencedEnvelope envelope = new ReferencedEnvelope(
+                                imageGridGeometry.getEnvelope());
+                        /*
+                         * The envelope will span the entire valid width of the
+                         * new CRS. Due to floating point inaccuracies the
+                         * conversion to a new CRS can cause both corners to get
+                         * rolled onto the same side. Reducing the envelope
+                         * slightly accounts for the floating point inaccuracies
+                         * with no noticeable impact on the display.
+                         */
+                        envelope.expandBy(-0.0001, 0);
+                        envelope = envelope
+                                .transform(DefaultGeographicCRS.WGS84, true);
+                        double center = envelope.getMedian(0);
+        
+                        /*
+                         * Copy all the parameters from the existing projection
+                         * except the central meridian
+                         */
+                        MapProjection worldProjection = CRS
+                                .getMapProjection(imageGridGeometry
+                                        .getCoordinateReferenceSystem());
+                        ParameterValueGroup group = worldProjection
+                                .getParameterValues();
+                        group.parameter(AbstractProvider.CENTRAL_MERIDIAN
+                                .getName().getCode()).setValue(center);
+                        String name = "ContourSupportGenerated: CM=" + center;
+                        DefaultProjectedCRS projCrs = MapUtil
+                                .constructProjection(name, group);
+        
+                        envelope = envelope.transform(projCrs, true);
+                        imageGridGeometry = new GridGeometry2D(gridRange,
+                                envelope);
+                    } catch (FactoryException | TransformException e) {
+                        statusHandler.error("Failed to project grid properly",
+                                e);
+                    }
+        
+                    /*
+                     * The imageGridGeometry passed into this method
+                     * (newSpatialObject, which is 360 degrees) causes problems in
+                     * display when it gets subgridded. Ignore the subgridding if
+                     * the proxy is null. If the proxy is not null, the
+                     * imageGridGeometry associated with it (spatialObject, which is
+                     * 359 degrees) is correct and so you can do the subgridding.
+                     */
                     try {
 
                         // create subGrid (same as D2D)
@@ -1145,9 +1232,10 @@ public class ContourSupport {
         }
 
         long t4 = System.currentTimeMillis();
-        if (ncgribLogger.enableCntrLogs())
+        if (ncgribLogger.isEnableContourLogs()) {
             logger.debug("===Creating color fills for (" + name + ") took : "
                     + (t4 - t3));
+        }
     }
 
     private TileSetRenderable createRenderableImage(IGraphicsTarget target,
@@ -1170,10 +1258,11 @@ public class ContourSupport {
 
             if (fline == null || fline.trim().length() < 1) {
                 for (int i = 0; i < contourGroup.fvalues.size() + 2; i++) {
-                    if (i <= 30)
+                    if (i <= 30) {
                         fillColorsIndex.add(i + 1);
-                    else
+                    } else {
                         fillColorsIndex.add(30);
+                    }
                 }
             } else {
                 FLine flineInfo = new FLine(fline.trim());
@@ -1244,7 +1333,7 @@ public class ContourSupport {
     }
 
     /*-
-     *  Create colormap for any resource. Modified to include 
+     *  Create colormap for any resource. Modified to include
      *     non-linear FINTs (unequal fill intervals ie. precip)
      */
     private ColorMapParameters createColorMapParameters() {
@@ -1258,7 +1347,7 @@ public class ContourSupport {
         double interval = last - first;
 
         // check fill intervals for bounds
-        if (contourGroup.fvalues.size() > 0) {
+        if (!contourGroup.fvalues.isEmpty()) {
             first = Math.min(first, contourGroup.fvalues.get(0));
             last = Math.max(last,
                     contourGroup.fvalues.get(contourGroup.fvalues.size() - 1));
@@ -1283,26 +1372,58 @@ public class ContourSupport {
     }
 
     private void createStreamLines() {
+        int[] rangeHigh = {};
+        int[] rangeLow = {};
+        int x, szX, szY, maxX, maxY, minX, minY = 0;
+
         // Step 1: Get the actual data
         contourGroup.streamlines = target.createWireframeShape(false,
                 descriptor);
 
         FloatBuffer uW = null;
         FloatBuffer vW = null;
-        long[] sz = records.getSizes();
 
         // Step 2: Determine the subgrid, if any
-        int minX = 0, minY = 0;
-        int maxX = (int) sz[0] - 1;
-        int maxY = (int) sz[1] - 1;
-        int szX = (maxX - minX) + 1;
-        int szY = (maxY - minY) + 1;
-        int x = (int) sz[0];
+        if (imageGridGeometry != null) {
+            try {
+                SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
+                        descriptor.getGridGeometry().getEnvelope(),
+                        imageGridGeometry);
+                if (!subGridGeometry.isEmpty()) {
+                    imageGridGeometry = subGridGeometry
+                            .getSubGridGeometry2D();
+                    rangeHigh = subGridGeometry.getGridRangeHigh(false);
+                    rangeLow = subGridGeometry.getGridRangeLow(true);
+                }
+            } catch (Exception ex) {
+                statusHandler.error("Error Creating subGrid for streamlines: ", ex);
+            }
+        }
+
+        if (rangeHigh.length == 2 && rangeLow.length == 2) {
+            x = maxX = rangeHigh[0];
+            maxY = rangeHigh[1];
+            minX = rangeLow[0];
+            minY = rangeLow[1];
+            szX = (maxX - minX) + 1;
+            szY = (maxY - minY) + 1;
+        } else {
+            // default to the old way so something is at least displayed
+            long[] sz = records.getSizes();
+            minX = 0;
+            minY = 0;
+            maxX = (int) sz[0] - 1;
+            maxY = (int) sz[1] - 1;
+            szX = (maxX - minX) + 1;
+            szY = (maxY - minY) + 1;
+            x = (int) sz[0];
+        }
 
         uW = records.getXdata();
         vW = records.getYdata();
 
-        if (globalData) { // remove column 360
+        if (globalData) {
+            // remove column 360
             x--;
             szX--;
             maxX--;
@@ -1369,8 +1490,9 @@ public class ContourSupport {
          * Fix arrow size by M. Li
          */
         float arrowSize = (float) (0.4f / Math.sqrt(zoom));
-        if (arrowSize > 0.4)
+        if (arrowSize > 0.4) {
             arrowSize = 0.4f;
+        }
 
         StrmPakConfig config = new StrmPakConfig(arrowSize, minspc, maxspc,
                 -1000000f, -999998f);
@@ -1393,34 +1515,21 @@ public class ContourSupport {
                     double[] out = new double[2];
 
                     try {
-                        float f;
-
-                        if (point.getX() >= 360) {
-                            f = 0;
-                        } else {
-                            f = maxX + 1 - point.getX();
-                        }
-
-                        if (f > 180)
-                            f = f - 360;
-
-                        try {
-                            rastPosToWorldGrid.transform(
-                                    new double[] { f, point.getY() + minY }, 0,
-                                    out, 0, 1);
-                        } catch (Exception e) {
-                            statusHandler
-                                    .error(ExceptionUtils.getStackTrace(e));
-                        }
-                        pts.add(new Coordinate(f, point.getY() + minY));
-
-                    } catch (Exception e) {
-                        statusHandler.error(ExceptionUtils.getStackTrace(e));
+                        rastPosToWorldGrid.transform(
+                                new double[] { point.getX() + minX, point.getY() + minY },
+                                0, out, 0, 1);
+                    } catch (TransformException e) {
+                        statusHandler
+                                .error("Error trying to transform point: "
+                                        + "[" + point.getX() + minX + ", " + point.getY() + minY + "]. "
+                                        + "Displayed data may be incomplete or "
+                                        + "not entirely correct.", e);
                     }
+                    pts.add(new Coordinate(point.getX(), point.getY()));
                     vals.add(out);
                 }
 
-                if (pts.size() > 0) {
+                if (!pts.isEmpty()) {
 
                     if (worldWrap) {
                         screen = toScreenRightOfZero(
@@ -1450,7 +1559,7 @@ public class ContourSupport {
                 }
             }
 
-            if (vals.size() > 0) {
+            if (!vals.isEmpty()) {
 
                 double[][] valsArr = vals.toArray(new double[vals.size()][2]);
                 addStreamLineToJTS(valsArr, gf, worldGridToLatlon, jtsCompiler,
@@ -1498,16 +1607,16 @@ public class ContourSupport {
                         .getActiveDisplayPane().getDisplay());
 
                 List<Double> fillIntvls = new ArrayList<>();
-                if (fIntvls != null && fIntvls.size() > 0)
+                if (fIntvls != null && !fIntvls.isEmpty()) {
                     fillIntvls.addAll(fIntvls);
-                else {
+                } else {
                     FINT theFillIntervals = new FINT(fint.trim());
                     fillIntvls = theFillIntervals
                             .getUniqueSortedFillValuesFromAllZoomLevels();
                 }
 
                 List<Integer> fillColors = new ArrayList<>();
-                if (fColors != null && fColors.size() > 0) {
+                if (fColors != null && !fColors.isEmpty()) {
                     fillColors.addAll(fColors);
                 } else {
                     FLine fillColorString = new FLine(fline.trim());
@@ -1544,7 +1653,7 @@ public class ContourSupport {
 
     /**
      * Uses the FortConBuf algorithm to generate contour lines in x/y space.
-     * 
+     *
      * @param contourVals
      *            The desired values of the lines
      * @return a Map of the contour line value to a Geometry of the contour(s)
@@ -1601,11 +1710,11 @@ public class ContourSupport {
 
         // create MultiLineStrings so we get all lines for each value
         Map<Float, Geometry> result = new HashMap<>();
-        for (Float f : contourResult.keySet()) {
-            List<LineString> lines = contourResult.get(f);
+        for (Entry<Float, List<LineString>> cr : contourResult.entrySet()) {
+            List<LineString> lines = cr.getValue();
             MultiLineString mls = geomFactory
                     .createMultiLineString(lines.toArray(new LineString[0]));
-            result.put(f, mls);
+            result.put(cr.getKey(), mls);
         }
 
         return result;
@@ -1617,16 +1726,16 @@ public class ContourSupport {
 
         long t1a = System.currentTimeMillis();
         Map<Float, Geometry> contours = fortConBuf(cvalues);
-        for (Float f : contours.keySet()) {
-            Geometry xygeom = contours.get(f);
+        for (Entry<Float, Geometry> c : contours.entrySet()) {
+            Geometry xygeom = contours.get(c.getKey());
             Geometry llgeom = transformGeometry(xygeom, rastPosToLatLon);
-            contourGroup.latlonContours.put(f.toString(), llgeom);
+            contourGroup.latlonContours.put(c.getKey().toString(), llgeom);
         }
         long t2 = System.currentTimeMillis();
         logger.debug(
                 "Total generating contour line values took: " + (t2 - t1a));
 
-        if (ncgribLogger.enableCntrLogs()) {
+        if (ncgribLogger.isEnableContourLogs()) {
             printSize();
         }
     }
@@ -1709,8 +1818,9 @@ public class ContourSupport {
                 if (out[0] < -180 || out[0] > 180.) {
                     out[0] = ((out[0] + 180) % 360) - 180;
                 }
-                if (out[0] == 0.0)
+                if (out[0] == 0.0) {
                     out[0] = 0.001;
+                }
                 clist.add(new Coordinate(out[0], out[1]), true);
             } catch (TransformException e) {
             }
@@ -1719,14 +1829,15 @@ public class ContourSupport {
     }
 
     public ContourGroup getContours() {
-        if (!isCntrsCreated)
+        if (!isCntrsCreated) {
             return null;
+        }
         return contourGroup;
     }
 
     /**
      * If the worldWrapChecker is true and the grid is split by the map border.
-     * 
+     *
      * @param imageGridGeometry
      * @param rastPosToLatLon
      * @return
@@ -1756,11 +1867,13 @@ public class ContourSupport {
             double minLon = (out0[0] >= 0) ? out0[0] : out0[0] + 360;
             double maxLon = (out1[0] >= 0) ? out1[0] : out1[0] + 360;
 
-            if (minLon == 0 && maxLon == 360)
+            if (minLon == 0 && maxLon == 360) {
                 globalData = true;
+            }
 
-            if (maxLon >= 360)
+            if (maxLon >= 360) {
                 maxLon = 359;
+            }
             double right = centralMeridian + 180;
 
             if (maxLon > minLon) {
@@ -1785,7 +1898,7 @@ public class ContourSupport {
 
     /**
      * Gets the maximum grid number in x direction
-     * 
+     *
      * @param imageGridGeometry
      * @return int - maximum grid number in x direction
      */
@@ -1795,7 +1908,7 @@ public class ContourSupport {
 
     /**
      * Gets the map width in screen coordinate.
-     * 
+     *
      * @return
      */
     private double getMapWidth() {
@@ -1840,7 +1953,7 @@ public class ContourSupport {
     /**
      * Calculates the angle difference of "north" relative to the screen's
      * y-axis at a given pixel location.
-     * 
+     *
      * @param loc
      *            - The point location in pixel coordinates
      * @return The angle difference of "north" versus world coordinate's y-axis
@@ -1859,11 +1972,12 @@ public class ContourSupport {
         double[] north = { loc.x, loc.y + delta, 0.0 };
         double[] pt2 = descriptor.pixelToWorld(north);
 
-        if (pt1 != null && pt2 != null)
+        if (pt1 != null && pt2 != null) {
             return -90.0 - Math.toDegrees(
                     Math.atan2((pt2[1] - pt1[1]), (pt2[0] - pt1[0])));
-        else
+        } else {
             return 0.0;
+        }
     }
 
     private List<Integer> handleNotEnoughFillColors(int fillIntvlsSize,
@@ -1874,10 +1988,11 @@ public class ContourSupport {
 
         int index = 0;
         for (int i = fillColors.size() + 1; i < fillIntvlsSize + 2
-                && fillColors.size() > 0; i++) {
+                && !fillColors.isEmpty(); i++) {
 
-            if (index >= fillColors.size())
+            if (index >= fillColors.size()) {
                 index = 0;
+            }
 
             newFillColors.add(fillColors.get(index));
 
@@ -1900,21 +2015,21 @@ public class ContourSupport {
 
     /*
      * Adds a stream line to JTSCompiler for clipping against view area.
-     * 
+     *
      * Clipping removed from GLGeometryObject2D and the clipping is moved to
      * JTSCompiler. So we use this method to clip against view area to remove
      * pole points and extra lines outside of view area.
-     * 
+     *
      * @param points - The point location in world grid coordinates
-     * 
+     *
      * @param gf - Geometry factory.
-     * 
+     *
      * @param mf - math transform to convert points into map coordinates.
-     * 
+     *
      * @param jtsCompiler - A JTS compiler to accept/handle the LineString.
-     * 
+     *
      * @param wcr - A WorldWrapCorrector to handle world wrap.
-     * 
+     *
      * @return
      */
     private void addStreamLineToJTS(double[][] points, GeometryFactory gf,
@@ -1938,7 +2053,8 @@ public class ContourSupport {
         try {
             jtsCompiler.handle(correctedLnst);
         } catch (VizException e) {
-            e.printStackTrace();
+            statusHandler.error("Error occurred while trying to add a stream line"
+                    + " to the JTSCompiler to handle:", e);
         }
     }
 }

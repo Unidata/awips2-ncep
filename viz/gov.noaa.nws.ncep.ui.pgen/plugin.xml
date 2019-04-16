@@ -634,7 +634,7 @@
                 </visibleWhen>
             </command>
         </menuContribution>
-        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette">
+        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.viz.overlays.staticOverlay">
             <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.palette"
                 label="PGEN Palette">

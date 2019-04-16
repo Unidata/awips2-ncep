@@ -8,7 +8,6 @@ Eclipse-BuddyPolicy: ext
 Eclipse-RegisterBuddy:  com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- com.raytheon.viz.core;bundle-version="1.12.1142",
  com.raytheon.viz.ui;bundle-version="1.12.1142",
  gov.noaa.nws.ncep.viz.localization,
  javax.measure;bundle-version="1.0.0",
@@ -26,6 +25,11 @@ Export-Package: gov.noaa.nws.ncep.viz.gempak,
  gov.noaa.nws.ncep.viz.gempak.grid.mapper,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
  gov.noaa.nws.ncep.viz.gempak.util
-Import-Package: com.raytheon.uf.common.serialization,
+Import-Package: com.raytheon.uf.common.geospatial,
+ com.raytheon.uf.common.localization,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.time,
+ com.raytheon.uf.viz.core.exception,
  gov.noaa.nws.ncep.common.log.logger,
- gov.noaa.nws.ncep.viz.common.util
+ gov.noaa.nws.ncep.viz.gempak.nativelib,
+ org.apache.commons.lang

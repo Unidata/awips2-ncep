@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
+        <path
+            application="NCEP"
+            localizationType="CAVE_STATIC"
+            name="GEMPAK Data Processing"
+            recursive="false"
+            value="ncep/gempak/"
+            extensionFilter=".xml">
+        </path>
+    </extension>
+    <extension point="org.eclipse.ui.startup">
+        <startup
+            class="com.raytheon.uf.viz.gempak.cave.GempakActivationManager">
+        </startup>
+    </extension>
+</plugin>

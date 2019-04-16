@@ -1,0 +1,5 @@
+# This file can contain the name of a Predefined area that will be used when
+# displaying gridded data. The data will be trimmed so that only the minimum
+# amount of data needed to cover the area is displayed. Lines beginning with
+# '#' are comments and are ignored. The file should contain only one, 
+# uncommented line that is the name of a predefined area.

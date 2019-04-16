@@ -2219,6 +2219,22 @@
                             <Text pgenCategory="Text" pgenType="General Text" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="false" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
                                 <Color red="0" green="255" blue="0" alpha="255"/>
                                 <Point Lat="17.940162534853968" Lon="-67.62639376892929"/>
+                                <textLine>MRGL</textLine>
+                            </Text>
+                        </DrawableElement>
+                    </DECollection>
+                    <DECollection collectionName="OutlookLine">
+                        <DrawableElement>
+                            <Line pgenType="POINTED_ARROW" pgenCategory="Lines" lineWidth="2.0" sizeScale="1.0" smoothFactor="0" closed="false" filled="false" fillPattern="SOLID" flipSide="false">
+                                <Color red="255" green="165" blue="0" alpha="255"/>
+                                <Color red="255" green="165" blue="0" alpha="255"/>
+                                <Point Lat="20.62882525441111" Lon="-70.81280775573745"/>
+                                <Point Lat="18.899708894201257" Lon="-70.16430893626546"/>
+                                <Point Lat="19.278734291115196" Lon="-68.39145539168035"/>
+                            </Line>
+                            <Text pgenCategory="Text" pgenType="General Text" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="false" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
+                                <Color red="255" green="165" blue="0" alpha="255"/>
+                                <Point Lat="17.940162534853968" Lon="-67.62639376892929"/>
                                 <textLine>SLGT</textLine>
                             </Text>
                         </DrawableElement>
@@ -2226,30 +2242,30 @@
                     <DECollection collectionName="OutlookLine">
                         <DrawableElement>
                             <Line pgenType="POINTED_ARROW" pgenCategory="Lines" lineWidth="2.0" sizeScale="1.0" smoothFactor="0" closed="false" filled="false" fillPattern="SOLID" flipSide="false">
-                                <Color red="0" green="0" blue="255" alpha="255"/>
-                                <Color red="0" green="0" blue="255" alpha="255"/>
+                                <Color red="255" green="0" blue="0" alpha="255"/>
+                                <Color red="255" green="0" blue="0" alpha="255"/>
                                 <Point Lat="19.04538728335907" Lon="-71.77413650175932"/>
                                 <Point Lat="17.073261456457804" Lon="-71.59834048633392"/>
                                 <Point Lat="17.503273176845052" Lon="-69.80541543710262"/>
                             </Line>
                             <Text pgenCategory="Text" pgenType="General Text" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="false" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
-                                <Color red="0" green="0" blue="255" alpha="255"/>
+                                <Color red="255" green="0" blue="0" alpha="255"/>
                                 <Point Lat="16.34133107300621" Lon="-68.56126322504414"/>
-                                <textLine>MDT</textLine>
+                                <textLine>MOD</textLine>
                             </Text>
                         </DrawableElement>
                     </DECollection>
                     <DECollection collectionName="OutlookLine">
                         <DrawableElement>
                             <Line pgenType="POINTED_ARROW" pgenCategory="Lines" lineWidth="2.0" sizeScale="1.0" smoothFactor="0" closed="false" filled="false" fillPattern="SOLID" flipSide="false">
-                                <Color red="255" green="0" blue="0" alpha="255"/>
-                                <Color red="255" green="0" blue="0" alpha="255"/>
+                                <Color red="255" green="0" blue="255" alpha="255"/>
+                                <Color red="255" green="0" blue="255" alpha="255"/>
                                 <Point Lat="17.31476104946572" Lon="-73.1495511293093"/>
                                 <Point Lat="15.249248288874858" Lon="-72.80298270893853"/>
                                 <Point Lat="15.634593891371177" Lon="-70.61238293718345"/>
                             </Line>
                             <Text pgenCategory="Text" pgenType="General Text" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="false" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
-                                <Color red="255" green="0" blue="0" alpha="255"/>
+                                <Color red="255" green="0" blue="255" alpha="255"/>
                                 <Point Lat="14.761694208092875" Lon="-69.44360581579656"/>
                                 <textLine>HIGH</textLine>
                             </Text>

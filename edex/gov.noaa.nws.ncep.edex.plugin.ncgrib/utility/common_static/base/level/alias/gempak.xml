@@ -53,6 +53,7 @@
 	<alias base="ETAL">ELVL</alias>
 	<alias base="FH">HGHT</alias>
 	<alias base="FHAG">HGHT</alias>
+	<alias base="FHAG">ZAGL</alias>
 	<alias base="FRZ">FRZL</alias>
 	<alias base="GCTL">GSCTL</alias>
 	<alias base="GSCBL">GSCBL</alias>

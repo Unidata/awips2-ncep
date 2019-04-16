@@ -22,20 +22,6 @@
 	<camelContext id="ncpafm-camel" xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
 
-		<!-- 
-		<endpoint id="ncpafmFileEndpoint"
-			uri="file:${edex.home}/data/sbn/ncpafm?noop=true&amp;idempotent=false" />
-
-		<route id="ncpafmFileConsumerRoute">
-			<from ref="ncpafmFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>ncpafm</constant> 
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.ncpafm" />
-		</route>
-		-->
-			
 		<!-- Begin ncpafm routes -->
 		<route id="ncpafmIngestRoute">
 			<from uri="jms-durable:queue:Ingest.ncpafm" />

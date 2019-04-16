@@ -1,31 +1,15 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 04/23/2012	229			Chin Chen	Initial coding
- * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
- * 02/23/2015   Task#5694   Chin Chen   add code to support previous time line format
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
+
 
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpTimeOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 
 import java.awt.geom.Rectangle2D;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.eclipse.swt.graphics.RGB;
@@ -41,7 +25,32 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.vividsolutions.jts.geom.Coordinate;
 
+/**
+ * 
+ * 
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Apr 23, 2012  229      Chin Chen  Initial coding
+ * Feb 03, 2015  17079    Chin Chen  Soundings listed out of order if frames go
+ *                                   into new month
+ * Feb 23, 2015  5694     Chin Chen  add  code to support previous time line
+ *                                   format
+ * Nov 05, 2018  6800     bsteffen   Eliminate some duplicate fields from the
+ *                                   resource handler.
+ * Dec 14, 2018  6872     bsteffen   Display more precision when needed
+ * Jan 23  2019  21039    smoorthy   make fonts the same as on 18.1.2
+ * 
+ * </pre>
+ * 
+ * @author Chin Chen
+ */
 public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
     private Rectangle timeLineRectangle;
 
@@ -53,7 +62,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private List<NsharpOperationElement> stnElemList;
 
-    private List<NsharpOperationElement> timeElemList;
+    private List<NsharpTimeOperationElement> timeElemList;
 
     private List<NsharpOperationElement> sndElemList;
 
@@ -79,15 +88,11 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private int numLineToShowPerPage = 1;
 
-    private int paneWidth = NsharpConstants.TIMESTN_PANE_REC_WIDTH;
-
     private int paneHeight = NsharpConstants.TIMESTN_PANE_REC_HEIGHT;
 
     private int dtXOrig = NsharpConstants.DATA_TIMELINE_X_ORIG;
 
     private int dtYOrig = NsharpConstants.DATA_TIMELINE_Y_ORIG;
-
-    private int dtXEnd = NsharpConstants.DATA_TIMELINE_X_END;
 
     private int dtWidth = NsharpConstants.DATA_TIMELINE_WIDTH;
 
@@ -99,8 +104,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private int stnYOrig = NsharpConstants.STATION_ID_Y_ORIG;
 
-    private int stnXEnd = NsharpConstants.STATION_ID_X_END;
-
     private int stnWidth = NsharpConstants.STATION_ID_WIDTH;
 
     private int stnHeight = NsharpConstants.STATION_ID_HEIGHT;
@@ -108,8 +111,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
     private int sndXOrig = NsharpConstants.SND_TYPE_X_ORIG;
 
     private int sndYOrig = NsharpConstants.SND_TYPE_Y_ORIG;
-
-    private int sndXEnd = NsharpConstants.SND_TYPE_X_END;
 
     private int sndWidth = NsharpConstants.SND_TYPE_WIDTH;
 
@@ -127,11 +128,11 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     private float yRatio = 1;
 
-    private static String sndTypeStr = "NA";
+    private String sndTypeStr = "NA";
 
-    private static String timelineStr = "NA";
+    private String timelineStr = "NA";
 
-    private static String stationStr = "NA";
+    private String stationStr = "NA";
 
     private boolean compareStnIsOn;
 
@@ -166,7 +167,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
         color = NsharpConstants.color_white;
         DrawableString str = new DrawableString("Line State:", color);
-        str.font = font9;
+        str.font = font12;
         str.setCoordinates(x, y);
         double horizRatio = paintProps.getView().getExtent().getWidth()
                 / paintProps.getCanvasBounds().width;
@@ -175,35 +176,35 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         color = NsharpConstants.color_green;
         DrawableString str1 = new DrawableString("Current", color);
         str1.setCoordinates(x, y);
-        str1.font = font9;
+        str1.font = font12;
         x = x + target.getStringsBounds(str1).getWidth() * horizRatio * 1.1;
         color = NsharpConstants.color_yellow;
         DrawableString str2 = new DrawableString("Active", color);
         str2.setCoordinates(x, y);
-        str2.font = font9;
+        str2.font = font12;
         x = x + target.getStringsBounds(str2).getWidth() * horizRatio * 1.1;
 
         color = NsharpConstants.color_white;
         DrawableString str3 = new DrawableString("InActive", color);
         str3.setCoordinates(x, y);
-        str3.font = font9;
+        str3.font = font12;
 
         x = cnXOrig + 5 * xRatio;
         y = y + charHeight * 1.3;
         color = NsharpConstants.color_white;
         DrawableString str4 = new DrawableString("Load Status:", color);
         str4.setCoordinates(x, y);
-        str4.font = font9;
+        str4.font = font12;
         x = x + target.getStringsBounds(str4).getWidth() * horizRatio * 1.1;
         color = NsharpConstants.color_red;
         DrawableString str5 = new DrawableString("* :Loaded", color);
         str5.setCoordinates(x, y);
-        str5.font = font9;
+        str5.font = font12;
         x = x + target.getStringsBounds(str5).getWidth() * horizRatio * 1.1;
         color = NsharpConstants.color_purple;
         DrawableString str6 = new DrawableString("* :UnLoaded", color);
         str6.setCoordinates(x, y);
-        str6.font = font9;
+        str6.font = font12;
         target.drawStrings(str, str1, str2, str3, str4, str5, str6);
 
         if (compareStnIsOn || compareSndIsOn || compareTmIsOn) {
@@ -215,20 +216,22 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             if (curTimeLineIndex < 0) {
                 tl = timelineStr;
             } else {
+                DateTimeFormatter formatter = NsharpTimeOperationElement
+                        .getDisplayFormatter(timeElemList);
                 timelineStr = tl = timeElemList.get(curTimeLineIndex)
-                        .getElementDescription();
+                        .getDisplayText(formatter);
             }
             if (curSndIndex < 0) {
                 cursndType = sndTypeStr;
             } else {
                 sndTypeStr = cursndType = sndElemList.get(curSndIndex)
-                        .getElementDescription();
+                        .getDescription();
             }
             if (curStnIndex < 0) {
                 stnId = stationStr;
             } else {
                 stationStr = stnId = stnElemList.get(curStnIndex)
-                        .getElementDescription();
+                        .getDescription();
             }
             if (compareStnIsOn)
                 baseStr = "Comp Stn Based on: " + tl + "-" + cursndType;
@@ -239,37 +242,11 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
             DrawableString baseDrawStr = new DrawableString(baseStr, color);
             baseDrawStr.setCoordinates(x, y);
-            baseDrawStr.font = font9;
+            baseDrawStr.font = font12;
             target.drawStrings(baseDrawStr);
         }
         target.clearClippingPlane();
 
-    }
-
-    /*
-     * currently time line description is YYMMDD/HHVxxx(day) or YYMMDD/HH(day)
-     * saved in NsharpSoundingElementStateProperty convert it to DD.HH for
-     * displaying
-     */
-    private String convertTimeLineForDisplay(String tl) {
-        String timeLine = tl;
-        timeLine = timeLine.substring(4); // get rid of YYMM
-        if (timeLine.contains("V")) {
-            String[] s1Str = timeLine.split("V"); // split
-                                                  // DD/HH(DOW)Vxxx to
-                                                  // "DD/HH(DOW)" and
-                                                  // "xxx"
-            String[] s2Str = s1Str[0].split("\\("); // split
-                                                    // "DD/HH(DOW)" to
-                                                    // "DD/HH" and
-                                                    // "DOW)"
-            timeLine = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1]; // put
-                                                                   // together
-                                                                   // to
-                                                                   // "DD/HHVxxx(DOW)"
-        }
-        timeLine = timeLine.replace("/", "."); // replace "/" with "."
-        return timeLine;
     }
 
     private void drawNsharpTimelinBox(IGraphicsTarget target, Rectangle rect)
@@ -289,7 +266,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             y = dtYOrig - 1.5 * charHeight * yRatio;
             s = timeElemList.size() + " times,p" + curTimeLinePage + "/"
                     + totalTimeLinePage;
-            target.drawString(font9, s, x, y, 0.0,
+            target.drawString(font12, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.NORMAL,
                     NsharpConstants.color_green, HorizontalAlignment.LEFT,
                     VerticalAlignment.TOP, null);
@@ -311,13 +288,13 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             y = y + 2 * charHeight * yRatio;
 
             s = " NxP      ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
             x = dtXOrig + dtWidth / 2 + 5;
             s = " PvP     ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
@@ -327,18 +304,19 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         if (startIndex < 0)
             startIndex = 0;
         if (timeElemList != null) {
+            DateTimeFormatter formatter = NsharpTimeOperationElement.getDisplayFormatter(timeElemList);
             int colorIndex;
             double ly = dtNextPageEnd + charHeight;
             RGB color;
             double hRatio = paintProps.getView().getExtent().getWidth()
                     / paintProps.getCanvasBounds().width;
-            Rectangle2D strBD = target.getStringBounds(font9, "*");
+            Rectangle2D strBD = target.getStringBounds(font12, "*");
             double xGap = 2 * strBD.getWidth() * hRatio;
             for (int j = startIndex, count = 0; j < timeElemList.size()
                     && count < numLineToShowPerPage; j++, count++) {
                 x = dtXOrig + 5;
                 boolean avail = false;
-                NsharpOperationElement elm = timeElemList.get(j);
+                NsharpTimeOperationElement elm = timeElemList.get(j);
                 NsharpConstants.ActState sta = elm.getActionState();
 
                 if (sta == NsharpConstants.ActState.ACTIVE
@@ -358,7 +336,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                         color = NsharpConstants.color_purple;
                     }
 
-                    target.drawString(font9, s, x, ly, 0.0,
+                    target.drawString(font12, s, x, ly, 0.0,
                             IGraphicsTarget.TextStyle.NORMAL, color,
                             HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                             null);
@@ -366,11 +344,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
                 x = x + xGap;
                 RGB tmLnColor = rscHandler.getElementColorMap().get(sta.name());
-                String tmDesStr = elm.getElementDescription();
-                // convert timeDesStr for GUI display
-                if (tmDesStr.contains("/")) // if time string is YYMMDD/HH
-                                            // format
-                    tmDesStr = convertTimeLineForDisplay(tmDesStr);
+                String tmDesStr = elm.getDisplayText(formatter);
                 double tmX = x;
 
                 if (compareTmIsOn
@@ -378,12 +352,12 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                         && avail) {
                     colorIndex = stnTimeSndTable.get(curStnIndex).get(j)
                             .get(curSndIndex).getCompColorIndex();
-                    strBD = target.getStringBounds(font9, tmDesStr);
+                    strBD = target.getStringBounds(font12, tmDesStr);
                     String colorIndexStr = ""
                             + (colorIndex % NsharpConstants.LINE_COMP1 + 1);// compIndex;
                     x = x + strBD.getWidth() * hRatio + 5;
                     target.drawString(
-                            font9,
+                            font12,
                             colorIndexStr,
                             x,
                             ly,
@@ -403,12 +377,12 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                     colorIndex = stnTimeSndTable.get(curStnIndex)
                             .get(curTimeLineIndex).get(curSndIndex)
                             .getCompColorIndex();
-                    strBD = target.getStringBounds(font9, tmDesStr);
+                    strBD = target.getStringBounds(font12, tmDesStr);
                     String colorIndexStr = ""
                             + (colorIndex % NsharpConstants.LINE_COMP1 + 1);// compIndex;
                     x = x + strBD.getWidth() * hRatio + 5;
                     target.drawString(
-                            font9,
+                            font12,
                             colorIndexStr,
                             x,
                             ly,
@@ -422,7 +396,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                             NsharpConstants.lineNameArray[colorIndex])
                             .getLineColor();
                 }
-                target.drawString(font9, tmDesStr, tmX, ly, 0.0,
+                target.drawString(font12, tmDesStr, tmX, ly, 0.0,
                         IGraphicsTarget.TextStyle.NORMAL, tmLnColor,
                         HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                         null);
@@ -450,7 +424,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             y = stnYOrig - 1.5 * charHeight * yRatio;
             s = stnElemList.size() + "stn,p" + curStnIdPage + "/"
                     + totalStnIdPage;
-            target.drawString(font9, s, x, y, 0.0,
+            target.drawString(font12, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.NORMAL,
                     NsharpConstants.color_green, HorizontalAlignment.LEFT,
                     VerticalAlignment.TOP, null);
@@ -472,27 +446,27 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             x = stnXOrig + 5;
             y = y + 2 * charHeight * yRatio;
             s = "NxP  ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
             x = stnXOrig + stnWidth / 2 + 5;
             s = "PvP  ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
 
         }
 
-        int startIndex = (rscHandler.getCurStnIdPage() - 1)
+        int startIndex = (curStnIdPage - 1)
                 * numLineToShowPerPage;
         if (startIndex < 0)
             startIndex = 0;
         int colorIndex;
         double ly = dtNextPageEnd + charHeight;
         RGB color;
-        Rectangle2D strBD = target.getStringBounds(font9, "*");
+        Rectangle2D strBD = target.getStringBounds(font12, "*");
         double hRatio = paintProps.getView().getExtent().getWidth()
                 / paintProps.getCanvasBounds().width;
         double xGap = 2 * strBD.getWidth() * hRatio;
@@ -518,20 +492,20 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                 } else {
                     color = NsharpConstants.color_purple;
                 }
-                target.drawString(font9, s, x, ly, 0.0,
+                target.drawString(font12, s, x, ly, 0.0,
                         IGraphicsTarget.TextStyle.NORMAL, color,
                         HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                         null);
             }
             x = x + xGap;
-            String stnId = elm.elementDescription;
+            String stnId = elm.getDescription();
             double stnIdX = x;
             color = rscHandler.getElementColorMap().get(sta.name());
 
             if (elm.getActionState() == NsharpConstants.ActState.ACTIVE
                     && avail) {
                 if (compareStnIsOn) {
-                    strBD = target.getStringBounds(font9, stnId);
+                    strBD = target.getStringBounds(font12, stnId);
 
                     colorIndex = stnTimeSndTable.get(j).get(curTimeLineIndex)
                             .get(curSndIndex).getCompColorIndex();
@@ -540,13 +514,13 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                             .getLineColor();
                     s = "" + (colorIndex % NsharpConstants.LINE_COMP1 + 1);
                     x = x + strBD.getWidth() * hRatio + 5;
-                    target.drawString(font9, s, x, ly, 0.0,
+                    target.drawString(font12, s, x, ly, 0.0,
                             IGraphicsTarget.TextStyle.NORMAL, color,
                             HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                             null);
                 } else if ((compareTmIsOn || compareSndIsOn)
                         && j == curStnIndex) {
-                    strBD = target.getStringBounds(font9, stnId);
+                    strBD = target.getStringBounds(font12, stnId);
 
                     colorIndex = stnTimeSndTable.get(curStnIndex)
                             .get(curTimeLineIndex).get(curSndIndex)
@@ -556,13 +530,13 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                             .getLineColor();
                     s = "" + (colorIndex % NsharpConstants.LINE_COMP1 + 1);
                     x = x + strBD.getWidth() * hRatio + 5;
-                    target.drawString(font9, s, x, ly, 0.0,
+                    target.drawString(font12, s, x, ly, 0.0,
                             IGraphicsTarget.TextStyle.NORMAL, color,
                             HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                             null);
                 }
             }
-            target.drawString(font9, stnId, stnIdX, ly, 0.0,
+            target.drawString(font12, stnId, stnIdX, ly, 0.0,
                     IGraphicsTarget.TextStyle.NORMAL, color,
                     HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
             ly = ly + lineHeight;
@@ -587,7 +561,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             x = sndXOrig;
             y = sndYOrig - 1.5 * charHeight * yRatio;
             s = sndElemList.size() + " src,p" + curSndPage + "/" + totalSndPage;
-            target.drawString(font9, s, x, y, 0.0,
+            target.drawString(font12, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.NORMAL,
                     NsharpConstants.color_green, HorizontalAlignment.LEFT,
                     VerticalAlignment.TOP, null);
@@ -609,28 +583,28 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             x = sndXOrig + 5;
             y = y + 2 * charHeight * yRatio;
             s = " NxP    ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
 
             x = sndXOrig + sndWidth / 2 + 5;
             s = " PvP     ";
-            target.drawString(font12, s, x, y, 0.0,
+            target.drawString(font20, s, x, y, 0.0,
                     IGraphicsTarget.TextStyle.DROP_SHADOW,
                     NsharpConstants.color_black, HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM, null);
 
         }
 
-        int startIndex = (rscHandler.getCurSndPage() - 1)
+        int startIndex = (curSndPage - 1)
                 * numLineToShowPerPage;
         if (startIndex < 0)
             startIndex = 0;
         int colorIndex;
         double ly = dtNextPageEnd + charHeight;
         RGB color;
-        Rectangle2D strBD = target.getStringBounds(font9, "*");
+        Rectangle2D strBD = target.getStringBounds(font12, "*");
         double hRatio = paintProps.getView().getExtent().getWidth()
                 / paintProps.getCanvasBounds().width;
         double xGap = 2 * strBD.getWidth() * hRatio;
@@ -656,19 +630,19 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                 } else {
                     color = NsharpConstants.color_purple;
                 }
-                target.drawString(font9, s, x, ly, 0.0,
+                target.drawString(font12, s, x, ly, 0.0,
                         IGraphicsTarget.TextStyle.NORMAL, color,
                         HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                         null);
             }
             x = x + xGap;
-            String sndType = elm.elementDescription;
+            String sndType = elm.getDescription();
             double sndX = x;
             color = rscHandler.getElementColorMap().get(sta.name());
 
             if (elm.getActionState() == NsharpConstants.ActState.ACTIVE) {
                 if (compareSndIsOn) {
-                    strBD = target.getStringBounds(font9, sndType);
+                    strBD = target.getStringBounds(font12, sndType);
 
                     List<NsharpResourceHandler.CompSndSelectedElem> sndCompElementList = rscHandler
                             .getCompSndSelectedElemList();
@@ -694,14 +668,14 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                     if (s.length() > 0)
                         s = s.substring(0, s.length() - 1);
                     x = x + strBD.getWidth() * hRatio + 5;
-                    target.drawString(font9, s, x, ly, 0.0,
+                    target.drawString(font12, s, x, ly, 0.0,
                             IGraphicsTarget.TextStyle.NORMAL, color,
                             HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                             null);
 
                 } else if ((compareTmIsOn || compareStnIsOn)
                         && j == curSndIndex && avail) {
-                    strBD = target.getStringBounds(font9, sndType);
+                    strBD = target.getStringBounds(font12, sndType);
 
                     colorIndex = stnTimeSndTable.get(curStnIndex)
                             .get(curTimeLineIndex).get(curSndIndex)
@@ -711,13 +685,13 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                             .getLineColor();
                     s = "" + (colorIndex % NsharpConstants.LINE_COMP1 + 1);
                     x = x + strBD.getWidth() * hRatio + 5;
-                    target.drawString(font9, s, x, ly, 0.0,
+                    target.drawString(font12, s, x, ly, 0.0,
                             IGraphicsTarget.TextStyle.NORMAL, color,
                             HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM,
                             null);
                 }
             }
-            target.drawString(font9, sndType, sndX, ly, 0.0,
+            target.drawString(font12, sndType, sndX, ly, 0.0,
                     IGraphicsTarget.TextStyle.NORMAL, color,
                     HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
             ly = ly + lineHeight;
@@ -739,12 +713,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         curTimeLineIndex = rscHandler.getCurrentTimeElementListIndex();
         curStnIndex = rscHandler.getCurrentStnElementListIndex();
         curSndIndex = rscHandler.getCurrentSndElementListIndex();
-        curTimeLinePage = rscHandler.getCurTimeLinePage();
-        curStnIdPage = rscHandler.getCurStnIdPage();
-        curSndPage = rscHandler.getCurSndPage();
-        totalTimeLinePage = rscHandler.getTotalTimeLinePage();
-        totalStnIdPage = rscHandler.getTotalStnIdPage();
-        totalSndPage = rscHandler.getTotalSndPage();
+        calculateTimeStnBoxData();
         compareStnIsOn = rscHandler.isCompareStnIsOn();
         compareSndIsOn = rscHandler.isCompareSndIsOn();
         compareTmIsOn = rscHandler.isCompareTmIsOn();
@@ -767,16 +736,22 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         drawNsharpColorNotation(target, colorNoteRectangle);
 
     }
-
-    @Override
-    protected void initInternal(IGraphicsTarget target) throws VizException {
-        super.initInternal(target);
-    }
-
-    @Override
-    protected void disposeInternal() {
-
-        super.disposeInternal();
+    
+    private void calculateTimeStnBoxData() {
+        totalTimeLinePage = timeElemList.size() / numLineToShowPerPage;
+        if (timeElemList.size() % numLineToShowPerPage != 0)
+            totalTimeLinePage = totalTimeLinePage + 1;
+        curTimeLinePage = curTimeLineIndex / numLineToShowPerPage + 1;
+        
+        totalStnIdPage = stnElemList.size() / numLineToShowPerPage;
+        if (stnElemList.size() % numLineToShowPerPage != 0)
+            totalStnIdPage++;
+        curStnIdPage = curStnIndex / numLineToShowPerPage + 1;
+        
+        totalSndPage = sndElemList.size() / numLineToShowPerPage;
+        if (sndElemList.size() % numLineToShowPerPage != 0)
+            totalSndPage++;
+        curSndPage = curSndIndex / numLineToShowPerPage + 1;
     }
 
     public Rectangle getTimeLineRectangle() {
@@ -797,7 +772,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
 
     @Override
     public void handleResize() {
-
+        
         super.handleResize();
         IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
         ext.reset();
@@ -808,7 +783,7 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         getDescriptor().setNewPe(pe);
         defineCharHeight(font12);
         paneHeight = (int) ext.getHeight();
-        paneWidth = (int) (ext.getWidth());
+        int paneWidth = (int) (ext.getWidth());
         xRatio = 1;
         yRatio = 1;
         // if pane height is less than 10 char height, then just plot time line.
@@ -826,15 +801,14 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         }
         dtXOrig = (int) (ext.getMinX());
         dtWidth = paneWidth * 40 / 100;
-        dtXEnd = dtXOrig + dtWidth;
+        int dtXEnd = dtXOrig + dtWidth;
         stnXOrig = dtXEnd;
         stnYOrig = dtYOrig;
         stnWidth = paneWidth * 25 / 100;
-        stnXEnd = stnXOrig + stnWidth;
+        int stnXEnd = stnXOrig + stnWidth;
         sndXOrig = stnXEnd;
         sndYOrig = stnYOrig;
         sndWidth = paneWidth * 35 / 100;
-        sndXEnd = sndXOrig + sndWidth;
         stnHeight = dtHeight;
         cnXOrig = dtXOrig;
         cnYOrig = dtYOrig + dtHeight;
@@ -854,8 +828,74 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
             if (numLineToShowPerPage < 1)
                 numLineToShowPerPage = 1;
         }
-        rscHandler.setTimeStnBoxData(cnYOrig, dtNextPageEnd, dtYOrig, dtXOrig,
-                dtWidth, charHeight, lineHeight, numLineToShowPerPage);
+    }
+    
+    public int getUserClickedSndIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {
+            // change to next/previous page
+            if (totalSndPage == 1)
+                return -1;
+            if ((c.x - dtXOrig) < (dtWidth / 2)) {
+                curSndPage++;
+                if (curSndPage > totalSndPage) {
+                    curSndPage = 1;
+                }
+            } else {
+                curSndPage--;
+                if (curSndPage <= 0) {
+                    curSndPage = totalSndPage;
+                }
+            }
+            return -1;
+        }
+        double dIndex = (c.y - dtNextPageEnd) / lineHeight
+                + (curSndPage - 1) * numLineToShowPerPage;
+        return (int) dIndex;
+    }
+    
+    public int getUserClickedTimeIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {
+            // change to next/previous page
+            if (totalTimeLinePage == 1) {
+                return -1;
+            }
+            if ((c.x - dtXOrig) < (dtWidth / 2)) {
+                curTimeLinePage++;
+                if (curTimeLinePage > totalTimeLinePage) {
+                    curTimeLinePage = 1;
+                }
+            } else {
+                curTimeLinePage--;
+                if (curTimeLinePage <= 0) {
+                    curTimeLinePage = totalTimeLinePage;
+                }
+            }
+            return -1;
+        }
+        double dIndex = (c.y - dtNextPageEnd) / lineHeight
+                + (curTimeLinePage - 1) * numLineToShowPerPage;
+        return (int) dIndex;
+    }
+    
+    public int getUserClickedStationIdIndex(Coordinate c){
+        if (c.y < dtNextPageEnd) {// d2dlite
+            // change to next/previous page
+            if (totalStnIdPage == 1)
+                return -1;
+            if ((c.x - (dtXOrig + dtWidth)) < (dtWidth / 2)) {
+                curStnIdPage++;
+                if (curStnIdPage > totalStnIdPage)
+                    curStnIdPage = 1;
+            } else {
+                curStnIdPage--;
+                if (curStnIdPage <= 0)
+                    curStnIdPage = totalStnIdPage;
+            }
+            return -1;
+        }
+        double dIndex = ((c.y - dtNextPageEnd)) / lineHeight
+                + (curStnIdPage - 1) * numLineToShowPerPage;
 
+        return (int) dIndex;
     }
 }

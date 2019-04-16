@@ -8,10 +8,10 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 05/02/2012	229			Chin Chen	Initial coding for multiple display panes implementation
- * 									    
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 05/02/2012   229         Chin Chen   Initial coding for multiple display panes implementation
+ * 10/16/2018   6835        bsteffen    Extract printing logic.
  *
  * </pre>
  * 
@@ -20,12 +20,6 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.background;
 
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpHodoPaneDescriptor;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
 import com.raytheon.uf.common.sounding.WxMath;
@@ -37,6 +31,10 @@ import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpHodoPaneDescriptor;
 
 public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
 	private IWireframeShape hodoShape=null;
@@ -164,56 +162,6 @@ public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
         target.clearClippingPlane();
 		
     }
-    //this function is used for printing
-    public void paintForPrint( NsharpWGraphics world, GC gc){
-    	Coordinate c = new Coordinate(world.mapX(0), world.mapY(0));
-    	// label the spokes
-    	gc.drawString( "180" + NsharpConstants.DEGREE_SYMBOL,(int) c.x,
-    			(int) world.mapY(world.getWorldYmin())+5, false);
-    	
-    	gc.drawString( "360" + NsharpConstants.DEGREE_SYMBOL,(int) c.x,
-    			(int) world.mapY(world.getWorldYmax())+1, false);
-    	
-    	gc.drawString( "270" + NsharpConstants.DEGREE_SYMBOL,(int) world.mapX(world.getWorldXmax())-20,
-    			(int) c.y,false);
-    	
-    	gc.drawString( "90" + NsharpConstants.DEGREE_SYMBOL,(int) world.mapX(world.getWorldXmin())+5,
-    			(int) c.y,false);
-   
-    	
-    	gc.setClipping((int)world.getViewXmin(), (int)world.getViewYmin(),
-    			(int)world.getViewXmax()-(int)world.getViewXmin(), (int)world.getViewYmax()-(int)world.getViewYmin());
-    	gc.setLineWidth(1);
-    	//System.out.println(" line width = "+gc.getLineWidth());
-    	// draw the spokes.
-    	for (double angle = 0; angle < 2 * Math.PI; angle += Math.PI / 2) {
-    		double x = 200 * Math.cos(angle);
-    		double y = 200 * Math.sin(angle);
-    		gc.drawLine((int)c.x, (int)c.y, (int)world.mapX(x), (int)world.mapY(y));
-    		//System.out.println("c.x="+ c.x + "C.Y="+c.y + " x= " + x + " y= " + y +" world.mapX(x)="+ world.mapX(x));
-
-    	}
-    	
-   	// draw circles
-    	gc.setLineStyle(SWT.LINE_DOT);
-    	for (int spd = 10; spd <= 100; spd += 10) {
-    		//Coordinate c1;
-    		//c1 = WxMath.uvComp(spd, 0);
-    		//System.out.println("c1.x="+ c1.x + "C1.Y="+c1.y +" world.mapX(c1.x)="+ world.mapX(c1.x)+" world.mapY(c1.y)="+ world.mapY(c1.y));
-    		int dist = (int)(world.mapX(spd)-c.x);
-    		gc.drawOval((int)c.x-dist, (int)c.y-dist, 2* dist, 2* dist);
-    		
-    		if (spd%30 == 0) {
-    			Coordinate uv = WxMath.uvComp(spd, 240);
-        		
-    			gc.drawString("" + spd, (int)world.mapX(uv.x),
-    					(int)world.mapY(uv.y), false);
-    		}
-    	}
-
-
- 
-}
 
     /*
      * (non-Javadoc)

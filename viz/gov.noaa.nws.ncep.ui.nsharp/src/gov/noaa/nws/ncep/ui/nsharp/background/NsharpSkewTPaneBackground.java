@@ -15,6 +15,7 @@
  *                                      -     Update the dendritic growth layer calculations and other skewT
  *                                            updates.
  * 09/28/2018   7479      bsteffen   Fix temperature lines and labels.
+ * 10/16/2018   6835      bsteffen   Extract printing logic.
  *
  * </pre>
  * 
@@ -32,8 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
 import com.raytheon.uf.common.sounding.util.Equations;
@@ -125,7 +124,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         return temperature * pow((startPressure / stopPressure), Rd);
     }
 
-    private static List<List<UAPoint>> getDryAdiabats(double increment,
+    public static List<List<UAPoint>> getDryAdiabats(double increment,
             double startTemp, double tempDist) {
         List<List<UAPoint>> dryAdiabats = new ArrayList<>();
 
@@ -156,42 +155,6 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
             }
         }
         return adiabats;
-    }
-
-    private static void printDryAdiabats(NsharpWGraphics world, GC gc) {
-        for (List<UAPoint> points : DRY_POINTS) {
-            UAPoint firstPoint = points.get(0);
-            Coordinate startCoor = NsharpWxMath.getSkewTXY(firstPoint.pressure,
-                    NsharpConstants.kelvinToCelsius
-                            .convert(firstPoint.temperature));
-            for (UAPoint p : points) {
-                Coordinate endCoor = NsharpWxMath.getSkewTXY(p.pressure,
-                        NsharpConstants.kelvinToCelsius.convert(p.temperature));
-
-                gc.drawLine((int) world.mapX(startCoor.x),
-                        (int) world.mapY(startCoor.y),
-                        (int) world.mapX(endCoor.x),
-                        (int) world.mapY(endCoor.y));
-
-                startCoor = endCoor;
-            }
-        }
-    }
-
-    /**
-     * Print the temperature lines.
-     * 
-     * @throws VizException
-     */
-    private static void printTempLines(NsharpWGraphics world, GC gc)
-            throws VizException {
-        for (int i = 70; i > -200; i -= 10) {
-            Coordinate coorStart = NsharpWxMath.getSkewTXY(1050, i);
-            Coordinate coorEnd = NsharpWxMath.getSkewTXY(100, i);
-            gc.drawLine((int) world.mapX(coorStart.x),
-                    (int) world.mapY(coorStart.y), (int) world.mapX(coorEnd.x),
-                    (int) world.mapY(coorEnd.y));
-        }
     }
 
     /**
@@ -606,18 +569,6 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
     }
 
-    // this function is used for printing
-    public void paintForPrint(NsharpWGraphics world, GC gc) {
-        try {
-            gc.setLineStyle(SWT.LINE_DASH);
-            printDryAdiabats(world, gc);
-            gc.setLineStyle(SWT.LINE_DOT);
-            printTempLines(world, gc);
-        } catch (VizException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected NsharpWGraphics computeWorld() {

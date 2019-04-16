@@ -17,7 +17,9 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.message;bundle-version="1.11.22",
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
  com.raytheon.uf.edex.decodertools;bundle-version="1.11.22",
- javax.xml.bind
+ gov.noaa.nws.ncep.common.log;bundle-version="1.0.0",
+ javax.xml.bind,
+ org.slf4j;bundle-version="1.7.25"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,
@@ -30,14 +32,12 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.viz.core.map,
  com.raytheon.uf.viz.core.rsc,
  gov.noaa.nws.ncep.common.dataplugin.aww,
- gov.noaa.nws.ncep.common.log.logger,
  gov.noaa.nws.ncep.viz.localization,
  gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.viz.resources.attributes,
  gov.noaa.nws.ncep.viz.resources.misc,
  gov.noaa.nws.ncep.viz.rsc.aww.wtch,
- gov.noaa.nws.ncep.viz.ui.display,
- org.apache.log4j
+ gov.noaa.nws.ncep.viz.ui.display
 Export-Package: gov.noaa.nws.ncep.viz.rsc.aww,
  gov.noaa.nws.ncep.viz.rsc.aww.ffa,
  gov.noaa.nws.ncep.viz.rsc.aww.svrl,

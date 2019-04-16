@@ -22,19 +22,6 @@
 	<camelContext id="airep-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		
-		<!--
-		<endpoint id="airepFileEndpoint" uri="file:${edex.home}/data/sbn/airep?noop=true&amp;idempotent=false" />
-
-		<route id="airepFileConsumerRoute">
-			<from ref="airepFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>airep</constant>
-			</setHeader>
-			<to uri="jms-generic:queue:Ingest.airep" />
-		</route>
-		-->
 
 		<!-- Begin airep routes -->
 		<route id="airepIngestRoute">

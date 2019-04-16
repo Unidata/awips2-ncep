@@ -14,6 +14,7 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
  gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
+ org.slf4j;bundle-version="1.7.25",
  javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.common,
@@ -31,6 +32,5 @@ Export-Package: gov.noaa.nws.ncep.viz.common,
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.viz.pointdata,
  com.vividsolutions.jts.geom,
- javax.measure.unit,
- org.apache.log4j
+ javax.measure.unit
 Bundle-RequiredExecutionEnvironment: JavaSE-11

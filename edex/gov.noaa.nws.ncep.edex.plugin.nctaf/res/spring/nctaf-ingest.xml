@@ -20,18 +20,6 @@
 	<camelContext id="nctaf-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<!--
-		<endpoint id="nctafFileEndpoint" uri="file:${edex.home}/data/sbn/nctaf?noop=true&amp;idempotent=false" />
-
-		<route id="nctafFileConsumerRoute">
-			<from ref="nctafFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>nctaf</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.nctaf" />
-		</route>
-		-->
 
 		<!-- Begin TAF routes -->
 		<route id="nctafIngestRoute">

@@ -20,13 +20,7 @@
 
 	<camelContext id="idft-camel" xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<endpoint id="idftFileEndpoint"
-			uri="file:${edex.home}/data/sbn/idft?noop=true&amp;idempotent=false" />
 
-		<route id="idftFileConsumerRoute"> <from ref="idftFileEndpoint" /> <bean 
-			ref="fileToString" /> <setHeader headerName="pluginName"> <constant>idft</constant> 
-			</setHeader> <to uri="jms-durable:queue:Ingest.idft" /> </route>
-			
 		<!-- Begin idft routes -->
 		<route id="idftIngestRoute">
 			<from uri="jms-durable:queue:Ingest.idft" />

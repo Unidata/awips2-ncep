@@ -1,6 +1,6 @@
 /*
  * Timeline
- * 
+ *
  * Date created 03 MARCH 2010
  *
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -25,8 +25,6 @@ import org.apache.commons.collections.ListUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -49,7 +47,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -73,7 +70,7 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
 /**
  * Timeline: A graphical view of available data times, that allows users to
  * select any or all data times from the available list.
- * 
+ *
  * An SWT Composite Control to select the timeline for an RBD. Most of the
  * Timeline controls and selection is delegated to the Timeline class and the
  * timeline generation is now done in the NCTimeMatcher. A Timeline object is
@@ -87,10 +84,10 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  * given time. When a dominant resource is selected, the timeMatcher is updated
  * with the new dominant resource and the the Timeline is called to update from
  * the modified timeMatcher.
- * 
+ *
  * This class was previously implemented as 2 classes a TimelineControl class
  * and a Timeline class.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -100,14 +97,14 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  * 09/01/10       #307      Greg Hull    added dominantResourceChanged listener
  * 09/06/10       #307      Greg Hull    added range, frame Interval, refTime,
  *                                       and timelineStateMessage  (class Timeline)
- * 09/21/10       #307      Greg Hull    pass timeMatcher to Timeline 
+ * 09/21/10       #307      Greg Hull    pass timeMatcher to Timeline
  * 10/04/10       #307      Greg Hull    add Manual Timeline selection
  * 01/27/11       #408      Greg Hull    add an avail dom rsc without setting the GUI
  * 02/11/11       #408      Greg Hull    combined with Timeline class (now TimelineControl)
  * 02/14/11       #408      Greg Hull    add Ref. Time Selection (class Timeline)
- * 02/22/11       #408      Greg Hull    update timeMatcher with frameTimes and 
+ * 02/22/11       #408      Greg Hull    update timeMatcher with frameTimes and
  *                                       numFrames to keep them in sync. (class Timeline)
- * 06/19/12       #657      Greg Hull    removeSpinnerListeners() before setting the 
+ * 06/19/12       #657      Greg Hull    removeSpinnerListeners() before setting the
  *                                       spinner maxvalues.
  * 04/30/2014     #1131     qzhou        Add construct for Graph to create graph widgets.
  * 06/24/14       TTR1029   J. Wu        Distinguish clicks in/outside of the slider box.
@@ -116,43 +113,20 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  *                                       modified dominant resources.
  * 11/02/2016     R19323    A. Su        Set the first resource in dom_rsc_combo as dominant
  *                                       after a dominant resource is unloaded;
- *                                       reaffirmed the dominant resource to populate the timeline 
+ *                                       reaffirmed the dominant resource to populate the timeline
  *                                       when a non-dominant resource is unloaded.
  * 11/15/2016     R23113    K.Bugenhagen Handle resources with multiple cycle
  *                                       times which contain seconds and
  *                                       milliseconds (e.g. PGEN activities
  *                                       created with storeActivity script).
- * 12/22/2016     R27583    K.Bugenhagen Create mapKey with cycle time containing 
- *                                       only hours and minutes in 
+ * 12/22/2016     R27583    K.Bugenhagen Create mapKey with cycle time containing
+ *                                       only hours and minutes in
  *                                       removeAvailDomResource.
- * 
+ * 10/25/2018     #7564     dgilling     Allow Spinner text controls for frames
+ *                                       settings to be directly edited.
  * </pre>
- * 
- * @author 
- * @version 1
- */
-
-/**
- * Timeline: A graphical view of available data times, that allows users to
- * select any or all data times from the available list.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	    Description
- * ------------	----------	---------------	--------------------------
- *                          Steve Gilbert   created
- * 09/06/10       #307      Greg Hull       added range, frame Interval, refTime,
- * 											and timelineStateMessage
- * 02/11/11       #408      Greg Hull       combine with previous TimelineControl 
- * 02/14/11       #408      Greg Hull       add Ref. Time Selection 
- * 02/22/11       #408      Greg Hull       update timeMatcher with frameTimes and 
- * 	                                        numFrames to keep them in sync.
- * 
->>>>>>> VLab Issue #23113 - PGEN_Static_displays_are_time_matched
- * </pre>
- * 
+ *
  * @author sgilbert
- * @version 1
  */
 public class TimelineControl extends Composite {
 
@@ -261,16 +235,12 @@ public class TimelineControl extends Composite {
 
     protected Color canvasColor, availableColor, selectedColor;
 
-    protected Shell shell;
-
     public TimelineControl(Composite parent, String rbdName) {
         super(parent, SWT.NONE);
     }
 
     public TimelineControl(Composite parent) {
         super(parent, SWT.NONE);
-
-        shell = parent.getShell();
 
         timeMatcher = new NCTimeMatcher();
         availDomResourcesMap = new HashMap<>();
@@ -301,6 +271,7 @@ public class TimelineControl extends Composite {
 
         // if changing the dominant resource then change the timeline
         dom_rsc_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 selectDominantResource(true);
             }
@@ -606,7 +577,7 @@ public class TimelineControl extends Composite {
     /**
      * Return the resource name string with seconds and milliseconds removed in
      * cycle time portion.
-     * 
+     *
      * @param rscName
      *            resource name
      * @return
@@ -897,7 +868,7 @@ public class TimelineControl extends Composite {
 
     /**
      * Returns a list of the selected data times.
-     * 
+     *
      * @return
      */
     public List<Calendar> getSelectedTimes() {
@@ -1047,13 +1018,15 @@ public class TimelineControl extends Composite {
      */
     protected boolean checkTimeMinutes(List<Calendar> times) {
 
-        if (times.isEmpty())
+        if (times.isEmpty()) {
             return false;
+        }
 
         int min = times.get(0).get(Calendar.MINUTE);
         for (Calendar cal : times) {
-            if (min != cal.get(Calendar.MINUTE))
+            if (min != cal.get(Calendar.MINUTE)) {
                 return true;
+            }
         }
         return false;
     }
@@ -1099,14 +1072,14 @@ public class TimelineControl extends Composite {
             }
         });
 
-        canvas.addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                canvasFont.dispose();
-                pointerCursor.dispose();
-                resizeCursor.dispose();
-                grabCursor.dispose();
-            }
+        canvas.addDisposeListener((e) -> {
+            canvasColor.dispose();
+            availableColor.dispose();
+            selectedColor.dispose();
+            canvasFont.dispose();
+            pointerCursor.dispose();
+            resizeCursor.dispose();
+            grabCursor.dispose();
         });
 
         Listener mouse = new Listener() {
@@ -1297,6 +1270,7 @@ public class TimelineControl extends Composite {
         canvas.addListener(SWT.MouseUp, mouse);
 
         frameIntervalCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
                 for (int i = 0; i < availFrameIntervalStrings.length; i++) {
@@ -1318,6 +1292,7 @@ public class TimelineControl extends Composite {
         });
 
         refTimeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
                 if (refTimeCombo.getSelectionIndex() == 0) {
@@ -1329,7 +1304,7 @@ public class TimelineControl extends Composite {
                 } else if (refTimeCombo.getSelectionIndex() == 2) {
                     settings.setRefTimeSelection(REF_TIME_SELECTION.CALENDAR);
                     CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
-                            shell);
+                            getShell());
 
                     DataTime newRefTime = calSelDlg
                             .open(timeMatcher.getRefTime());
@@ -1356,7 +1331,7 @@ public class TimelineControl extends Composite {
      */
     private void createControlWidgets(Composite top_form) {
 
-        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+        numFramesSpnr = new Spinner(top_form, SWT.BORDER);
         FormData fd = new FormData();
         fd.width = 20;
         fd.top = new FormAttachment(dom_rsc_combo, 50, SWT.BOTTOM);
@@ -1375,7 +1350,7 @@ public class TimelineControl extends Composite {
         fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
         numFramesLbl.setLayoutData(fd);
 
-        numSkipSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+        numSkipSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
         fd.left = new FormAttachment(20, 0);
@@ -1478,7 +1453,7 @@ public class TimelineControl extends Composite {
         /*
          * draw date line that separates month/days and the hours of day
          */
-        int dateY = Math.round((float) size.y * DATE_LINE);
+        int dateY = Math.round(size.y * DATE_LINE);
         Point begDateLine = new Point(MARGIN, dateY);
         Point endDateLine = new Point(size.x - MARGIN - 1, dateY);
         gc.drawLine(begDateLine.x, begDateLine.y, endDateLine.x, endDateLine.y);
@@ -1492,7 +1467,7 @@ public class TimelineControl extends Composite {
         /*
          * draw time line
          */
-        int lineY = Math.round((float) size.y * TIME_LINE);
+        int lineY = Math.round(size.y * TIME_LINE);
         Point begTimeLine = new Point(MARGIN, lineY);
         Point endTimeLine = new Point(size.x - MARGIN - 1, lineY);
         gc.drawLine(begTimeLine.x, begTimeLine.y, endTimeLine.x, endTimeLine.y);
@@ -1507,8 +1482,9 @@ public class TimelineControl extends Composite {
         /*
          * draw slider bar
          */
-        if (slider == null)
+        if (slider == null) {
             slider = calculateSlider(begTimeLine, endTimeLine);
+        }
         gc.setLineWidth(2);
         gc.drawRectangle(slider);
         gc.setLineWidth(1);
@@ -1540,20 +1516,23 @@ public class TimelineControl extends Composite {
         Calendar time1 = timeData.getFirstSelected();
         Calendar time2 = timeData.getLastSelected();
 
-        if (time1 == null)
+        if (time1 == null) {
             return new Rectangle(0, 0, 0, 0);
+        }
 
         Calendar prev = timeData.getPreviousTime(time1);
-        if (prev != null)
+        if (prev != null) {
             ulX = (timeLocations.get(prev) + timeLocations.get(time1)) / 2;
-        else
+        } else {
             ulX = sliderMin;
+        }
 
         Calendar next = timeData.getNextTime(time2);
-        if (next != null)
+        if (next != null) {
             lastX = (timeLocations.get(time2) + timeLocations.get(next)) / 2;
-        else
+        } else {
             lastX = sliderMax;
+        }
 
         int ulY = beg.y - SLIDER;
         int width = lastX - ulX;
@@ -1591,7 +1570,7 @@ public class TimelineControl extends Composite {
             } else {
                 double dist = (double) (cal.getTimeInMillis()
                         - first.getTimeInMillis()) / (double) timeLength;
-                long lineDist = Math.round(dist * (double) lineLength);
+                long lineDist = Math.round(dist * lineLength);
                 days.add(cal);
                 dayLocation.add(beg.x + (int) lineDist);
             }
@@ -1628,8 +1607,9 @@ public class TimelineControl extends Composite {
         int width = gc.getCharWidth('0');
         int halfWidth = (width * fmt.length()) / 2;
         int locY = beg.y - textHeight;
-        if (center)
+        if (center) {
             locY = (beg.y - textHeight) / 2;
+        }
 
         int numdays = days.size();
 
@@ -1644,11 +1624,14 @@ public class TimelineControl extends Composite {
 
             String hour = sdf.format(cal.getTime());
             int locX = (endX + startX) / 2 - halfWidth;
-            if (locX > startX)
+            if (locX > startX) {
                 gc.drawText(hour, locX, locY);
+            }
 
             if (j != 0)
+             {
                 gc.drawLine(startX, locY, startX, beg.y); // separator
+            }
 
         }
 
@@ -1732,7 +1715,7 @@ public class TimelineControl extends Composite {
             }
             double dist = (double) (cal.getTimeInMillis()
                     - first.getTimeInMillis()) / (double) timeLength;
-            long lineDist = Math.round(dist * (double) lineLength);
+            long lineDist = Math.round(dist * lineLength);
             int locX = beg.x + (int) lineDist;
             int tickSize;
             if (hasDifferentMinutes) {
@@ -1768,22 +1751,28 @@ public class TimelineControl extends Composite {
         int maxnum = lineLength / 4;
 
         if (hasDifferentMinutes) {
-            if ((minutes / interval) > maxnum)
+            if ((minutes / interval) > maxnum) {
                 interval = 30;
-            if ((minutes / interval) > maxnum)
+            }
+            if ((minutes / interval) > maxnum) {
                 interval = 60;
+            }
         } else {
             interval = 60;
         }
 
-        if ((minutes / interval) > maxnum)
+        if ((minutes / interval) > maxnum) {
             interval = 180;
-        if ((minutes / interval) > maxnum)
+        }
+        if ((minutes / interval) > maxnum) {
             interval = 360;
-        if ((minutes / interval) > maxnum)
+        }
+        if ((minutes / interval) > maxnum) {
             interval = 720;
-        if ((minutes / interval) > maxnum)
+        }
+        if ((minutes / interval) > maxnum) {
             interval = 1440;
+        }
 
         return interval;
     }
@@ -1806,7 +1795,7 @@ public class TimelineControl extends Composite {
         for (Calendar curr : timeData.getTimes()) {
             double dist = (double) (curr.getTimeInMillis()
                     - first.getTimeInMillis()) / (double) timeLength;
-            long lineDist = Math.round(dist * (double) lineLength);
+            long lineDist = Math.round(dist * lineLength);
             int locX = beg.x + (int) lineDist - (MARKER_WIDTH / 2);
             int locY = beg.y - (MARKER_HEIGHT / 2);
             Rectangle box = new Rectangle(locX, locY, MARKER_WIDTH,
@@ -1825,8 +1814,9 @@ public class TimelineControl extends Composite {
         gc.setBackground(availableColor);
         for (Rectangle rect : availableTimes.keySet()) {
             gc.setBackground(availableColor);
-            if (timeData.isSelected(availableTimes.get(rect)))
+            if (timeData.isSelected(availableTimes.get(rect))) {
                 gc.setBackground(selectedColor);
+            }
             gc.fillRectangle(rect);
         }
         gc.setBackground(canvasColor);
@@ -1841,8 +1831,9 @@ public class TimelineControl extends Composite {
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        if (hasDifferentMinutes)
+        if (hasDifferentMinutes) {
             sdf.applyPattern("mm");
+        }
 
         int textHeight = gc.getFontMetrics().getHeight();
         int width = gc.getCharWidth('0');
@@ -1862,7 +1853,7 @@ public class TimelineControl extends Composite {
 
     /**
      * Sets the number of times that should be selected
-     * 
+     *
      * @param num
      */
     public void setNumberofFrames(int num) {
@@ -1872,7 +1863,7 @@ public class TimelineControl extends Composite {
 
     /**
      * Retuns the current skip factor used
-     * 
+     *
      * @return
      */
     public int getSkipValue() {
@@ -1881,7 +1872,7 @@ public class TimelineControl extends Composite {
 
     /**
      * Sets the skip factor
-     * 
+     *
      * @param num
      */
     public void setSkipValue(int num) {
@@ -1959,8 +1950,9 @@ public class TimelineControl extends Composite {
      */
     private void moveRightSide(Rectangle start, int pos) {
         int width = start.width + pos;
-        if (start.x + width > sliderMax)
+        if (start.x + width > sliderMax) {
             width = sliderMax - start.x;
+        }
         slider = new Rectangle(start.x, start.y, width, start.height);
     }
 
@@ -2090,7 +2082,7 @@ public class TimelineControl extends Composite {
     /*
      * Find if a click within slider or hits a data time rectangle in the
      * slider.
-     * 
+     *
      * Note that the slider box may fall in the middle of a data time rectangle,
      * while the click is outside of the slider box. This should be considered
      * still within the slider box!

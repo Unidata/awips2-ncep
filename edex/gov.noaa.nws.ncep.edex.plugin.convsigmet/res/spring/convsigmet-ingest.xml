@@ -20,19 +20,7 @@
     <camelContext id="convsigmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-        <!--
-	    <endpoint id="convsigmetFileEndpoint" uri="file:${edex.home}/data/sbn/convsigmet?noop=true&amp;idempotent=false"/>
-        
-        <route id="convsigmetFileConsumerRoute">
-            <from ref="convsigmetFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>convsigmet</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.convsigmet"/>
-        </route>
-        -->
-        
+
         <!-- Begin ConvSigmet routes -->
         <route id="convsigmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.convsigmet"/>

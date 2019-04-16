@@ -1,16 +1,12 @@
 /*
  * Timeline
- * 
+ *
  * Date created 03 MARCH 2010
  *
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.viz.resourceManager.timeline;
-
-import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
-import gov.noaa.nws.ncep.viz.resources.time_match.GraphTimelineUtil;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,22 +49,26 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.common.time.DataTime;
 
+import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
+import gov.noaa.nws.ncep.viz.resources.time_match.GraphTimelineUtil;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
+
 /**
  * This class is an override on the TimelineControl for display graph time line.
  * The main difference are removing numFrames, and numSkip, and adding
  * graphRange and hourSnap.
- * 
+ *
  * For non-graph, we have many frames and each data is in a frame. But for
  * graph, we only have one frame and many data in the frame.
- * 
+ *
  * The numFrames and frameTimes are basic criteria for timeline control. we
  * change a concept here. We put data in frameTimes, so the timeline and
  * timeMatcher classes still work, but there is only one frame, not "frameTimes"
  * frames.
- * 
+ *
  * Timeline: A graphical view of available data times, that allows users to
  * select any or all data times from the available list.
- * 
+ *
  * TODO: Class hierarchy is not correct. There should have been an abstract
  * class with common elements that both TimelineControl and GraphTimelineControl
  * extend. Then TimelineControl and GraphTimelineControl would only support and
@@ -76,7 +76,7 @@ import com.raytheon.uf.common.time.DataTime;
  * difference are removing numFrames, and numSkip, and adding graphRange and
  * hourSnap". This would eliminate the need to make the same changes twice in
  * both classes as they are now.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -92,7 +92,7 @@ import com.raytheon.uf.common.time.DataTime;
  * 03/11/2016     R15244    bkowal      Initial cleanup to fix how time line control has been extended.
  * 05/26/2016     R19195    sgurung     Fix errors introduced by Redmine Ticket 15244 (error thrown when switching to Graph RBD)
  * </pre>
- * 
+ *
  * @author qzhou
  * @version 1
  */
@@ -134,9 +134,7 @@ public class GraphTimelineControl extends TimelineControl {
     private int newGraphRange = 0;
 
     public GraphTimelineControl(Composite parent) {
-
         super(parent, "Graph");
-        shell = parent.getShell();
 
         availDomResourcesMap = new HashMap<>();
 
@@ -167,6 +165,7 @@ public class GraphTimelineControl extends TimelineControl {
 
         // if changing the dominant resource then change the timeline
         dom_rsc_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 /*
@@ -198,6 +197,7 @@ public class GraphTimelineControl extends TimelineControl {
     // End of methods from old TimelineControl
 
     // Methods from old Timeline class
+    @Override
     public void setTimelineState(String state, boolean disable) {
 
         timelineStateMessage = state;
@@ -205,7 +205,7 @@ public class GraphTimelineControl extends TimelineControl {
         setControlsEnabled(!disable);
         canvas.redraw();
     }
-    
+
     /* (non-Javadoc)
      * @see gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl#updateTimeline(gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher)
      */
@@ -223,7 +223,7 @@ public class GraphTimelineControl extends TimelineControl {
 
         updateTimeline();
     }
-    
+
     private void updateTimeline() {
 
         if (timeMatcher.getFrameTimes().isEmpty()) {
@@ -251,7 +251,7 @@ public class GraphTimelineControl extends TimelineControl {
             // should set the state based on the reason there are no times.
             if (availTimes == null || availTimes.isEmpty()) {
                 setTimelineState("Timeline Disabled", true);
-                availTimes = new ArrayList<Calendar>();
+                availTimes = new ArrayList<>();
             } else if (availTimes.isEmpty()) {
                 setTimelineState("Timeline Disabled", true);
             } else {
@@ -355,16 +355,18 @@ public class GraphTimelineControl extends TimelineControl {
 
     /**
      * Returns a list of the selected data times.
-     * 
+     *
      * @return
      */
+    @Override
     public List<Calendar> getSelectedTimes() {
-        ArrayList<Calendar> list = new ArrayList<Calendar>();
+        ArrayList<Calendar> list = new ArrayList<>();
         int selectedRange = timeMatcher.getGraphRange() * 60;
 
         Calendar firstSelected = timeData.getFirstSelected();
-        if (firstSelected == null)
+        if (firstSelected == null) {
             return list;
+        }
 
         timeData.deselectAll();
         list.add(firstSelected);
@@ -650,15 +652,15 @@ public class GraphTimelineControl extends TimelineControl {
                                     / (double) total;
 
                             Point size = canvas.getSize();
-                            int lineY = Math.round((float) size.y * TIME_LINE);
+                            int lineY = Math.round(size.y * TIME_LINE);
                             Point beg = new Point(MARGIN, lineY);
                             Point end = new Point(size.x - MARGIN - 1, lineY);
 
-                            double snapDist = (double) (end.x - beg.x)
+                            double snapDist = (end.x - beg.x)
                                     * snapRatio;
 
-                            double snapNum = (double) Math.abs(xdiff)
-                                    / (double) snapDist;
+                            double snapNum = Math.abs(xdiff)
+                                    / snapDist;
                             int snapNumRound = (int) Math.round(snapNum);
 
                             switch (mode) {
@@ -800,6 +802,7 @@ public class GraphTimelineControl extends TimelineControl {
         canvas.addListener(SWT.MouseUp, mouse);
 
         graphRangeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 for (int i = 0; i < availGraphRangeStrings.length; i++) {
                     if (availGraphRangeStrings[i].equals(graphRangeCombo
@@ -816,6 +819,7 @@ public class GraphTimelineControl extends TimelineControl {
         });
 
         hourSnapCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 for (int i = 0; i < availHourSnapStrings.length; i++) {
                     if (availHourSnapStrings[i].equals(hourSnapCombo.getText())) {
@@ -831,6 +835,7 @@ public class GraphTimelineControl extends TimelineControl {
         });
 
         frameIntervalCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 for (int i = 0; i < availFrameIntervalStrings.length; i++) {
                     if (availFrameIntervalStrings[i].equals(frameIntervalCombo
@@ -847,6 +852,7 @@ public class GraphTimelineControl extends TimelineControl {
         });
 
         refTimeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (refTimeCombo.getSelectionIndex() == 0) {
                     timeMatcher.setCurrentRefTime();
@@ -855,7 +861,7 @@ public class GraphTimelineControl extends TimelineControl {
                 } else if (refTimeCombo.getSelectionIndex() == 2) {
 
                     CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
-                            shell);
+                            getShell());
 
                     DataTime newRefTime = calSelDlg.open(timeMatcher
                             .getRefTime());
@@ -977,6 +983,7 @@ public class GraphTimelineControl extends TimelineControl {
     /*
      * calculates and draws all the time line info
      */
+    @Override
     protected void drawTimeline(Canvas canvas, GC gc) {
 
         Point size = canvas.getSize();
@@ -998,7 +1005,7 @@ public class GraphTimelineControl extends TimelineControl {
          * draw date line that separates month/days and the hours of day
          */
 
-        int dateY = Math.round((float) size.y * DATE_LINE);
+        int dateY = Math.round(size.y * DATE_LINE);
         Point begDateLine = new Point(MARGIN, dateY);
         Point endDateLine = new Point(size.x - MARGIN - 1, dateY);
 
@@ -1014,7 +1021,7 @@ public class GraphTimelineControl extends TimelineControl {
          * draw time line
          */
 
-        int lineY = Math.round((float) size.y * TIME_LINE);
+        int lineY = Math.round(size.y * TIME_LINE);
         Point begTimeLine = new Point(MARGIN, lineY);
         Point endTimeLine = new Point(size.x - MARGIN - 1, lineY);
         gc.drawLine(begTimeLine.x, begTimeLine.y, endTimeLine.x, endTimeLine.y);
@@ -1029,8 +1036,9 @@ public class GraphTimelineControl extends TimelineControl {
         /*
          * draw slider bar
          */
-        if (slider == null)
+        if (slider == null) {
             slider = calculateSlider(begTimeLine, endTimeLine);
+        }
 
         gc.setLineWidth(2);
         gc.drawRectangle(slider);
@@ -1063,21 +1071,24 @@ public class GraphTimelineControl extends TimelineControl {
         Calendar time1 = timeData.getFirstSelected();
         Calendar time2 = timeData.getLastSelected();
 
-        if (time1 == null || time2 == null)
+        if (time1 == null || time2 == null) {
             return new Rectangle(0, 0, 0, 0);
+        }
 
         Calendar prev = timeData.getPreviousTime(time1);
         if (prev != null && timeLocations.get(prev) != null
-                && timeLocations.get(time1) != null)
+                && timeLocations.get(time1) != null) {
             ulX = (timeLocations.get(prev) + timeLocations.get(time1)) / 2;
-        else
+        } else {
             ulX = sliderMin + 5;
+        }
 
         Calendar next = timeData.getNextTime(time2);
         if (next != null && timeLocations.get(next) != null) {
             lastX = (timeLocations.get(time2) + timeLocations.get(next)) / 2;
-        } else
+        } else {
             lastX = sliderMax - 5;
+        }
 
         int ulY = beg.y - SLIDER;
         int width = lastX - ulX;
@@ -1088,7 +1099,7 @@ public class GraphTimelineControl extends TimelineControl {
 
     private Calendar currTimeFromPosition(int posX) {
         Point size = canvas.getSize();
-        int lineY = Math.round((float) size.y * TIME_LINE);
+        int lineY = Math.round(size.y * TIME_LINE);
         Point beg = new Point(MARGIN, lineY);
         Point end = new Point(size.x - MARGIN - 1, lineY);
         int lineLength = end.x - beg.x;
@@ -1102,7 +1113,7 @@ public class GraphTimelineControl extends TimelineControl {
 
         long timeLength = last.getTimeInMillis() - first.getTimeInMillis();
 
-        long currMills = Math.round(dist * (double) timeLength)
+        long currMills = Math.round(dist * timeLength)
                 + first.getTimeInMillis();
 
         Calendar curr = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -1123,7 +1134,7 @@ public class GraphTimelineControl extends TimelineControl {
         long timeLength = last.getTimeInMillis() - first.getTimeInMillis();
 
         Point size = canvas.getSize();
-        int lineY = Math.round((float) size.y * TIME_LINE);
+        int lineY = Math.round(size.y * TIME_LINE);
         Point beg = new Point(MARGIN, lineY);
         Point end = new Point(size.x - MARGIN - 1, lineY);
         int lineLength = end.x - beg.x;
@@ -1133,7 +1144,7 @@ public class GraphTimelineControl extends TimelineControl {
         double dist = (double) (curr.getTimeInMillis() - first
                 .getTimeInMillis()) / (double) timeLength;
 
-        int currX = (int) Math.round(dist * (double) lineLength) + beg.x;
+        int currX = (int) Math.round(dist * lineLength) + beg.x;
 
         return currX;
     }
@@ -1164,8 +1175,9 @@ public class GraphTimelineControl extends TimelineControl {
         int width = gc.getCharWidth('0');
         int halfWidth = (width * fmt.length()) / 2;
         int locY = beg.y - textHeight;
-        if (center)
+        if (center) {
             locY = (beg.y - textHeight) / 2;
+        }
 
         int numdays = days.size();
 
@@ -1180,11 +1192,14 @@ public class GraphTimelineControl extends TimelineControl {
 
             String hour = sdf.format(cal.getTime());
             int locX = (endX + startX) / 2 - halfWidth;
-            if (locX > startX)
+            if (locX > startX) {
                 gc.drawText(hour, locX, locY);
+            }
 
             if (j != 0)
+             {
                 gc.drawLine(startX, locY, startX, beg.y); // separator
+            }
 
         }
 
@@ -1269,7 +1284,7 @@ public class GraphTimelineControl extends TimelineControl {
             }
             double dist = (double) (cal.getTimeInMillis() - first
                     .getTimeInMillis()) / (double) timeLength;
-            long lineDist = Math.round(dist * (double) lineLength);
+            long lineDist = Math.round(dist * lineLength);
             int locX = beg.x + (int) lineDist;
             int tickSize;
             if (hasDifferentMinutes) {
@@ -1317,7 +1332,7 @@ public class GraphTimelineControl extends TimelineControl {
             if (timeData.getNextTime(curr) != null) {
                 double dist = (double) (curr.getTimeInMillis() - first
                         .getTimeInMillis()) / (double) timeLength;
-                long lineDist = Math.round(dist * (double) lineLength);
+                long lineDist = Math.round(dist * lineLength);
                 int locX = beg.x + (int) lineDist - (MARKER_WIDTH / 2);
                 int locY = beg.y - (MARKER_HEIGHT / 2);
 
@@ -1357,8 +1372,9 @@ public class GraphTimelineControl extends TimelineControl {
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        if (hasDifferentMinutes)
+        if (hasDifferentMinutes) {
             sdf.applyPattern("mm");
+        }
 
         int textHeight = gc.getFontMetrics().getHeight();
         int width = gc.getCharWidth('0');
@@ -1378,7 +1394,7 @@ public class GraphTimelineControl extends TimelineControl {
 
     /**
      * Retuns the current skip factor used
-     * 
+     *
      * @return
      */
     public int getHourSnapCombo() {
@@ -1387,7 +1403,7 @@ public class GraphTimelineControl extends TimelineControl {
 
     /**
      * Sets the snap factor
-     * 
+     *
      * @param num
      */
     public void setHourSnapCombo(int num) {
@@ -1425,6 +1441,7 @@ public class GraphTimelineControl extends TimelineControl {
         }
     }
 
+    @Override
     public void setFrameInterval(int fInt) {
         timeMatcher.setFrameInterval(fInt);
 
@@ -1438,14 +1455,17 @@ public class GraphTimelineControl extends TimelineControl {
         }
     }
 
+    @Override
     public int getFrameInterval() {
         return timeMatcher.getFrameInterval();
     }
 
+    @Override
     public int getTimeRangeHrs() {
         return timeRangeHrs;
     }
 
+    @Override
     public void setTimeRangeHrs(int tRangeHrs) {
         if (timeRangeHrs == tRangeHrs) {
             return;
@@ -1459,9 +1479,10 @@ public class GraphTimelineControl extends TimelineControl {
 
     /**
      * Sets the number of times that should be selected
-     * 
+     *
      * @param num
      */
+    @Override
     public void setNumberofFrames(int num) {
         timeMatcher.setNumFrames(num);
     }
@@ -1509,8 +1530,9 @@ public class GraphTimelineControl extends TimelineControl {
      */
     private void moveRightSide(Rectangle start, int pos) {
         int width = start.width + pos;
-        if (start.x + width > sliderMax)
+        if (start.x + width > sliderMax) {
             width = sliderMax - start.x;
+        }
         slider = new Rectangle(start.x, start.y, width, start.height);
     }
 
@@ -1521,7 +1543,9 @@ public class GraphTimelineControl extends TimelineControl {
     private void updateSelectedTimes(int xdiff) {
 
         if (availableTimes == null || slider == null)
+         {
             return; // canvas not yet ready
+        }
 
         Calendar first = null;
         Calendar last = null;
@@ -1533,14 +1557,18 @@ public class GraphTimelineControl extends TimelineControl {
             if (slider.intersects(rect)) {
 
                 Calendar cal = availableTimes.get(rect);
-                if (first == null)
+                if (first == null) {
                     first = cal;
-                if (last == null)
+                }
+                if (last == null) {
                     last = cal;
-                if (cal.before(first))
+                }
+                if (cal.before(first)) {
                     first = cal;
-                if (cal.after(last))
+                }
+                if (cal.after(last)) {
                     last = cal;
+                }
             }
         }
 
@@ -1606,7 +1634,7 @@ public class GraphTimelineControl extends TimelineControl {
     /*
      * Find if a click within slider or hits a data time rectangle in the
      * slider.
-     * 
+     *
      * Note that the slider box may fall in the middle of a data time rectangle,
      * while the click is outside of the slider box. This should be considered
      * still within the slider box!

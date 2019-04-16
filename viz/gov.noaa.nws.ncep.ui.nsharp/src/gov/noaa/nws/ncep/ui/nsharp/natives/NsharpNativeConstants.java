@@ -1,3 +1,7 @@
+package gov.noaa.nws.ncep.ui.nsharp.natives;
+
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+
 /**
  * 
  * gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants
@@ -8,130 +12,22 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 03/23/2010	229			Chin Chen	Initial coding
- * 7/2012					T. Lee		Changed Rogash QPF to Rainfall Rate
- *
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Mar 23, 2010  229      Chin Chen  Initial coding
+ * Jul 2012               T. Lee     Changed Rogash QPF to Rainfall Rate
+ * Dec 20, 2018  7575     bsteffen   Remove incorrect parcel numbers and other
+ *                                   unused fields.
+ * 
  * </pre>
  * 
  * @author Chin Chen
- * @version 1.0
  */
-package gov.noaa.nws.ncep.ui.nsharp.natives;
-
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class NsharpNativeConstants {
     public static final float NSHARP_NATIVE_INVALID_DATA = NcSoundingLayer.MISSING; // -9999f
 
-    // Note: legacy NSHARP lib return -999 as invalid data
-    public static final float NSHARP_LEGACY_LIB_INVALID_DATA = NcSoundingLayer.MISSING; // -9999f
-
-    public static final float PI = 3.14159265F;
-
-    /*
-     * PAGE1 CANVAS1 string definitions
-     */
-    public static final String PAGE1TEXT1_SB_STR = "SB PARCEL   ";
-
-    public static final String PAGE1TEXT1_ML_STR = "ML PARCEL   ";
-
-    public static final String PAGE1TEXT1_FCST_STR = "FCST PARCEL";
-
-    public static final String PAGE1TEXT1_MU_STR = "MU PARCEL   ";
-
-    public static final String PAGE1TEXT1_USER_STR = "USER PARCEL";
-
-    public static final String PAGE1TEXT1_EFF_STR = "EFF PARCEL  ";
-
-    // PARCELTYPES_STR array: order of array element should follow PARCELTYPE_*
-    // definitions below.
-    // public static final String[] PARCELTYPES_STR = {"", PAGE1TEXT1_SB_STR,
-    // PAGE1TEXT1_FCST_STR,PAGE1TEXT1_ML_STR,
-    // PAGE1TEXT1_MU_STR, PAGE1TEXT1_USER_STR, PAGE1TEXT1_EFF_STR
-    // };
-    /*
-     * PAGE1 Panel2 string definitions
-     */
-    public static final String[] STORM_MOTION_TYPE_STR1 = { "SFC-1km",
-            "SFC-2km", "SFC-3km", "Eff Inflow Layer" };
-
-    public static final String[] STORM_MOTION_TYPE_STR2 = { "SFC-6km",
-            "SFC-8km", "LCL-EL(Cloud Layer)", "Lower Half Storm Depth" };
-
-    public static final float[][] STORM_MOTION_HEIGHT1 = { { 0, 1000 },
-            { 0, 2000 }, { 0, 3000 }, { 0, 0 } };
-
-    public static final float[][] STORM_MOTION_HEIGHT2 = { { 0, 6000 },
-            { 0, 8000 }, { 0, 0 }, { 0, 0 } };
-
-    /*
-     * PARCEL DATA string definitions
-     */
-    // PARCEL type flags to be used for define_parcel()
-    public static final short PARCELTYPE_CUIRRENT_SELECTION = -1;
-
-    public static final short PARCELTYPE_OBS_SFC = 1;
-
-    public static final short PARCELTYPE_FCST_SFC = 2;
-
-    public static final short PARCELTYPE_MOST_UNSTABLE = 3;// BigNsharp
-
-    public static final short PARCELTYPE_MEAN_MIXING = 4; // BigNsharp
-
-    public static final short PARCELTYPE_USER_DEFINED = 5;
-
-    public static final short PARCELTYPE_EFF = 6; // BigNsharp
-
-    public static final short PARCEL_MAX = PARCELTYPE_EFF;
-
-    public static final short PARCEL_D2DLITE_MAX = PARCELTYPE_MOST_UNSTABLE; // d2dlite
-
-    // default pressure for parcel as defined in BigNsharp
-    public static final float OBS_LAYER = 0.0f;
-
-    public static final float FCST_LAYER = 0.0f;
-
-    public static final float MML_LAYER = 100.0f; /* mean-mixed layer */
-
-    public static final float MU_LAYER = 400.0f; /* most-unstable layer */
-
-    public static final float USER_LAYER = 850.0f; /* default user-defined level */
-
-    public static final float EFF_LAYER = MU_LAYER; // Chin, need to check with
-                                                    // John
-
-    /* 1 = Observed sfc parcel */
-    /* 2 = Fcst sfc parcel */
-    /* 3 = Most unstable parcel */
-    /* 4 = Mean mixlyr parcel */
-    /* 5 = User defined parcel */
-    /*
-     * 6 = Mean Effective Layer parcel
-     */
-    // parcel header string
-    public static final String PARCEL_DATA_STR = "\t\t\t\tPARCEL DATA    \r\n";
-
-    public static final String PARCEL_OBS_SFC_STR = "\t\t*** SFC PARCEL ***\r\n";
-
-    public static final String PARCEL_FORECAST_SFC_STR = "\t\t*** FCST SFC PARCEL ***\r\n";
-
-    public static final String PARCEL_MEAN_MIXING_STR = "\t\t*** MEAN MIXING LAYER PARCEL ***\r\n";
-
-    public static final String PARCEL_MOST_UNSTABLE_STR = "\t\t*** MOST UNSTABLE PARCEL ***\r\n";
-
-    public static final String PARCEL_MEAN_EFF_STR = "\t\t*** MEAN EFFECTIVE PARCEL ***\r\n";
-
-    public static final String PARCEL_USR_DEFINED_STR = "\t\t*** %.1f mb PARCEL ***\r\n";
-
     // parcel lines
     public static final String PARCEL_LPL_LINE = "LPL:\t%dmb\t%dC/%dC\t%dF/%dF\r\n\r\n";
-
-    public static final String PARCEL_LPL_LINE_ = "LPL:_%dmb_%dC/%dC_%dF/%dF";
 
     public static final String PARCEL_CAPE_LINE = "CAPE =  %.0f  J/Kg";
 
@@ -159,39 +55,21 @@ public class NsharpNativeConstants {
 
     public static final String PARCEL_LEVEL_LINE = "LEVEL\t\tPRES\t\tHGT(AGL)\t\tTEMP\r\n____________________________________________________\r\n";
 
-    public static final String PARCEL_LEVEL_LINE_ = "LEVEL_PRES_HGT(AGL)_TEMP";
-
     public static final String PARCEL_LCL_LINE = "LCL\t\t%5.0fmb\t\t%7.0fft\r\n";
-
-    public static final String PARCEL_LCL_LINE_ = "LCL_%5.0fmb_%7.0fft_ ";
 
     public static final String PARCEL_LCL_MISSING = "LCL\t\tM      \t\tM\r\n";
 
-    public static final String PARCEL_LCL_MISSING_ = "LCL_M_M_ ";
-
     public static final String PARCEL_LFC_LINE = "LFC\t\t%5.0fmb\t\t%7.0fft\t%6.0fC\r\n";
-
-    public static final String PARCEL_LFC_LINE_ = "LFC_%5.0fmb_%7.0fft_%6.0fC";
 
     public static final String PARCEL_LFC_MISSING = "LFC\t\tM      \t\tM     \t\t\tM\r\n";
 
-    public static final String PARCEL_LFC_MISSING_ = "LFC_M_M_M";
-
     public static final String PARCEL_EL_LINE = "EL \t\t%5.0fmb\t\t%7.0fft\t%6.0fC\r\n";
-
-    public static final String PARCEL_EL_LINE_ = "EL_%5.0fmb_%7.0fft_%6.0fC";
 
     public static final String PARCEL_EL_MISSING = "EL \t\tM      \t\tM     \t\t\tM\r\n";
 
-    public static final String PARCEL_EL_MISSING_ = "EL_M_M_M";
-
     public static final String PARCEL_MPL_LINE = "MPL\t\t%5.0fmb\t\t%7.0fft\r\n";
 
-    public static final String PARCEL_MPL_LINE_ = "MPL_%5.0fmb_%7.0fft_ ";
-
     public static final String PARCEL_MPL_MISSING = "MPL\t\tM      \t\tM\r\n";
-
-    public static final String PARCEL_MPL_MISSING_ = "MPL_M_M_ ";
 
     /*
      * THERMODYNAMIC DATA string definitions
@@ -279,8 +157,6 @@ public class NsharpNativeConstants {
     public static final String OPC_MIXING_HGT_STR = " ------------- MIXING HEIGHT -------------\r\n";
 
     // OPC SURFACE975 line strings
-    public static final String OPC_LEVEL_LINE = "LEVEL\t\tPRES\t\tHEIGHT\t\tTEMP\r\n_______________________________________________\r\n";
-
     public static final String OPC_LEVEL_LINE_ = "LEVEL_PRES_HEIGHT_TEMP";
 
     public static final String OPC_975_LINE = "975 hPa\t\t 975 mb\t\t%4.0f m\t\t%.2f C\r\n";
@@ -291,11 +167,7 @@ public class NsharpNativeConstants {
 
     public static final String OPC_975_LINE_MISSING_ = "975 hPa_975 mb_M_M";
 
-    public static final String OPC_SURFACE_LINE = "Surface\t\t%4.0f mb\t\t%4.0f m\t\t%.2f C\r\n\r\n";
-
     public static final String OPC_SURFACE_LINE_ = "Surface_%4.0f mb_%4.0f m_%.2f C";
-
-    public static final String OPC_SURFACE_MISSING = "Surface\t\t M    mb\t\t M   m\t\t M\r\n";
 
     public static final String OPC_SURFACE_MISSING_ = "Surface_M_M_M";
 
@@ -507,8 +379,6 @@ public class NsharpNativeConstants {
 
     public static final String SEVERE_CAPE_MISSING = "CAPE_=        M";
 
-    public static final String SEVERE_MIDRH_MISSING = "Mid Lvl RH_=        M";
-
     public static final String SEVERE_CHI1_MISSING = "CHI1_=        M";
 
     public static final String SEVERE_WBZ_LINE = "WBZ level_=  %.0fft\r\n";
@@ -562,52 +432,6 @@ public class NsharpNativeConstants {
 
     public static final String HEAVY_ROGASH_MISSING = "Rogash Rainfall Rate =    M \r\n";
 
-    // use parcel type to retrieve parcel header string for display
-    public static final Map<Short, String> parcelToHdrStrMap = new HashMap<Short, String>() {
-        private static final long serialVersionUID = 1L;
-
-        {
-            put(NsharpNativeConstants.PARCELTYPE_OBS_SFC, PARCEL_OBS_SFC_STR);
-            put(NsharpNativeConstants.PARCELTYPE_FCST_SFC,
-                    PARCEL_FORECAST_SFC_STR);
-            put(NsharpNativeConstants.PARCELTYPE_MEAN_MIXING,
-                    PARCEL_MEAN_MIXING_STR);
-            put(NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE,
-                    PARCEL_MOST_UNSTABLE_STR);
-            put(NsharpNativeConstants.PARCELTYPE_USER_DEFINED,
-                    PARCEL_USR_DEFINED_STR);
-            put(NsharpNativeConstants.PARCELTYPE_EFF, PARCEL_MEAN_EFF_STR);
-        }
-    };
-
-    public static final Map<Short, String> parcelToTypeStrMap = new HashMap<Short, String>() {
-        private static final long serialVersionUID = 1L;
-
-        {
-            put(NsharpNativeConstants.PARCELTYPE_OBS_SFC, PAGE1TEXT1_SB_STR);
-            put(NsharpNativeConstants.PARCELTYPE_FCST_SFC, PAGE1TEXT1_FCST_STR);
-            put(NsharpNativeConstants.PARCELTYPE_MEAN_MIXING, PAGE1TEXT1_ML_STR);
-            put(NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE,
-                    PAGE1TEXT1_MU_STR);
-            put(NsharpNativeConstants.PARCELTYPE_USER_DEFINED,
-                    PAGE1TEXT1_USER_STR);
-            put(NsharpNativeConstants.PARCELTYPE_EFF, PAGE1TEXT1_EFF_STR);
-        }
-    };
-
-    public static final Map<Short, Float> parcelToLayerMap = new HashMap<Short, Float>() {
-        private static final long serialVersionUID = 1L;
-
-        {
-            put(NsharpNativeConstants.PARCELTYPE_OBS_SFC, OBS_LAYER);
-            put(NsharpNativeConstants.PARCELTYPE_FCST_SFC, FCST_LAYER);
-            put(NsharpNativeConstants.PARCELTYPE_MEAN_MIXING, MML_LAYER);
-            put(NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE, MU_LAYER);
-            put(NsharpNativeConstants.PARCELTYPE_USER_DEFINED, USER_LAYER);
-            put(NsharpNativeConstants.PARCELTYPE_EFF, EFF_LAYER);
-        }
-    };
-
     public static final String TEMP_TRACE = "Temperature Trace";
 
     public static final String DEWP_TRACE = "Dewpoint Trace";
@@ -650,5 +474,4 @@ public class NsharpNativeConstants {
 
     public static final String WINDBARB = "Wind Barb";
 
-    public static final float ENTRAIN_DEFAULT = 0.0f;
 }

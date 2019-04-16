@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.colorBar;
 
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
-import gov.noaa.nws.ncep.viz.ui.display.IColorBar;
-
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.viz.core.DrawableString;
@@ -19,32 +15,38 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
+import gov.noaa.nws.ncep.viz.ui.display.IColorBar;
+
 /**
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 04/11/10      #259        Greg Hull    Initial Creation.
  * 07/11/11                  Greg Hull    changed to a Resource and create ColorBarResourceData.
- * 06/07/12      #717        Archana      Updated paintInternal() to label the colorbar and 
- *                                        display its unit 
- * 06/07/12      #794        Archana      Updated paintInternal() to reverse 
+ * 06/07/12      #717        Archana      Updated paintInternal() to label the colorbar and
+ *                                        display its unit
+ * 06/07/12      #794        Archana      Updated paintInternal() to reverse
  *                                        the color order in the color-bar.
  * 07/10/12      #743        Archana      Updated paintInternal() to accommodate GEMPAK CLRBAR parameter
- *                                        Updated paintInternal() to fix label displacement while changing the 
+ *                                        Updated paintInternal() to fix label displacement while changing the
  *                                        zoom or the underlying area.
  * 10/10/14      R4864       B. Hebbard   (Secondary to TTR 986)  Fix off-by-one error in labeling
  *                                        intervals with horizontal mode and reverseOrder=false;
  *                                        adjust position of "last" (smallest) label in this case.
- * 
+ * Mar 20, 2019  7569        tgurney      Fix label positioning for products
+ *                                        where the colormap has more colors
+ *                                        than the product has levels
+ *
  * </pre>
- * 
+ *
  * @author ghull
- * @version 1
  */
-public class ColorBarResource extends
-        AbstractVizResource<ColorBarResourceData, IDescriptor> {
+public class ColorBarResource
+        extends AbstractVizResource<ColorBarResourceData, IDescriptor> {
 
     public ColorBarResource(ColorBarResourceData resourceData,
             LoadProperties loadProperties) {
@@ -53,9 +55,7 @@ public class ColorBarResource extends
         getCapabilities().addCapability(ColorMapCapability.class);
     }
 
-    ColorBarResourceData cBarData;
-
-    IExtent colorBarExtent = null;
+    private ColorBarResourceData cBarData;
 
     public void setColorBar(IColorBar cbar) {
         cBarData.setColorBar(cbar);
@@ -78,7 +78,7 @@ public class ColorBarResource extends
 
         RGB colorOfAllLabels = colorBar.getLabelColor();
         RGB colorOfThisLabel = colorOfAllLabels;
-        String labelStr;
+
         target.clearClippingPlane();
 
         IExtent pixExtents = paintProps.getView().getExtent();
@@ -97,9 +97,9 @@ public class ColorBarResource extends
         double intrvlYsize = 0;
 
         double xScaleFactor = pixExtentsWidth
-                / (double) paintProps.getCanvasBounds().width;
+                / paintProps.getCanvasBounds().width;
         double yScaleFactor = pixExtentsHeight
-                / (double) paintProps.getCanvasBounds().height;
+                / paintProps.getCanvasBounds().height;
         double cbarPixLength;
         double lengthRatio = colorBar.getLengthAsRatio();
         double xViewCoord = colorBar.getXPixelCoordFraction();
@@ -107,27 +107,22 @@ public class ColorBarResource extends
         ColorBarOrientation colorBarOrientation = colorBar.getOrientation();
         ColorBarAnchorLocation anchorLocation = colorBar.getAnchorLoc();
 
-        if (colorBarOrientation == null || anchorLocation == null)
+        if (colorBarOrientation == null || anchorLocation == null) {
             return;
+        }
 
         if (colorBarOrientation == ColorBarOrientation.Horizontal) {
-            if (lengthRatio == 1)
+            if (lengthRatio == 1) {
                 lengthRatio = 0.999;
+            }
             cbarPixLength = lengthRatio * pixExtentsWidth * (1 - xViewCoord);
         } else {
-            // if(lengthRatio == 1)
-            // lengthRatio = 0.996;
             cbarPixLength = lengthRatio * pixExtentsHeight * (1 - yViewCoord);
         }
-        //
-        // double cbarPixWidth = ( colorBarOrientation ==
-        // ColorBarOrientation.Horizontal ?
-        // (double)colorBar.getWidthInPixels() * yScaleFactor :
-        // (double)colorBar.getWidthInPixels() * xScaleFactor );
 
-        double cbarPixWidth = (colorBarOrientation == ColorBarOrientation.Horizontal ? (double) colorBar
-                .getWidthInPixels() / 1000 * pixExtentsHeight
-                : (double) colorBar.getWidthInPixels() / 1000 * pixExtentsWidth);
+        double cbarPixWidth = colorBarOrientation == ColorBarOrientation.Horizontal
+                ? (double) colorBar.getWidthInPixels() / 1000 * pixExtentsHeight
+                : (double) colorBar.getWidthInPixels() / 1000 * pixExtentsWidth;
 
         double yMargin = 2 * yScaleFactor;
 
@@ -160,8 +155,8 @@ public class ColorBarResource extends
                 maxX = minX + cbarPixWidth;
                 maxY = minY + cbarPixLength;
                 if (maxY > pixExtentsMinY + pixExtentsHeight) {
-                    cbarPixLength = pixExtentsMaxY - pixExtentsHeight
-                            * yViewCoord;
+                    cbarPixLength = pixExtentsMaxY
+                            - pixExtentsHeight * yViewCoord;
                     maxY = minY + cbarPixLength;
                 }
             }
@@ -181,8 +176,8 @@ public class ColorBarResource extends
                 minX = maxX - cbarPixWidth;
                 maxY = minY + cbarPixLength;
                 if (maxY > pixExtentsMinY + pixExtentsHeight) {
-                    cbarPixLength = pixExtentsMaxY - pixExtentsHeight
-                            * yViewCoord;
+                    cbarPixLength = pixExtentsMaxY
+                            - pixExtentsHeight * yViewCoord;
                     maxY = minY + cbarPixLength;
                 }
             }
@@ -205,7 +200,7 @@ public class ColorBarResource extends
 
                 maxX = minX + cbarPixWidth;
                 minY = maxY - cbarPixLength;
-                if ((minY - yMargin * 3) < pixExtentsMinY) {
+                if (minY - yMargin * 3 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = maxY - minY;
                 }
@@ -228,7 +223,7 @@ public class ColorBarResource extends
                 minX = maxX - cbarPixWidth;
                 minY = maxY - cbarPixLength;
 
-                if ((minY - yMargin * 3) < pixExtentsMinY) {
+                if (minY - yMargin * 3 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = maxY - minY;
                 }
@@ -238,12 +233,12 @@ public class ColorBarResource extends
             minX = pixExtentsMinX + pixExtentsWidth * xViewCoord;
             if (colorBarOrientation == ColorBarOrientation.Vertical) {
                 maxX = minX + cbarPixWidth;
-                minY = pixExtentsMinY + pixExtentsHeight / 2 - cbarPixLength
-                        / 2;
-                maxY = pixExtentsMinY + pixExtentsHeight / 2 + cbarPixLength
-                        / 2;
+                minY = pixExtentsMinY + pixExtentsHeight / 2
+                        - cbarPixLength / 2;
+                maxY = pixExtentsMinY + pixExtentsHeight / 2
+                        + cbarPixLength / 2;
 
-                if ((minY - yMargin * 11) < pixExtentsMinY) {
+                if (minY - yMargin * 11 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = pixExtentsMaxY - minY;
                     maxY = minY + cbarPixLength;
@@ -253,8 +248,9 @@ public class ColorBarResource extends
                 maxX = minX + cbarPixLength;
                 minY = pixExtentsMinY + pixExtentsHeight / 2 - cbarPixWidth / 2;
                 maxY = minY + cbarPixWidth;
-                if (maxX >= pixExtentsMaxX)
+                if (maxX >= pixExtentsMaxX) {
                     maxX = minX + cbarPixLength * 0.998;
+                }
             }
 
         } else if (anchorLocation == ColorBarAnchorLocation.CenterRight) {
@@ -263,11 +259,11 @@ public class ColorBarResource extends
 
             if (colorBarOrientation == ColorBarOrientation.Vertical) {
                 minX = maxX - cbarPixWidth;
-                minY = pixExtentsMinY + pixExtentsHeight / 2 - cbarPixLength
-                        / 2;
-                maxY = pixExtentsMinY + pixExtentsHeight / 2 + cbarPixLength
-                        / 2;
-                if ((minY - yMargin * 11) < pixExtentsMinY) {
+                minY = pixExtentsMinY + pixExtentsHeight / 2
+                        - cbarPixLength / 2;
+                maxY = pixExtentsMinY + pixExtentsHeight / 2
+                        + cbarPixLength / 2;
+                if (minY - yMargin * 11 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = pixExtentsMaxY - minY;
                     maxY = minY + cbarPixLength;
@@ -277,20 +273,21 @@ public class ColorBarResource extends
                 minX = maxX - cbarPixLength;
                 minY = pixExtentsMinY + pixExtentsHeight / 2 - cbarPixWidth / 2;
                 maxY = minY + cbarPixWidth;
-                if (minX < pixExtentsMinX)
+                if (minX < pixExtentsMinX) {
                     minX = maxX - cbarPixLength * 0.998;
+                }
             }
 
         } else if (anchorLocation == ColorBarAnchorLocation.CenterCenter) {
             if (colorBarOrientation == ColorBarOrientation.Vertical) {
                 minX = pixExtentsMinX + pixExtentsWidth / 2 - cbarPixWidth / 2;
                 maxX = minX + cbarPixWidth;
-                minY = pixExtentsMinY + pixExtentsHeight / 2 - cbarPixLength
-                        / 2;
-                maxY = pixExtentsMinY + pixExtentsHeight / 2 + cbarPixLength
-                        / 2;
+                minY = pixExtentsMinY + pixExtentsHeight / 2
+                        - cbarPixLength / 2;
+                maxY = pixExtentsMinY + pixExtentsHeight / 2
+                        + cbarPixLength / 2;
 
-                if ((minY - yMargin * 11) < pixExtentsMinY) {
+                if (minY - yMargin * 11 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = pixExtentsMaxY - minY;
                     maxY = minY + cbarPixLength;
@@ -312,8 +309,8 @@ public class ColorBarResource extends
                 // If the color bar overshoots the boundary, it is brought back
                 // inside.
                 if (maxY > pixExtentsMinY + pixExtentsHeight) {
-                    cbarPixLength = pixExtentsMaxY - pixExtentsHeight
-                            * (yViewCoord);
+                    cbarPixLength = pixExtentsMaxY
+                            - pixExtentsHeight * yViewCoord;
                     maxY = minY + cbarPixLength;
                 }
 
@@ -335,7 +332,7 @@ public class ColorBarResource extends
                 maxY = pixExtentsMaxY - pixExtentsHeight * yViewCoord;
                 minY = maxY - cbarPixLength;
 
-                if ((minY - yMargin * 11) < pixExtentsMinY) {
+                if (minY - yMargin * 11 < pixExtentsMinY) {
                     minY = pixExtentsMinY + yMargin * 11;
                     cbarPixLength = pixExtentsMaxY - minY;
                     maxY = minY + cbarPixLength;
@@ -371,7 +368,8 @@ public class ColorBarResource extends
         if (colorBar.getIntervalMin(0) == Float.NEGATIVE_INFINITY) {
             nonInfRangeLength -= cbarPixLength / numIntrvls;
         }
-        if (colorBar.getIntervalMax(numIntrvls - 1) == Float.POSITIVE_INFINITY) {
+        if (colorBar
+                .getIntervalMax(numIntrvls - 1) == Float.POSITIVE_INFINITY) {
             nonInfRangeLength -= cbarPixLength / numIntrvls;
         }
 
@@ -384,8 +382,10 @@ public class ColorBarResource extends
             unitStrToDraw.setCoordinates(textX, textY);
             if (colorBarOrientation == ColorBarOrientation.Vertical
                     && (anchorLocation == ColorBarAnchorLocation.LowerRight
-                            || anchorLocation == ColorBarAnchorLocation.CenterRight || anchorLocation == ColorBarAnchorLocation.UpperRight))
+                            || anchorLocation == ColorBarAnchorLocation.CenterRight
+                            || anchorLocation == ColorBarAnchorLocation.UpperRight)) {
                 unitStrToDraw.horizontalAlignment = HorizontalAlignment.RIGHT;
+            }
 
             target.drawStrings(unitStrToDraw);
         }
@@ -396,200 +396,134 @@ public class ColorBarResource extends
             int startIndex = 0;
             int endIndex = numIntrvls;
 
-            if (colorBar != null) {
-                if (colorBar.getReverseOrder()) {
-                    startIndex = numIntrvls - 1;
-                    endIndex = -1;
-                }
+            if (colorBar.getReverseOrder()) {
+                startIndex = numIntrvls - 1;
+                endIndex = -1;
+            }
 
-                int r = startIndex;
+            int r = startIndex;
 
-                while (startIndex != -1 && startIndex != endIndex) {
-                    // compute the new maxX and Ys for the interval
+            while (startIndex != -1 && startIndex != endIndex) {
+                // compute the new maxX and Ys for the interval
 
-                    if (colorBar.getDrawToScale()) {
-                        if (colorBarOrientation == ColorBarOrientation.Horizontal) {
-                            if (colorBar.getIntervalMin(r) == Float.NEGATIVE_INFINITY
-                                    || colorBar.getIntervalMax(r) == Float.POSITIVE_INFINITY) {
-                                intrvlXsize = cbarPixLength / numIntrvls;
-                            } else {
-                                intrvlXsize = pixPerUnit
-                                        * (double) (colorBar.getIntervalMax(r) - colorBar
-                                                .getIntervalMin(r));
-                            }
-                        } else {
-                            if (colorBar.getIntervalMin(r) == Float.NEGATIVE_INFINITY
-                                    || colorBar.getIntervalMax(r) == Float.POSITIVE_INFINITY) {
-                                intrvlYsize = cbarPixLength / numIntrvls;
-                            } else {
-                                intrvlYsize = pixPerUnit
-                                        * (double) (colorBar.getIntervalMax(r) - colorBar
-                                                .getIntervalMin(r));
-                            }
-                        }
-                    }
-
-                    intMaxX = intMinX + intrvlXsize;
-                    intMaxY = intMinY + intrvlYsize;
-
-                    RGB currentIntrvlColor = colorBar.getRGB(r);
-                    if (!colorBar.isDrawBoxAroundColorBar())
-                        // requirement for the GEMPAK parameter CLRBAR
-                        colorOfThisLabel = new RGB(currentIntrvlColor.red,
-                                currentIntrvlColor.green,
-                                currentIntrvlColor.blue);
-
-                    PixelExtent eachShadedRectangleExtent = new PixelExtent(
-                            intMinX, intMaxX, intMinY, intMaxY);
-                    if (currentIntrvlColor != null) {
-                        target.drawShadedRect(eachShadedRectangleExtent,
-                                currentIntrvlColor, 1.0, null);
-                    }
-
-                    int rText = colorBar.getReverseOrder() ? r : r + 1;
-                    String tmpLbl = colorBar.getLabelString(rText);
-                    labelStr = (tmpLbl != null) ? new String(tmpLbl) : null;
-
-                    if (labelStr != null && labelStr.compareTo("NaN") != 0) {
-
-                        double lblX = intMinX;
-
-                        double lblY = intMinY;
-
-                        HorizontalAlignment labelHorizAlign = getLabelHorizAlignment(
-                                colorBarOrientation, anchorLocation,
-                                (rText == 0), false);
-
-                        VerticalAlignment labelVertAlign = getLabelVertAlignment(
-                                colorBarOrientation, anchorLocation,
-                                (rText == 0), false);
-
-                        /*
-                         * Fix for the labels flying off when the zoom or the
-                         * underlying area is changed: Create a separate
-                         * pixelextent from the coordinates of each interval in
-                         * the colorbar Get the label coordinates from this new
-                         * pixelextent.(Anyhow, the label coordinates are
-                         * dependent on the coordinates of the corresponding
-                         * colorbar interval. )
-                         */
-                        PixelExtent pixEx = new PixelExtent(
-                                eachShadedRectangleExtent.getMinX(),
-                                eachShadedRectangleExtent.getMaxX(),
-                                eachShadedRectangleExtent.getMinY(),
-                                eachShadedRectangleExtent.getMaxY());
-                        lblX = pixEx.getMinX();
-                        if (colorBar.getClass().getSimpleName()
-                                .compareTo("ColorBar") == 0) {
-
-                            // lblX = intMaxX;
-
-                            lblY = pixEx.getMaxY();
-                        } else {
-                            lblY = pixEx.getMinY();
-                        }
-
-                        if ((anchorLocation == ColorBarAnchorLocation.LowerLeft
-                                || anchorLocation == ColorBarAnchorLocation.UpperLeft
-                                || anchorLocation == ColorBarAnchorLocation.CenterLeft
-                                || anchorLocation == ColorBarAnchorLocation.CenterCenter
-                                || anchorLocation == ColorBarAnchorLocation.LowerCenter || anchorLocation == ColorBarAnchorLocation.UpperCenter)
-                                && colorBarOrientation == ColorBarOrientation.Vertical) {
-                            lblX += cbarPixWidth;
-
-                        } else if (colorBarOrientation == ColorBarOrientation.Horizontal) {
-                            if (colorBar.getClass().getSimpleName()
-                                    .compareTo("ColorBar") == 0) {
-                                lblX = pixEx.getMaxX();
-                                lblY += yScaleFactor;
-                            } else
-                                lblY += cbarPixWidth;
-
-                        }
-
-                        if (colorBar.isAlignLabelInTheMiddleOfInterval()) {
-                            // typically for radar legends
-                            if (colorBarOrientation == ColorBarOrientation.Vertical) {
-                                lblY += yScaleFactor * 23;
-                            } else {
-                                lblX += xScaleFactor * 30;
-                            }
-
-                        }
-
-                        DrawableString strToDraw = new DrawableString(labelStr,
-                                colorOfThisLabel);
-                        strToDraw.horizontalAlignment = labelHorizAlign;
-                        strToDraw.verticallAlignment = labelVertAlign;
-                        if (colorBar.getShowLabels()) {
-                            strToDraw.setCoordinates(lblX, lblY);
-                            target.drawStrings(strToDraw);
-                        }
-
-                    }
-
-                    // increment the interval x&y
+                if (colorBar.getDrawToScale()) {
                     if (colorBarOrientation == ColorBarOrientation.Horizontal) {
-                        intMinX = intMaxX;
+                        if (colorBar
+                                .getIntervalMin(r) == Float.NEGATIVE_INFINITY
+                                || colorBar.getIntervalMax(
+                                        r) == Float.POSITIVE_INFINITY) {
+                            intrvlXsize = cbarPixLength / numIntrvls;
+                        } else {
+                            intrvlXsize = pixPerUnit
+                                    * (colorBar.getIntervalMax(r)
+                                            - colorBar.getIntervalMin(r));
+                        }
                     } else {
-                        intMinY = intMaxY;
-                    }
-
-                    if (startIndex > endIndex) {
-                        r--;
-                        startIndex--;
-                    } else {
-                        r++;
-                        startIndex++;
+                        if (colorBar
+                                .getIntervalMin(r) == Float.NEGATIVE_INFINITY
+                                || colorBar.getIntervalMax(
+                                        r) == Float.POSITIVE_INFINITY) {
+                            intrvlYsize = cbarPixLength / numIntrvls;
+                        } else {
+                            intrvlYsize = pixPerUnit
+                                    * (colorBar.getIntervalMax(r)
+                                            - colorBar.getIntervalMin(r));
+                        }
                     }
                 }
 
-                // draw the last label
+                intMaxX = intMinX + intrvlXsize;
+                intMaxY = intMinY + intrvlYsize;
 
-                String tmpLbl = colorBar.getLabelString(colorBar
-                        .getReverseOrder() ? numIntrvls : 0);
+                RGB currentIntrvlColor = colorBar.getRGB(r);
+                if (!colorBar.isDrawBoxAroundColorBar()) {
+                    // requirement for the GEMPAK parameter CLRBAR
+                    colorOfThisLabel = new RGB(currentIntrvlColor.red,
+                            currentIntrvlColor.green, currentIntrvlColor.blue);
+                }
 
-                labelStr = (tmpLbl != null) ? new String(tmpLbl) : null;
+                PixelExtent eachShadedRectangleExtent = new PixelExtent(intMinX,
+                        intMaxX, intMinY, intMaxY);
+                if (currentIntrvlColor != null) {
+                    target.drawShadedRect(eachShadedRectangleExtent,
+                            currentIntrvlColor, 1.0, null);
+                }
+
+                int rText = colorBar.getReverseOrder() ? r : r + 1;
+
+                String labelStr = colorBar
+                        .getLabelString(numIntrvls <= 16 ? rText * 16 : rText);
 
                 if (labelStr != null && labelStr.compareTo("NaN") != 0) {
 
                     double lblX = intMinX;
+
                     double lblY = intMinY;
 
-                    if (colorBar.getClass().getSimpleName()
-                            .compareTo("ColorBar") == 0) {
-                        if (colorBarOrientation == ColorBarOrientation.Vertical) {
-                            intMaxY = intMinY - (numIntrvls) * intrvlYsize;
-                            lblY = colorBar.getReverseOrder() ? intMaxY
-                            /* + yScaleFactor * 5 */: intMaxY + yScaleFactor
-                                    * 20;
-                            lblX = ((anchorLocation == ColorBarAnchorLocation.UpperRight
-                                    || anchorLocation == ColorBarAnchorLocation.CenterRight || anchorLocation == ColorBarAnchorLocation.LowerRight) ? intMinX
-                                    : intMaxX);
-                        } else {
-
-                            lblX = colorBar.getReverseOrder() ? minX
-                                    + xScaleFactor * 20 : minX + xScaleFactor
-                                    * 5;
-                            lblY = intMaxY;
-                        }
-                    }
-
                     HorizontalAlignment labelHorizAlign = getLabelHorizAlignment(
-                            colorBarOrientation, anchorLocation, false, true);
+                            rText == 0, false);
 
                     VerticalAlignment labelVertAlign = getLabelVertAlignment(
-                            colorBarOrientation, anchorLocation, false, true);
+                            rText == 0, false);
 
-                    if (!colorBar.isDrawBoxAroundColorBar())
-                        // requirement for the GEMPAK parameter CLRBAR
-                        colorOfThisLabel = colorBar.getRGB(numIntrvls - 1);
+                    /*
+                     * Fix for the labels flying off when the zoom or the
+                     * underlying area is changed: Create a separate pixelextent
+                     * from the coordinates of each interval in the colorbar Get
+                     * the label coordinates from this new pixelextent.(Anyhow,
+                     * the label coordinates are dependent on the coordinates of
+                     * the corresponding colorbar interval. )
+                     */
+                    PixelExtent pixEx = new PixelExtent(
+                            eachShadedRectangleExtent.getMinX(),
+                            eachShadedRectangleExtent.getMaxX(),
+                            eachShadedRectangleExtent.getMinY(),
+                            eachShadedRectangleExtent.getMaxY());
+                    lblX = pixEx.getMinX();
+                    if (colorBar.getClass().getSimpleName()
+                            .compareTo("ColorBar") == 0) {
+
+                        // lblX = intMaxX;
+
+                        lblY = pixEx.getMaxY();
+                    } else {
+                        lblY = pixEx.getMinY();
+                    }
+
+                    if ((anchorLocation == ColorBarAnchorLocation.LowerLeft
+                            || anchorLocation == ColorBarAnchorLocation.UpperLeft
+                            || anchorLocation == ColorBarAnchorLocation.CenterLeft
+                            || anchorLocation == ColorBarAnchorLocation.CenterCenter
+                            || anchorLocation == ColorBarAnchorLocation.LowerCenter
+                            || anchorLocation == ColorBarAnchorLocation.UpperCenter)
+                            && colorBarOrientation == ColorBarOrientation.Vertical) {
+                        lblX += cbarPixWidth;
+
+                    } else if (colorBarOrientation == ColorBarOrientation.Horizontal) {
+                        if (colorBar.getClass().getSimpleName()
+                                .compareTo("ColorBar") == 0) {
+                            lblX = pixEx.getMaxX();
+                            lblY += yScaleFactor;
+                        } else {
+                            lblY += cbarPixWidth;
+                        }
+
+                    }
+
+                    if (colorBar.isAlignLabelInTheMiddleOfInterval()) {
+                        // typically for radar legends
+                        if (colorBarOrientation == ColorBarOrientation.Vertical) {
+                            lblY += yScaleFactor * 23;
+                        } else {
+                            lblX += xScaleFactor * 30;
+                        }
+
+                    }
 
                     DrawableString strToDraw = new DrawableString(labelStr,
                             colorOfThisLabel);
                     strToDraw.horizontalAlignment = labelHorizAlign;
                     strToDraw.verticallAlignment = labelVertAlign;
-
                     if (colorBar.getShowLabels()) {
                         strToDraw.setCoordinates(lblX, lblY);
                         target.drawStrings(strToDraw);
@@ -597,27 +531,43 @@ public class ColorBarResource extends
 
                 }
 
-                // draw the border around the colorbar
-                if (numIntrvls > 0 && colorBar.isDrawBoxAroundColorBar()) {
-                    // check for 'numIntrvls' gets rid of the ghost outline if
-                    // the colormap was cleared
-                    colorBarExtent = new PixelExtent(minX, maxX, minY, maxY);
-                    target.drawRect(colorBarExtent, colorOfAllLabels, 1.0f,
-                            1.0d);
+                // increment the interval x&y
+                if (colorBarOrientation == ColorBarOrientation.Horizontal) {
+                    intMinX = intMaxX;
+                } else {
+                    intMinY = intMaxY;
+                }
+
+                if (startIndex > endIndex) {
+                    r--;
+                    startIndex--;
+                } else {
+                    r++;
+                    startIndex++;
                 }
             }
 
+            // draw the border around the colorbar
+            if (numIntrvls > 0 && colorBar.isDrawBoxAroundColorBar()) {
+                // check for 'numIntrvls' gets rid of the ghost outline if
+                // the colormap was cleared
+                IExtent colorBarExtent = new PixelExtent(minX, maxX, minY,
+                        maxY);
+                target.drawRect(colorBarExtent, colorOfAllLabels, 1.0f, 1.0d);
+            }
+
         } catch (VizException e) {
+            statusHandler.debug(e.getLocalizedMessage(), e);
         }
 
     }
 
-    private HorizontalAlignment getLabelHorizAlignment(
-            ColorBarOrientation orient, ColorBarAnchorLocation anchor,
-            boolean isFirst, boolean isLast) {
+    private HorizontalAlignment getLabelHorizAlignment(boolean isFirst,
+            boolean isLast) {
         ColorBarAnchorLocation cBarAnchorLoc = cBarData.getColorbar()
                 .getAnchorLoc();
-        if (cBarData.getColorbar().getOrientation() == ColorBarOrientation.Vertical) {
+        if (cBarData.getColorbar()
+                .getOrientation() == ColorBarOrientation.Vertical) {
             if (cBarAnchorLoc == ColorBarAnchorLocation.UpperLeft
                     || cBarAnchorLoc == ColorBarAnchorLocation.LowerLeft
                     || cBarAnchorLoc == ColorBarAnchorLocation.CenterLeft
@@ -625,41 +575,33 @@ public class ColorBarResource extends
                     || cBarAnchorLoc == ColorBarAnchorLocation.UpperCenter
                     || cBarAnchorLoc == ColorBarAnchorLocation.LowerCenter) {
                 return HorizontalAlignment.LEFT;
-            } else {// on the right
-                return HorizontalAlignment.RIGHT;
             }
-        } else { // Horizontal
-            if (isFirst || isLast) {
-                return HorizontalAlignment.RIGHT;
-            }
-            // else if( isLast ) {
-            // return HorizontalAlignment.RIGHT;
-            // }
-            else {
-                return HorizontalAlignment.CENTER;
-            }
+            // on the right
+            return HorizontalAlignment.RIGHT;
         }
+        // Horizontal
+        if (isFirst || isLast) {
+            return HorizontalAlignment.RIGHT;
+        }
+        return HorizontalAlignment.CENTER;
     }
 
-    private VerticalAlignment getLabelVertAlignment(ColorBarOrientation orient,
-            ColorBarAnchorLocation anchor, boolean isFirst, boolean isLast) {
-        if (cBarData.getColorbar().getOrientation() == ColorBarOrientation.Horizontal) {
+    private VerticalAlignment getLabelVertAlignment(boolean isFirst,
+            boolean isLast) {
+        if (cBarData.getColorbar()
+                .getOrientation() == ColorBarOrientation.Horizontal) {
             return VerticalAlignment.TOP;
-        } else {
-            if (isFirst) {
-                return VerticalAlignment.BOTTOM;
-            } else if (isLast) {
-                return VerticalAlignment.BOTTOM;
-            } else {
-                return VerticalAlignment.MIDDLE;
-            }
         }
+        if (isFirst) {
+            return VerticalAlignment.BOTTOM;
+        }
+        if (isLast) {
+            return VerticalAlignment.BOTTOM;
+        }
+        return VerticalAlignment.MIDDLE;
     }
 
     @Override
     protected void disposeInternal() {
-        // TODO Auto-generated method stub
-
     }
-
 }

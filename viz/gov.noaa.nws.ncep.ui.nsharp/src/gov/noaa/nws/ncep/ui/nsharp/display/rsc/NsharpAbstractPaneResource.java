@@ -26,7 +26,6 @@ import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
 import com.raytheon.viz.core.ColorUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
@@ -50,6 +49,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
  *                                        - Reformat the lower left data page
  * 11/29/2017   5863         bsteffen     Change dataTimes to a NavigableSet
  * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, 5863, fixed formatting
+ * 11/21/2018   7574         bsteffen     Get previous layers from handler to ensure consistency.
  *
  * </pre>
  *
@@ -72,8 +72,6 @@ public class NsharpAbstractPaneResource
     protected static final UnitConverter celciusToKelvin = SI.CELSIUS.getConverterTo(SI.KELVIN);
 
     protected List<NcSoundingLayer> soundingLys = null;
-
-    protected List<NcSoundingLayer> previousSoundingLys = null;
 
     protected NsharpResourceHandler rscHandler = null;
 
@@ -117,8 +115,6 @@ public class NsharpAbstractPaneResource
 
     protected String paneConfigurationName;
 
-    public static final float INVALID_DATA = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-
     protected Coordinate cursorCor;
 
     protected double charHeight = NsharpConstants.CHAR_HEIGHT_;
@@ -128,8 +124,6 @@ public class NsharpAbstractPaneResource
     protected double lineHeight = charHeight * 1.2;
 
     protected PaintProperties paintProps;
-
-    protected boolean sidePaneMode = false;
 
     protected NsharpWeatherDataStore weatherDataStore;
 
@@ -219,11 +213,9 @@ public class NsharpAbstractPaneResource
 
     }
 
-    public void resetData(List<NcSoundingLayer> soundingLys, List<NcSoundingLayer> prevsoundingLys) {
+    public void resetData(List<NcSoundingLayer> soundingLys) {
         this.soundingLys = soundingLys;
-        this.previousSoundingLys = prevsoundingLys;
         descriptor.setFramesInfo(new FramesInfo(0));
-
     }
 
     public NsharpWGraphics getWorld() {
@@ -370,14 +362,6 @@ public class NsharpAbstractPaneResource
 
     public void handleZooming() {
 
-    }
-
-    public boolean isSidePaneMode() {
-        return sidePaneMode;
-    }
-
-    public void setSidePaneMode(boolean sidePaneMode) {
-        this.sidePaneMode = sidePaneMode;
     }
 
     protected void defineCharHeight(IFont font) {

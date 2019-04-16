@@ -21,28 +21,12 @@
 		<constructor-arg value="aww" />
 		<constructor-arg value="jms-durable:queue:Ingest.aww" />
 	</bean>
-	
-    <!-- bean id="awwDistRegistry" class="com.raytheon.uf.edex.distribution.DistributionSrv"
-		factory-method="register">
-		<constructor-arg value="aww" />
-		<constructor-arg value="jms-durable:queue:Ingest.AlphaNumeric" />
-	</bean-->
     
     <camelContext id="aww-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-	     <endpoint id="awwFileEndpoint" uri="file:${edex.home}/data/sbn/aww?noop=true&amp;idempotent=false"/>
-        
+
         <!-- Begin Aww routes -->
-        <route id="awwFileConsumerRoute">
-            <from ref="awwFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>aww</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.aww"/>
-        </route>
-        
         <route id="awwIngestRoute">
             <from uri="jms-durable:queue:Ingest.aww"/>
             <setHeader headerName="pluginName">

@@ -2878,7 +2878,6 @@ public class NsharpResourceHandler {
                     hodoPaneRsc = (NsharpHodoPaneResource) absPaneRsc;
                     hodoPaneRsc.setLinePropertyMap(linePropertyMap);
                     hodoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-<<<<<<< HEAD
                 } else if (absPaneRsc instanceof NsharpWitoPaneResource) {
                     witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
                     witoPaneRsc.setLinePropertyMap(linePropertyMap);
@@ -2888,35 +2887,6 @@ public class NsharpResourceHandler {
                     insetPaneRsc.setLinePropertyMap(linePropertyMap);
                     insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
                 } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource) {
-=======
-                } else if (absPaneRsc instanceof NsharpWitoPaneResource
-                        && (paneConfigurationName
-                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                                || paneConfigurationName
-                                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                                || paneConfigurationName.equals(
-                                        NsharpConstants.PANE_DEF_CFG_2_STR))) {
-
-                    witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
-                    witoPaneRsc.setLinePropertyMap(linePropertyMap);
-                    witoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-
-                } else if (absPaneRsc instanceof NsharpInsetPaneResource
-                        && (paneConfigurationName
-                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                                || paneConfigurationName
-                                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                                || paneConfigurationName.equals(
-                                        NsharpConstants.PANE_DEF_CFG_2_STR))) {
-
-                    insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
-                    insetPaneRsc.setLinePropertyMap(linePropertyMap);
-                    insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
-
-                } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource
-                        && paneConfigurationName
-                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
->>>>>>> omaha/omaha_19.3.1
                     spcGraphsPaneRsc = (NsharpSpcGraphsPaneResource) absPaneRsc;
                     spcGraphsPaneRsc.setLinePropertyMap(linePropertyMap);
                     spcGraphsPaneRsc.setGraphConfigProperty(graphConfigProperty);

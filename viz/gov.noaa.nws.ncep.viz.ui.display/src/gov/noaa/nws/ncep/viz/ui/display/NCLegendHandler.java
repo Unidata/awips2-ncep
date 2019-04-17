@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.ui.display;
 
-import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +8,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.VizApp;
@@ -25,42 +22,45 @@ import com.raytheon.uf.viz.core.rsc.capabilities.EditableCapability;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.EditableManager;
 
+import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
+
 /**
  * This handler is responsible for picking up mouse clicks and key press events
  * on resources in the legend
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
+ *
+ * Date         Ticket#    Engineer      Description
+ * ------------ ---------- -----------   --------------------------
  * 02/03/2012              S. Gurung     Initial creation
- * 06/25/2012    827       Archana       Updated handleKeyUp() to
+ * 06/25/2012   827        Archana       Updated handleKeyUp() to
  *                                       toggle the display of the
  *                                       resources based on the
  *                                       UP/DOWN arrow key pressed.
- * 07/27/2012	695			B. Yin		 Added middle mouse click to toggle editable resource.
- * 08/09/2012   839       Archana        Updated to toggle the colorbar when 
+ * 07/27/2012   695        B. Yin        Added middle mouse click to toggle editable resource.
+ * 08/09/2012   839        Archana       Updated to toggle the colorbar when
  *                                       its corresponding resource is toggled on/off.
- * 10/19/2012   897         S. Gurung    Updated handleKeyUp() to not toggle PgenResource and added code to 
- * 										 refresh the editor after handling events.
- * 12/19/2012   960       G. Hull        use propertiesChanged() to toggle colorBar resources
- * 08/18/2014   ?         B. Yin         Handle GroupResource.
- * 11/06/2015   R9398     Edwin Brown    Corrected issue with hiding the color bar, broke up/ clarified,
+ * 10/19/2012   897        S. Gurung     Updated handleKeyUp() to not toggle PgenResource and added code to
+ *                                       refresh the editor after handling events.
+ * 12/19/2012   960        G. Hull       use propertiesChanged() to toggle colorBar resources
+ * 08/18/2014   ?          B. Yin        Handle GroupResource.
+ * 11/06/2015   R9398      Edwin Brown   Corrected issue with hiding the color bar, broke up/ clarified,
  *                                       toggleVisibility, misc. clean up work
- * 11/25/2015   12830     B. Yin         Up/Down hot keys rotate resources in group
- * 05/04/2016   R17249    S. Russell     Updated handleMouseUp(), created the
+ * 11/25/2015   12830      B. Yin        Up/Down hot keys rotate resources in group
+ * 05/04/2016   R17249     S. Russell    Updated handleMouseUp(), created the
  *                                       method getClickedNcLegendResource(),
  *                                       getResourcesClickedList(),
  *                                       isAnyVisibleLegendGroupExpanded(), and
  *                                       isAProperLegendResource()
- * 06/15/2016   R13559    J. Lopez       Added an if statement in handleMouseUp() to 
+ * 06/15/2016   R13559     J. Lopez      Added an if statement in handleMouseUp() to
  *                                       prevent PGEN from interfering with the legend
+ * Mar 14, 2019 7581       tgurney       Fix casting error thrown when pressing
+ *                                       up/down arrow key. + cleanup
  * </pre>
- * 
+ *
  * @author sgurung
- * @version 1.0
  */
 
 public class NCLegendHandler extends AbstractNCLegendInputHandler {
@@ -108,7 +108,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
     }
 
     @Override
-    public boolean handleMouseUp(final int x, final int y, final int mouseButton) {
+    public boolean handleMouseUp(final int x, final int y,
+            final int mouseButton) {
 
         // Because we wait certain milliseconds for double click,
         // we have to save the status of the ctrl key.
@@ -134,7 +135,7 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                     }
                 }
                 doubleClick = false;
-                return doubleClickMouseUp(x, y, mouseButton);
+                return doubleClickMouseUp();
 
             }
 
@@ -158,9 +159,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             // tell the InputManager class that the NCLegendHandler should
             // and will process this event
             return true;
-        } else {
-            return false;
         }
+        return false;
 
     }
 
@@ -174,27 +174,7 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
 
     @Override
     public boolean handleMouseDownMove(int x, int y, int mouseButton) {
-        return (mouseDownResourcePair != null);
-    }
-
-    public boolean handleMouseHover(int x, int y) {
-        return false;
-    }
-
-    public boolean handleMouseMove(int x, int y) {
-        return false;
-    }
-
-    public boolean handleMouseWheel(Event event, int x, int y) {
-        return false;
-    }
-
-    public boolean handleMouseExit(Event event) {
-        return false;
-    }
-
-    public boolean handleMouseEnter(Event event) {
-        return false;
+        return mouseDownResourcePair != null;
     }
 
     @Override
@@ -215,8 +195,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         }
 
         AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
-        ResourceList theMainList = editor.getActiveDisplayPane()
-                .getDescriptor().getResourceList();
+        ResourceList theMainList = editor.getActiveDisplayPane().getDescriptor()
+                .getResourceList();
 
         List<ResourcePair> subListOfResourcesToToggle = new ArrayList<>(0);
 
@@ -225,16 +205,14 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
              * Pressing the Shift key with either the up or the down arrow key
              * makes all the non-system/non map layer resources visible.
              */
-            if ((keyCode == SWT.ARROW_UP || keyCode == SWT.ARROW_DOWN)) {
+            if (keyCode == SWT.ARROW_UP || keyCode == SWT.ARROW_DOWN) {
                 for (ResourcePair resourcePair : theMainList) {
                     resourcePair.getProperties().setVisible(true);
                 }
             }
-
         } else {
-
             /*
-             * Create 2 sublists.One for the colorbar resources and one for the
+             * Create 2 sublists. One for the colorbar resources and one for the
              * requestable resources (non-system and non-map layer resources)
              * Set the visibility for all the resources in both lists to false.
              */
@@ -244,16 +222,20 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             int rscIndex = 0;
 
             for (ResourcePair resourcePair : theMainList) {
-
-                // If any visible group is expanded, set the rotateInGroup flag.
-                if (isAnyVisibleLegendGroupExpanded(rotateInGroup, resourcePair)) {
+                if (resourcePair == null) {
+                    continue;
+                }
+                if (!rotateInGroup
+                        && isAnyVisibleLegendGroupExpanded(resourcePair)) {
                     rotateInGroup = true;
                     group = resourcePair;
                 }
 
-                // If NOT a system resource, PGen resource, or a Map Layer
-                if (isAProperLegendResource(resourcePair)) {
-
+                ResourceProperties rprop = resourcePair.getProperties();
+                String rscClassName = resourcePair.getResource().getClass()
+                        .getSimpleName();
+                if (!rprop.isSystemResource() && !rprop.isMapLayer()
+                        && !"PgenResource".equals(rscClassName)) {
                     subListOfResourcesToToggle.add(resourcePair);
 
                     allVisible = allVisible
@@ -271,8 +253,9 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                 }
             }
 
-            if (subListOfResourcesToToggle.isEmpty())
+            if (subListOfResourcesToToggle.isEmpty()) {
                 return false;
+            }
 
             if (rotateInGroup) {
                 if (group != currentGrp) {
@@ -293,8 +276,9 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                 return true;
             }
 
-            if (allVisible)
+            if (allVisible) {
                 isFirstTime = true;
+            }
 
             int listSize = subListOfResourcesToToggle.size();
 
@@ -303,7 +287,7 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                  * The navigation seems counter-intuitive. Yet this works since
                  * the elements displayed in the legend resource are listed from
                  * bottom-up
-                 * 
+                 *
                  * The very first time either the up arrow is pressed the
                  * currentRscIndex gets initialized to the first element in the
                  * listSubsequently, if the up arrow is pressed, the index is
@@ -311,12 +295,13 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                  * resource,then it gets reset to the index of the first
                  * resource
                  */
-                if (isFirstTime || isShiftDown)
+                if (isFirstTime || isShiftDown) {
                     currentResourceIndex = 0;
-                else {
+                } else {
                     currentResourceIndex++;
-                    if (currentResourceIndex > (listSize - 1))
+                    if (currentResourceIndex > listSize - 1) {
                         currentResourceIndex = 0;
+                    }
                 }
 
             } else if (keyCode == SWT.ARROW_DOWN) {
@@ -329,12 +314,13 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                  * the last resource
                  */
 
-                if (isFirstTime || isShiftDown)
+                if (isFirstTime || isShiftDown) {
                     currentResourceIndex = listSize - 1;
-                else {
+                } else {
                     currentResourceIndex--;
-                    if (currentResourceIndex < 0)
+                    if (currentResourceIndex < 0) {
                         currentResourceIndex = listSize - 1;
+                    }
                 }
 
             }
@@ -357,8 +343,9 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             // called. This is triggered by setVisible();
 
             if (isFirstTime
-                    && ((keyCode == SWT.ARROW_DOWN) || (keyCode == SWT.ARROW_UP)))
+                    && (keyCode == SWT.ARROW_DOWN || keyCode == SWT.ARROW_UP)) {
                 isFirstTime = false;
+            }
 
         }
 
@@ -390,36 +377,6 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         return false;
     }
 
-    private boolean isGroupedResource(ResourcePair resourcePair,
-            ResourcePair resourcePairGroup) {
-
-        if ((resourcePair != null) && (resourcePairGroup != null)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isBlendedResource(ResourcePair resourcePair) {
-        AbstractVizResource<?, ?> resource = resourcePair.getResource();
-
-        if ((resource != null)
-                && (resource.hasCapability(BlendedCapability.class))) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-    private boolean isPowerLegend(ResourcePair resourcePair) {
-        if (resourcePair.getResource() instanceof IPowerLegend) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     private void toggleVisibility(ResourcePair resourcePair,
             ResourcePair resourcePairGroup) {
         /*-
@@ -430,71 +387,70 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
          *  - A resource that's part of a resource group
          *  - A resource power legend (resource group)
          */
-
-        if (isBlendedResource(resourcePair)) {
+        if (resourcePair == null) {
+            return;
+        }
+        AbstractVizResource<?, ?> rsc = resourcePair.getResource();
+        if (rsc != null && rsc.hasCapability(BlendedCapability.class)) {
             // resourcePair is a blended resource
             toggleBlendedResource(resourcePair);
+        } else if (resourcePairGroup != null) {
+            // resourcePair is a grouped resource
+            toggleVisibilityForGroupedResource(resourcePair, resourcePairGroup);
+        } else if (resourcePair.getResource() instanceof IPowerLegend) {
+            toggleVisibilityForPowerLegend(resourcePair);
         } else {
-            // If resourcePairGroup is not null, resourcePair is a resource in
-            // that resource group
-            if (isGroupedResource(resourcePair, resourcePairGroup)) {
-                // resourcePair is a grouped resource
-                toggleVisibilityForGroupedResource(resourcePair,
-                        resourcePairGroup);
-            } else {
-                if (isPowerLegend(resourcePair)) {
-                    // resourcePair is a power legend
-                    toggleVisibilityForPowerLegend(resourcePair);
-                } else {
-                    // resourcePair is a single reosource
-                    toggleVisibilityForSingleResource(resourcePair);
-                }
-            }
+            // resourcePair is a single reosource
+            toggleVisibilityForSingleResource(resourcePair);
         }
+
     }
 
     private void toggleVisibilityForSingleResource(ResourcePair resourcePair) {
         // Toggles visibility of resourcePair
-        resourcePair.getProperties().setVisible(
-                !resourcePair.getProperties().isVisible());
+        resourcePair.getProperties()
+                .setVisible(!resourcePair.getProperties().isVisible());
     }
 
     private void toggleVisibilityForGroupedResource(ResourcePair resourcePair,
             ResourcePair resourcePairGroup) {
-        // resourcePair is part of a resource group. Toggle the title for
-        // resourcePair in the legend. If we are toggling to visible, turn it's
-        // corresponding power legend to visible
+        /*
+         * resourcePair is part of a resource group. Toggle the title for
+         * resourcePair in the legend. If we are toggling to visible, turn it's
+         * corresponding power legend to visible
+         */
 
         // Toggles resourcePair
         toggleVisibilityForSingleResource(resourcePair);
 
         if (resourcePairGroup != null
                 && resourcePair.getProperties().isVisible()
-                && (resourcePairGroup.getProperties().isVisible() == false)) {
-            // If resourcePairGroup exists, and resourcePair was just set to
-            // visible,
-            // and resourcePairGroup is not visible Set visibility of power
-            // legend for the grouped resource to true
+                && !resourcePairGroup.getProperties().isVisible()) {
+            /*
+             * If resourcePairGroup exists, and resourcePair was just set to
+             * visible, and resourcePairGroup is not visible Set visibility of
+             * power legend for the grouped resource to true
+             */
             resourcePairGroup.getProperties().setVisible(true);
         }
     }
 
     private void toggleBlendedResource(ResourcePair resourcePair) {
-        AbstractVizResource<?, ?> resource = resourcePair.getResource();
+        AbstractVizResource<?, ?> rsc = resourcePair.getResource();
 
-        ResourcePair parentResource = resource.getCapability(
-                BlendedCapability.class).getBlendableResource();
+        ResourcePair parentResource = rsc.getCapability(BlendedCapability.class)
+                .getBlendableResource();
         ResourceList childResources = parentResource.getResource()
                 .getCapability(BlendableCapability.class).getResourceList();
 
-        if (parentResource.getProperties().isVisible() == false) {
+        if (!parentResource.getProperties().isVisible()) {
             parentResource.getProperties().setVisible(true);
             for (ResourcePair child : childResources) {
                 child.getProperties().setVisible(true);
             }
         } else {
             // Topmost resource is visible, toggle us and other resource
-            if (resourcePair.getProperties().isVisible() == false) {
+            if (!resourcePair.getProperties().isVisible()) {
                 resourcePair.getProperties().setVisible(true);
                 parentResource.getResource()
                         .getCapability(BlendableCapability.class)
@@ -519,8 +475,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         // resources, it's kind of misleading. It actually sets the variable
         // "Visible" for all of the resources to what ever resourcePair's
         // visibility was set to above
-        groupResource.setVisibleForAllResources(resourcePair.getProperties()
-                .isVisible());
+        groupResource.setVisibleForAllResources(
+                resourcePair.getProperties().isVisible());
 
         // if CTRL is not down, disable all other groups
         if (!ctrlDown) {
@@ -540,11 +496,13 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                     .getRenderableDisplay();
 
             // Iterate through all resources to find power legends
-            for (ResourcePair pair : display.getDescriptor().getResourceList()) {
+            for (ResourcePair pair : display.getDescriptor()
+                    .getResourceList()) {
 
                 // If resource is a power legend, disable it and all of its
                 // children
-                if (isPowerLegend(pair) && pair != resourcePair
+                if (resourcePair.getResource() instanceof IPowerLegend
+                        && pair != resourcePair
                         && resourcePair.getProperties().isVisible()) {
                     // Disable power legend
                     pair.getProperties().setVisible(false);
@@ -599,9 +557,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
 
         } else if (mouseButton == 2) {
 
-            if (mouseDownResourcePair != null
-                    && mouseDownResourcePair.getResource().hasCapability(
-                            EditableCapability.class)) {
+            if (mouseDownResourcePair != null && mouseDownResourcePair
+                    .getResource().hasCapability(EditableCapability.class)) {
                 // check / make editable
                 EditableManager.makeEditable(
                         mouseDownResourcePair.getResource(),
@@ -618,33 +575,31 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         return false;
     }
 
-    private boolean doubleClickMouseUp(int x, int y, int mouseButton) {
-
-        if (mouseDownResourcePair.getResource() instanceof IPowerLegend) {
-            IPowerLegend groupResource = (IPowerLegend) mouseDownResourcePair
-                    .getResource();
-            if (mouseDownResourcePair.getResource().getProperties().isVisible()) {
-                if (groupResource.isNameExpanded()) {
-                    groupResource.setNameExpanded(false);
-                } else {
-                    groupResource.setNameExpanded(true);
-                }
-            }
-
-            /*
-             * Reset current resource index
-             */
-            currentIndexInGroup = 0;
-            resource.issueRefresh();
-            return true;
-        } else {
+    private boolean doubleClickMouseUp() {
+        if (!(mouseDownResourcePair.getResource() instanceof IPowerLegend)) {
             return false;
         }
+        IPowerLegend groupResource = (IPowerLegend) mouseDownResourcePair
+                .getResource();
+        if (mouseDownResourcePair.getResource().getProperties().isVisible()) {
+            if (groupResource.isNameExpanded()) {
+                groupResource.setNameExpanded(false);
+            } else {
+                groupResource.setNameExpanded(true);
+            }
+        }
+
+        /*
+         * Reset current resource index
+         */
+        currentIndexInGroup = 0;
+        resource.issueRefresh();
+        return true;
     }
 
     /**
      * Handles up/down hot keys when a group is expanded
-     * 
+     *
      * @param groupRsc
      *            - the group resource that is expanded
      * @param keyCode
@@ -656,47 +611,41 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         int listSize = rscList.size();
 
         if (keyCode == SWT.ARROW_UP) {
-            if (isFirstTime)
+            if (isFirstTime) {
                 currentIndexInGroup = 0;
-            else {
+            } else {
                 currentIndexInGroup++;
-                if (currentIndexInGroup > (listSize - 1))
+                if (currentIndexInGroup > listSize - 1) {
                     currentIndexInGroup = 0;
+                }
             }
 
         } else if (keyCode == SWT.ARROW_DOWN) {
-            if (isFirstTime)
+            if (isFirstTime) {
                 currentIndexInGroup = listSize - 1;
-            else {
+            } else {
                 currentIndexInGroup--;
-                if (currentIndexInGroup < 0)
+                if (currentIndexInGroup < 0) {
                     currentIndexInGroup = listSize - 1;
+                }
             }
         }
 
         rscList.get(currentIndexInGroup).getProperties().setVisible(true);
 
         if (isFirstTime
-                && ((keyCode == SWT.ARROW_DOWN) || (keyCode == SWT.ARROW_UP))) {
+                && (keyCode == SWT.ARROW_DOWN || keyCode == SWT.ARROW_UP)) {
             isFirstTime = false;
         }
     }
 
     private ResourcePair getClickedNcLegendResource(int x, int y) {
-
-        ResourcePair rp = null;
         List<ResourcePair> resourcesClicked = null;
-
         resourcesClicked = this.getResourcesClickedList(x, y);
-
         if (resourcesClicked != null && !resourcesClicked.isEmpty()) {
-            rp = resourcesClicked.get(resourcesClicked.size() - 1);
-        } else {
-            rp = null;
+            return resourcesClicked.get(resourcesClicked.size() - 1);
         }
-
-        return rp;
-
+        return null;
     }
 
     private List<ResourcePair> getResourcesClickedList(int x, int y) {
@@ -719,62 +668,22 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
 
     }
 
-    private boolean isAnyVisibleLegendGroupExpanded(boolean rotateInGroup,
-            ResourcePair resourcePair) {
-
-        if (resourcePair == null) {
+    private boolean isAnyVisibleLegendGroupExpanded(ResourcePair resourcePair) {
+        AbstractVizResource<?, ?> rsc = resourcePair.getResource();
+        if (!(rsc instanceof IPowerLegend)) {
             return false;
         }
-
-        boolean isGroupExpanded = false;
-        AbstractVizResource<?, ?> resource = resourcePair.getResource();
-        boolean isIPowerLegend = false;
-        boolean isResourceListEmpty = false;
-        boolean isResourceNameExpanded = false;
-        boolean isVisible = false;
-
-        // Is the resouce an IPowerLegend?
-        if (resource instanceof IPowerLegend) {
-            isIPowerLegend = true;
-        }
-
-        // Is the resource list empty?
-        isResourceListEmpty = ((IPowerLegend) resource).getResourceList()
-                .isEmpty();
-
-        // Is the Group on the legend expanded?
-        isResourceNameExpanded = ((IPowerLegend) resource).isNameExpanded();
-
-        // Is the resource visible?
-        isVisible = resourcePair.getProperties().isVisible();
-
-        // Is any visible resource Group in the legend in Cave, expanded?
-        if (!rotateInGroup && isIPowerLegend && !isResourceListEmpty
-                && isResourceNameExpanded && isVisible) {
-            isGroupExpanded = true;
-        }
-
-        return isGroupExpanded;
-    }
-
-    private boolean isAProperLegendResource(ResourcePair resourcePair) {
-
-        if (resourcePair == null) {
+        IPowerLegend legend = (IPowerLegend) rsc;
+        if (legend.getResourceList().isEmpty()) {
             return false;
         }
-
-        boolean isAProperLegendResource = false;
-        ResourceProperties rprop = resourcePair.getProperties();
-        boolean isASystemResource = rprop.isSystemResource();
-        boolean isMapLayer = rprop.isMapLayer();
-        String rscName = resourcePair.getResource().getClass().getSimpleName();
-
-        // If NOT a System Resource NOR a PgenResource
-        if (!isASystemResource && !isMapLayer && rscName.equals("PgenResource")) {
-            isAProperLegendResource = true;
+        if (!legend.isNameExpanded()) {
+            return false;
         }
-
-        return isAProperLegendResource;
+        if (!resourcePair.getProperties().isVisible()) {
+            return false;
+        }
+        return true;
     }
 
 }

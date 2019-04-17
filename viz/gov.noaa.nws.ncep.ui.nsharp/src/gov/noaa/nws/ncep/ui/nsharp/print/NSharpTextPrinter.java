@@ -45,6 +45,7 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
  * Date          Ticket#  Engineer  Description
  * ------------- -------- --------- ----------------------------------------
  * Oct 16, 2018  6845     bsteffen  Consolidated text related printing here.
+ * Dec 20, 2018  7575     bsteffen  Fix parcel header.
  *
  * </pre>
  *
@@ -105,7 +106,7 @@ public class NSharpTextPrinter {
 
         int height = lineWidth * 2;
         for (String line : lines) {
-            if (line.equals("BOXLINE")) {
+            if ("BOXLINE".equals(line)) {
                 height += lineWidth * 2;
             } else {
                 height += lineHeight;
@@ -123,7 +124,7 @@ public class NSharpTextPrinter {
         int y = bounds.y + lineWidth;
 
         for (String line : lines) {
-            if (line.equals("BOXLINE")) {
+            if ("BOXLINE".equals(line)) {
                 y += lineWidth;
                 gc.drawLine(bounds.x, y, bounds.x + bounds.width, y);
                 y += lineWidth;
@@ -267,11 +268,41 @@ public class NSharpTextPrinter {
             textStr = String.format(textStr, parcel.getBrnShear(),
                     NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
-        } else
+        } else {
             textStr = NsharpNativeConstants.STORM_TYPE_BRNSHEAR_MISSING;
+        }
         finalTextStr = finalTextStr + textStr;
 
         return finalTextStr;
+    }
+
+    private String getParcelHeader(int parcelNumber, Parcel parcel) {
+        StringBuilder header = new StringBuilder("\t\t*** ");
+        switch (parcelNumber) {
+        case NsharpLibSndglib.PARCELTYPE_OBS_SFC:
+            header.append("SFC");
+            break;
+        case NsharpLibSndglib.PARCELTYPE_FCST_SFC:
+            header.append("FCST SFC");
+            break;
+        case NsharpLibSndglib.PARCELTYPE_MEAN_MIXING:
+            header.append("MEAN MIXING LAYER");
+            break;
+        case NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE:
+            header.append("MOST UNSTABLE");
+            break;
+        case NsharpLibSndglib.PARCELTYPE_USER_DEFINED:
+            header.append(String.format("%.1f mb", parcel.getLplpres()));
+            break;
+        case NsharpLibSndglib.PARCELTYPE_EFF:
+            header.append("MEAN EFFECTIVE");
+            break;
+        default:
+            header.append("UNKNOWN");
+            break;
+        }
+        header.append(" PARCEL ***\r\n");
+        return header.toString();
     }
 
     private String printThermodynamicParametersBox1() {
@@ -280,17 +311,16 @@ public class NSharpTextPrinter {
         // This function is called to construct text string for printing
         NsharpWeatherDataStore weatherDataStore = handler.getWeatherDataStore();
 
-        String finalTextStr = "";
+        StringBuilder finalText = new StringBuilder();
 
         int currentParcel = handler.getCurrentParcel();
         Parcel pcl = weatherDataStore.getParcelMap().get(currentParcel);
         if (pcl == null) {
-            return finalTextStr;
+            return finalText.toString();
         }
-        String hdrStr = NsharpNativeConstants.parcelToHdrStrMap
-                .get(currentParcel);
+        String hdrStr = getParcelHeader(currentParcel, pcl);
 
-        finalTextStr = finalTextStr + hdrStr;
+        finalText.append(hdrStr);
 
         String textStr = NsharpNativeConstants.PARCEL_LPL_LINE;
         textStr = String.format(textStr, (int) pcl.getLplpres(),
@@ -298,7 +328,7 @@ public class NSharpTextPrinter {
                 (int) NsharpLibBasics.ctof(pcl.getLpltemp()),
                 (int) NsharpLibBasics.ctof(pcl.getLpldwpt()));
 
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getBplus())) {
             textStr = NsharpNativeConstants.PARCEL_CAPE_LINE;
@@ -306,7 +336,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_CAPE_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getLi5())) {
             textStr = NsharpNativeConstants.PARCEL_LI_LINE;
@@ -314,7 +344,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_LI_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getBfzl())) {
             textStr = NsharpNativeConstants.PARCEL_BFZL_LINE;
@@ -322,7 +352,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_BFZL_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getLimax())) {
             textStr = NsharpNativeConstants.PARCEL_LIMIN_LINE;
@@ -331,7 +361,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_LIMIN_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getBminus())) {
             textStr = NsharpNativeConstants.PARCEL_CINH_LINE;
@@ -339,7 +369,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_CINH_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getCap())) {
             textStr = NsharpNativeConstants.PARCEL_CAP_LINE;
@@ -347,10 +377,10 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_CAP_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         textStr = NsharpNativeConstants.PARCEL_LEVEL_LINE;
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getLclpres())
                 && NsharpLibBasics.qc(pcl.getLclAgl())) {
@@ -359,7 +389,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_LCL_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getLfcpres())
                 && NsharpLibBasics.qc(pcl.getLfcAgl())
@@ -370,7 +400,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_LFC_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getElpres())
                 && NsharpLibBasics.qc(pcl.getElAgl())
@@ -381,7 +411,7 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_EL_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
         if (NsharpLibBasics.qc(pcl.getMplpres())
                 && NsharpLibBasics.qc(pcl.getMplAgl())) {
@@ -390,9 +420,9 @@ public class NSharpTextPrinter {
         } else {
             textStr = NsharpNativeConstants.PARCEL_MPL_MISSING;
         }
-        finalTextStr = finalTextStr + textStr;
+        finalText.append(textStr);
 
-        return finalTextStr;
+        return finalText.toString();
     }
 
     private String printThermodynamicParametersBox2() {
@@ -579,7 +609,7 @@ public class NSharpTextPrinter {
         int currentParcel = handler.getCurrentParcel();
         Parcel pcl = weatherDataStore.getParcelMap().get(currentParcel);
         if (pcl != null && NsharpLibBasics.qc(pcl.getBplus())) {
-            float ehi = pcl.getBplus() * helicity.getTotalHelicity() / 160000;
+            float ehi = pcl.getBplus() * helicity.getTotalHelicity() / 160_000;
             if (NsharpLibBasics.qc(ehi)) {
                 textStr = NsharpNativeConstants.STORM_TYPE_EHI_LINE;
                 textStr = String.format(textStr, ehi);

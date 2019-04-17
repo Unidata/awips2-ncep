@@ -1,15 +1,17 @@
 /**
  * This class performs mapping to database for MODIS file plug-in.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#     Engineer     Description
  * ------------ ----------  -----------  --------------------------
  * 10/01/2014   R5116       kbugenhagen  Created
+ * 11/07/2018   #7552       dgilling     Removed unused function, implement
+ *                                       IGridGeometryProvider.
  * </pre>
- * 
+ *
  * @author kbugenhagen
  * @version 1.0
  */
@@ -94,17 +96,6 @@ public class ModisRecord extends PersistablePluginDataObject implements
     public ModisRecord() {
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.uf.common.geospatial.IGridGeometryProvider#getGridGeometry()
-     */
-    public GridGeometry2D getGridGeometry(Object latitudes, Object longitudes) {
-        return coverage != null ? coverage.getGridGeometry(latitudes,
-                longitudes) : null;
-    }
-
     /**
      * @return the coverage
      */
@@ -122,7 +113,7 @@ public class ModisRecord extends PersistablePluginDataObject implements
 
     /**
      * Get the name of the dataset for the level
-     * 
+     *
      * @param level
      * @return
      */
@@ -175,8 +166,6 @@ public class ModisRecord extends PersistablePluginDataObject implements
 
     @Override
     public GridGeometry2D getGridGeometry() {
-        // TODO Auto-generated method stub
-        return null;
+        return coverage.getGridGeometry();
     }
-
 }

@@ -1,12 +1,5 @@
 package gov.noaa.nws.ncep.viz.cloudHeight.ui;
 
-import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightProcesser;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
-import gov.noaa.nws.ncep.viz.ui.display.NCPaneManager;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
@@ -25,44 +18,56 @@ import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightProcesser;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
+import gov.noaa.nws.ncep.viz.ui.display.NCPaneManager;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+
 /**
  * Cloud Height Dialog
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/30/09					Greg Hull		Created
- * 09/27/09      #169	    Greg Hull     AbstractNcModalTool
- * 03/07/11     migration   Greg Hull     use Raytheons ISelectedPanesChangedListener
- * 03/01/12     524/TTR11   B. Hebbard    Various changes to allow mutual operation of
- *                                        'Take Control' button with other Modal Tools
- * 06/01/12		747			B. Yin		  Made the pan tool work when the shift is held down.
- * 06/21/12     826         Archana       Updated the activateTool() method to remove the cloudheight tool from the 
- *                                        tool manager when there is no IR image loaded. 
- *                                        Instead, the default Pan tool is loaded. 
- * 02/12/13     972         G. Hull       AbstractEditor, IDisplayPane
- * 
- * 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------    -----------    --------------------------
+ * 04/30/09                 Greg Hull   Created
+ * 09/27/09      #169       Greg Hull   AbstractNcModalTool
+ * 03/07/11     migration   Greg Hull   use Raytheons ISelectedPanesChangedListener
+ * 03/01/12     524/TTR11   B. Hebbard  Various changes to allow mutual
+ *                                      operation of 'Take Control' button with
+ *                                      other Modal Tools
+ * 06/01/12     747         B. Yin      Made the pan tool work when the shift is
+ *                                      held down.
+ * 06/21/12     826         Archana     Updated the activateTool() method to
+ *                                      remove the cloudheight tool from the
+ *                                      tool manager when there is no IR image
+ *                                      loaded. Instead, the default Pan tool is
+ *                                      loaded.
+ * 02/12/13     972         G. Hull     AbstractEditor, IDisplayPane
+ * 11/07/2018   7552        dgilling    Allow tool to work with arbitrary
+ *                                      NcSatResources.
+ * Feb 1, 2019  7570        tgurney     Add close callback to the dialog to
+ *                                      disable the tool when dialog is closed
  * </pre>
- * 
- * @version 1
+ *
  */
 public class CloudHeightAction extends AbstractNcModalTool {
 
-    private static IUFStatusHandler statusHandler = UFStatus
-            .getHandler(CloudHeightAction.class);
+    private final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
-    protected IInputHandler mouseHndlr = null;
+    private IInputHandler mouseHndlr = null;
 
-    protected static CloudHeightDialog cldHghtDlg = null;
+    private static CloudHeightDialog cldHghtDlg = null;
 
     private CloudHeightProcesser cldHghtProcessor = null;
 
-    private ICloudHeightCapable satResource = null;
+    private NcSatelliteResource satResource = null;
 
-    ISelectedPanesChangedListener paneChangeListener = new ISelectedPanesChangedListener() {
+    private ISelectedPanesChangedListener paneChangeListener = new ISelectedPanesChangedListener() {
 
         @Override
         public void selectedPanesChanged(String id, IDisplayPane[] seldPanes) {
@@ -80,19 +85,18 @@ public class CloudHeightAction extends AbstractNcModalTool {
         }
     };
 
-    /**
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands
-     *      .ExecutionEvent)
-     */
     @Override
     protected void activateTool() {
 
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                 .getShell();
-        if (cldHghtDlg == null) {
-            cldHghtDlg = CloudHeightDialog.getInstance(shell, this);
+        synchronized (CloudHeightAction.class) {
+            if (cldHghtDlg == null) {
+                cldHghtDlg = CloudHeightDialog.getInstance(shell, this);
+                cldHghtDlg.addCloseCallback((v) -> {
+                    deactivate();
+                });
+            }
         }
 
         mapEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -121,13 +125,7 @@ public class CloudHeightAction extends AbstractNcModalTool {
             cldHghtProcessor = new CloudHeightProcesser(seldPanes[0],
                     cldHghtDlg);
         } catch (VizException e) {
-            e.printStackTrace();
-            MessageDialog errDlg = new MessageDialog(
-                    NcDisplayMngr.getCaveShell(),
-                    "Error Starting Cloud Height (Processor):\n"
-                            + e.getMessage(), null, "\n", MessageDialog.ERROR,
-                    new String[] { "OK" }, 0);
-            errDlg.open();
+            statusHandler.error("Error Starting Cloud Height (Processor)", e);
             return;
         }
 
@@ -164,11 +162,12 @@ public class CloudHeightAction extends AbstractNcModalTool {
     private void issueAlert() {
 
         String msg = "Please load a supported Satellite data type\n to invoke the Cloud Height tool.";
-        MessageDialog messageDlg = new MessageDialog(PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getShell(), "Warning", null, msg,
-                MessageDialog.WARNING, new String[] { "OK" }, 0);
+        MessageDialog messageDlg = new MessageDialog(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                "Warning", null, msg, MessageDialog.WARNING,
+                new String[] { "OK" }, 0);
         messageDlg.open();
-
+        deactivate();
     }
 
     // TODO : make cloud height work as a modal tool
@@ -177,11 +176,6 @@ public class CloudHeightAction extends AbstractNcModalTool {
         super.setEnabled(enable);
     }
 
-    /**
-     * (non-Javadoc) org.osgi.framework.BundleContext
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractModalTool#deactivateTool()
-     */
     @Override
     public void deactivateTool() {
         if (mapEditor != null) {
@@ -201,28 +195,24 @@ public class CloudHeightAction extends AbstractNcModalTool {
 
     public class MouseHandler extends InputAdapter {
 
-        boolean preempt = false;
+        private boolean preempt = false;
 
         private boolean shiftDown;
 
-        /**
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         *      int, int)
-         */
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
 
             preempt = false;
 
-            if (shiftDown)
+            if (shiftDown) {
                 return false;
+            }
 
             if (button == 1) {
                 Coordinate ll = mapEditor.translateClick(x, y);
-                if (ll == null || satResource == null)
+                if (ll == null || satResource == null) {
                     return false;
+                }
 
                 Double value = satResource.getSatIRTemperature(ll);
                 if (value != null && !value.isNaN()) {
@@ -235,12 +225,6 @@ public class CloudHeightAction extends AbstractNcModalTool {
             return preempt;
         }
 
-        /**
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
-         *      int, int)
-         */
         @Override
         public boolean handleMouseDownMove(int x, int y, int button) {
             return preempt;

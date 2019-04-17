@@ -10,12 +10,13 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * <pre>
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 03/21/2012	229			Chin Chen	Initial coding
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 03/21/2012   229         Chin Chen   Initial coding
  * 03/09/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option
  * 09/16/2015   RM#10188    Chin Chen   Model selection upgrades - use grid resource definition name for model type display
  * 08/21/2018   #7081       dgilling    Support refactored dialogs.
+ * 11/13/2018   7576        bsteffen    Unify activation dialogs.
  *
  * </pre>
  *
@@ -48,12 +49,6 @@ public class NsharpConfigDialog extends Dialog {
     private NsharpDataDisplayConfigDialog dataDisplayDialog = null;
 
     private NsharpDataPageConfigDialog dataPageDialog = null;
-
-    private static NsharpTimeLineConfigDialog timelineDialog = null;
-
-    private static NsharpStnConfigDialog stnDialog = null;
-
-    private static NsharpSndConfigDialog sndDialog = null;
 
     private NsharpPaneConfigDialog paneCfgDialog = null;
 
@@ -153,10 +148,7 @@ public class NsharpConfigDialog extends Dialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 Shell shell = e.display.getActiveShell();
-                timelineDialog = NsharpTimeLineConfigDialog.getInstance(shell);
-                if (timelineDialog != null) {
-                    timelineDialog.open();
-                }
+                ActivationDialog.createTimeLineActivationDialog(shell).open();
             }
         });
         timeLineBtn.setLayoutData(
@@ -170,10 +162,7 @@ public class NsharpConfigDialog extends Dialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 Shell shell = e.display.getActiveShell();
-                stnDialog = NsharpStnConfigDialog.getInstance(shell);
-                if (stnDialog != null) {
-                    stnDialog.open();
-                }
+                ActivationDialog.createStationActivationDialog(shell).open();
             }
         });
         stnBtn.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
@@ -186,10 +175,7 @@ public class NsharpConfigDialog extends Dialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 Shell shell = e.display.getActiveShell();
-                sndDialog = NsharpSndConfigDialog.getInstance(shell);
-                if (sndDialog != null) {
-                    sndDialog.open();
-                }
+                ActivationDialog.createSoundingTypeActivationDialog(shell).open();
             }
         });
         sndBtn.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));

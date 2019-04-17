@@ -25,7 +25,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpHailInfo.HailInfoContainer;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
 
 /**
  *
@@ -53,6 +52,8 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      updates.
  * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for muParcel (line 1140), fixed formatting
  * Sep,18, 2018 DCS20492    mgamazaychikov  Changed call to bunkers_storm_motion method
+ * Dec 14, 2018 6872        bsteffen   Initialize watch warning type to none.
+ * Dec 20, 2018 7575        bsteffen   Keep tack of user selected parcel pressure.
  *
  * </pre>
  *
@@ -206,7 +207,7 @@ public class NsharpWeatherDataStore {
     public static final String[] STORM_MOTION_TYPE_STR = { "SFC-1km", "SFC-2km", "SFC-3km", "Eff Inflow", "SFC-6km",
             "SFC-8km", "LCL-EL(Cloud Layer)", "Eff Shear(EBWD)" };
 
-    public static final float[][] STORM_MOTION_HEIGHT = { { 0, 1000 }, { 0, 2000 }, { 0, 3000 }, { 0, 0 }, { 0, 6000 },
+    private static final float[][] STORM_MOTION_HEIGHT = { { 0, 1000 }, { 0, 2000 }, { 0, 3000 }, { 0, 0 }, { 0, 6000 },
             { 0, 8000 }, { 0, 0 }, { 0, 0 } };
 
     public static final Map<Integer, Float> parcelToLayerPressMap = new HashMap<Integer, Float>() {
@@ -343,13 +344,13 @@ public class NsharpWeatherDataStore {
     Map<String, WindComponent> stormTypeToMeanWindMap = new HashMap<>();
 
     // SR mean wind map, key defined in STORM_MOTION_TYPE_STR[]
-    Map<String, WindComponent> stormTypeToSrMeanWindMap = new HashMap<>();
+    private Map<String, WindComponent> stormTypeToSrMeanWindMap = new HashMap<>();
 
     // wind shear map, key defined in STORM_MOTION_TYPE_STR[]
-    Map<String, Float> stormTypeToWindShearMap = new HashMap<>();
+    private Map<String, Float> stormTypeToWindShearMap = new HashMap<>();
 
     // Storm helicity map, key defined in STORM_MOTION_TYPE_STR[]
-    Map<String, Helicity> stormTypeToHelicityMap = new HashMap<>();
+    private Map<String, Helicity> stormTypeToHelicityMap = new HashMap<>();
 
     // SR mean wind at 4-6 km
     private WindComponent srMeanWindComp4To6km;
@@ -530,11 +531,11 @@ public class NsharpWeatherDataStore {
     // 3: MRGL TOR, Gempak color 2 red;
     // 4: TOR, Gempak color 2 red;
     // 5: PDS TOR, Gempak color 7 Magenta;
-    private int wwtype;
+    private int wwtype = 0;
 
-    private RGB wwTypeColor;
+    private RGB wwTypeColor = NsharpConstants.color_gold;
 
-    private String wwtypeStr;
+    private String wwtypeStr = "NONE";
 
     // lapse rate max parameters
     private LapseRateMax lrm;
@@ -652,9 +653,21 @@ public class NsharpWeatherDataStore {
      *********************/
     private HailInfoContainer hailInfoContainer;
 
+    private int userDefdParcelMb = 850;
+    
     public NsharpWeatherDataStore() {
         super();
     }
+
+    public int getUserDefdParcelMb() {
+        return userDefdParcelMb;
+    }
+
+
+    public void setUserDefdParcelMb(int userDefdParcelMb) {
+        this.userDefdParcelMb = userDefdParcelMb;
+    }
+
 
     /***************************************************************************
      * Important Note:::: This method should only be called when sounding layer
@@ -751,7 +764,7 @@ public class NsharpWeatherDataStore {
                 parcelMap.get(NsharpLibSndglib.PARCELTYPE_OBS_SFC));
 
         for (int i = 0; i < STORM_MOTION_TYPE_STR.length; i++) {
-            if (STORM_MOTION_TYPE_STR[i].equals("LCL-EL(Cloud Layer)")) {
+            if ("LCL-EL(Cloud Layer)".equals(STORM_MOTION_TYPE_STR[i])) {
                 // mean wind at LCL-EL, SR mean wind at LCL-EL, wind shear at
                 // LCL-EL are parcel relevant and computed @
                 // computeParcelParameters() and save at ParcelMap
@@ -761,7 +774,7 @@ public class NsharpWeatherDataStore {
             float h2 = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             float lowerLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             float upperLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-            if (STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")) {
+            if ("Eff Inflow".equals(STORM_MOTION_TYPE_STR[i])) {
 
                 if (effLyPress.getBottomPress() > 0 && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
                     lowerLayerPres = effLyPress.getBottomPress();
@@ -769,7 +782,7 @@ public class NsharpWeatherDataStore {
                     upperLayerPres = effLyPress.getTopPress();
                     h2 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, upperLayerPres));
                 }
-            } else if (STORM_MOTION_TYPE_STR[i].equals("Lower Half SR Depth")) {
+            } else if ("Lower Half SR Depth".equals(STORM_MOTION_TYPE_STR[i])) {
                 Parcel parcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
                 if (parcel != null) {
                     float el = NsharpLibBasics.agl(soundingLys,
@@ -824,7 +837,7 @@ public class NsharpWeatherDataStore {
         // compute height vs storm wind map for SRWind inset
         // height form 0 to 16000m with step of 250m
         verticalSrWindMap.clear();
-        for (float h = 0; h <= 16000; h += 250) {
+        for (float h = 0; h <= 16_000; h += 250) {
             float layerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h));
             WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys, layerPres, layerPres, smdir, smspd);
             verticalSrWindMap.put(h, srWindComp.getWspd());
@@ -870,7 +883,7 @@ public class NsharpWeatherDataStore {
             float layerPressure = parcelToLayerPressMap.get(parcelNumber);
             if (parcelNumber == NsharpLibSndglib.PARCELTYPE_USER_DEFINED) {
                 // get user set parcel pressure, if available
-                layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
+                layerPressure = userDefdParcelMb;
             }
             LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(soundingLys, parcelNumber, layerPressure);
             Parcel parcel = NsharpLibSkparams.parcel(soundingLys, -1.0F, -1.0F, lparcelVs.getPres(),
@@ -1055,11 +1068,11 @@ public class NsharpWeatherDataStore {
         LayerParameters layerParms = new LayerParameters();
         dcape = NsharpLibSkparams.dcape(soundingLys, layerParms);
         downT = layerParms.getTemperature();
-        downT = NsharpLibBasics.ctof(downT); // convert C to F
+        downT = NsharpLibBasics.ctof(downT);
 
         // compute convective temp
         convT = NsharpLibSkparams.cnvtv_temp(soundingLys, -1);
-        convT = NsharpLibBasics.ctof(convT); // convert C to F
+        convT = NsharpLibBasics.ctof(convT);
 
         // compute esp
         esp = NsharpLibXwvid.esp(soundingLys, mlParcel);
@@ -1087,7 +1100,8 @@ public class NsharpWeatherDataStore {
             }
         }
         // compute sfc-3km Agl Lapse Rate (C/km) and temperature delta
-        float htsfc = 0; // surface height
+        // surface height
+        float htsfc = 0;
         float tempThreeKm = 0;
         float pressThreeKm = 0;
         if (NsharpLibBasics.qc(surfacePressure)) {
@@ -1161,7 +1175,7 @@ public class NsharpWeatherDataStore {
         // computeParcelParameters()
 
         for (int i = 0; i < STORM_MOTION_TYPE_STR.length; i++) {
-            if (STORM_MOTION_TYPE_STR[i].equals("LCL-EL(Cloud Layer)")) {
+            if ("LCL-EL(Cloud Layer)".equals(STORM_MOTION_TYPE_STR[i])) {
                 // mean wind at LCL-EL, SR mean wind at LCL-EL, wind shear at
                 // LCL-EL are parcel relevant and computed @
                 // computeParcelParameters() and save at ParcelMap
@@ -1171,7 +1185,7 @@ public class NsharpWeatherDataStore {
             float h2 = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             float lowerLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             float upperLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-            if (STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")) {
+            if ("Eff Inflow".equals(STORM_MOTION_TYPE_STR[i])) {
 
                 if (effLyPress.getBottomPress() > 0 && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
                     lowerLayerPres = effLyPress.getBottomPress();
@@ -1179,7 +1193,7 @@ public class NsharpWeatherDataStore {
                     upperLayerPres = effLyPress.getTopPress();
                     h2 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, upperLayerPres));
                 }
-            } else if (STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+            } else if ("Eff Shear(EBWD)".equals(STORM_MOTION_TYPE_STR[i])) {
                 Parcel parcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
                 if (parcel != null) {
                     float el = NsharpLibBasics.agl(soundingLys,
@@ -1332,7 +1346,7 @@ public class NsharpWeatherDataStore {
         meanWindComp850To200mb = NsharpLibWinds.mean_wind(soundingLys, 850, 200);
 
         // Calculate wind shear at sfc-12km
-        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 12000));
+        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 12_000));
         float surfacePressure = NsharpLibBasics.sfcPressure(soundingLys);
         shearWindCompSfcTo12km = NsharpLibWinds.wind_shear(soundingLys, surfacePressure, upperLayerPres);
     }
@@ -1450,7 +1464,7 @@ public class NsharpWeatherDataStore {
 
         // compute height vs storm wind map for SRWind inset
         // height form 0 to 16000m with step of 250m
-        for (float h = 0; h <= 16000; h += 250) {
+        for (float h = 0; h <= 16_000; h += 250) {
             float layerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h));
             WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys, layerPres, layerPres, smdir, smspd);
             verticalSrWindMap.put(h, srWindComp.getWspd());
@@ -1609,7 +1623,7 @@ public class NsharpWeatherDataStore {
     private void computeSrWind9To11km() {
         // calcute 9-11km SR mean wind
         float lowerLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 9000));
-        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 11000));
+        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 11_000));
         srMeanWindComp9To11km = NsharpLibWinds.sr_wind(soundingLys, lowerLayerPres, upperLayerPres, smdir, smspd);
     }
 

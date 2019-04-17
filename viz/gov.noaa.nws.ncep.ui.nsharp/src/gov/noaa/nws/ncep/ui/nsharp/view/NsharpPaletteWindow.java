@@ -23,6 +23,7 @@
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * 08/21/2018   #7081       dgilling    Support refactored NsharpEditDataDialog.
  * 10/16/2018   6835        bsteffen    Refactor printing.
+ * 12/20/2018   7575        bsteffen    Do not reuse parcel dialog
  *
  * </pre>
  *
@@ -517,9 +518,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             if (newFont != null) {
                 newFont.dispose();
                 newFont = null;
-            } /*
-               * remove the workbench part listener
-               */
+            }
             page.removePartListener(this);
 
             try {
@@ -690,20 +689,12 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     // interpolate flag in Resource
                     editor.getRscHandler().resetRsc();
 
-                    NsharpParcelDialog parcelDia = NsharpParcelDialog
-                            .getInstance(shell);
-                    if (parcelDia != null) {
-                        parcelDia.reset();
-                    }
                     editor.refresh();
                     NsharpShowTextDialog textarea = NsharpShowTextDialog
                             .getAccess();
                     if (textarea != null) {
                         textarea.refreshTextData();
                     }
-                }
-                if (NsharpParcelDialog.getAccess() != null) {
-                    NsharpParcelDialog.getAccess().resetUserDefParcel();
                 }
             }
         });
@@ -729,13 +720,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 Shell shell = PlatformUI.getWorkbench()
                         .getActiveWorkbenchWindow().getShell();
                 if (checkLoadedData()) {
-                    NsharpParcelDialog parcelDia = NsharpParcelDialog
-                            .getInstance(shell);
-
-                    if (parcelDia != null) {
+                    NsharpParcelDialog parcelDia = new NsharpParcelDialog(shell);
                         parcelDia.open();
-
-                    }
                 }
             }
         });
@@ -798,35 +784,31 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
                 if (checkLoadedData()) {
-                    if (interpolateIsOn == false) {
-                        interpolateIsOn = true;
-                        interpBtn.setText(INTP_ON);
-                        compareTmBtn.setEnabled(false);
-                        compareSndBtn.setEnabled(false);
-                        compareStnBtn.setEnabled(false);
-                        overlayBtn.setEnabled(false);
-                    } else {
+                    if (interpolateIsOn) {
                         interpolateIsOn = false;
                         interpBtn.setText(INTP_OFF);
                         if (((currentGraphMode == NsharpConstants.GRAPH_SKEWT) || (currentGraphMode == NsharpConstants.GRAPH_HODO))
-                                && (editGraphOn == false)) {
+                                && !editGraphOn) {
                             dataEditBtn.setEnabled(true);
                             compareTmBtn.setEnabled(true);
                             compareSndBtn.setEnabled(true);
                             compareStnBtn.setEnabled(true);
                             overlayBtn.setEnabled(true);
                         }
+                    } else {
+                        interpolateIsOn = true;
+                        interpBtn.setText(INTP_ON);
+                        compareTmBtn.setEnabled(false);
+                        compareSndBtn.setEnabled(false);
+                        compareStnBtn.setEnabled(false);
+                        overlayBtn.setEnabled(false);
                     }
                     // note:call resetInfoOnInterpolate() and pass interpolate
                     // flag to Resource
                     NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
                     if (editor != null) {
-                        try {
-                            editor.getRscHandler().resetInfoOnInterpolate(
-                                    interpolateIsOn);
-                        } catch (CloneNotSupportedException e) {
-                            e.printStackTrace();
-                        }
+                        editor.getRscHandler().resetInfoOnInterpolate(
+                                interpolateIsOn);
                         // know that current editor is NsharpSkewT editor,
                         // refresh it.
                         editor.refresh();
@@ -866,26 +848,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             public void handleEvent(Event event) {
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
-                if (overlayIsOn == false) {
-
-                    overlayIsOn = true;
-                    overlayBtn.setText(OVLY_ON);
-                    compareStnBtn.setEnabled(false);
-                    compareTmBtn.setEnabled(false);
-                    compareSndBtn.setEnabled(false);
-                    graphEditBtn.setEnabled(false);
-                    dataEditBtn.setEnabled(false);
-                    graphModeBtnTurb.setEnabled(false);
-                    graphModeBtnIcing.setEnabled(false);
-                    if (graphModeBtnHodo != null) {
-                        graphModeBtnHodo.setEnabled(false);
-                    }
-                    interpBtn.setEnabled(false);
-                    cfgBtn.setEnabled(false);
-                    if (!imD2d) {
-                        unloadBtn.setEnabled(false);
-                    }
-                } else {
+                if (overlayIsOn) {
                     overlayIsOn = false;
                     overlayBtn.setText(OVLY_OFF);
                     compareStnBtn.setEnabled(true);
@@ -902,6 +865,24 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     cfgBtn.setEnabled(true);
                     if (!imD2d) {
                         unloadBtn.setEnabled(true);
+                    }
+                } else {
+                    overlayIsOn = true;
+                    overlayBtn.setText(OVLY_ON);
+                    compareStnBtn.setEnabled(false);
+                    compareTmBtn.setEnabled(false);
+                    compareSndBtn.setEnabled(false);
+                    graphEditBtn.setEnabled(false);
+                    dataEditBtn.setEnabled(false);
+                    graphModeBtnTurb.setEnabled(false);
+                    graphModeBtnIcing.setEnabled(false);
+                    if (graphModeBtnHodo != null) {
+                        graphModeBtnHodo.setEnabled(false);
+                    }
+                    interpBtn.setEnabled(false);
+                    cfgBtn.setEnabled(false);
+                    if (!imD2d) {
+                        unloadBtn.setEnabled(false);
                     }
                 }
                 NsharpResourceHandler rsc = getRscHandler();
@@ -934,26 +915,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             public void handleEvent(Event event) {
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
-                if (compareStnIsOn == false) {
-
-                    compareStnIsOn = true;
-                    compareStnBtn.setText(COMP_STN_ON);
-                    overlayBtn.setEnabled(false);
-                    compareTmBtn.setEnabled(false);
-                    compareSndBtn.setEnabled(false);
-                    graphEditBtn.setEnabled(false);
-                    dataEditBtn.setEnabled(false);
-                    graphModeBtnTurb.setEnabled(false);
-                    graphModeBtnIcing.setEnabled(false);
-                    if (graphModeBtnHodo != null) {
-                        graphModeBtnHodo.setEnabled(false);
-                    }
-                    interpBtn.setEnabled(false);
-                    cfgBtn.setEnabled(false);
-                    if (!imD2d) {
-                        unloadBtn.setEnabled(false);
-                    }
-                } else {
+                if (compareStnIsOn) {
                     compareStnIsOn = false;
                     compareStnBtn.setText(COMP_STN_OFF);
                     overlayBtn.setEnabled(true);
@@ -970,6 +932,24 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     cfgBtn.setEnabled(true);
                     if (!imD2d) {
                         unloadBtn.setEnabled(true);
+                    }
+                } else {
+                    compareStnIsOn = true;
+                    compareStnBtn.setText(COMP_STN_ON);
+                    overlayBtn.setEnabled(false);
+                    compareTmBtn.setEnabled(false);
+                    compareSndBtn.setEnabled(false);
+                    graphEditBtn.setEnabled(false);
+                    dataEditBtn.setEnabled(false);
+                    graphModeBtnTurb.setEnabled(false);
+                    graphModeBtnIcing.setEnabled(false);
+                    if (graphModeBtnHodo != null) {
+                        graphModeBtnHodo.setEnabled(false);
+                    }
+                    interpBtn.setEnabled(false);
+                    cfgBtn.setEnabled(false);
+                    if (!imD2d) {
+                        unloadBtn.setEnabled(false);
                     }
                 }
                 NsharpResourceHandler rsc = getRscHandler();
@@ -1004,26 +984,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             public void handleEvent(Event event) {
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
-                if (compareTmIsOn == false) {
-
-                    compareTmIsOn = true;
-                    compareTmBtn.setText(COMP_TM_ON);
-                    compareSndBtn.setEnabled(false);
-                    overlayBtn.setEnabled(false);
-                    compareStnBtn.setEnabled(false);
-                    graphEditBtn.setEnabled(false);
-                    dataEditBtn.setEnabled(false);
-                    graphModeBtnTurb.setEnabled(false);
-                    graphModeBtnIcing.setEnabled(false);
-                    if (graphModeBtnHodo != null) {
-                        graphModeBtnHodo.setEnabled(false);
-                    }
-                    interpBtn.setEnabled(false);
-                    cfgBtn.setEnabled(false);
-                    if (!imD2d) {
-                        unloadBtn.setEnabled(false);
-                    }
-                } else {
+                if (compareTmIsOn) {
                     compareTmIsOn = false;
                     compareTmBtn.setText(COMP_TM_OFF);
                     compareSndBtn.setEnabled(true);
@@ -1040,6 +1001,24 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     cfgBtn.setEnabled(true);
                     if (!imD2d) {
                         unloadBtn.setEnabled(true);
+                    }
+                } else {
+                    compareTmIsOn = true;
+                    compareTmBtn.setText(COMP_TM_ON);
+                    compareSndBtn.setEnabled(false);
+                    overlayBtn.setEnabled(false);
+                    compareStnBtn.setEnabled(false);
+                    graphEditBtn.setEnabled(false);
+                    dataEditBtn.setEnabled(false);
+                    graphModeBtnTurb.setEnabled(false);
+                    graphModeBtnIcing.setEnabled(false);
+                    if (graphModeBtnHodo != null) {
+                        graphModeBtnHodo.setEnabled(false);
+                    }
+                    interpBtn.setEnabled(false);
+                    cfgBtn.setEnabled(false);
+                    if (!imD2d) {
+                        unloadBtn.setEnabled(false);
                     }
                 }
                 NsharpResourceHandler rsc = getRscHandler();
@@ -1073,25 +1052,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             public void handleEvent(Event event) {
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
-                if (compareSndIsOn == false) {
-                    compareSndIsOn = true;
-                    compareSndBtn.setText(COMP_SND_ON);
-                    overlayBtn.setEnabled(false);
-                    compareStnBtn.setEnabled(false);
-                    compareTmBtn.setEnabled(false);
-                    graphEditBtn.setEnabled(false);
-                    dataEditBtn.setEnabled(false);
-                    graphModeBtnTurb.setEnabled(false);
-                    graphModeBtnIcing.setEnabled(false);
-                    if (graphModeBtnHodo != null) {
-                        graphModeBtnHodo.setEnabled(false);
-                    }
-                    interpBtn.setEnabled(false);
-                    cfgBtn.setEnabled(false);
-                    if (!imD2d) {
-                        unloadBtn.setEnabled(false);
-                    }
-                } else {
+                if (compareSndIsOn) {
                     compareSndIsOn = false;
                     compareSndBtn.setText(COMP_SND_OFF);
                     overlayBtn.setEnabled(true);
@@ -1108,6 +1069,24 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     cfgBtn.setEnabled(true);
                     if (!imD2d) {
                         unloadBtn.setEnabled(true);
+                    }
+                } else {
+                    compareSndIsOn = true;
+                    compareSndBtn.setText(COMP_SND_ON);
+                    overlayBtn.setEnabled(false);
+                    compareStnBtn.setEnabled(false);
+                    compareTmBtn.setEnabled(false);
+                    graphEditBtn.setEnabled(false);
+                    dataEditBtn.setEnabled(false);
+                    graphModeBtnTurb.setEnabled(false);
+                    graphModeBtnIcing.setEnabled(false);
+                    if (graphModeBtnHodo != null) {
+                        graphModeBtnHodo.setEnabled(false);
+                    }
+                    interpBtn.setEnabled(false);
+                    cfgBtn.setEnabled(false);
+                    if (!imD2d) {
+                        unloadBtn.setEnabled(false);
                     }
                 }
                 NsharpResourceHandler rsc = getRscHandler();
@@ -1135,9 +1114,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                             .getActiveWorkbenchWindow().getShell();
                     NsharpEditDataDialog editDia = new NsharpEditDataDialog(
                             shell);
-                    if (editDia != null) {
-                        editDia.open();
-                    }
+                    editDia.open();
                 }
             }
         });
@@ -1160,7 +1137,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     if (editGraphOn) {
                         editGraphOn = false;
                         graphEditBtn.setText(EDIT_GRAPH_OFF);
-                        if (interpolateIsOn == false) {
+                        if (!interpolateIsOn) {
                             graphModeBtnIcing.setEnabled(true);
                             graphModeBtnTurb.setEnabled(true);
                             dataEditBtn.setEnabled(true);
@@ -1827,7 +1804,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         }
         parent.layout();
         if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
-            if (spcGpCreated == false) {
+            if (!spcGpCreated) {
                 createSPCGp();
             }
         } else {

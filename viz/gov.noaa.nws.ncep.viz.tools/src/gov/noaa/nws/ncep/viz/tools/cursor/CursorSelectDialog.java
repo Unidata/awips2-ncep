@@ -1,201 +1,129 @@
 package gov.noaa.nws.ncep.viz.tools.cursor;
 
+import java.util.Arrays;
+import java.util.Map;
 
-import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorType;
-
-import java.util.List;
+import javax.xml.bind.JAXBException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
+
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.Color;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorInfo;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
+import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorType;
+
 /**
- * This class provides cursor selection and editing in 
- * National Centers perspective.
- * 
+ * This class provides cursor selection and editing in National Centers
+ * perspective.
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * June 2009  	109        M. Li    	Initial creation. 
- * 
+ * Date          Ticket#    Engineer    Description
+ * ------------  ---------- ----------- --------------------------
+ * June 2009     109        M. Li       Initial creation.
+ * Feb 15, 2019  7562       tgurney     Rewrite
+ *
  * </pre>
- * 
+ *
  * @author mli
- * @version 1.0
- * 
+ *
  */
 
-public class CursorSelectDialog extends Dialog {
-	/**
-     * Dialog shell.
-     */
-    private Shell shell;
-	
-    Display display; 
-    /**
-     * Return object.
-     */
-    private final Boolean returnValue = false;
-    
-    private NCCursors ncCursor = null;
-    
-    private List<CursorReference> curRefList = null;
-    
-    private List<CursorType> cursorList = null;
-    
-    private String[] CurColors = null;
-    
-    private Combo curRefComb = null;
-    
-    private Combo curTypeComb = null;
-    
-    private Combo curColorComb = null;
-    
-    private static int currentCurRef = 0;
-    
-    private int[] curTypeSet = null;
-    
-    private int[] curColorSet = null;
-    
-    
-    
-	protected CursorSelectDialog(Shell parentShell) {
-		super(parentShell);
-		ncCursor = new NCCursors();
-	}
-	
-	public Object open() {
-        Shell parent = getParent();
-        display = parent.getDisplay();
-        shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        shell.setText("Cursor Select and Edit");
-        
-		
-        // Create the main layout for the shell.
-        GridLayout mainLayout = new GridLayout(1, true);
-        mainLayout.marginHeight = 1;
-        mainLayout.marginWidth = 1;
-        shell.setLayout(mainLayout);
+public class CursorSelectDialog extends CaveSWTDialog {
 
-        // Initialize all of the controls and layouts
-        getCursorAttributes();
-        initializeComponents();
+    private final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
-        shell.pack();
-        shell.open();
-        
-        //parent.setCursor(arrowCursor);
-        while (!shell.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
-            }
-        }
+    private Combo cursorRefCombo = null;
 
-        return returnValue;
+    private Combo cursorTypeCombo = null;
+
+    private Combo cursorColorCombo = null;
+
+    private Map<CursorRef, CursorInfo> cursorInfos;
+
+    protected CursorSelectDialog(Shell parentShell) {
+        super(parentShell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        setText("Cursor Select and Edit");
+        cursorInfos = NCCursors.getInstance().getCursorInfos();
     }
-    
-    /**
-     * Initialize the dialog components.
-     */
-    private void initializeComponents() {
-    	createCursorRefControls();
-    	addSeparator();
-    	createCursorTypeControls();
-    	addSeparator();
-    	createCloseButton();
-    	//initialize();
-    	update();
+
+    @Override
+    protected void initializeComponents(Shell shell) {
+        createCursorRefControls();
+        addSeparator();
+        createCursorTypeAndColorControls();
+        addSeparator();
+        createBottomButtons();
+        refreshComboSelections();
     }
-    
+
     private void createCursorRefControls() {
-    	Composite comp = new Composite(shell, SWT.NONE);
+        Composite comp = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(2, false);
         comp.setLayout(gl);
+
         new Label(comp, SWT.NONE).setText("CURSOR REF.       ");
-        curRefComb = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        if (curRefList != null) {
-        	for (int i = 0; i < curRefList.size(); i++) {
-        		curRefComb.add(curRefList.get(i).getReferenceName(), 
-        				curRefList.get(i).getReferenceIndex());
-        	}
-        }
-        
-        curRefComb.addSelectionListener(new SelectionListener() {
+        cursorRefCombo = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
+        cursorRefCombo.setItems(getEnumNames(CursorRef.class));
+        cursorRefCombo.select(0);
 
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				currentCurRef = curRefComb.getSelectionIndex();
-				update();
-			}
-        	
+        cursorRefCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                refreshComboSelections();
+            }
         });
     }
-    
-    private void createCursorTypeControls() {
-    	Composite comp = new Composite(shell, SWT.NONE);
+
+    private void createCursorTypeAndColorControls() {
+        Composite comp = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(2, false);
         comp.setLayout(gl);
-    	
-        new Label(comp, SWT.NONE).setText("CURSOR TYPE   ");
-        curTypeComb = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        if (cursorList != null) {
-        	for (int i = 0; i < cursorList.size(); i++) {
-        		curTypeComb.add(cursorList.get(i).getCursorName());
-        	}
-        }
-        
-        curTypeComb.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				curTypeSet[currentCurRef] = curTypeComb.getSelectionIndex();
-			}
-        	
+        new Label(comp, SWT.NONE).setText("CURSOR TYPE   ");
+        cursorTypeCombo = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
+        cursorTypeCombo.setItems(getEnumNames(CursorType.class));
+
+        cursorTypeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                getSelectedCursorInfo().type = CursorType
+                        .valueOf(getComboSelection(cursorTypeCombo));
+            }
+
         });
-        
+
         Label label = new Label(comp, SWT.NONE);
         label.setText("CURSOR COLOR  ");
-        
-        curColorComb = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        curColorComb.setItems(CurColors);
-        
-        curColorComb.addSelectionListener(new SelectionListener() {
 
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-			}
+        cursorColorCombo = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
+        cursorColorCombo.setItems(getEnumNames(Color.class));
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				curColorSet[currentCurRef] = curColorComb.getSelectionIndex();
-			}
-        	
+        cursorColorCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                getSelectedCursorInfo().color = Color
+                        .valueOf(getComboSelection(cursorColorCombo));
+            }
         });
     }
-    
-    private void createCloseButton() {
+
+    private void createBottomButtons() {
         Composite centeredComp = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(3, true);
         centeredComp.setLayout(gl);
@@ -206,88 +134,77 @@ public class CursorSelectDialog extends Dialog {
         ok_btn.setText("OK");
         ok_btn.setLayoutData(gd);
         ok_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-            	ncCursor.setCursorTypeColorIdx(curTypeSet, curColorSet);
-            	
-            	Cursor cursor = NCCursors.getCursor(display, NCCursors.CursorRef.DEFAULT);
-            	getParent().setCursor(cursor);
-            	
-            	shell.dispose();
+                Cursor oldCursor = getParent().getCursor();
+                CursorRef oldCursorRef = NCCursors.getInstance()
+                        .getCursorRef(oldCursor).orElse(CursorRef.DEFAULT);
+                for (CursorInfo cursorInfo : cursorInfos.values()) {
+                    NCCursors.getInstance().updateCursorInfo(cursorInfo);
+                }
+                NCCursors.getInstance().setCursor(getParent(), oldCursorRef);
+
+                shell.dispose();
             }
         });
-        
-        
+
         Button default_btn = new Button(centeredComp, SWT.NONE);
         default_btn.setText("Defaults");
         default_btn.setLayoutData(gd);
         default_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-            	setDefault();
-            	update();
+                try {
+                    cursorInfos = NCCursors.getInstance()
+                            .getDefaultCursorInfos();
+                } catch (JAXBException e) {
+                    statusHandler.warn("Failed to load cursor table", e);
+                }
+                cursorRefCombo.select(0);
+                refreshComboSelections();
             }
         });
-        
-        
-        
+
         Button closeBtn = new Button(centeredComp, SWT.NONE);
         closeBtn.setText("Close");
         closeBtn.setLayoutData(gd);
         closeBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-            	//if (!IsToPlotLogos()) removeLogosResource();
                 shell.dispose();
             }
         });
     }
-    
-    
-    private void update() {
-    	curRefComb.select(currentCurRef);
-    	curTypeComb.select(curTypeSet[currentCurRef]);
-    	curColorComb.select(curColorSet[currentCurRef]);
+
+    private void refreshComboSelections() {
+        CursorInfo cursorInfo = getSelectedCursorInfo();
+        setComboSelection(cursorTypeCombo, cursorInfo.type.name());
+        setComboSelection(cursorColorCombo, cursorInfo.color.name());
     }
-    
-    private void setDefault() {
-    	currentCurRef = 0;
-    	curTypeSet = NCCursors.getCursorTypeIdx(true);
-    	curColorSet = NCCursors.getCursorColorIdx(true);
-    }
-    
-    
+
     private void addSeparator() {
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         Label sepLbl = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
         sepLbl.setLayoutData(gd);
     }
-    
-    private void getCursorAttributes() {
-    	
-    	if (curRefList == null) {
-    		curRefList = ncCursor.getCursorRefList();
-    	}
-    	
-    	if ( cursorList == null) {
-    		cursorList = ncCursor.getCursorTypeList();
-    	}
-    	
-    	if (CurColors == null) {
-    		CurColors = ncCursor.getCursorColorOptions();
-    	}
-    	
-    	if (curTypeSet == null ) {
-    		curTypeSet = new int[curRefList.size()];
-    		curTypeSet = NCCursors.getCursorTypeIdx(false);
-    	}
-    	
-    	if (curColorSet == null) {
-    		curColorSet = new int[curRefList.size()];
-    		curColorSet = NCCursors.getCursorColorIdx(false);
-    	}
+
+    private CursorInfo getSelectedCursorInfo() {
+        return cursorInfos
+                .get(CursorRef.valueOf(getComboSelection(cursorRefCombo)));
     }
 
-    
-    public boolean isOpen() {
-        return shell != null && !shell.isDisposed();
+    private static String getComboSelection(Combo c) {
+        return c.getItems()[c.getSelectionIndex()];
+    }
+
+    private static void setComboSelection(Combo c, String s) {
+        int index = Arrays.asList(c.getItems()).indexOf(s);
+        c.select(index);
+    }
+
+    private static <T extends Enum<T>> String[] getEnumNames(Class<T> e) {
+        return Arrays.stream(e.getEnumConstants()).map(Enum::name)
+                .toArray(String[]::new);
     }
 
 }

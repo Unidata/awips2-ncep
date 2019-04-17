@@ -18,6 +18,7 @@ import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 import javax.xml.bind.JAXBException;
 
+import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -33,6 +34,7 @@ import com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord;
 import com.raytheon.uf.common.dataplugin.satellite.units.goes.PolarPrecipWaterPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.ir.IRPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.water.BlendedTPWPixel;
+import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
@@ -132,7 +134,9 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      overwritten.
  * 11/29/2017    5863       bsteffen    Change dataTimes to a NavigableSet
  * 06/11/2018    7310       mapeters    Update SatelliteConstants import
- *
+ * 11/07/2018    #7552      dgilling    Implement isCloudHeightCompatible and
+ *                                      getGridGeometry for expanded
+ *                                      functionality of Cloud Height tool.
  *
  * </pre>
  *
@@ -1149,7 +1153,7 @@ public class NcSatelliteResource extends
      * @return
      */
     public boolean isCloudHeightCompatible() {
-        return false;
+        return (getTemperatureUnits() == SI.CELSIUS);
     }
 
     public Double getRawIRImageValue(Coordinate latlon) {
@@ -1474,13 +1478,6 @@ public class NcSatelliteResource extends
         return ((SatelliteRecord) record).getUnits();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#propertiesChanged(com
-     * .raytheon.uf.viz.core.rsc.ResourceProperties)
-     */
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
         if (cbarResource != null && cbarResource.getProperties() != null) {
@@ -1496,29 +1493,22 @@ public class NcSatelliteResource extends
         return ((SatelliteRecord) pdo).getPhysicalElement();
     }
 
-    /*
-     * for IAreaProviderCapable which triggers the Fit To Screen and Size Of
-     * Image context menus
-     *
-     * (non-Javadoc)
-     *
-     * @see
-     * gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getSourceProvider
-     * ()
-     */
     @Override
     public AreaSource getSourceProvider() {
         return resourceData.getSourceProvider();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getAreaName()
-     */
     @Override
     public String getAreaName() {
         return resourceData.getAreaName();
     }
 
+    public GridGeometry2D getGridGeometry() {
+        IPersistable record = getRecord();
+        if (record instanceof IGridGeometryProvider) {
+            return ((IGridGeometryProvider) record).getGridGeometry();
+        }
+
+        return null;
+    }
 }

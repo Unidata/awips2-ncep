@@ -1,10 +1,10 @@
 /**
  * This class performs mapping to database for McIDAS area file plug-in.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 08/2009      144         T. Lee      Created
@@ -23,11 +23,11 @@
  * Jun 11, 2014 2061        bsteffen    Remove IDecoderGettable
  * Jul 26, 2016 R19277      bsteffen    Added getGridGeometry to consolidate
  *                                      duplicated code.
- * 
+ * Nov 07, 2018 #7552       dgilling    Implement IGridGeometryProvider.
+ *
  * </pre>
- * 
+ *
  * @author tlee
- * @version 1
  */
 
 package gov.noaa.nws.ncep.common.dataplugin.mcidas;
@@ -59,6 +59,7 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
+import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
@@ -79,7 +80,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 public class McidasRecord extends PersistablePluginDataObject implements
-        IPersistable, ISpatialEnabled {
+        IPersistable, ISpatialEnabled, IGridGeometryProvider {
 
     private static final long serialVersionUID = 1L;
 
@@ -206,7 +207,7 @@ public class McidasRecord extends PersistablePluginDataObject implements
 
     /**
      * Constructs a McIDAS satellite record from a dataURI
-     * 
+     *
      * @param uri
      *            The dataURI
      */
@@ -216,7 +217,7 @@ public class McidasRecord extends PersistablePluginDataObject implements
 
     /**
      * Set the time to be used for the persistence time for this object.
-     * 
+     *
      * @param persistTime
      *            The persistence time to be used.
      */
@@ -341,6 +342,7 @@ public class McidasRecord extends PersistablePluginDataObject implements
         return "mcidas";
     }
 
+    @Override
     public GridGeometry2D getGridGeometry() {
         if (projection.equalsIgnoreCase("STR")
                 || projection.equalsIgnoreCase("MER")

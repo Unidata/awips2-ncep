@@ -1,28 +1,12 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.AttrDlg
- * 
+ *
  * 20 February 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
-
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VaaCloudDlg;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VolcanoVaaAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Text;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.AbstractSigmet;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -42,12 +26,30 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VaaCloudDlg;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VolcanoVaaAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Text;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.AbstractSigmet;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
+
 /**
  * This class is the abstract class that all PGEN attribute dialogs extend from.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -73,17 +75,17 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
  * 06/16/2016   R18370      B. Yin      Set focus back to map editor when multi-selecting
  * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
- * 
+ * 03/20/2019   #7572       dgilling    Code cleanup.
+ *
  * </pre>
- * 
+ *
  * @author B. Yin
  */
 
 public abstract class AttrDlg extends Dialog implements IAttribute {
 
-    public static int ctrlBtnWidth = 70;
-
-    public static int ctrlBtnHeight = 28;
+    protected final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
     /**
      * A handler to the current PGEN drawing layer, which is used to get the
@@ -118,49 +120,24 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
     /**
      * AttrDlg constructor
-     * 
+     *
      * @param parShell
      * @throws VizException
      */
-    public AttrDlg(Shell parShell) throws VizException {
-
+    public AttrDlg(Shell parShell) {
         super(parShell);
         this.setShellStyle(SWT.TITLE | SWT.MODELESS | SWT.CLOSE);
-
     }
 
     @Override
     public void createButtonsForButtonBar(Composite parent) {
-        ((GridLayout) parent.getLayout()).verticalSpacing = 0;
-        ((GridLayout) parent.getLayout()).marginHeight = 3;
-
         super.createButtonsForButtonBar(parent);
         this.getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
         this.getButton(IDialogConstants.OK_ID).setEnabled(false);
-
-        setDefaultControlButtonSize();
-    }
-
-    /**
-     * Set default size for control buttons.
-     */
-    public void setDefaultControlButtonSize() {
-        setButtonSize(ctrlBtnWidth, ctrlBtnHeight);
-    }
-
-    /**
-     * Set size for control buttons.
-     */
-    public void setButtonSize(int width, int height) {
-        this.getButton(IDialogConstants.CANCEL_ID).setLayoutData(
-                new GridData(width, height));
-        this.getButton(IDialogConstants.OK_ID).setLayoutData(
-                new GridData(width, height));
     }
 
     @Override
     public Control createButtonBar(Composite parent) {
-
         String currentAction = PgenSession.getInstance().getPgenPalette()
                 .getCurrentAction();
         if (currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
@@ -172,10 +149,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 || this instanceof CycleDlg) {
 
             Control bar = super.createButtonBar(parent);
-            GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
-            gd.heightHint = ctrlBtnHeight + 5;
-
-            bar.setLayoutData(gd);
+            ((GridData) bar.getLayoutData()).horizontalAlignment = SWT.CENTER;
             return bar;
         } else {
             return null;
@@ -184,7 +158,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
     /*
      * Called when "X" button on window is clicked.
-     * 
+     *
      * @see org.eclipse.jface.window.Window#handleShellCloseEvent()
      */
     @Override
@@ -200,7 +174,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
     /**
      * Sets the PGEN drawing layer
-     * 
+     *
      * @param dl
      */
     public void setDrawingLayer(PgenResource dl) {
@@ -211,7 +185,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
     /**
      * Sets the map editor
-     * 
+     *
      * @param me
      */
     public void setMapEditor(AbstractEditor me) {
@@ -221,6 +195,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Updates the selected element and redraws the PGEN layer.
      */
+    @Override
     public void okPressed() {
 
         /*
@@ -237,13 +212,11 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
             // for jet barb, we need replace the whole jet for undo working
             if (de instanceof Jet.JetBarb) {
                 DECollection wind = (DECollection) de.getParent();
-                if (wind != null
-                        && wind.getCollectionName()
-                                .equalsIgnoreCase("WindInfo")) {
+                if (wind != null && "WindInfo"
+                        .equalsIgnoreCase(wind.getCollectionName())) {
                     DECollection parent = (DECollection) wind.getParent();
-                    if (parent != null
-                            && parent.getCollectionName().equalsIgnoreCase(
-                                    "jet")) {
+                    if (parent != null && "jet"
+                            .equalsIgnoreCase(parent.getCollectionName())) {
                         Jet oldJet = (Jet) parent;
                         Jet newJet = oldJet.copy();
                         DECollection newWind = wind.copy();
@@ -289,7 +262,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         } else {
 
             ArrayList<AbstractDrawableComponent> adcList = null;
-            ArrayList<AbstractDrawableComponent> newList = new ArrayList<AbstractDrawableComponent>();
+            ArrayList<AbstractDrawableComponent> newList = new ArrayList<>();
 
             // get the list of selected elements
             if (drawingLayer != null) {
@@ -346,7 +319,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                     AttrSettings.getInstance().setSettings(newEl);
                 }
 
-                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<AbstractDrawableComponent>(
+                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(
                         adcList);
                 drawingLayer.replaceElements(null, oldList, newList);
             }
@@ -369,6 +342,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Removes ghost line, handle bars, and closes the dialog
      */
+    @Override
     public void cancelPressed() {
 
         drawingLayer.removeSelected();
@@ -380,6 +354,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Set the location of the dialog
      */
+    @Override
     public int open() {
 
         if (this.getShell() == null) {
@@ -410,12 +385,8 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         Display.getDefault().asyncExec(new Runnable() {
             @Override
             public void run() {
-                // while (Display.getDefault().readAndDispatch()) {
-                // wait for events to finish before continue
-                // }
-                if (!(shell == null || shell.isDisposed())) { // make sure the
-                                                              // dialog is not
-                                                              // closed
+                // make sure the dialog is not closed
+                if (!(shell == null || shell.isDisposed())) {
                     shell.addFocusListener(new FocusListener() {
 
                         @Override
@@ -449,6 +420,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Save location of the dialog.
      */
+    @Override
     public boolean close() {
         if (getShell() != null) {
             Rectangle bounds = getShell().getBounds();
@@ -470,7 +442,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Sets the Pgen type, which will be used when creating an new element from
      * the 'Place symbol' button
-     * 
+     *
      * @param pgenType
      */
     public void setPgenType(String pgenType) {
@@ -482,7 +454,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Sets the Pgen type, which will be used when creating an new element from
      * the 'Place symbol' button
-     * 
+     *
      * @param pgenType
      */
     public void setPgenCategory(String pgenCategory) {
@@ -494,14 +466,17 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     /**
      * Common interface for ISinglePoint and IMultiPoint.
      */
+    @Override
     public Color[] getColors() {
         return null;
     }
 
+    @Override
     public float getLineWidth() {
         return 1.0f;
     }
 
+    @Override
     public double getSizeScale() {
         return 1.0;
     }
@@ -587,7 +562,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
     /**
      * check if it is in 'add line' mode (for labeled lines)
-     * 
+     *
      * @return
      */
     public boolean isAddLineMode() {

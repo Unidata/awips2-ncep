@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Option Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.tools;singleton:=true
-Bundle-Version: 1.15.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.tools.Activator
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.ui,
@@ -19,7 +19,9 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.rsc.satellite,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.viz.gempak.nativelib,
- gov.noaa.nws.ncep.ui.pgen
+ gov.noaa.nws.ncep.ui.pgen,
+ gov.noaa.nws.ncep.common.log;bundle-version="1.0.0",
+ org.slf4j;bundle-version="1.7.25"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.tools,
@@ -35,5 +37,3 @@ Export-Package: gov.noaa.nws.ncep.viz.tools,
  gov.noaa.nws.ncep.viz.tools.newEditors,
  gov.noaa.nws.ncep.viz.tools.panZoom,
  gov.noaa.nws.ncep.viz.tools.predefinedArea
-Import-Package: gov.noaa.nws.ncep.common.log.logger,
- org.apache.log4j

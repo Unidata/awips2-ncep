@@ -32,13 +32,11 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Helicity;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.MixHeight;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpWeatherDataStore.ParcelMiscParams;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
 
 /**
  *
@@ -68,8 +66,10 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      updates.
  * 05/05/2018   DCS20492    mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting.
  * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
- * 10/26/2018   DR20904     mgamazaychikov  Changed how parcel indices are set in drawPanel4.
  * Oct 16, 2018  6845       bsteffen  Remove unnecessary jna code.
+ * 10/26/2018   DR20904     mgamazaychikov  Changed how parcel indices are set in drawPanel4.
+ * Nov 21, 2018  7574       bsteffen    Remove unused override
+ * Dec 20, 2018  7575       bsteffen    Remove some NsharpNativeConstants.
  *
  * 01/23/2018   DR21039     smoorthy        make text the same size as on 18.1.2
  * </pre>
@@ -81,8 +81,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     // Note: SR Helicity only show first 4 storm types in PAGE2
     private static final int STORM_HELICITY_MAX = 4;
 
-    private int currentTextChapter = 1;
-
     // index is the real page defined in NsharpConstants to be shown, value is
     // the order number of this page. index 0 point to a dummy.
     private int[] pageDisplayOrderNumberArray;
@@ -92,8 +90,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private double curY;
 
     private double parcelLineYStart, parcelLineYEnd;
-
-    private double firstToken, secondToken, thirdToken, forthToken, fifthToken, sixthToken;
 
     private PixelExtent extent;
 
@@ -110,14 +106,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private int dataPaneWidth = NsharpConstants.DATA_PANE_REC_WIDTH;
 
     private int dataPaneHeight = NsharpConstants.DATA_PANE_REC_HEIGHT;
-
-    private int dp1XOrig = NsharpConstants.DATAPANEL1_X_ORIG;
-
-    private int dp1YOrig = NsharpConstants.DATAPANEL1_Y_ORIG;
-
-    private int dp2XOrig = NsharpConstants.DATAPANEL2_X_ORIG;
-
-    private int dp2YOrig = NsharpConstants.DATAPANEL2_Y_ORIG;
 
     private float xRatio = 1;
 
@@ -211,7 +199,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     public static final String PARCEL_MPL_MISSING_ = "MPL_M_M_ ";
 
     // use parcel type to retrieve parcel header string for display
-    public static final Map<Integer, String> parcelToHdrStrMap = new HashMap<Integer, String>() {
+    private static final Map<Integer, String> parcelToHdrStrMap = new HashMap<Integer, String>() {
         private static final long serialVersionUID = 1L;
 
         {
@@ -224,7 +212,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
     };
 
-    public static final Map<Integer, String> parcelToTypeStrMap = new HashMap<Integer, String>() {
+    private static final Map<Integer, String> parcelToTypeStrMap = new HashMap<Integer, String>() {
         private static final long serialVersionUID = 1L;
 
         {
@@ -284,7 +272,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             // write to panels
 
             sumP1Visible = false;
-            currentTextChapter = rscHandler.getCurrentTextChapter();
+            int currentTextChapter = rscHandler.getCurrentTextChapter();
             if (numberPagePerDisplay == 1) {
                 drawPanel(target, currentTextChapter, 1);
             } else if (numberPagePerDisplay == 2) {
@@ -343,13 +331,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         initDone = true;
     }
 
-    @Override
-    public void resetData(List<NcSoundingLayer> soundingLys, List<NcSoundingLayer> prevsoundingLys) {
-
-        super.resetData(soundingLys, prevsoundingLys);
-
-    }
-
     private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
@@ -378,8 +359,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // find a page with its order number equal to pageOrderNumber
         for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
             if (pageDisplayOrderNumberArray[i] == pageOrderNumber) {
-                displayPageNumber = i; // array index is the page number and
-                                       // value is the order number
+                // array index is the page number and value is the order number
+                displayPageNumber = i;
                 break;
             }
         }
@@ -437,7 +418,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // make sure within parcel line area
         if (c.y >= parcelLineYStart && c.y <= parcelLineYEnd) {
             int index = ((int) (c.y - parcelLineYStart)) / (int) charHeight;
-            if (index < NsharpNativeConstants.PARCEL_MAX) {
+            if (index < NsharpLibSndglib.PARCEL_MAX) {
                 currentParcel = (index + 1);
                 // notify rscHandler
                 rscHandler.setCurrentParcel(currentParcel);
@@ -479,12 +460,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         double startX = rect.x + 0.5 * charWidth;
         // 6 parameters CAPE, CINH, LCL, LI, LFC, EL per line
         double widthGap = (rect.width - strBD.getWidth() * hRatio * xRatio) / 6;
-        firstToken = rect.x + strBD.getWidth() * hRatio * xRatio;
-        secondToken = firstToken + widthGap;
-        thirdToken = secondToken + widthGap;
-        forthToken = thirdToken + widthGap;
-        fifthToken = forthToken + widthGap;
-        sixthToken = fifthToken + widthGap;
+        double firstToken = rect.x + strBD.getWidth() * hRatio * xRatio;
+        double secondToken = firstToken + widthGap;
+        double thirdToken = secondToken + widthGap;
+        double forthToken = thirdToken + widthGap;
+        double fifthToken = forthToken + widthGap;
+        double sixthToken = fifthToken + widthGap;
         RGB textColor = NsharpConstants.color_white;
         target.drawString(myfont, "PARCEL", startX, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
                 VerticalAlignment.TOP, null);
@@ -543,27 +524,17 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 cape = parcel.getBplus();
                 if (parcelNumber == currentParcel) {
                     if (cape < 100) {
-                        textColor = NsharpConstants.color_brown;// Gempak color
-                                                                // 8, Brown
+                        textColor = NsharpConstants.color_brown;
                     } else if (cape < 500) {
-                        textColor = NsharpConstants.color_darkorange;// Gempak
-                                                                     // color
-                                                                     // 18, Dk
-                                                                     // Orange
+                        textColor = NsharpConstants.color_darkorange;
                     } else if (cape < 1000) {
-                        textColor = NsharpConstants.color_apricot;// Gempak
-                                                                  // color 10,
-                                                                  // Apricot
+                        textColor = NsharpConstants.color_apricot;
                     } else if (cape < 2500) {
-                        textColor = NsharpConstants.color_gold;// Gempak color
-                                                               // 19, Gold
+                        textColor = NsharpConstants.color_gold;
                     } else if (cape < 4000) {
-                        textColor = NsharpConstants.color_red;// Gempak color 2,
-                                                              // Red
+                        textColor = NsharpConstants.color_red;
                     } else {
-                        textColor = NsharpConstants.color_magenta;// Gempak
-                                                                  // color 7,
-                                                                  // Megenta
+                        textColor = NsharpConstants.color_magenta;
                     }
                 }
                 target.drawString(myfont, String.format("%.0f", cape), firstToken, curY, 0.0, TextStyle.NORMAL,
@@ -577,30 +548,20 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 if (parcelNumber == currentParcel) {
                     // set color according to CAPE first
                     if (cape != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA && cape < 1) {
-                        textColor = NsharpConstants.color_brown;// Gempak color
-                                                                // 8, Brown
+                        textColor = NsharpConstants.color_brown;
                     } else {
-                        textColor = NsharpConstants.color_lawngreen;// Gempak
-                                                                    // color 21
+                        textColor = NsharpConstants.color_lawngreen;
                     }
                     // then set according to CIN value
                     float cin = parcel.getBminus();
                     if (cin < -100) {
-                        textColor = NsharpConstants.color_brown;// Gempak color
-                                                                // 8, Brown
+                        textColor = NsharpConstants.color_brown;
                     } else if (cin < -50) {
-                        textColor = NsharpConstants.color_darkorange;// Gempak
-                                                                     // color
-                                                                     // 18, Dk
-                                                                     // Orange
+                        textColor = NsharpConstants.color_darkorange;
                     } else if (cin < -25) {
-                        textColor = NsharpConstants.color_darkgreen;// Gempak
-                                                                    // color 23,
-                                                                    // Dk Green
+                        textColor = NsharpConstants.color_darkgreen;
                     } else if (cin < -10) {
-                        textColor = NsharpConstants.color_mdgreen;// Gempak
-                                                                  // color 22,
-                                                                  // Md Green
+                        textColor = NsharpConstants.color_mdgreen;
                     }
                 }
                 target.drawString(myfont, String.format("%.0f", parcel.getBminus()), secondToken, curY, 0.0,
@@ -614,24 +575,15 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 float lcl = NsharpLibBasics.ftom(parcel.getLclAgl());
                 if (parcelNumber == currentParcel) {
                     if (lcl < 500) {
-                        textColor = NsharpConstants.color_lawngreen;// Gempak
-                                                                    // color 21
+                        textColor = NsharpConstants.color_lawngreen;
                     } else if (lcl < 1000) {
-                        textColor = NsharpConstants.color_mdgreen;// Gempak
-                                                                  // color 22,
-                                                                  // Md Green
+                        textColor = NsharpConstants.color_mdgreen;
                     } else if (lcl < 1500) {
-                        textColor = NsharpConstants.color_darkgreen;// Gempak
-                                                                    // color 23,
-                                                                    // Dk Green
+                        textColor = NsharpConstants.color_darkgreen;
                     } else if (lcl < 2000) {
-                        textColor = NsharpConstants.color_darkorange;// Gempak
-                                                                     // color
-                                                                     // 18, Dk
-                                                                     // Orange
+                        textColor = NsharpConstants.color_darkorange;
                     } else {
-                        textColor = NsharpConstants.color_brown;// Gempak color
-                                                                // 8, Brown
+                        textColor = NsharpConstants.color_brown;
                     }
                 }
                 target.drawString(myfont, String.format("%.0fm", lcl), thirdToken, curY, 0.0, TextStyle.NORMAL,
@@ -711,7 +663,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(firstToken, curY);
         str1.setText(CAPE3Str, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         float wbzft = weatherDataStore.getWbzft();
         if (NsharpLibBasics.qc(wbzft)) {
@@ -723,7 +675,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         float wndg = weatherDataStore.getWndg();
         if (NsharpLibBasics.qc(wndg)) {
@@ -735,9 +687,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         float kIndex = weatherDataStore.getkIndex();
         if (NsharpLibBasics.qc(kIndex)) {
@@ -749,7 +702,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
         // DCAPE
         float dcape = weatherDataStore.getDcape();
 
@@ -762,7 +715,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         // FZL
         float fgzft = weatherDataStore.getFgzft();
@@ -775,7 +728,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
         // ESP
         float esp = weatherDataStore.getEsp();
         if (NsharpLibBasics.qc(esp)) {
@@ -787,9 +740,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // MidRH
         float midRh = weatherDataStore.getMidRh();
@@ -802,7 +756,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
         // DownT
         float downT = weatherDataStore.getDownT();
         if (NsharpLibBasics.qc(downT)) {
@@ -814,7 +768,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
         // ConvT
         float conTempF = weatherDataStore.getConvT();
         if (NsharpLibBasics.qc(conTempF)) {
@@ -826,7 +780,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         // MMP: Coniglio MCS Maintenance Parameter
         float mmp = weatherDataStore.getMmp();
@@ -839,9 +793,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
         // lowRH
         float lowRh = weatherDataStore.getLowRh();
         if (NsharpLibBasics.qc(lowRh)) {
@@ -853,7 +808,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         if (NsharpLibBasics.qc(weatherDataStore.getMeanMixRatio())) {
             textStr = String.format("%.1fg/kg", weatherDataStore.getMeanMixRatio());
@@ -864,7 +819,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         float maxT = weatherDataStore.getMaxTemp();
         if (NsharpLibBasics.qc(maxT)) {
@@ -876,7 +831,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
         // NCAPE
         float ncape = weatherDataStore.getNcape();
@@ -889,9 +844,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.setCoordinates(thirdToken, curY);
         str1.setText(NCAPEStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str);// , str1);
+        target.drawStrings(str);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
         target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
         // draw a vertical line from 2/3 of x axis
@@ -931,19 +887,17 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         if (NsharpLibBasics.qc(superCell)) {
             textStr = String.format("%.1f", superCell);
             if (superCell < -0.45) {
-                textColor = NsharpConstants.color_cyan;// Gempak color 6, Cyan
+                textColor = NsharpConstants.color_cyan;
             } else if (superCell < 0.45) {
-                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+                textColor = NsharpConstants.color_brown;
             } else if (superCell < 1.95) {
-                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
-                                                             // Dk Orange
+                textColor = NsharpConstants.color_darkorange;
             } else if (superCell < 11.95) {
-                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+                textColor = NsharpConstants.color_gold;
             } else if (superCell < 19.95) {
-                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+                textColor = NsharpConstants.color_red;
             } else {
-                textColor = NsharpConstants.color_magenta;// Gempak color 7,
-                                                          // Megenta
+                textColor = NsharpConstants.color_magenta;
             }
         } else {
             textStr = " M";
@@ -955,7 +909,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // 3km-6km Lapse rate
         float threeKmTo6kmTempDelta = weatherDataStore.getThreeKmTo6kmTempDelta();
@@ -971,26 +926,23 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        // "STP (eff)"
         textColor = NsharpConstants.color_white;
         float cin = weatherDataStore.getStpCin();
         if (NsharpLibBasics.qc(cin)) {
             textStr = String.format("%.1f", cin);
             if (cin < 0.5) {
-                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+                textColor = NsharpConstants.color_brown;
             } else if (cin < 1) {
-                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
-                                                             // Dk Orange
+                textColor = NsharpConstants.color_darkorange;
             } else if (cin < 2) {
-                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
-                                                        // Orange
+                textColor = NsharpConstants.color_white;
             } else if (cin < 4) {
-                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+                textColor = NsharpConstants.color_gold;
             } else if (cin < 8) {
-                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+                textColor = NsharpConstants.color_red;
             } else {
-                textColor = NsharpConstants.color_magenta;// Gempak color 7,
-                                                          // Megenta
+                textColor = NsharpConstants.color_magenta;
+                                                          
             }
         } else {
             textStr = " M";
@@ -1001,7 +953,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         float eight50To500mbTempDelta = weatherDataStore.getEight50To500mbTempDelta();
         float eight50To500mbLapseRate = weatherDataStore.getEight50To500mbLapseRate();
@@ -1015,26 +968,22 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        // "STP(fixed)"
         textColor = NsharpConstants.color_white;
         float fixedStp = weatherDataStore.getStpFixed();
         if (NsharpLibBasics.qc(fixedStp)) {
             textStr = String.format("%.1f", fixedStp);
             if (fixedStp < 0.5) {
-                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+                textColor = NsharpConstants.color_brown;
             } else if (fixedStp < 1) {
-                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
-                                                             // Dk Orange
+                textColor = NsharpConstants.color_darkorange;
             } else if (fixedStp < 2) {
-                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
-                                                        // Orange
+                textColor = NsharpConstants.color_white;
             } else if (fixedStp < 5) {
-                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+                textColor = NsharpConstants.color_gold;
             } else if (fixedStp < 7) {
-                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+                textColor = NsharpConstants.color_red;
             } else {
-                textColor = NsharpConstants.color_magenta;// Gempak color 7,
-                                                          // Megenta
+                textColor = NsharpConstants.color_magenta;
             }
         } else {
             textStr = " M";
@@ -1045,7 +994,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         float sevenHundredTo500mbTempDelta = weatherDataStore.getSevenHundredTo500mbTempDelta();
         float sevenHundredTo500mbLapseRate = weatherDataStore.getSevenHundredTo500mbLapseRate();
@@ -1065,17 +1015,15 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         if (NsharpLibBasics.qc(ship)) {
             textStr = String.format("%.1f", ship);
             if (ship < 0.45) {
-                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+                textColor = NsharpConstants.color_brown;
             } else if (ship < 0.95) {
-                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
-                                                        // Orange
+                textColor = NsharpConstants.color_white;
             } else if (ship < 1.95) {
-                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+                textColor = NsharpConstants.color_gold;
             } else if (ship < 4.95) {
-                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+                textColor = NsharpConstants.color_red;
             } else {
-                textColor = NsharpConstants.color_magenta;// Gempak color 7,
-                                                          // Megenta
+                textColor = NsharpConstants.color_magenta;
             }
         } else {
             textStr = " M";
@@ -1116,10 +1064,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         double startX = rect.x + 0.5 * charWidth;
         // 4 parameters, SRH(m%c/s%c) Shear(kt) MnWind SRW, plus 1 header = 5
         double widthGap = (rect.width) / 5;
-        firstToken = rect.x + widthGap;
-        secondToken = firstToken + widthGap;
-        thirdToken = secondToken + widthGap;
-        forthToken = thirdToken + widthGap;
+        double firstToken = rect.x + widthGap;
+        double secondToken = firstToken + widthGap;
+        double thirdToken = secondToken + widthGap;
+        double forthToken = thirdToken + widthGap;
         target.drawString(myfont, "Sum2", startX, rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
@@ -1132,13 +1080,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         target.drawString(myfont, "SRW", forthToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
         target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
         for (int i = 0; i < NsharpWeatherDataStore.STORM_MOTION_TYPE_STR.length; i++) {
             RGB textColor = NsharpConstants.color_white;
-            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")
-                    || NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+            if ("Eff Inflow".equals(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i])
+                    || "Eff Shear(EBWD)".equals(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i])) {
                 textColor = NsharpConstants.color_yellow;
             }
             // draw row header
@@ -1164,7 +1113,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             WindComponent srMeanwindComp = null;
             // LCL layer -EL layer value is parcel relevant, get them from
             // parcelMap
-            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("LCL-EL(Cloud Layer)")) {
+            if ("LCL-EL(Cloud Layer)".equals(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i])) {
                 NsharpWeatherDataStore.ParcelMiscParams parcelMiscs = weatherDataStore.getParcelMiscParamsMap()
                         .get(this.currentParcel);
                 if (parcelMiscs != null) {
@@ -1209,15 +1158,16 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             target.drawString(myfont, textStr, forthToken, curY, 0.0, TextStyle.NORMAL, textColor,
                     HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")
-                    || NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+            if ("Eff Inflow".equals(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i])
+                    || "Eff Shear(EBWD)".equals(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i])) {
                 // draw bax around it
                 Rectangle rectangle = new Rectangle(rect.x, (int) curY, rect.width, (int) charHeight);
                 PixelExtent pixExt = new PixelExtent(rectangle);
                 target.drawRect(pixExt, NsharpConstants.color_darkorange, 1.0f, 1.0f);
             }
 
-            curY = curY + charHeight; // move to new line
+            // move to new line
+            curY = curY + charHeight;
         }
         // align all following parameters output with "Corfidi Downshear"
         double hRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
@@ -1244,7 +1194,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.font = myfont;
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
         // 4-6km srw
         WindComponent windComp = weatherDataStore.getSrMeanWindComp4To6km();
         if (NsharpLibBasics.qc(windComp.getWdir()) && NsharpLibBasics.qc(windComp.getWspd())) {
@@ -1258,7 +1209,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // Corfidi Downshear @[0]
         WindComponent[] corfidiWindComp = weatherDataStore.getCofidiShearWindComp();
@@ -1268,7 +1220,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // Corfidi Upshear @[1]
         textStr = String.format("%.0f/%.0f kt", corfidiWindComp[1].getWdir(), corfidiWindComp[1].getWspd());
@@ -1277,7 +1230,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // Bunkers Right @ [0]
         WindComponent[] bunkerStormWndComp = weatherDataStore.getBunkersStormMotionWindComp();
@@ -1288,7 +1242,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
 
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
         // Bunkers Left @ [1]
         textStr = String.format("%.0f/%.0f kt", bunkerStormWndComp[1].getWdir(), bunkerStormWndComp[1].getWspd());
         str.setText("Bunkers Left =", NsharpConstants.color_cyan);
@@ -1296,7 +1251,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_cyan);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        curY = curY + charHeight; // move to new line
+        // move to new line
+        curY = curY + charHeight;
 
         // STP(eff)LR -
         float stpLr = weatherDataStore.getStpLr();
@@ -1502,7 +1458,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         hdrStr = parcelToHdrStrMap.get(currentParcel);
         layerPressure = NsharpWeatherDataStore.parcelToLayerPressMap.get(currentParcel);
         if (currentParcel == NsharpLibSndglib.PARCELTYPE_USER_DEFINED) {
-            layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
+            layerPressure = rscHandler.getCurrentParcelLayerPressure();
             hdrStr = String.format(hdrStr, layerPressure);
         }
         curY = curY + charHeight;
@@ -2953,13 +2909,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // Start with Parcel Data
         //
         float layerPressure = 0;
-        DrawableString str1 = new DrawableString(NsharpNativeConstants.PAGE1TEXT1_FCST_STR + "XX",
-                NsharpConstants.color_white);
+        DrawableString str1 = new DrawableString("12345ft", NsharpConstants.color_red);
         str1.font = myfont;
         double hRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
         double startX = rect.x + 0.5 * charWidth;
         double widthGap = rect.width / 4;
-        str1.setText("12345ft", NsharpConstants.color_red);
         double aglWidth = target.getStringsBounds(str1).getWidth() * hRatio * xRatio;
         str1.setText("D2D Lite Page", NsharpConstants.color_red);
         str1.setCoordinates(startX, curY);
@@ -3017,7 +2971,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         target.drawStrings(str1);
         curY = curY + charHeight;
         target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
-
+        double firstToken = 0;
+        double secondToken = 0;
+        double thirdToken = 0;
         if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
                 || paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             firstToken = rect.x + widthGap + aglWidth;
@@ -3091,8 +3047,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             firstToken = rect.x + widthGap * 0.8;
             secondToken = rect.x + widthGap;
             thirdToken = secondToken + widthGap * 0.8;
-            forthToken = rect.x + 2 * widthGap;
-            fifthToken = forthToken + widthGap * 0.8;
+            double forthToken = rect.x + 2 * widthGap;
+            double fifthToken = forthToken + widthGap * 0.8;
             for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_D2DLITE_MAX; parcelNumber++) {
                 textStr = parcelToTypeStrMap.get(parcelNumber);
                 str1.setText(textStr, NsharpConstants.color_gold);
@@ -3352,8 +3308,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         defineCharHeight(defaultFont);
         float prevHeight = dataPaneHeight;
         float prevWidth = dataPaneWidth;
-        dp1XOrig = (int) (ext.getMinX());
-        dp1YOrig = (int) (ext.getMinY());
+        int dp1XOrig = (int) (ext.getMinX());
+        int dp1YOrig = (int) (ext.getMinY());
+        int dp2XOrig =  NsharpConstants.DATAPANEL2_X_ORIG;
+        int dp2YOrig =  NsharpConstants.DATAPANEL2_Y_ORIG;
         if (paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)
                 || paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)
                 || paneConfigurationName.equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
@@ -3381,9 +3339,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
 
         xRatio = xRatio * dataPaneWidth / prevWidth;
-        xRatio = 1; // turn off
+        // turn off
+        xRatio = 1;
         yRatio = yRatio * dataPaneHeight / prevHeight;
-        yRatio = 1;// turn off
+        // turn off
+        yRatio = 1;
         charHeight = (int) (charHeight * yRatio);
 
         Rectangle rectangle = new Rectangle(dp1XOrig, dp1YOrig, dataPaneWidth, dataPaneHeight);

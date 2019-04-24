@@ -10,13 +10,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.Index;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
@@ -25,11 +24,11 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
  * AwwRecord
- * 
+ *
  * This java class performs the mapping to the database tables for AWW.
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * <pre>
  * Date         Ticket#         Engineer    Description
  * ------------ ----------      ----------- --------------------------
@@ -37,16 +36,16 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 04/2009      38              L. Lin      Convert to TO10.
  * 07/2009      38              L. Lin      Migration to TO11
  * 05/2010      38              L. Lin      Migration to TO11DR11
- * 01/11/2011   N/A             M. Gao      Add mndTime as the 5th element to construct 
- *                                          dataUri value that is used as a unique constraint 
+ * 01/11/2011   N/A             M. Gao      Add mndTime as the 5th element to construct
+ *                                          dataUri value that is used as a unique constraint
  *                                          when the aww record is inserted into relational DB
- *                                          The reason mndTime is used is because the combination 
- *                                          of original 4 elements is not unique in some scenarios.                                       
- * 01/26/2011   N/A             M. Gao      Add designatorBBB as the 6th (No.4) element to construct 
- *                                          dataUri value that is used as a unique constraint 
+ *                                          The reason mndTime is used is because the combination
+ *                                          of original 4 elements is not unique in some scenarios.
+ * 01/26/2011   N/A             M. Gao      Add designatorBBB as the 6th (No.4) element to construct
+ *                                          dataUri value that is used as a unique constraint
  *                                          when the aww record is inserted into relational DB
- *                                          The reason mndTime is used is because the combination 
- *                                          of original 5 elements is not unique in some scenarios.                                       
+ *                                          The reason mndTime is used is because the combination
+ *                                          of original 5 elements is not unique in some scenarios.
  * 09/2011                      Chin Chen   changed to improve purge performance and
  *                                          removed xml serialization as well
  * Apr 4, 2013        1846 bkowal      Added an index on refTime and forecastTime
@@ -57,48 +56,49 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Feb 11, 2014 2784            rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
  * July 07, 2014 ???            D. Sushon   add handling for TORNADO_WATCH in getReportType(..)
- * November 07, 2014 5125       J. Huber    added WINTER_WEATHER reportType to enum and removed 
+ * November 07, 2014 5125       J. Huber    added WINTER_WEATHER reportType to enum and removed
  *                                          WINTER_STORM_WARNING, WINTER_STORM_WATCH, and
  *                                          WINTER_WEATHER_ADVISORY as they are now no longer needed.
+ * Mar 05, 2019       6140      tgurney     Hibernate 5 @Index fix
  * </pre>
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "awwseq")
-@Table(name = "aww", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN,
+        sequenceName = "awwseq")
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
  */
-@org.hibernate.annotations.Table(appliesTo = "aww", indexes = { @Index(name = "aww_refTimeIndex", columnNames = {
-        "refTime", "forecastTime" }) })
+@Table(name = "aww",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) },
+        indexes = { @Index(name = "aww_refTimeIndex",
+                columnList = "refTime,forecastTime") })
+
 @DynamicSerialize
 public class AwwRecord extends PluginDataObject {
 
     private static final long serialVersionUID = 1L;
 
-    /*
-     * There are many report types as follows: 1. SEVERE THUNDERSTORM WARNING 2.
-     * SEVERE THUNDERSTORM WATCH 3. TORNADO WARNING 4. TORNADO WATCH 5. SEVERE
-     * THUNDERSTORM OUTLINE UPDATE 6. TORNADO WATCH OUTLINE UPDATE 7. FLASH
-     * FLOOD WARNING 8. FLASH FLOOD WATCH 9. FLOOD WARNING 10. FLOOD WATCH 11.
-     * FLOOD STATEMENT 12. WINTER STORM WARNING 13. WINTER STORM WATCH 14. WATCH
-     * COUNTY NOTIFICATION 15. SEVERE WEATHER STATEMENT 16. WIND ADVISORY 17.
-     * FOG ADVISORY 18. HEAT ADVISORY 19. FROST ADVISORY 20. SMOKE ADVISORY 21.
-     * WEATHER ADVISORY 22. WINTER WEATHER ADVISORY 23. SIGNIGICANT WEATHER
-     * ADVISORY 24. SPECIAL WEATHER STATEMENT 25. RED FLAG WARNING 26. TORNADO
-     * REPORT 27. HIGH WIND WARNING 28. FREEZE WARNING 29. ADVERTENCIA DE
-     * INUNDACIONES 30. HYDROLOGIC STATEMENT 31. URGENT WEATHER MESSAGE
-     */
-    
-    // RM 5125 add report types WINTER_WEATHER (for decoding purposes) and all specific winter products .
+    // RM 5125 add report types WINTER_WEATHER (for decoding purposes) and all
+    // specific winter products .
     public static enum AwwReportType {
-        SEVERE_THUNDERSTORM_WARNING, SEVERE_THUNDERSTORM_WATCH, TORNADO_WARNING, TORNADO_WATCH, SEVERE_THUNDERSTORM_OUTLINE_UPDATE, TORNADO_WATCH_OUTLINE_UPDATE, FLASH_FLOOD_WARNING, FLASH_FLOOD_WATCH, FLOOD_WARNING, FLOOD_WATCH, FLOOD_STATEMENT,
-        WINTER_WEATHER_ADVISORY,WINTER_STORM_WATCH,WINTER_STORM_WARNING, WATCH_COUNTY_NOTIFICATION, SEVERE_WEATHER_STATEMENT, WIND_ADVISORY, FOG_ADVISORY, HEAT_ADVISORY, FROST_ADVISORY, SMOKE_ADVISORY, WEATHER_ADVISORY, SIGNIGICANT_WEATHER_ADVISORY, SPECIAL_WEATHER_STATEMENT, 
-        RED_FLAG_WARNING, TORNADO_REPORT, HIGH_WIND_WARNING, FREEZE_WARNING, ADVERTENCIA_DE_INUNDACIONES, HYDROLOGIC_STATEMENT, URGENT_WEATHER_MESSAGE, UNKNOWN_AWW_REPORT_TYPE,
-        STATUS_REPORT,//RM5125
-        WINTER_WEATHER,BLIZZARD_WATCH,BLIZZARD_WARNING,ICE_STORM_WARNING,LAKE_EFFECT_SNOW_ADVISORY,LAKE_EFFECT_SNOW_WATCH,LAKE_EFFECT_SNOW_WARNING,FREEZING_RAIN_ADVISORY,WIND_CHILL_ADVISORY,WIND_CHILL_WARNING;
+        SEVERE_THUNDERSTORM_WARNING, SEVERE_THUNDERSTORM_WATCH, TORNADO_WARNING,
+        TORNADO_WATCH, SEVERE_THUNDERSTORM_OUTLINE_UPDATE,
+        TORNADO_WATCH_OUTLINE_UPDATE, FLASH_FLOOD_WARNING, FLASH_FLOOD_WATCH,
+        FLOOD_WARNING, FLOOD_WATCH, FLOOD_STATEMENT, WINTER_WEATHER_ADVISORY,
+        WINTER_STORM_WATCH, WINTER_STORM_WARNING, WATCH_COUNTY_NOTIFICATION,
+        SEVERE_WEATHER_STATEMENT, WIND_ADVISORY, FOG_ADVISORY, HEAT_ADVISORY,
+        FROST_ADVISORY, SMOKE_ADVISORY, WEATHER_ADVISORY,
+        SIGNIGICANT_WEATHER_ADVISORY, SPECIAL_WEATHER_STATEMENT,
+        RED_FLAG_WARNING, TORNADO_REPORT, HIGH_WIND_WARNING, FREEZE_WARNING,
+        ADVERTENCIA_DE_INUNDACIONES, HYDROLOGIC_STATEMENT,
+        URGENT_WEATHER_MESSAGE, UNKNOWN_AWW_REPORT_TYPE, STATUS_REPORT, // RM5125
+        WINTER_WEATHER, BLIZZARD_WATCH, BLIZZARD_WARNING, ICE_STORM_WARNING,
+        LAKE_EFFECT_SNOW_ADVISORY, LAKE_EFFECT_SNOW_WATCH,
+        LAKE_EFFECT_SNOW_WARNING, FREEZING_RAIN_ADVISORY, WIND_CHILL_ADVISORY,
+        WIND_CHILL_WARNING;
 
         public static AwwReportType getReportType(String rtStr) {
             rtStr = rtStr.trim().replace(" ", "_");
@@ -108,10 +108,10 @@ public class AwwRecord extends PluginDataObject {
                 }
             }
             // WTCH is looking for
-            if (rtStr.equals("THUNDERSTORM_REPORT")) {
+            if ("THUNDERSTORM_REPORT".equals(rtStr)) {
                 return SEVERE_THUNDERSTORM_WATCH;
             }
-            if (rtStr.equals("TORNADO_REPORT")) {
+            if ("TORNADO_REPORT".equals(rtStr)) {
                 return TORNADO_WATCH;
             }
             if (rtStr.endsWith("STATUS_REPORT")) {
@@ -119,10 +119,10 @@ public class AwwRecord extends PluginDataObject {
                 return AwwReportType.STATUS_REPORT;
             }
             // WSTM is looking for
-            if (rtStr.equals("WINTER_STORM")) {
+            if ("WINTER_STORM".equals(rtStr)) {
                 // ???
             }
-            if (rtStr.equals("ADVISORY")) {
+            if ("ADVISORY".equals(rtStr)) {
                 // ???? WIND CHILL ADVISORY is getting decoded as "ADVISORY"???
             }
             return UNKNOWN_AWW_REPORT_TYPE;
@@ -175,7 +175,7 @@ public class AwwRecord extends PluginDataObject {
     private String attentionWFO;
 
     // The entire report
-    @Column(length = 40000)
+    @Column(length = 40_000)
     @DynamicSerializeElement
     private String bullMessage;
 
@@ -183,12 +183,8 @@ public class AwwRecord extends PluginDataObject {
     @DynamicSerializeElement
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
-    @Index(name = "awwUGC_parentid_idex")
-    private Set<AwwUgc> awwUGC = new HashSet<AwwUgc>();
+    private Set<AwwUgc> awwUGC = new HashSet<>();
 
-    /**
-     * Default Convstructor
-     */
     public AwwRecord() {
         this.issueOffice = null;
         this.watchNumber = "0000";
@@ -201,8 +197,8 @@ public class AwwRecord extends PluginDataObject {
     }
 
     /**
-     * Convstructs a consigmet record from a dataURI
-     * 
+     * Constructs a consigmet record from a dataURI
+     *
      * @param uri
      *            The dataURI
      */
@@ -210,61 +206,34 @@ public class AwwRecord extends PluginDataObject {
         super(uri);
     }
 
-    /**
-     * @return the reportType
-     */
     public String getReportType() {
         return reportType;
     }
 
-    /**
-     * @return the reportType
-     */
     public void setReportType(String reportType) {
         this.reportType = reportType;
     }
 
-    /**
-     * @return the wmoHeader
-     */
     public String getWmoHeader() {
         return wmoHeader;
     }
 
-    /**
-     * @param wnoHeader
-     *            to set
-     */
     public void setWmoHeader(String wmoHeader) {
         this.wmoHeader = wmoHeader;
     }
 
-    /**
-     * @return the issueTime
-     */
     public Calendar getIssueTime() {
         return issueTime;
     }
 
-    /**
-     * @param issueTime
-     *            to set
-     */
     public void setIssueTime(Calendar issueTime) {
         this.issueTime = issueTime;
     }
 
-    /**
-     * @return the set of UGC
-     */
     public Set<AwwUgc> getAwwUGC() {
         return awwUGC;
     }
 
-    /**
-     * @param awwUgc
-     *            the ugc to set
-     */
     public void setAwwUGC(Set<AwwUgc> awwUgc) {
         this.awwUGC = awwUgc;
     }
@@ -275,95 +244,52 @@ public class AwwRecord extends PluginDataObject {
      */
     public void addAwwUGC(AwwUgc pugc) {
         awwUGC.add(pugc);
-        // pugc.setParentID(this);
     }
 
-    /**
-     * @return the designator
-     */
     public String getDesignatorBBB() {
         return designatorBBB;
     }
 
-    /**
-     * @param designatorBBB
-     *            to set
-     */
     public void setDesignatorBBB(String designatorBBB) {
         this.designatorBBB = designatorBBB;
     }
 
-    /**
-     * @return the attentionWFO
-     */
     public String getAttentionWFO() {
         return attentionWFO;
     }
 
-    /**
-     * @param attentionWFO
-     *            to set
-     */
     public void setAttentionWFO(String attentionWFO) {
         this.attentionWFO = attentionWFO;
     }
 
-    /**
-     * @return the watchNumber
-     */
     public String getWatchNumber() {
         return watchNumber;
     }
 
-    /**
-     * @param watchNumber
-     *            to set
-     */
     public void setWatchNumber(String watchNumber) {
         this.watchNumber = watchNumber;
     }
 
-    /**
-     * @return the bullMessage
-     */
     public String getBullMessage() {
         return bullMessage;
     }
 
-    /**
-     * @param bullMessage
-     *            to set
-     */
     public void setBullMessage(String bullMessage) {
         this.bullMessage = bullMessage;
     }
 
-    /**
-     * @return the issueOffice
-     */
     public String getIssueOffice() {
         return issueOffice;
     }
 
-    /**
-     * @param issueOffice
-     *            to set
-     */
     public void setIssueOffice(String issueOffice) {
         this.issueOffice = issueOffice;
     }
 
-    /**
-     * @return the mndTime
-     */
     public String getMndTime() {
         return mndTime;
     }
 
-    /**
-     * @param mndTime
-     *            to set
-     */
     public void setMndTime(String mndTime) {
         this.mndTime = mndTime;
     }

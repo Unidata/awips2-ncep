@@ -10,13 +10,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.Index;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
@@ -24,14 +23,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
- * 
  * FfgRecord
- * 
+ *
  * This java class performs the mapping to the database tables for FFG.
- * 
+ *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 08/2008      14         T. Lee      Initial coding
@@ -49,22 +48,24 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Feb 11, 2014 2784       rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061       bsteffen    Remove IDecoderGettable
- * 
+ * Mar 05, 2019 6140       tgurney     Hibernate 5 @Index fix
+ *
  * </pre>
- * 
+ *
  * @author T.Lee
- * @version 1.0
  */
 
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "ffgseq")
-@Table(name = "ffg", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN,
+        sequenceName = "ffgseq")
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
  */
-@org.hibernate.annotations.Table(appliesTo = "ffg", indexes = { @Index(name = "ffg_refTimeIndex", columnNames = {
-        "refTime", "forecastTime" }) })
+@Table(name = "ffg",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) },
+        indexes = { @Index(name = "ffg_refTimeIndex",
+                columnList = "refTime,forecastTime") })
 @DynamicSerialize
 public class FfgRecord extends PluginDataObject {
     private static final long serialVersionUID = 1L;
@@ -97,7 +98,7 @@ public class FfgRecord extends PluginDataObject {
     private String designatorBBB;
 
     /** Bulletin messages */
-    @Column(length = 10000)
+    @Column(length = 10_000)
     @DynamicSerializeElement
     private String bullMessage;
 
@@ -115,12 +116,8 @@ public class FfgRecord extends PluginDataObject {
     @DynamicSerializeElement
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
-    @Index(name = "ffgP_parentid_idex")
-    private Set<FfgPrecip> ffgP = new HashSet<FfgPrecip>();
+    private Set<FfgPrecip> ffgP = new HashSet<>();
 
-    /**
-     * Default Constructor
-     */
     public FfgRecord() {
         awipsID = "";
         issueTime = null;
@@ -132,7 +129,7 @@ public class FfgRecord extends PluginDataObject {
 
     /**
      * Constructs a FFG record from a dataURI
-     * 
+     *
      * @param uri
      *            : The dataURI
      */
@@ -140,122 +137,66 @@ public class FfgRecord extends PluginDataObject {
         super(uri);
     }
 
-    /**
-     * Return the reportType
-     */
     public String getReportType() {
         return reportType;
     }
 
-    /**
-     * @param reportType
-     *            the report type to set
-     */
     public void setReportType(String reportType) {
         this.reportType = reportType;
     }
 
-    /**
-     * @return the awipsID
-     */
     public String getAwipsID() {
         return awipsID;
     }
 
-    /**
-     * @param awipsID
-     *            the AWIPS identifier to set
-     */
     public void setAwipsID(String awipsID) {
         this.awipsID = awipsID;
     }
 
-    /**
-     * @return the issueTime
-     */
     public Calendar getIssueTime() {
         return issueTime;
     }
 
-    /**
-     * @param issueTime
-     *            the issueTime to set
-     */
     public void setIssueTime(Calendar issueTime) {
         this.issueTime = issueTime;
     }
 
-    /**
-     * @return the issueOffice
-     */
     public String getIssueOffice() {
         return issueOffice;
     }
 
-    /**
-     * @param issueOffice
-     *            the issueOffice to set
-     */
     public void setIssueOffice(String issueOffice) {
         this.issueOffice = issueOffice;
     }
 
-    /**
-     * @return the wmoHeader
-     */
     public String getWmoHeader() {
         return wmoHeader;
     }
 
-    /**
-     * @param wmoHeader
-     *            the wmoHeader to set
-     */
     public void setWmoHeader(String wmoHeader) {
         this.wmoHeader = wmoHeader;
     }
 
-    /**
-     * @return designatorBBB
-     */
     public String getDesignatorBBB() {
         return designatorBBB;
     }
 
-    /**
-     * @param designatorBBB
-     *            the designatorBBB to set
-     */
     public void setDesignatorBBB(String designatorBBB) {
         this.designatorBBB = designatorBBB;
     }
 
-    /**
-     * @return the bullMessage
-     */
     public String getBullMessage() {
         return bullMessage;
     }
 
-    /**
-     * @param bullMessage
-     *            the bullMessage to set
-     */
     public void setBullMessage(String bullMessage) {
         this.bullMessage = bullMessage;
     }
 
-    /**
-     * @return the MndTime
-     */
     public String getMndTime() {
         return mndTime;
     }
 
-    /**
-     * @param mndTime
-     *            the mndTime to set
-     */
     public void setMndTime(String mndTime) {
         this.mndTime = mndTime;
     }

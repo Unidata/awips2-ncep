@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bundle>
+    <displayList>
+  <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.25" mapCenter="-96.5 38.5 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="NCMapDescriptor">
+	            <resource>
+                   <properties renderingOrderId="NCP_LOCATOR" isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
+                      <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" resourceName="OVERLAY/Locator/default" isEdited="false">
+                        <color>RGB {255, 255, 255}</color>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                    </resourceData>
+                </resource>
+           </descriptor>
+        </displays>
+    </displayList>
+</bundle>

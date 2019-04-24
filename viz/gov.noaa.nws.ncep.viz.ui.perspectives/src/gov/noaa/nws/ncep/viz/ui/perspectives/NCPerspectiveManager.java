@@ -39,14 +39,12 @@ import com.raytheon.viz.ui.VizWorkbenchManager;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.perspectives.AbstractCAVEPerspectiveManager;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.staticdataprovider.StaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenFileNameDisplay;
 import gov.noaa.nws.ncep.viz.common.area.AreaMenusMngr;
 import gov.noaa.nws.ncep.viz.common.area.NcAreaProviderMngr;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.gempak.grid.mapper.GridMapper;
 import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
@@ -163,10 +161,11 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
     @Override
     public AbstractEditor openNewEditor() {
 
-        AbstractEditor curEd = (AbstractEditor)EditorUtil.getActiveEditor();
+        AbstractEditor curEd = (AbstractEditor) EditorUtil.getActiveEditor();
 
-        if(curEd == null){
-        	statusHandler.handle(Priority.PROBLEM, "Error getting current editor ");
+        if (curEd == null) {
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error getting current editor ");
             return null;
         }
         ICommandService service = (ICommandService) curEd.getSite()
@@ -567,28 +566,10 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
          */
 
         if (!NcDisplayMngr.isNatlCntrsEditor(editor)) {
-            // if (!(editor instanceof AbstractNcEditor)) {
             return superHandlers;
         }
 
-        // No-Ops for doubleClick, keyUp/Down, mouseDown, mouseHover and mouseUp
         IInputHandler handler = new InputAdapter() {
-
-            @Override
-            public boolean handleMouseDownMove(int x, int y, int mouseButton) {
-                // Set mouse position
-                Coordinate ll = editor.translateClick(x, y);
-                gov.noaa.nws.ncep.viz.common.CoorBean.getInstance().setCoor(ll);
-                return false;
-            }
-
-            @Override
-            public boolean handleMouseMove(int x, int y) {
-                // Set mouse position
-                Coordinate ll = editor.translateClick(x, y);
-                gov.noaa.nws.ncep.viz.common.CoorBean.getInstance().setCoor(ll);
-                return false;
-            }
 
             @Override
             public boolean handleMouseUp(int x, int y, int mouseButton) {
@@ -608,7 +589,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         };
 
-        ArrayList<IInputHandler> handlers = new ArrayList<IInputHandler>();
+        ArrayList<IInputHandler> handlers = new ArrayList<>();
         handlers.add(handler);
         return handlers.toArray(new IInputHandler[handlers.size()]);
     }

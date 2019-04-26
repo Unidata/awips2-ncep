@@ -29,6 +29,7 @@
  * 11/05/2018   6800     bsteffen   Extract click indexing to time/station resource.
  * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
  * 01/20/2019  17377     wkwock     Auto-update new arrival NSHARP display.
+ * 04/15/2019  7480      bhurley    Improved auto-update and added check to prevent potential NPE.
  * 11/13/2018  7576      bsteffen   Unify activation dialogs.
  * 11/21/2018  7574      bsteffen   Fix comparison and overlay coloring.
  * 12/14/2018  6872      bsteffen   Track time more accurately.
@@ -66,11 +67,13 @@ import com.raytheon.uf.viz.core.datastructure.LoopProperties;
 import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
-import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.LayerParameters;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
@@ -89,6 +92,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
+import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpShowTextDialog;
 
 public class NsharpResourceHandler {
@@ -131,7 +135,7 @@ public class NsharpResourceHandler {
 
     private NsharpGraphProperty graphConfigProperty;
 
-    private HashMap<String, NsharpLineProperty> linePropertyMap;
+    private Map<String, NsharpLineProperty> linePropertyMap;
 
     private NsharpDataPageProperty dataPageProperty;
 
@@ -199,40 +203,45 @@ public class NsharpResourceHandler {
 
     private HashMap<Integer, RGB> stormSlinkyColorMap = new HashMap<>();
 
+    /**
+     * <pre>
+     * {@code 
+     * stnTimeSndTable:
+     * Store all sounding profiles property for GUI display control
+     * 1st index refer to stnId, 2nd index refer to time line and 3rd point to
+     * sndType.
+     * It is same as [][][] 3d array.
+     * We dynamically expand this 3D array based on newly added
+     * stnid/timeline/sndType When a new sounding data is loaded,
+     * All unloaded element is null. Only when user load new sounding with this
+     * stnId/this time line/this sndType, then
+     * the element allocated.
+     *
+     *        stn3-> T1--->T2--->T3->...
+     *        ^
+     *       /
+     *      stn2-> T1--->T2--->T3->...
+     *      ^
+     *     /
+     * stn1-> T1--->T2--->T3->...
+     *         |    |    |
+     *         V    V    V
+     *      snd1 snd1 snd1
+     *         |    |    |
+     *         V    V    V
+     *      snd2 snd2 snd2
+     *         |    |    |
+     *         V    V    V
+     * stnTimeSndTable first dimension (station id) should be in sync with
+     * stnElementList,
+     * 2nd dimension (time line) should be in sync with timeElementList, and
+     * 3rd dimension (sounding type) should be in sync with sndTypeElementList
+     * NULL element in stnTimeSndTable indicates that sounding data is not
+     * loaded yet.
+     * }
+     * </pre>
+     */
     private List<List<List<NsharpSoundingElementStateProperty>>> stnTimeSndTable = new ArrayList<>();
-
-    // stnTimeSndTable:
-    // Store all sounding profiles property for GUI display control
-    // 1st index refer to stnId, 2nd index refer to time line and 3rd point to
-    // sndType.
-    // It is same as [][][] 3d array.
-    // We dynamically expand this 3D array based on newly added
-    // stnid/timeline/sndType When a new sounding data is loaded,
-    // All unloaded element is null. Only when user load new sounding with this
-    // stnId/this time line/this sndType, then
-    // the element allocated.
-    //
-    // stn3-> T1--->T2--->T3->...
-    // ^
-    // /
-    // stn2-> T1--->T2--->T3->...
-    // ^
-    // /
-    // stn1-> T1--->T2--->T3->...
-    // | | |
-    // V V V
-    // snd1 snd1 snd1
-    // | | |
-    // V V V
-    // snd2 snd2 snd2
-    // | | |
-    // V V V
-    // stnTimeSndTable first dimension (station id) should be in sync with
-    // stnElementList,
-    // 2nd dimension (time line) should be in sync with timeElementList, and
-    // 3rd dimension (sounding type) should be in sync with sndTypeElementList
-    // NULL element in stnTimeSndTable indicates that sounding data is not
-    // loaded yet.
 
     private List<NsharpOperationElement> stnElementList = new ArrayList<>();
 
@@ -261,7 +270,7 @@ public class NsharpResourceHandler {
 
     // use element state, NsharpConstants.LoadState or NsharpConstants.ActState,
     // as key to set color for drawing
-    private HashMap<String, RGB> elementColorMap = new HashMap<>();
+    private Map<String, RGB> elementColorMap = new HashMap<>();
 
     private int currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
 
@@ -363,19 +372,6 @@ public class NsharpResourceHandler {
         return currentSndElementListIndex;
     }
 
-    // shape and color storage
-    public class ShapeAndLineProperty {
-        IWireframeShape shape;
-
-        NsharpLineProperty lp;
-
-        public ShapeAndLineProperty() {
-            super();
-            lp = new NsharpLineProperty();
-        }
-
-    }
-
     public Map<String, NsharpLineProperty> getLinePropertyMap() {
         return linePropertyMap;
     }
@@ -465,7 +461,7 @@ public class NsharpResourceHandler {
         if (hodoPaneRsc != null){
             hodoPaneRsc.createRscHodoWindShapeAll();
         }
-        if (skewtPaneRsc != null){
+        if (skewtPaneRsc != null) {
             skewtPaneRsc.handleResize();
         }
     }
@@ -963,7 +959,7 @@ public class NsharpResourceHandler {
         NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
                 .get(stnIndex).get(tmIndex).get(sndTypeIndex);
         if (tmpNewSndPropElem != null) {
-            if (sndLyLst.size() > tmpNewSndPropElem.getSndLyLst().size()) {
+                if (sndLyLst.size() >= tmpNewSndPropElem.getSndLyLst().size()) {
                 tmpNewSndPropElem.getSndLyLst().clear();
                 tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
                 tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
@@ -1095,12 +1091,15 @@ public class NsharpResourceHandler {
         for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
             for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
                 for (NsharpSoundingElementStateProperty elem : sndtyList) {
-                    NsharpStationInfo stationInfo = elem.getStnInfo();
-                    if (soundingType.equals(stationInfo.getSndType())) {
-                        String displayInfo = stationInfo.getStnDisplayInfo();
-                        if (deletingDisplayInfo.contains(displayInfo)) {
-                            deletingDataTimeList
-                                    .add(elem.getElementDescription());
+                    if (elem != null) {
+                        NsharpStationInfo stationInfo = elem.getStnInfo();
+                        if (soundingType.equals(stationInfo.getSndType())) {
+                            String displayInfo = stationInfo
+                                    .getStnDisplayInfo();
+                            if (deletingDisplayInfo.contains(displayInfo)) {
+                                deletingDataTimeList
+                                        .add(elem.getElementDescription());
+                            }
                         }
                     }
                 }
@@ -1178,7 +1177,7 @@ public class NsharpResourceHandler {
                     if (found) {
                         break;
                     }
-                    timei += 1;
+                    timei++;
                 }
                 if (found) {
                     break;
@@ -1686,7 +1685,7 @@ public class NsharpResourceHandler {
                     currentOpDirection = IFrameCoordinator.FrameChangeOperation.PREVIOUS;
                     currentTimeElementListIndex = 0;
                 }
-
+                // direction is FrameChangeOperation.PREVIOUS
             } else {
                 // direction is FrameChangeOperation.PREVIOUS
                 currentTimeElementListIndex += 1;
@@ -1711,7 +1710,7 @@ public class NsharpResourceHandler {
      * Note: looping only apply to curAggregateTimeLineList NOT stationIdList
      */
     public void setLoopingDataTimeLine(LoopProperties loopProperties) {
-        if (!this.timeElementList.isEmpty()) {
+        if (!timeElementList.isEmpty()) {
             switch (loopProperties.getMode()) {
             case Forward:
                 moveTimeLineIndexForward();
@@ -1752,7 +1751,7 @@ public class NsharpResourceHandler {
     public void setSteppingTimeLine(
             IFrameCoordinator.FrameChangeOperation operation,
             IFrameCoordinator.FrameChangeMode mode) {
-        if (!this.timeElementList.isEmpty()
+        if (!timeElementList.isEmpty()
                 && getElemlistActiveNumber(timeElementList) > 1) {
             int targetIndex = currentTimeElementListIndex;
             // preset index for LAST and FIRST operation
@@ -1864,7 +1863,7 @@ public class NsharpResourceHandler {
      */
     public void setSteppingStnIdList(
             IFrameCoordinator.FrameChangeOperation operation) {
-        if (!this.stnElementList.isEmpty()
+        if (!stnElementList.isEmpty()
                 && getElemlistActiveNumber(stnElementList) > 1) {
 
             int counter = 0;
@@ -1888,11 +1887,12 @@ public class NsharpResourceHandler {
 
                 }
                 counter += 1;
-                if (counter >= stnElementList.size()){
-                     // looped through whole list already, and index back
-                     // to original
+                if (counter >= stnElementList.size()) {
+                    // looped through whole list already, and index back to
+                    // original
                     return;
                 }
+
                 if (stnElementList.get(currentStnElementListIndex)
                         .getActionState() == NsharpConstants.ActState.ACTIVE) {
                     if (compareStnIsOn && currentTimeElementListIndex >= 0
@@ -1984,7 +1984,7 @@ public class NsharpResourceHandler {
      */
     public void setSteppingSndTypeList(
             IFrameCoordinator.FrameChangeOperation operation) {
-        if (!this.sndElementList.isEmpty()
+        if (!sndElementList.isEmpty()
                 && getElemlistActiveNumber(sndElementList) > 1) {
 
             int counter = 0;
@@ -2009,8 +2009,8 @@ public class NsharpResourceHandler {
                 }
                 counter += 1;
                 if (counter >= sndElementList.size()) {
-                    // looped through whole list already, and index back
-                    // to original
+                    // looped through whole list already, and index back to
+                    // original
                     return;
                 }
                 if (sndElementList.get(currentSndElementListIndex)
@@ -2181,9 +2181,8 @@ public class NsharpResourceHandler {
             interpolatedValue = NsharpLibBasics.i_temp(rawSndLysLst, p);
             if (interpolatedValue == NcSoundingLayer.MISSING) {
                 // this is not good layer data, usually happened when lowest
-                // layer pressure is
-                // more than 50, then when interpolate layer for pressure 50,
-                // will return unvalid value
+                // layer pressure is more than 50, then when interpolate layer
+                // for pressure 50, will return unvalid value
                 continue;
             }
             newLayer.setTemperature(interpolatedValue);
@@ -2256,7 +2255,8 @@ public class NsharpResourceHandler {
                 } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource) {
                     spcGraphsPaneRsc = (NsharpSpcGraphsPaneResource) absPaneRsc;
                     spcGraphsPaneRsc.setLinePropertyMap(linePropertyMap);
-                    spcGraphsPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                    spcGraphsPaneRsc
+                            .setGraphConfigProperty(graphConfigProperty);
                 } else if (absPaneRsc instanceof NsharpTimeStnPaneResource) {
                     timeStnPaneRsc = (NsharpTimeStnPaneResource) absPaneRsc;
                     timeStnPaneRsc.setLinePropertyMap(linePropertyMap);
@@ -2290,6 +2290,7 @@ public class NsharpResourceHandler {
         }
         if (spcGraphsPaneRsc != null) {
             spcGraphsPaneRsc.resetData(soundingLys);
+        }
         }
     }
 
@@ -2558,7 +2559,6 @@ public class NsharpResourceHandler {
         if (dataPaneRsc != null) {
             dataPaneRsc.setSoundingLys(soundingLys);
         }
-
     }
 
     public void addNewLayer(float tp, float dp, float ws, float wd,
@@ -2642,7 +2642,7 @@ public class NsharpResourceHandler {
     }
 
     public void setLinePropertyMap(
-            HashMap<String, NsharpLineProperty> linePropertyMap) {
+            Map<String, NsharpLineProperty> linePropertyMap) {
         this.linePropertyMap = linePropertyMap;
         if (skewtPaneRsc != null) {
             skewtPaneRsc.setLinePropertyMap(linePropertyMap);
@@ -2782,8 +2782,6 @@ public class NsharpResourceHandler {
         displayDataPageMax = NsharpConstants.PAGE_MAX_NUMBER
                 / dataPageProperty.getNumberPagePerDisplay();
     }
-
-
 
     /*
      * Return size of stnTimeSndTable Note that not all elements in this table

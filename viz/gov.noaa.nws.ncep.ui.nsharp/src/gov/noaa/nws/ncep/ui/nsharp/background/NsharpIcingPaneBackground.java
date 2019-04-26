@@ -8,10 +8,10 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 05/02/2012	229			Chin Chen	Initial coding for multiple display panes implementation
- * 									    
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 05/02/2012   229         Chin Chen   Initial coding for multiple display panes implementation
+ * 04/15/2019   7480        bhurley     Code cleanup
  *
  * </pre>
  * 
@@ -20,16 +20,8 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.background;
 
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
-
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -42,8 +34,15 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
+
 public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
-    // private NsharpSkewTPaneDescriptor desc;
 
     private IWireframeShape linesNumbersShape;
 
@@ -51,11 +50,14 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
 
     private IWireframeShape tempLabelShape;
 
-    private IWireframeShape EPILabelShape;// Equivalent Potential Instability
+    /**
+     * Equivalent Potential Instability
+     */
+    private IWireframeShape EPILabelShape;
 
     private double currentZoomLevel = 1;
 
-    private final float defaultLabelSpace = 50;
+    private static final float defaultLabelSpace = 50;
 
     private float labelSpace = defaultLabelSpace;
 
@@ -100,7 +102,7 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
 
     private void createAllShapes() {
         IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmin = ext.getMinX(); // Extent's viewable envelope min x and y
+        double xmin = ext.getMinX();
         double ymax = ext.getMaxY();
         double ymin = ext.getMinY();
         double dispX, pX = 0;
@@ -120,10 +122,11 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
                 NsharpConstants.ICING_RELATIVE_HUMIDITY_RIGHT,
                 toLogScale(NsharpConstants.ICING_PRESSURE_LEVEL_BOTTOM));
         pX = world.mapX(NsharpConstants.ICING_RELATIVE_HUMIDITY_LEFT);
-        if (pX < xmin)
+        if (pX < xmin) {
             dispX = xmin + 20 * currentZoomLevel * xMagFactor;
-        else
+        } else {
             dispX = pX + 20 * currentZoomLevel * xMagFactor;
+        }
 
         // pressure lines and labels
         for (double i = NsharpConstants.ICING_PRESSURE_LEVEL_TOP; i <= NsharpConstants.ICING_PRESSURE_LEVEL_BOTTOM; i = i
@@ -146,12 +149,14 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
         RHLabelShape.addLabel("*****ICING Display*****     RELATIVE HUMIDITY",
                 lblRhXy1);
         double[][] lineRH = { { 0, 0 }, { 0, 0 } };
-        RHLabelShape.addLineSegment(lineRH);// add dummy line
+        // add dummy line
+        RHLabelShape.addLineSegment(lineRH);
         pY = world.mapY(toLogScale(NsharpConstants.ICING_PRESSURE_LEVEL_TOP));
-        if (ymin < pY)
+        if (ymin < pY) {
             dispY = pY + 20 * currentZoomLevel * yMagFactor;
-        else
+        } else {
             dispY = ymin + 20 * currentZoomLevel * yMagFactor;
+        }
         for (double i = NsharpConstants.ICING_RELATIVE_HUMIDITY_LEFT; i <= NsharpConstants.ICING_RELATIVE_HUMIDITY_RIGHT; i = i
                 + NsharpConstants.ICING_RELATIVE_HUMIDITY_INC) {
             // temperature/humidity vertical lines
@@ -165,10 +170,12 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
             RHLabelShape.addLabel(s, lblXy);
         }
         // temperature label
-        double[] lblTXy = { iceXOrig + iceWidth / 2, iceYEnd + 20 * yMagFactor };
+        double[] lblTXy = { iceXOrig + iceWidth / 2,
+                iceYEnd + 20 * yMagFactor };
         tempLabelShape.addLabel("TEMPERATURE (C)", lblTXy);
         double[][] lineT = { { 0, 0 }, { 0, 0 } };
-        tempLabelShape.addLineSegment(lineT);// add dummy line
+        // add dummy line
+        tempLabelShape.addLineSegment(lineT);
         // set world based on pressure/twmp
         world.setWorldCoordinates(NsharpConstants.ICING_TEMPERATURE_LEFT,
                 toLogScale(NsharpConstants.ICING_PRESSURE_LEVEL_TOP),
@@ -176,10 +183,11 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
                 toLogScale(NsharpConstants.ICING_PRESSURE_LEVEL_BOTTOM));
         pY = world
                 .mapY(toLogScale(NsharpConstants.ICING_PRESSURE_LEVEL_BOTTOM));
-        if (ymax > pY)
+        if (ymax > pY) {
             dispY = pY - 10 * currentZoomLevel * yMagFactor;
-        else
+        } else {
             dispY = ymax - 10 * currentZoomLevel * yMagFactor;
+        }
         for (double i = NsharpConstants.ICING_TEMPERATURE_LEFT; i <= NsharpConstants.ICING_TEMPERATURE_RIGHT; i = i
                 + NsharpConstants.ICING_TEMPERATURE_INC) {
             // temperature label
@@ -194,7 +202,8 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
         EPILabelShape.addLabel("EQUIVALENT POTENTIAL INSTABILITY x 1E-3 K/m",
                 lblEPIXy);
         double[][] lineE = { { 0, 0 }, { 0, 0 } };
-        EPILabelShape.addLineSegment(lineE);// add dummy line
+        // add dummy line
+        EPILabelShape.addLineSegment(lineE);
         linesNumbersShape.compile();
         RHLabelShape.compile();
         tempLabelShape.compile();
@@ -217,8 +226,9 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
         target.drawRect(pe, NsharpConstants.backgroundColor, 1.0f, 1.0f);
         target.clearClippingPlane();
         double zoomLevel = paintProps.getZoomLevel();
-        if (zoomLevel > 1.0f)
+        if (zoomLevel > 1.0f) {
             zoomLevel = 1.0f;
+        }
         if (zoomLevel != currentZoomLevel) {
             currentZoomLevel = zoomLevel;
             if (linesNumbersShape != null) {
@@ -239,26 +249,26 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
         this.smallFont.setScaleFont(false);
         target.drawWireframeShape(linesNumbersShape,
                 NsharpConstants.pressureColor, 1, LineStyle.SOLID, smallFont);
-        HashMap<String, NsharpLineProperty> lpMap = ((NsharpSkewTPaneDescriptor) desc)
+        Map<String, NsharpLineProperty> lpMap = ((NsharpSkewTPaneDescriptor) desc)
                 .getSkewtResource().getLinePropertyMap();
         if (lpMap != null) {
-            NsharpLineProperty lp = lpMap
-                    .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_RH]);
+            NsharpLineProperty lp = lpMap.get(
+                    NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_RH]);
             target.drawWireframeShape(RHLabelShape, lp.getLineColor(), 1,
                     LineStyle.SOLID, smallFont);
-            lp = lpMap
-                    .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_TEMP]);
+            lp = lpMap.get(
+                    NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_TEMP]);
             target.drawWireframeShape(tempLabelShape, lp.getLineColor(), 1,
                     LineStyle.SOLID, smallFont);
-            lp = lpMap
-                    .get(NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_EPI]);
+            lp = lpMap.get(
+                    NsharpConstants.lineNameArray[NsharpConstants.LINE_ICING_EPI]);
             target.drawWireframeShape(EPILabelShape, lp.getLineColor(), 1,
                     LineStyle.SOLID, smallFont);
         } else {
-            target.drawWireframeShape(RHLabelShape,
-                    NsharpConstants.color_green, 1, LineStyle.SOLID, smallFont);
-            target.drawWireframeShape(tempLabelShape,
-                    NsharpConstants.color_red, 1, LineStyle.SOLID, smallFont);
+            target.drawWireframeShape(RHLabelShape, NsharpConstants.color_green,
+                    1, LineStyle.SOLID, smallFont);
+            target.drawWireframeShape(tempLabelShape, NsharpConstants.color_red,
+                    1, LineStyle.SOLID, smallFont);
             target.drawWireframeShape(EPILabelShape,
                     NsharpConstants.color_violet_red, 1, LineStyle.SOLID,
                     smallFont);
@@ -333,7 +343,8 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
         double vPmin = getViewableMinPressure();
         vpc.maxVIewablePressure = (float) vPmax;
         vpc.minVIewablePressure = (float) vPmin;
-        for (float pressure = 300; pressure <= 1000; pressure = pressure + 100) {
+        for (float pressure = 300; pressure <= 1000; pressure = pressure
+                + 100) {
             if (pressure >= vPmin && pressure <= vPmax) {
                 double pY = world.mapY(toLogScale(pressure));
                 float ratio = (float) (pY - ymin) / (ymax - ymin);
@@ -377,21 +388,22 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
      * Called from handleResize() in skewTPaneResource only
      */
     public void handleResize(IExtent ext) {
-        if (target == null)
+        if (target == null) {
             return;
+        }
         // IExtent ext = desc.getRenderableDisplay().getExtent();
         // ext.reset();
         float prevHeight = paneHeight;
         float prevWidth = iceWidth;
         paneHeight = (int) (ext.getHeight());
-        yMagFactor = yMagFactor * ((float) paneHeight / prevHeight);
+        yMagFactor = yMagFactor * (paneHeight / prevHeight);
         labelSpace = defaultLabelSpace * yMagFactor;
         iceXOrig = (int) (ext.getMinX());
         iceYOrig = (int) (ext.getMinY()) + (int) labelSpace;
         iceXEnd = iceXOrig + (int) (ext.getWidth());
         iceYEnd = iceYOrig + (int) (ext.getHeight()) - 2 * (int) labelSpace;
         iceWidth = (int) (ext.getWidth());
-        xMagFactor = xMagFactor * ((float) iceWidth / prevWidth);
+        xMagFactor = xMagFactor * (iceWidth / prevWidth);
         this.rectangle = new Rectangle(iceXOrig, iceYOrig, iceWidth,
                 (int) ext.getHeight() - 2 * (int) labelSpace);
         pe = new PixelExtent(this.rectangle);
@@ -431,17 +443,19 @@ public class NsharpIcingPaneBackground extends NsharpGenericPaneBackground {
 
     public double getWindBarbXPosition() {
         IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmax = ext.getMaxX(); // Extent's viewable envelope min x and y
+        double xmax = ext.getMaxX();
         double ymax = ext.getMaxY();
         double pX = world.mapX(NsharpConstants.ICING_RELATIVE_HUMIDITY_RIGHT);
-        if (pX < xmax)
+        if (pX < xmax) {
             xmax = pX;
+        }
 
         double windBarbSizfactor = graphConfigProperty.getWindBarbSize() / 2.2f;
-        if (windBarbSizfactor < 1)
+        if (windBarbSizfactor < 1) {
             windBarbSizfactor = 1;
-        double dispX = xmax - 50 * currentZoomLevel * xMagFactor
-                * windBarbSizfactor;
+        }
+        double dispX = xmax
+                - 50 * currentZoomLevel * xMagFactor * windBarbSizfactor;
 
         Coordinate cumap = world.unMap(dispX, ymax);
 

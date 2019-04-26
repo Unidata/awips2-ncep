@@ -71,9 +71,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.LayerParameters;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
@@ -92,7 +89,6 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpShowTextDialog;
 
 public class NsharpResourceHandler {
@@ -275,7 +271,7 @@ public class NsharpResourceHandler {
     private int currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
 
     private float currentParcelLayerPressure = NsharpLibSndglib.MU_LAYER_PRESS;
-    
+
     public class CompSndSelectedElem {
         private int stnIndex;
 
@@ -457,8 +453,8 @@ public class NsharpResourceHandler {
 
             }
         }
-        
-        if (hodoPaneRsc != null){
+
+        if (hodoPaneRsc != null) {
             hodoPaneRsc.createRscHodoWindShapeAll();
         }
         if (skewtPaneRsc != null) {
@@ -710,9 +706,8 @@ public class NsharpResourceHandler {
 
     public void setCurrentParcel(int currentParcel) {
         this.currentParcel = currentParcel;
-        if (currentParcel == NsharpLibSndglib.PARCELTYPE_USER_DEFINED){
-            currentParcelLayerPressure = weatherDataStore
-                    .getUserDefdParcelMb();
+        if (currentParcel == NsharpLibSndglib.PARCELTYPE_USER_DEFINED) {
+            currentParcelLayerPressure = weatherDataStore.getUserDefdParcelMb();
             // should recompute user defined parcel related weather data,
             // but instead recompute all stored weather data for now
             weatherDataStore.computeWeatherParameters(soundingLys,
@@ -909,13 +904,13 @@ public class NsharpResourceHandler {
             }
         }
     }
-    
-    private void addElementToTableAndLists(NsharpElementDescription desc, NsharpStationInfo stnInfo,
-            List<NcSoundingLayer> sndLyLst, boolean displayData) {
+
+    private void addElementToTableAndLists(NsharpElementDescription desc,
+            NsharpStationInfo stnInfo, List<NcSoundingLayer> sndLyLst,
+            boolean displayData) {
         boolean goodData = checkDataIntegrity(sndLyLst);
         NsharpSoundingElementStateProperty newSndPropElem = new NsharpSoundingElementStateProperty(
-                desc.getDescription(), stnInfo, sndLyLst,
-                goodData);
+                desc.getDescription(), stnInfo, sndLyLst, goodData);
         NsharpTimeOperationElement tmElem = desc.getTimeElement();
         NsharpOperationElement stnElem = desc.getStationElement();
         NsharpOperationElement sndTypeElem = desc.getTypeElement();
@@ -959,7 +954,7 @@ public class NsharpResourceHandler {
         NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
                 .get(stnIndex).get(tmIndex).get(sndTypeIndex);
         if (tmpNewSndPropElem != null) {
-                if (sndLyLst.size() >= tmpNewSndPropElem.getSndLyLst().size()) {
+            if (sndLyLst.size() >= tmpNewSndPropElem.getSndLyLst().size()) {
                 tmpNewSndPropElem.getSndLyLst().clear();
                 tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
                 tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
@@ -970,7 +965,7 @@ public class NsharpResourceHandler {
         }
         stnTimeSndTable.get(stnIndex).get(tmIndex).set(sndTypeIndex,
                 newSndPropElem);
-        if(displayData){
+        if (displayData) {
             currentTimeElementListIndex = tmIndex;
             currentStnElementListIndex = stnIndex;
             currentSndElementListIndex = sndTypeIndex;
@@ -979,7 +974,7 @@ public class NsharpResourceHandler {
     }
 
     private void setCurSndProfileProp() {
-        if(curSndProfileProp != null){
+        if (curSndProfileProp != null) {
             preSndProfileProp = curSndProfileProp;
         }
         if (currentTimeElementListIndex < 0
@@ -1295,7 +1290,7 @@ public class NsharpResourceHandler {
             pickedStnInfo = elem.getStnInfo();
             setSoundingInfo(elem.getSndLyLst());
         } else {
-            if(soundingLys != null){
+            if (soundingLys != null) {
                 previousSoundingLys = soundingLys;
             }
             soundingLys = null;
@@ -1341,20 +1336,22 @@ public class NsharpResourceHandler {
                 soundMap.put(newkey, sndLy);
             }
         }
-        
+
         Map<NsharpElementDescription, List<NcSoundingLayer>> newSoundMap = new HashMap<>();
-        for(Entry<String, List<NcSoundingLayer>> entry : soundMap.entrySet()){
+        for (Entry<String, List<NcSoundingLayer>> entry : soundMap.entrySet()) {
             if ("N/A".equals(entry.getKey())) {
                 continue;
             }
-            newSoundMap.put(NsharpElementDescription.parse(entry.getKey()), entry.getValue());
+            newSoundMap.put(NsharpElementDescription.parse(entry.getKey()),
+                    entry.getValue());
         }
         addRsc(stnInfo, newSoundMap, displayNewData);
     }
-    
+
     // This api peforms real load data function
-    public void addRsc(NsharpStationInfo stnInfo, 
-            Map<NsharpElementDescription, List<NcSoundingLayer>> soundMap, boolean displayNewData) {
+    public void addRsc(NsharpStationInfo stnInfo,
+            Map<NsharpElementDescription, List<NcSoundingLayer>> soundMap,
+            boolean displayNewData) {
         if (soundMap.size() <= 0
                 || (skewtPaneRsc == null && hodoPaneRsc == null)) {
             return;
@@ -1738,7 +1735,8 @@ public class NsharpResourceHandler {
         Forward, Backward, Cycle
     };
 
-    private int getElemlistActiveNumber(List<? extends NsharpOperationElement> elemlist) {
+    private int getElemlistActiveNumber(
+            List<? extends NsharpOperationElement> elemlist) {
         int n = 0;
         for (NsharpOperationElement elem : elemlist) {
             if (elem.getActionState() == NsharpConstants.ActState.ACTIVE) {
@@ -1756,12 +1754,12 @@ public class NsharpResourceHandler {
             int targetIndex = currentTimeElementListIndex;
             // preset index for LAST and FIRST operation
             switch (operation) {
-            case LAST: 
+            case LAST:
                 // the future-est time, at top of time line shown. set to
                 // -1, so in while loop, it starts from 0
                 targetIndex = -1;
                 break;
-            case FIRST: 
+            case FIRST:
                 // the oldest time, set to dataTimelineList.length, so
                 // in while loop, it starts from
                 // dataTimelineList.length-1
@@ -1802,7 +1800,7 @@ public class NsharpResourceHandler {
                     // to original
                     return;
                 }
-                    
+
                 if (timeElementList.get(targetIndex)
                         .getActionState() == NsharpConstants.ActState.ACTIVE) {
                     if (compareTmIsOn && currentStnElementListIndex >= 0
@@ -1914,7 +1912,8 @@ public class NsharpResourceHandler {
                         } else {
                             // find an active and available timeline for this
                             // stn and set is as current
-                            for (int i = 0; i < timeElementList.size(); i += 1) {
+                            for (int i = 0; i < timeElementList
+                                    .size(); i += 1) {
                                 if (timeElementList.get(i)
                                         .getActionState() == NsharpConstants.ActState.ACTIVE
                                         && stnTimeSndTable
@@ -2034,7 +2033,8 @@ public class NsharpResourceHandler {
                         } else {
                             // find an active and available timeline for this
                             // stn and set is as current
-                            for (int i = 0; i < timeElementList.size(); i += 1) {
+                            for (int i = 0; i < timeElementList
+                                    .size(); i += 1) {
                                 if (timeElementList.get(i)
                                         .getActionState() == NsharpConstants.ActState.ACTIVE
                                         && stnTimeSndTable
@@ -2132,7 +2132,7 @@ public class NsharpResourceHandler {
         if (ptFound) {
             layer = this.soundingLys.get(hodoEditingSoundingLayerIndex);
             closeptC = WxMath.uvComp(layer.getWindSpeed(),
-                     layer.getWindDirection());
+                    layer.getWindDirection());
             closeptC = hodoPaneRsc.getHodoBackground().getWorld().map(closeptC);
         } else {
             closeptC.x = closeptC.y = 0;
@@ -2203,7 +2203,7 @@ public class NsharpResourceHandler {
     }
 
     private void setSoundingInfo(List<NcSoundingLayer> sndLys) {
-        if(soundingLys != null && soundingLys != sndLys){
+        if (soundingLys != null && soundingLys != sndLys) {
             previousSoundingLys = soundingLys;
         }
 
@@ -2290,7 +2290,6 @@ public class NsharpResourceHandler {
         }
         if (spcGraphsPaneRsc != null) {
             spcGraphsPaneRsc.resetData(soundingLys);
-        }
         }
     }
 
@@ -2893,12 +2892,12 @@ public class NsharpResourceHandler {
             }
         }
         int colorIndex = NsharpConstants.LINE_COMP1;
-        for(NsharpSoundingElementStateProperty prop : rslt){
-            if(prop != null){
+        for (NsharpSoundingElementStateProperty prop : rslt) {
+            if (prop != null) {
                 prop.setCompColorIndex(colorIndex);
             }
             colorIndex += 1;
-            if (colorIndex > NsharpConstants.LINE_COMP10){
+            if (colorIndex > NsharpConstants.LINE_COMP10) {
                 colorIndex = NsharpConstants.LINE_COMP1;
             }
         }

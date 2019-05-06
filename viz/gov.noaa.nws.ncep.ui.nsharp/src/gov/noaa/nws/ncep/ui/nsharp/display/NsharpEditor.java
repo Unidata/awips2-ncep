@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -15,11 +16,14 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.IDisplayPane;
@@ -28,7 +32,6 @@ import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.datastructure.LoopProperties;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
-import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.EditorUtil;
@@ -44,15 +47,9 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpAbstractPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpDataPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpHodoPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpInsetPaneResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpPartListener;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSkewTPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSpcGraphsPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpTimeStnPaneResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpWitoPaneResource;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
 import gov.noaa.nws.ncep.ui.pgen.tools.InputHandlerDefaultImpl;
 import gov.noaa.nws.ncep.viz.ui.display.NCLoopProperties;
@@ -85,6 +82,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCLoopProperties;
  * Aug 01, 2018  6858        bsteffen   Clone loop properties on constructor.
  * Sep 28, 2018  7479        bsteffen   Ensure reused panes have valid extents.
  * Nov 05, 2018  6800        bsteffen   Use a new handler when a procedure is loaded.
+ * Apr 22, 2019  6660        bsteffen   Apply background color to all panes.
  * 
  * </pre>
  * 
@@ -92,6 +90,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NCLoopProperties;
  */
 public class NsharpEditor extends AbstractEditor
         implements IRenderableDisplayChangedListener {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NsharpEditor.class);
+
     private boolean restarting = false;
 
     private static int DISPLAY_Head = 0;
@@ -203,15 +205,19 @@ public class NsharpEditor extends AbstractEditor
 
         // It might be desirable to stop here so that we only have an "active"
         // editor if it really is active.
-        if (PlatformUI.getWorkbench() == null
-                || PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null)
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        if (workbench == null) {
             return null;
-        IWorkbenchPage activePage = PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getActivePage();
-        IEditorReference[] references = new IEditorReference[0];
-        if (activePage != null) {
-            references = activePage.getEditorReferences();
         }
+        IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+        if (window == null) {
+            return null;
+        }
+        IWorkbenchPage activePage = window.getActivePage();
+        if (activePage == null) {
+            return null;
+        }
+        IEditorReference[] references = activePage.getEditorReferences();
 
         for (IEditorReference ref : references) {
             ep = ref.getEditor(false);
@@ -225,8 +231,9 @@ public class NsharpEditor extends AbstractEditor
     @Override
     public void createPartControl(Composite comp) {
         parentComp = comp;
-        if (baseComposite != null)
+        if (baseComposite != null) {
             baseComposite.dispose();
+        }
         baseComposite = new Composite(comp, SWT.NONE);
         final GridLayout mainGL;
         resizeLsner = new ResizeListener(paneConfigurationName);
@@ -250,7 +257,7 @@ public class NsharpEditor extends AbstractEditor
             timeStnWidthHintRatio = NsharpConstants.PANE_DEF_CFG_2_TIMESTN_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_DEF_CFG_2_DATA_HEIGHT_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_DEF_CFG_2_DATA_WIDTH_RATIO;
-            createDefConfig2(baseComposite);
+            createDefConfig2();
         } else if (paneConfigurationName
                 .equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
             mainGL = new GridLayout(2, false);
@@ -271,7 +278,7 @@ public class NsharpEditor extends AbstractEditor
             timeStnWidthHintRatio = NsharpConstants.PANE_DEF_CFG_1_TIMESTN_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_DEF_CFG_1_DATA_HEIGHT_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_DEF_CFG_1_DATA_WIDTH_RATIO;
-            createDefConfig1(baseComposite);
+            createDefConfig1();
         } else if (paneConfigurationName
                 .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
             mainGL = new GridLayout(1, true);
@@ -290,7 +297,7 @@ public class NsharpEditor extends AbstractEditor
             insetWidthHintRatio = NsharpConstants.PANE_SPCWS_CFG_INSET_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_SPCWS_CFG_DATA_HEIGHT_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_SPCWS_CFG_DATA_WIDTH_RATIO;
-            createSPCWsConfig(baseComposite);
+            createSPCWsConfig();
         } else if (paneConfigurationName
                 .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
             mainGL = new GridLayout(1, true);
@@ -307,7 +314,7 @@ public class NsharpEditor extends AbstractEditor
             hodoWidthHintRatio = NsharpConstants.PANE_SIMPLE_D2D_CFG_HODO_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_SIMPLE_D2D_CFG_DATA_HEIGHT_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_SIMPLE_D2D_CFG_DATA_WIDTH_RATIO;
-            createSimpleD2DConfig(baseComposite);
+            createSimpleD2DConfig();
         } else if (paneConfigurationName
                 .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
             mainGL = new GridLayout(1, true);
@@ -324,7 +331,7 @@ public class NsharpEditor extends AbstractEditor
             timeStnWidthHintRatio = NsharpConstants.PANE_LITE_D2D_CFG_TIMESTN_WIDTH_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_LITE_D2D_CFG_DATA_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_LITE_D2D_CFG_DATA_HEIGHT_RATIO;
-            createLiteD2DConfig(baseComposite);
+            createLiteD2DConfig();
         } else if (paneConfigurationName
                 .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             mainGL = new GridLayout(1, true);
@@ -341,7 +348,8 @@ public class NsharpEditor extends AbstractEditor
             timeStnWidthHintRatio = NsharpConstants.PANE_OPC_CFG_TIMESTN_WIDTH_RATIO;
             dataWidthHintRatio = NsharpConstants.PANE_OPC_CFG_DATA_WIDTH_RATIO;
             dataHeightHintRatio = NsharpConstants.PANE_OPC_CFG_DATA_HEIGHT_RATIO;
-            createLiteD2DConfig(baseComposite); // share d2d lite code
+            /* share d2d lite code */
+            createLiteD2DConfig();
         }
         skewtInputManager = new InputManager(this);
         timeStnInputManager = new InputManager(this);
@@ -362,20 +370,22 @@ public class NsharpEditor extends AbstractEditor
             selectedPane = displayPanes[0];
 
             for (int i = 0; i < displayPanes.length; i++) {
-                if (displayPanes[i] != null)
+                if (displayPanes[i] != null) {
                     displayPanes[i].addListener(SWT.MouseEnter,
                             new PaneMouseListener(i));
+                }
             }
         } catch (Exception e) {
             final String errMsg = "Error setting up NsharpEditor";
             UFStatus.getHandler().handle(Priority.SIGNIFICANT, errMsg, e);
         }
-        if (!restarting)
+        if (!restarting) {
             contributePerspectiveActions();
+        }
 
     }
 
-    private void createSPCWsConfig(Composite comp) {
+    private void createSPCWsConfig() {
         topGp = new Group(baseComposite, SWT.NONE);
         GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
@@ -465,7 +475,7 @@ public class NsharpEditor extends AbstractEditor
         nsharpComp[DISPLAY_SPC_GRAPHS] = spcComp;
     }
 
-    private void createSimpleD2DConfig(Composite comp) {
+    private void createSimpleD2DConfig() {
         topGp = new Group(baseComposite, SWT.NONE);
         GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
@@ -548,7 +558,7 @@ public class NsharpEditor extends AbstractEditor
         nsharpComp[DISPLAY_DATA] = dataComp;
     }
 
-    private void createLiteD2DConfig(Composite comp) {
+    private void createLiteD2DConfig() {
         topGp = new Group(baseComposite, SWT.NONE);
         GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
@@ -614,7 +624,7 @@ public class NsharpEditor extends AbstractEditor
 
     }
 
-    private void createDefConfig2(Composite comp) {
+    private void createDefConfig2() {
         leftGp = new Group(baseComposite, SWT.NONE);
         GridData leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         leftGp.setLayoutData(leftGpGd);
@@ -713,7 +723,7 @@ public class NsharpEditor extends AbstractEditor
         nsharpComp[DISPLAY_DATA] = dataComp;
     }
 
-    private void createDefConfig1(Composite comp) {
+    private void createDefConfig1() {
         leftGp = new Group(baseComposite, SWT.NONE);
         GridData leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 
@@ -852,8 +862,9 @@ public class NsharpEditor extends AbstractEditor
                             pane);
                     mouseHandler = dataPaneMouseHandler;
                     inputMgr = dataInputManager;
-                } else
+                } else {
                     continue;
+                }
 
                 inputMgr.registerMouseHandler(mouseHandler);
 
@@ -886,8 +897,9 @@ public class NsharpEditor extends AbstractEditor
                 && !paneConfigurationName
                         .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
                 && !paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR))
+                        .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             paneConfigurationName = NsharpConstants.PANE_SIMPLE_D2D_CFG_STR;
+        }
         initPaneIndices();
         EditorInput edInput = (EditorInput) editorInput;
 
@@ -949,8 +961,9 @@ public class NsharpEditor extends AbstractEditor
 
     @Override
     public void setFocus() {
-        if (selectedPane != null)
+        if (selectedPane != null) {
             selectedPane.setFocus();
+        }
     }
 
     @Override
@@ -1007,14 +1020,11 @@ public class NsharpEditor extends AbstractEditor
             rscHandler = null;
         }
         // }
-        try {
-            IWorkbenchPage wpage = PlatformUI.getWorkbench()
-                    .getActiveWorkbenchWindow().getActivePage();
-            IViewPart vpart = wpage
-                    .findView("gov.noaa.nws.ncep.ui.nsharp.defaultview1");
+        IWorkbenchPage wpage = getSite().getPage();
+        IViewPart vpart = wpage
+                .findView("gov.noaa.nws.ncep.ui.nsharp.defaultview1");
+        if (vpart != null) {
             wpage.hideView(vpart);
-        } catch (Exception e) {
-
         }
 
     }
@@ -1088,11 +1098,13 @@ public class NsharpEditor extends AbstractEditor
      */
     @Override
     public void refresh() {
-        if (displayPanes != null)
+        if (displayPanes != null) {
             for (IDisplayPane pane : displayPanes) {
-                if (pane != null)
+                if (pane != null) {
                     pane.refresh();
+                }
             }
+        }
     }
 
     @Override
@@ -1188,24 +1200,20 @@ public class NsharpEditor extends AbstractEditor
     @Override
     public IDisplayPane[] getDisplayPanes() {
         // changed for D2D
-        if (displayPanes.length <= 0)
-            try {
-                throw new VizException("Display pane is not available!");
-            } catch (VizException e) {
-
-                e.printStackTrace();
-            }
-        IDisplayPane[] pan = { displayPanes[DISPLAY_Head] };
-        return pan;
-
+        if (displayPanes.length <= 0) {
+            return displayPanes;
+        }
+        return new IDisplayPane[] { displayPanes[DISPLAY_Head] };
     }
 
     public IRenderableDisplay[] getRenderableDisplays() {
         IRenderableDisplay[] displays = new IRenderableDisplay[displayPanes.length];
         int i = 0;
         for (IDisplayPane pane : displayPanes) {
-            if (pane != null)
-                displays[i++] = pane.getRenderableDisplay();
+            if (pane != null) {
+                displays[i] = pane.getRenderableDisplay();
+            }
+            i += 1;
         }
         return displays;
     }
@@ -1301,7 +1309,8 @@ public class NsharpEditor extends AbstractEditor
             DISPLAY_WITO = -1;
             DISPLAY_INSET = -1;
             DISPLAY_SPC_GRAPHS = -1;
-        } else { // case of default1 and default 2 pane configurations
+        } else {
+            /* case of default1 and default 2 pane configurations */
             DISPLAY_SKEWT = 0;
             DISPLAY_WITO = DISPLAY_SKEWT + 1;
             DISPLAY_INSET = DISPLAY_WITO + 1;
@@ -1486,7 +1495,7 @@ public class NsharpEditor extends AbstractEditor
                         .openEditor(edInput, EDITOR_ID);
 
             } catch (PartInitException e) {
-                e.printStackTrace();
+                statusHandler.error("Cannot open NSharp Editor.", e);
             }
             return editor;
         }
@@ -1861,8 +1870,8 @@ public class NsharpEditor extends AbstractEditor
                 nsharpComp[DISPLAY_DATA].setLayoutData(dataGd);
             }
             for (int i = 0; i < DISPLAY_TOTAL; i++) {
-                if (displayArray[i] != null && displayArray[i].getDescriptor()
-                        .getResourceList().isEmpty() == false) {
+                if (displayArray[i] != null && !displayArray[i].getDescriptor()
+                        .getResourceList().isEmpty()) {
                     ResourcePair rscPair = displayArray[i].getDescriptor()
                             .getResourceList().get(0);
                     if (rscPair
@@ -1935,6 +1944,19 @@ public class NsharpEditor extends AbstractEditor
 
     public String getPaneConfigurationName() {
         return paneConfigurationName;
+    }
+
+    @Override
+    public void setColor(BGColorMode mode, RGB newColor) {
+        for (IDisplayPane pane : displayPanes) {
+            if (pane != null) {
+                IRenderableDisplay disp = pane.getRenderableDisplay();
+                if (disp != null) {
+                    disp.setBackgroundColor(newColor);
+                }
+            }
+        }
+        this.refresh();
     }
 
 }

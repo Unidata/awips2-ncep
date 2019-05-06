@@ -85,7 +85,7 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
 
     private final Color colorLightGrey;
 
-    private final VerifyListener floatVerifyListener = (e) -> {
+    private final VerifyListener postiveFloatVerifyListener = (e) -> {
         String string = e.text;
         for (int i = 0; i < string.length(); i++) {
             if (!('0' <= string.charAt(i) && string.charAt(i) <= '9')
@@ -96,7 +96,7 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
         }
     };
 
-    private final VerifyListener postiveFloatVerifyListener = (e) -> {
+    private final VerifyListener floatVerifyListener = (e) -> {
         String string = e.text;
         for (int i = 0; i < string.length(); i++) {
             if (!('0' <= string.charAt(i) && string.charAt(i) <= '9')

@@ -58,31 +58,36 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * March 2009   86          M. Li       Initial creation.
- * June  2009   109         M. Li       Add POINT_SELECT cursor
- * Sept  2009   169         G. Hull     NCMapEditor
- * Nov   2010   337         G. Zhang    TTRs fixing.
- * Dec   2010   351         Archana     Added a reference to the SeekResultsAction object that
- *                                                           created the dialog.
- *                                                           Altered the base class to Dialog instead of CaveSWTDialog.
- *                                                           Added a DisposeListener to the close button to
- *                                                           remove the seek layer.
- *                                                           Added functionality to the "Take Control"
- *                                                           button to match legacy.
- * March  2011    351       Archana      Changed the path to save the CPF file - it is now under the user's home directory.  
- * Jan    2012   #561       G. Hull      make independent of Locator project.
- * 02/22/2012    #644       Q.Zhou       Added unit NM. Fixed point1 text(double units).
- * 04/12/2019    #7803      K. Sunil     changes to make SeekTool work on D2D perspective
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * March 2009    86       M. Li     Initial creation.
+ * June  2009    109      M. Li     Add POINT_SELECT cursor
+ * Sept  2009    169      G. Hull   NCMapEditor
+ * Nov   2010    337      G. Zhang  TTRs fixing.
+ * Dec   2010    351      Archana   Added a reference to the SeekResultsAction
+ *                                  object that created the dialog. Altered the
+ *                                  base class to Dialog instead of
+ *                                  CaveSWTDialog. Added a DisposeListener to
+ *                                  the close button to remove the seek layer.
+ *                                  Added functionality to the "Take Control"
+ *                                  button to match legacy.
+ * March  2011   351      Archana   Changed the path to save the CPF file - it
+ *                                  is now under the user's home directory.
+ * Jan    2012   561      G. Hull   make independent of Locator project.
+ * Feb 22, 2012  644      Q.Zhou    Added unit NM. Fixed point1 text(double
+ *                                  units).
+ * Apr 12, 2019  7803     K. Sunil  changes to make SeekTool work on D2D
+ *                                  perspective
+ * May 08, 2019  63530    tjensen   Fix Take Control button to resolve editable
+ *                                  conflicts
+ *
  * </pre>
  *
  * @author mli
- * @version 1.0
  *
  */
 public class SeekResultsDialog extends Dialog {
-    // added the SeekResultsAction object
 
     private SeekResultsAction associatedSeekAction;
 
@@ -96,18 +101,9 @@ public class SeekResultsDialog extends Dialog {
      */
     private Shell shell;
 
-    /**
-     * @return the shell
-     */
-    // added by archana
     protected Shell getShell() {
         return shell;
     }
-
-    /**
-     * Return object.
-     */
-    private final Boolean returnValue = false;
 
     /**
      * Font used for the list controls.
@@ -157,8 +153,8 @@ public class SeekResultsDialog extends Dialog {
 
     private int currentPointID = 0;
 
-    private ClickPointData[] clickPtData = new ClickPointData[] {
-            new ClickPointData(), new ClickPointData() };// 2];
+    private final ClickPointData[] clickPtData = new ClickPointData[] {
+            new ClickPointData(), new ClickPointData() };
 
     private boolean isClicked = false;
 
@@ -212,9 +208,7 @@ public class SeekResultsDialog extends Dialog {
 
     public static SeekResultsDialog getInstance(Shell parShell,
             SeekResultsAction anAction) {
-        /*
-         * archana - added the SeekResultsAction parameter
-         */
+
         if (seekDialogInstanceMap.get(parShell.toString()) == null) {
             try {
                 SeekResultsDialog sd = new SeekResultsDialog(parShell);
@@ -228,11 +222,9 @@ public class SeekResultsDialog extends Dialog {
     }
 
     /**
-     * Open method used to display the Time Series dialog.
-     *
-     * @return Return object (can be null).
+     * Open method used to display the Seek Tool dialog.
      */
-    public Object open() {
+    public void open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
         Cursor prevCursor = parent.getCursor();
@@ -254,13 +246,11 @@ public class SeekResultsDialog extends Dialog {
 
         // Initialize all of the controls and layouts
         initializeComponents();
-        // setCurrentData();
 
         shell.pack();
 
         shell.open();
 
-        // parent.setCursor(arrowCursor);
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {
                 display.sleep();
@@ -283,8 +273,6 @@ public class SeekResultsDialog extends Dialog {
         if (mgr != null) {
             mgr.getToolManager().deselectModalTool(associatedSeekAction);
         }
-
-        return returnValue;
     }
 
     /**
@@ -302,10 +290,10 @@ public class SeekResultsDialog extends Dialog {
 
         createPointsDistanceControls();
         addSeparator();
-        createCloseButton();
+        createButtons();
 
-        setResults(); // ???
-        setClickPtText(); // ???
+        setResults();
+        setClickPtText();
         setDrawing();
     }
 
@@ -326,11 +314,7 @@ public class SeekResultsDialog extends Dialog {
         title2.setLayoutData(tgd2);
         title2.setText("LAT      LON             Distance ");
 
-        // title = new Label(resultsComp, SWT.NONE);
-        // title.setText("STATION NAME LAT LON Distance ");
-
         GridData gd = new GridData(365, 80);
-        // gd.heightHint = 80;
         resultList = new List(resultsComp,
                 SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL);
         resultList.setLayoutData(gd);
@@ -339,8 +323,7 @@ public class SeekResultsDialog extends Dialog {
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                // TODO Auto-generated method stub
-
+                // no operation
             }
 
             @Override
@@ -382,6 +365,7 @@ public class SeekResultsDialog extends Dialog {
             distCombo.add(DISTANCEUNIT_OPTIONS[i]);
         }
         distCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 distUnitIndex = distCombo.getSelectionIndex();
                 formatResults();
@@ -403,6 +387,7 @@ public class SeekResultsDialog extends Dialog {
         }
 
         dirCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 dirUnitIndex = dirCombo.getSelectionIndex();
                 formatResults();
@@ -415,16 +400,15 @@ public class SeekResultsDialog extends Dialog {
         Label limitLabel = new Label(dspGroup, SWT.NONE);
         limitLabel.setText("       Limit: ");
         limitLabel.setLayoutData(new GridData());
-        // limitLabel.setEnabled(false);
 
         final Spinner spinner = new Spinner(dspGroup, SWT.BORDER);
         spinner.setLayoutData(new GridData());
         spinner.setMinimum(1);
         spinner.setMaximum(25);
-        spinner.setSelection(limitNo);// 25);
-        // spinner.setEnabled(false);
+        spinner.setSelection(limitNo);
 
         spinner.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 limitNo = spinner.getSelection();
                 formatResults();
@@ -443,6 +427,7 @@ public class SeekResultsDialog extends Dialog {
         button1 = new Button(clickComp, SWT.PUSH);
         button1.setText("1");
         button1.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 currentPointID = 0;
                 setResults();
@@ -457,16 +442,13 @@ public class SeekResultsDialog extends Dialog {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                // old code moved into doKeyPressed()
+                // no operation
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-
                 doKeyPressed(0, combo1, text1, e);
-
             }
-
         });
 
         combo1 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -479,6 +461,7 @@ public class SeekResultsDialog extends Dialog {
         button2 = new Button(clickComp, SWT.PUSH);
         button2.setText("2");
         button2.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 currentPointID = 1;
                 setResults();
@@ -493,41 +476,21 @@ public class SeekResultsDialog extends Dialog {
 
             @Override
             public void keyPressed(KeyEvent e) {
-
+                // no operation
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-
                 doKeyPressed(1, combo2, text2, e);
-
             }
-
         });
 
         combo2 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        // combo2.setLayoutData(new GridData(GridData.END));
-
         combo2.add("LATLON");
-        // LocatorDataSourceMngr myloc = new LocatorDataSourceMngr();
 
-        // LocalizationManager.getInstance().getFilename("locatorTable"));
         try {
-
             combo1.setItems(SeekInfo.getStnTypes());
             combo2.setItems(SeekInfo.getStnTypes());
-
-            // list = (ArrayList<LocatorDataSource>) myloc.getLocatorTable();
-
-            /*--- old code kept for reference
-             *
-            for (int i = 0; i < list.size(); i++) {
-            	if (list.get(i).isUsedInSeek() != null && list.get(i).isUsedInSeek()) {
-            		combo1.add(list.get(i).getLocatorName());
-            		combo2.add(list.get(i).getLocatorName());
-            	}
-            }*/
-
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -538,16 +501,17 @@ public class SeekResultsDialog extends Dialog {
         clickPoint2.setLayoutData(new GridData(100, SWT.DEFAULT));
 
         clickPoint1.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 currentPointID = 0;
                 clickPtData[0].setActivated(true);
                 clickPtData[1].setActivated(false);
                 setResults();
-
             }
         });
 
         clickPoint2.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 currentPointID = 1;
                 clickPtData[1].setActivated(true);
@@ -557,6 +521,7 @@ public class SeekResultsDialog extends Dialog {
         });
 
         combo1.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
 
                 currentPointID = 0;
@@ -571,6 +536,7 @@ public class SeekResultsDialog extends Dialog {
         });
 
         combo2.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
 
                 currentPointID = 1;
@@ -591,7 +557,6 @@ public class SeekResultsDialog extends Dialog {
 
         text1.setText(txt1txt);
         text2.setText(txt2txt);
-
     }
 
     private void createPointsDistanceControls() {
@@ -634,6 +599,7 @@ public class SeekResultsDialog extends Dialog {
         button12.setFont(arrowFont);
         button12.setText("--->\n<---");
         button12.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 pointOrder = (pointOrder + 1) % 2;
                 formatPointDist();
@@ -651,23 +617,22 @@ public class SeekResultsDialog extends Dialog {
     /**
      * Create the default and close button.
      */
-    private void createCloseButton() {
+    private void createButtons() {
 
         centeredComp = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(3, true);
         centeredComp.setLayout(gl);
         GridData gd = new GridData(SWT.FILL, SWT.DEFAULT, true, false);
-        // gd.horizontalSpan = 3;
         centeredComp.setLayoutData(gd);
-
-        // gd = new GridData(90, SWT.DEFAULT);
 
         Button takeCtrlBtn = new Button(centeredComp, SWT.NONE);
         takeCtrlBtn.setText("Take Control");
         takeCtrlBtn.setLayoutData(gd);
         takeCtrlBtn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 if (associatedSeekAction != null) {
+
                     AbstractVizPerspectiveManager mgr = VizPerspectiveListener
                             .getCurrentPerspectiveManager();
                     if (mgr != null) {
@@ -682,7 +647,7 @@ public class SeekResultsDialog extends Dialog {
                             e1.printStackTrace();
                         }
                     }
-
+                    associatedSeekAction.takeControl();
                 }
 
             }
@@ -693,10 +658,9 @@ public class SeekResultsDialog extends Dialog {
         saveCPFBtn.setLayoutData(gd);
 
         saveCPFBtn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
-
                 saveCPF();
-
             }
         });
 
@@ -704,6 +668,7 @@ public class SeekResultsDialog extends Dialog {
         closeBtn.setText("Close");
         closeBtn.setLayoutData(gd);
         closeBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 close();
             }
@@ -763,7 +728,8 @@ public class SeekResultsDialog extends Dialog {
 
         String locName = clickPtData[currentPointID].getLocatorName();
 
-        if ("LATLON".equals(locName)) { // LATLON
+        // LATLON
+        if ("LATLON".equals(locName)) {
             resultList.removeAll();
             disposeList2(resultsComp);
             title.setEnabled(false);
@@ -946,7 +912,6 @@ public class SeekResultsDialog extends Dialog {
         // format distance
         String distStr = LocatorUtil.distanceDisplay(dist, 1,
                 distCombo.getText());
-        // + distCombo.getText().toLowerCase();
 
         // format direction
         String dirStr = "-";
@@ -1017,7 +982,6 @@ public class SeekResultsDialog extends Dialog {
             for (ResourcePair r : rscs) {
                 if (r.getResource() instanceof SeekDrawingLayer) {
                     seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                    // seekDrawingLayer. drawClickPtLine(c1, c2);
                     seekDrawingLayer.getResourceData().setFirstPt(c1);
                     seekDrawingLayer.getResourceData().setLastPt(c2);
                     theEditor.refresh();
@@ -1035,7 +999,6 @@ public class SeekResultsDialog extends Dialog {
         return (clickPoint1 != null) && (!clickPoint1.isDisposed());
     }
 
-    // added by archana
     public void close() {
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.dispose();
@@ -1062,16 +1025,13 @@ public class SeekResultsDialog extends Dialog {
         try {
 
             File f = new File(dirLocal + File.separator + fileName);
-            Writer output = new BufferedWriter(new FileWriter(f));
 
-            try {
+            try (Writer output = new BufferedWriter(new FileWriter(f))) {
                 output.write(getCPFTxt(fileName, date));
                 output.flush();
 
             } catch (Exception ee) {
                 System.out.println(ee.getMessage());
-            } finally {
-                output.close();
             }
 
         } catch (Exception e) {
@@ -1185,7 +1145,7 @@ public class SeekResultsDialog extends Dialog {
                     disposeList2(centeredComp);
                     createResultList2();
                     createPointsDistanceControls();
-                    createCloseButton();
+                    createButtons();
                     shell.pack();
                     shell.layout();
 
@@ -1236,7 +1196,7 @@ public class SeekResultsDialog extends Dialog {
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-
+                // no operation
             }
 
             @Override
@@ -1290,7 +1250,6 @@ public class SeekResultsDialog extends Dialog {
      *            the Text to be set.
      */
     private void selectStn(int index, Text text) {
-        // int index = resultList2.getSelectionIndex();
         if (closePoints != null) {
 
             Coordinate c = new Coordinate(closePoints[index].getLon(),
@@ -1381,7 +1340,6 @@ public class SeekResultsDialog extends Dialog {
      * @param c2:
      *            Coordinate of a points.
      */
-    @SuppressWarnings("static-access")
     private void drawLine2(Coordinate c1, Coordinate c2) {
 
         distanceBtwPoints();
@@ -1397,7 +1355,6 @@ public class SeekResultsDialog extends Dialog {
             if (r.getResource() instanceof SeekDrawingLayer) {
 
                 seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                // seekDrawingLayer.drawClickPtLine(c1, c2);
                 seekDrawingLayer.getResourceData().setFirstPt(c1);
                 seekDrawingLayer.getResourceData().setLastPt(c2);
                 theEditor.refresh();

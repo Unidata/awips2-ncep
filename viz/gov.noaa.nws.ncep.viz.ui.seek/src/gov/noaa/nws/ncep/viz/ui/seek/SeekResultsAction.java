@@ -25,31 +25,34 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 /**
  * Popup SEEK results dialog in National Centers perspective.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * March 2009   86        M. Li        Initial creation.
- * Sept  2009   169       G. Hull      AbstractNCModalMapTool
- * Dec   2010   351      Archana      Removed getSeekLayer()
- *                                                        Added logic to initializeTheSeekLayer()
- *                                                        such that the seekDrawingLayer is created afresh
- *                                                        for each descriptor
- *                                                        Moved the data associated with the seek resource (seekDrawingLayer)
- *                                                        to the seekResourceData object
- *                                                        Updated the execute() method to toggle
- *                                                        the display of the seek layer.  
- * Jan   2012   TTR 326   J. Zeng      handled NUllPointerException
- * May   2012   # 747     B. Yin       Made the pan tool work when the shift key is held down.
- * Feb   2012   #972      G. Hull      don't implement for NTRANS displays
- * 04/12/2019   #7803     K. Sunil     changes to make SeekTool work on D2D perspective
- * 
+ *
+ * Date          Ticket#     Engineer  Description
+ * ------------- ----------- --------- -----------------------------------------
+ * March 2009    86          M. Li     Initial creation.
+ * Sept  2009    169         G. Hull   AbstractNCModalMapTool
+ * Dec   2010    351      A  chana     Removed getSeekLayer() Added logic to
+ *                                     initializeTheSeekLayer() such that the
+ *                                     seekDrawingLayer is created afresh for
+ *                                     each descriptor Moved the data associated
+ *                                     with the seek resource (seekDrawingLayer)
+ *                                     to the seekResourceData object Updated
+ *                                     the execute() method to toggle the
+ *                                     display of the seek layer.
+ * Jan   2012    TTR 326     J. Zeng   handled NUllPointerException
+ * May   2012    747         B. Yin    Made the pan tool work when the shift key
+ *                                     is held down.
+ * Feb   2012    972         G. Hull   don't implement for NTRANS displays
+ * Apr 12, 2019  7803        K. Sunil  changes to make SeekTool work on D2D
+ *                                     perspective
+ * May 08, 2019  63530       tjensen   Added takeControl()
+ *
  * </pre>
- * 
+ *
  * @author mli
- * @version 1.0
- * 
+ *
  */
 
 public class SeekResultsAction extends AbstractNcModalTool {
@@ -62,6 +65,7 @@ public class SeekResultsAction extends AbstractNcModalTool {
 
     protected SeekResultsDialog seekRsltsDlg;
 
+    @Override
     protected void activateTool() {
 
         /*
@@ -97,11 +101,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
         }
     }
 
-    /*
-     * (non-Javadoc) org.osgi.framework.BundleContext
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractModalTool#deactivateTool()
-     */
     @Override
     public void deactivateTool() {
 
@@ -120,12 +119,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
 
         private boolean simulate;
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         * int, int)
-         */
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
             Coordinate[] endpts = new Coordinate[2];
@@ -139,15 +132,13 @@ public class SeekResultsAction extends AbstractNcModalTool {
                     return false;
                 }
 
-                if (seekRsltsDlg != null && seekRsltsDlg.isDlgOpen()
-                        && ll != null) {
+                if (seekRsltsDlg != null && seekRsltsDlg.isDlgOpen()) {
                     seekRsltsDlg.setPosition(ll);
                     endpts = seekRsltsDlg.getEndPoints();
                     if (endpts[0] != null || endpts[1] != null) {
-                        ((SeekResourceData) seekDrawingLayer.getResourceData())
+                        seekDrawingLayer.getResourceData()
                                 .setFirstPt(endpts[0]);
-                        ((SeekResourceData) seekDrawingLayer.getResourceData())
-                                .setLastPt(endpts[1]);
+                        seekDrawingLayer.getResourceData().setLastPt(endpts[1]);
                     }
                 }
                 mapEditor.refresh();
@@ -155,12 +146,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
             return false;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
-         * int, int)
-         */
         @Override
         public boolean handleMouseDownMove(int x, int y, int button) {
             if (button != 1 || shiftDown) {
@@ -171,11 +156,8 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 Coordinate c2 = mapEditor.translateClick(x, y);
                 if (seekRsltsDlg != null && seekRsltsDlg.isDlgOpen()
                         && c1 != null && c2 != null) {
-                    // seekDrawingLayer.drawLine(c1, c2);
-                    ((SeekResourceData) seekDrawingLayer.getResourceData())
-                            .setPoint1(c1);
-                    ((SeekResourceData) seekDrawingLayer.getResourceData())
-                            .setPoint2(c2);
+                    seekDrawingLayer.getResourceData().setPoint1(c1);
+                    seekDrawingLayer.getResourceData().setPoint2(c2);
                     // Calculate distance and direction
                     GeodeticCalculator gc = new GeodeticCalculator(
                             DefaultEllipsoid.WGS84);
@@ -196,11 +178,9 @@ public class SeekResultsAction extends AbstractNcModalTool {
                     String str = seekRsltsDlg.getFormatDistance(distanceInMeter,
                             azimuth);
 
-                    ((SeekResourceData) seekDrawingLayer.getResourceData())
-                            .clearStrings();
+                    seekDrawingLayer.getResourceData().clearStrings();
                     if (str != null) {
-                        ((SeekResourceData) seekDrawingLayer.getResourceData())
-                                .drawString(c, str);
+                        seekDrawingLayer.getResourceData().drawString(c, str);
                     }
                     mapEditor.refresh();
 
@@ -223,12 +203,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
             return false;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int,
-         * int)
-         */
         @Override
         public boolean handleMouseUp(int x, int y, int button) {
             if (button != 1) {
@@ -239,10 +213,8 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 if (ll == null) {
                     return false;
                 }
-                ((SeekResourceData) seekDrawingLayer.getResourceData())
-                        .clearStrings();
-                ((SeekResourceData) seekDrawingLayer.getResourceData())
-                        .clearLine();
+                seekDrawingLayer.getResourceData().clearStrings();
+                seekDrawingLayer.getResourceData().clearLine();
                 mapEditor.refresh();
                 return true;
             }
@@ -300,7 +272,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
              * save off the resource data for the next time the handler is
              * activated
              */
-
             if (mapEditor != null) {
                 NcEditorUtil.getDescriptor(mapEditor).getResourceList()
                         .removeRsc(seekDrawingLayer);
@@ -308,7 +279,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 mapEditor.refresh();
             }
         }
-        //
     }
 
     protected SeekMouseHandler createSeekMouseHandler() {
@@ -341,5 +311,9 @@ public class SeekResultsAction extends AbstractNcModalTool {
             return true;
         }
         return false;
+    }
+
+    protected void takeControl() {
+        seekDrawingLayer.setEditable(true);
     }
 }

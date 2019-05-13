@@ -96,8 +96,6 @@ public class PgenInterpDlg extends AttrDlg {
         return INSTANCE;
     }
 
-     * org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets
-     * .Composite)
     @Override
     public Control createDialogArea(Composite parent) {
 
@@ -249,7 +247,7 @@ public class PgenInterpDlg extends AttrDlg {
      * Sets values of all attributes of the dialog.
      */
     @Override
-    public void setAttrForDlg( IAttribute attr ){
+    public void setAttrForDlg(IAttribute attr) {
     }
 
     /**
@@ -259,7 +257,7 @@ public class PgenInterpDlg extends AttrDlg {
         if (startTimeText.getText().isEmpty()) {
             return 0;
         } else {
-            return Integer.parseInt( startTimeText.getText() );
+            return Integer.parseInt(startTimeText.getText());
         }
     }
 
@@ -272,7 +270,7 @@ public class PgenInterpDlg extends AttrDlg {
         if (endTimeText.getText().isEmpty()) {
             return 0;
         } else {
-            return Integer.parseInt( endTimeText.getText() );
+            return Integer.parseInt(endTimeText.getText());
         }
     }
 

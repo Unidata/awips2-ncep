@@ -1,9 +1,6 @@
 package gov.noaa.nws.ncep.viz.ui.seek;
 
 import java.io.IOException;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +10,8 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
@@ -60,10 +59,8 @@ import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.LocatorUtil;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 /**
@@ -165,7 +162,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     private int currentPointID = 0;
 
-    private final ClickPointData[] clickPtData = new ClickPointData[] {
+    private static final ClickPointData[] clickPtData = new ClickPointData[] {
             new ClickPointData(), new ClickPointData() };
 
     private boolean isClicked = false;
@@ -228,14 +225,12 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             SeekResultsAction anAction) {
 
         if (seekDialogInstanceMap.get(parShell.toString()) == null) {
-                try {
+            try {
                 SeekResultsDialog sd = new SeekResultsDialog(parShell);
                 sd.associatedSeekAction = anAction;
                 seekDialogInstanceMap.put(parShell.toString(), sd);
             } catch (Exception e) {
-                    statusHandler.warn("Failed to create Seek Results dialog",
-                            e);
-                }
+                statusHandler.warn("Failed to create Seek Results dialog", e);
             }
         }
         return seekDialogInstanceMap.get(parShell.toString());
@@ -701,7 +696,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     public void setResults() {
         Coordinate coord = isClicked ? coordinate
                 : clickPtData[currentPointID].getCoord();
-        }
 
         // Set active button color indicating current point
         if (currentPointID == 0) {
@@ -721,28 +715,25 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             return;
         }
 
-
         String locName = clickPtData[currentPointID].getLocatorName();
 
         if (LATLON.equals(locName)) {
             resultTableTop.removeAll();
             disposeList2(resultsComp);
             return;
-        } else {
-            if (locName != null) {
-                resultTableTop.getColumn(0).setText(locName);
-            }
-
-            closePoints = SeekInfo.getClosestPoints(coord, locName);
-            if (currentPointID == 0) {
-                closePoints1 = closePoints;
-            } else {
-                closePoints2 = closePoints;
-            }
-
-            formatResults();
-
         }
+
+        if (locName != null) {
+            resultTableTop.getColumn(0).setText(locName);
+        }
+        closePoints = SeekInfo.getClosestPoints(coord, locName);
+        if (currentPointID == 0) {
+            closePoints1 = closePoints;
+        } else {
+            closePoints2 = closePoints;
+        }
+
+        formatResults();
     }
 
     private void setClickPtText() {
@@ -792,7 +783,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         if (closePoints == null) {
             return;
-        }
         }
 
         int size = Math.min(closePoints.length, limitNo);

@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.attributes;
 
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -24,11 +20,16 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+import com.raytheon.viz.ui.editor.AbstractEditor;
+
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * an interface to edit resource attributes
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -44,9 +45,9 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  *                                      Moved the changes to a new class AbstractEditResourceAttrsInteractiveDialog.
  * 03/22/2016    R10366      bkowal     Cleanup and added {@link #handleOK()}.
  * 04/05/2016    R15715      dgilling   Pass Capabilites object through to concrete classes.
- * 
+ * 04/24/2019    #62919      ksunil     changes to support NCP's locator tool in D2D
  * </pre>
- * 
+ *
  * @author ghull
  * @version 1
  */
@@ -82,13 +83,13 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
                     // GEMPAK line type 5
                     put(LineStyle.LONG_DASHED, new int[] { 16, 8 });
                     // GEMPAK line type 6
-                    put(LineStyle.LONG_DASH_THREE_SHORT_DASHES, new int[] { 16,
-                            8, 4, 8, 4, 8, 4, 8 });
+                    put(LineStyle.LONG_DASH_THREE_SHORT_DASHES,
+                            new int[] { 16, 8, 4, 8, 4, 8, 4, 8 });
                     // GEMPAK line type 7
                     put(LineStyle.LONG_DASH_DOT, new int[] { 16, 8, 2, 8 });
                     // GEMPAK line type 8
-                    put(LineStyle.LONG_DASH_THREE_DOTS, new int[] { 16, 8, 2,
-                            8, 2, 8, 2, 8 });
+                    put(LineStyle.LONG_DASH_THREE_DOTS,
+                            new int[] { 16, 8, 2, 8, 2, 8, 2, 8 });
                     // GEMPAK line type 9
                     put(LineStyle.MEDIUM_DASH_DOT, new int[] { 8, 8, 2, 8 });
                     // GEMPAK line type 10
@@ -111,7 +112,8 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
     protected boolean ok = false;
 
     public AbstractEditResourceAttrsDialog(Shell parentShell,
-            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
+            INatlCntrsResourceData r, Capabilities capabilities,
+            Boolean apply) {
         super(parentShell);
 
         this.rscData = r;
@@ -185,7 +187,11 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
                 public void widgetSelected(SelectionEvent e) {
                     rscData.setRscAttrSet(editedRscAttrSet);
                     rscData.setIsEdited(true);
-                    NcDisplayMngr.getActiveNatlCntrsEditor().refresh();
+                    AbstractEditor ed = NcDisplayMngr
+                            .getActiveNatlCntrsEditor();
+                    if (ed != null) {
+                        ed.refresh();
+                    }
                 }
             });
         }

@@ -1,6 +1,9 @@
 package gov.noaa.nws.ncep.viz.ui.seek;
 
 import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +51,7 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.dialogs.ICloseCallback;
 import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -67,8 +71,9 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
  * March   2009  86        M. Li        Initial creation.
  * June    2009  109       M. Li        Add POINT_SELECT cursor
  * Sept    2009  169       G. Hull      NCMapEditor
@@ -90,6 +95,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * Feb 15, 2019  7562      tgurney      Correctly set the previous cursor
  *                                      when closing the dialog. Set cursor
  *                                      after clicking "Take Control"
+ * Apr 12, 2019  7803      K. Sunil     changes to make SeekTool work on D2D
+ *                                      perspective
+ * May 08, 2019  63530     tjensen      Fix Take Control button to resolve editable
+ *                                      conflicts
+ *
  * </pre>
  *
  * @author mli
@@ -155,7 +165,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     private int currentPointID = 0;
 
-    private ClickPointData[] clickPtData = new ClickPointData[] {
+    private final ClickPointData[] clickPtData = new ClickPointData[] {
             new ClickPointData(), new ClickPointData() };
 
     private boolean isClicked = false;
@@ -165,7 +175,9 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     // 0 = point 1->2, 1 = point 2->1;
     private int pointOrder = 0;
 
-    private static SeekResultsDialog INSTANCE = null;
+    // Key is the Shell's toString() value. We don't want the same dialog to be
+    // shared across D2D and NCP for example.
+    private static Map<String, SeekResultsDialog> seekDialogInstanceMap = new HashMap<>();
 
     private int limitNo = 1;
 
@@ -214,26 +226,25 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
     public static SeekResultsDialog getInstance(Shell parShell,
             SeekResultsAction anAction) {
-        synchronized (SeekResultsDialog.class) {
-            if (INSTANCE == null) {
+
+        if (seekDialogInstanceMap.get(parShell.toString()) == null) {
                 try {
-                    INSTANCE = new SeekResultsDialog(parShell);
-                    INSTANCE.associatedSeekAction = anAction;
-                } catch (Exception e) {
+                SeekResultsDialog sd = new SeekResultsDialog(parShell);
+                sd.associatedSeekAction = anAction;
+                seekDialogInstanceMap.put(parShell.toString(), sd);
+            } catch (Exception e) {
                     statusHandler.warn("Failed to create Seek Results dialog",
                             e);
                 }
             }
         }
-        return INSTANCE;
+        return seekDialogInstanceMap.get(parShell.toString());
     }
 
     /**
-     * Open method used to display the Time Series dialog.
-     *
-     * @return Return object (can be null).
+     * Open method used to display the Seek Tool dialog.
      */
-    public Object open() {
+    public void open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
         CursorRef prevCursorRef = NCCursors.getInstance()
@@ -278,8 +289,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         if (mgr != null) {
             mgr.getToolManager().deselectModalTool(associatedSeekAction);
         }
-
-        return false;
     }
 
     /**
@@ -297,7 +306,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         createPointsDistanceControls();
         addSeparator();
-        createCloseButton();
+        createButtons();
 
         setResults();
         setClickPtText();
@@ -309,7 +318,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         resultsComp.setLayout(new GridLayout());
         resultsComp.setLayoutData(
                 new GridData(SWT.FILL, SWT.DEFAULT, true, false));
-
         resultTableTop = new Table(resultsComp,
                 SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
         resultTableTop.setHeaderVisible(true);
@@ -445,13 +453,13 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
             @Override
             public void keyPressed(KeyEvent e) {
+                // no operation
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
                 doKeyPressed(0, combo1, text1, e);
             }
-
         });
 
         combo1 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -460,7 +468,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             stationTypeOptions = new String[] { LATLON };
         }
         combo1.setItems(stationTypeOptions);
-
         clickPoint1 = new Button(clickComp, SWT.PUSH);
         clickPoint1.setText("Click Point");
         clickPoint1.setLayoutData(new GridData(100, SWT.DEFAULT));
@@ -483,16 +490,13 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
             @Override
             public void keyPressed(KeyEvent e) {
-
+                // no operation
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-
                 doKeyPressed(1, combo2, text2, e);
-
             }
-
         });
 
         combo2 = new Combo(clickComp, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -619,7 +623,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     /**
      * Create the default and close button.
      */
-    private void createCloseButton() {
+    private void createButtons() {
 
         centeredComp = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(3, true);
@@ -634,6 +638,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             @Override
             public void handleEvent(Event e) {
                 if (associatedSeekAction != null) {
+
                     AbstractVizPerspectiveManager mgr = VizPerspectiveListener
                             .getCurrentPerspectiveManager();
                     if (mgr != null) {
@@ -641,6 +646,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                                 .selectModalTool(associatedSeekAction);
                         associatedSeekAction.activate();
                     }
+                    associatedSeekAction.takeControl();
                     NCCursors.getInstance().setCursor(getParent(),
                             NCCursors.CursorRef.POINT_SELECT);
                 }
@@ -654,9 +660,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         saveCPFBtn.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
-
                 saveCPF();
-
             }
         });
 
@@ -697,6 +701,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
     public void setResults() {
         Coordinate coord = isClicked ? coordinate
                 : clickPtData[currentPointID].getCoord();
+        }
 
         // Set active button color indicating current point
         if (currentPointID == 0) {
@@ -715,6 +720,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                 && (closePoints2 == null)) {
             return;
         }
+
 
         String locName = clickPtData[currentPointID].getLocatorName();
 
@@ -735,6 +741,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             }
 
             formatResults();
+
         }
     }
 
@@ -782,8 +789,10 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         resultTableTop.removeAll();
 
         closePoints = currentPointID == 0 ? closePoints1 : closePoints2;
+
         if (closePoints == null) {
             return;
+        }
         }
 
         int size = Math.min(closePoints.length, limitNo);
@@ -934,10 +943,10 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         setClickPtText();
 
         SeekDrawingLayer seekDrawingLayer = null;
-        AbstractEditor theEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
+        AbstractEditor theEditor = (AbstractEditor) EditorUtil
+                .getActiveEditor();
 
-        if (theEditor != null && NcEditorUtil
-                .getNcDisplayType(theEditor) == NcDisplayType.NMAP_DISPLAY) {
+        if (SeekResultsAction.isSeekToolAllowed(theEditor)) {
 
             ResourceList rscs = NcEditorUtil.getDescriptor(theEditor)
                     .getResourceList();
@@ -1019,6 +1028,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
         NumberFormat lonFormat = new DecimalFormat("000.00");
         NumberFormat latFormat = new DecimalFormat("00.00");
+        sb.append(date).append("\n!\n!This file is created by CAVE, ")
+                .append("DO NOT EDIT\n!\n  ");
 
         if (clickPtData[0] != null && clickPtData[0].getCoord() != null) {
             double dy = clickPtData[0].getCoord().y;
@@ -1097,7 +1108,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                     disposeList2(centeredComp);
                     createResultList2();
                     createPointsDistanceControls();
-                    createCloseButton();
+                    createButtons();
                     shell.pack();
                     shell.layout();
 
@@ -1148,7 +1159,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-
+                // no operation
             }
 
             @Override
@@ -1203,6 +1214,7 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
      */
     private void selectStn(int index) {
         if (closePoints != null) {
+
             Coordinate c = new Coordinate(closePoints[index].getLon(),
                     closePoints[index].getLat());
             clickPtData[currentPointID].setCoord(c);
@@ -1241,8 +1253,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         }
 
         // some keys are treated differently
+        // press 'Enter' to search
         if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
-            // press 'Enter' to search
 
             if (LATLON.equals(combo.getText())) {
 
@@ -1254,8 +1266,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
                     pointSearch2(text, combo.getText().trim(), id);
                 }
             }
-        } else if (e.keyCode == SWT.BS || e.keyCode == SWT.HOME) {
             // NO auto set for backspace/home; user manual input.
+        } else if (e.keyCode == SWT.BS || e.keyCode == SWT.HOME) {
             if (currentPointID == 0) {
                 txtNotSet1 = false;
             } else {
@@ -1294,7 +1306,8 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         setClickPtText2();
 
         SeekDrawingLayer seekDrawingLayer = null;
-        AbstractEditor theEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
+        AbstractEditor theEditor = (AbstractEditor) EditorUtil
+                .getActiveEditor();
         ResourceList rscs = NcEditorUtil.getDescriptor(theEditor)
                 .getResourceList();
 
@@ -1302,7 +1315,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
             if (r.getResource() instanceof SeekDrawingLayer) {
 
                 seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                // seekDrawingLayer.drawClickPtLine(c1, c2);
                 seekDrawingLayer.getResourceData().setFirstPt(c1);
                 seekDrawingLayer.getResourceData().setLastPt(c2);
                 theEditor.refresh();

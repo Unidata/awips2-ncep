@@ -3,19 +3,24 @@ package gov.noaa.nws.ncep.viz.ui.seek;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.viz.ui.EditorUtil;
+import com.raytheon.viz.ui.editor.AbstractEditor;
+import com.raytheon.viz.ui.editor.EditorInput;
 import com.raytheon.viz.ui.input.InputAdapter;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcModalTool;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcPaneManager;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 /**
@@ -23,22 +28,27 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * March 2009  	86        M. Li    		Initial creation.
- * Sept  2009   169       G. Hull       AbstractNCModalMapTool
- * Dec   2010   351      Archana      Removed getSeekLayer()
- *                                                        Added logic to initializeTheSeekLayer()
- *                                                        such that the seekDrawingLayer is created afresh
- *                                                        for each descriptor
- *                                                        Moved the data associated with the seek resource (seekDrawingLayer)
- *                                                        to the seekResourceData object
- *                                                        Updated the execute() method to toggle
- *                                                        the display of the seek layer.
- * Jan   2012   TTR 326   J. Zeng      handled NUllPointerException
- * May 	 2012	# 747	  B. Yin		Made the pan tool work when the shift key is held down.
- * Feb   2012   #972      G. Hull      don't implement for NTRANS displays
- * Nov 29, 2018 #7563      dgilling     Deactivate tool when dialog is closed.
+ *
+ * Date          Ticket#     Engineer  Description
+ * ------------- ----------- --------- -----------------------------------------
+ * March 2009    86          M. Li     Initial creation.
+ * Sept  2009    169         G. Hull   AbstractNCModalMapTool
+ * Dec   2010    351         Archana   Removed getSeekLayer() Added logic to
+ *                                     initializeTheSeekLayer() such that the
+ *                                     seekDrawingLayer is created afresh for
+ *                                     each descriptor Moved the data associated
+ *                                     with the seek resource (seekDrawingLayer)
+ *                                     to the seekResourceData object Updated
+ *                                     the execute() method to toggle the
+ *                                     display of the seek layer.
+ * Jan   2012    TTR 326     J. Zeng   handled NUllPointerException
+ * May   2012    747         B. Yin    Made the pan tool work when the shift key
+ *                                     is held down.
+ * Feb   2012    972         G. Hull   don't implement for NTRANS displays
+ * Nov 29, 2018  #7563       dgilling  Deactivate tool when dialog is closed.
+ * Apr 12, 2019  7803        K. Sunil  changes to make SeekTool work on D2D
+ *                                     perspective
+ * May 08, 2019  63530       tjensen   Added takeControl()
  *
  * </pre>
  *
@@ -46,7 +56,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  */
 
 public class SeekResultsAction extends AbstractNcModalTool {
-    public static boolean addedSeekLayerToResourceList = false;
+
 
     protected IInputHandler mouseHandler;
 
@@ -61,12 +71,10 @@ public class SeekResultsAction extends AbstractNcModalTool {
         /*
          * Register mouse handler.
          */
-        mapEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
+        mapEditor = (AbstractEditor) EditorUtil.getActiveEditor();
 
-        NcDisplayType dispType = NcEditorUtil.getNcDisplayType(mapEditor);
-
-        // NOTE : Disable for NTRANS and SWPC
-        if (!dispType.equals(NcDisplayType.NMAP_DISPLAY)) {
+        if (!isSeekToolAllowed(mapEditor)) {
+            // NOTE : Disable for NTRANS and SWPC
             deactivateTool();
             return;
         }
@@ -110,15 +118,13 @@ public class SeekResultsAction extends AbstractNcModalTool {
 
         private Coordinate firstMouseClick;
 
-        private Coordinate[] endpts = new Coordinate[2];
-
         private boolean shiftDown;
 
         private boolean simulate;
 
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
-
+            Coordinate[] endpts = new Coordinate[2];
             if (button != 1 || simulate) {
                 return false;
             }
@@ -129,15 +135,10 @@ public class SeekResultsAction extends AbstractNcModalTool {
                     return false;
                 }
 
-                if (seekRsltsDlg != null
-                        && seekRsltsDlg.isDlgOpen()/* .isOpen() */
-                        && ll != null) {// archana - changed isOpen() to
-                                        // isDlgOpen()
+                if (seekRsltsDlg != null && seekRsltsDlg.isDlgOpen()) {
                     seekRsltsDlg.setPosition(ll);
                     endpts = seekRsltsDlg.getEndPoints();
                     if (endpts[0] != null || endpts[1] != null) {
-                        // seekDrawingLayer.drawClickPtLine(endpts[0],
-                        // endpts[1]);
                         seekDrawingLayer.getResourceData()
                                 .setFirstPt(endpts[0]);
                         seekDrawingLayer.getResourceData().setLastPt(endpts[1]);
@@ -158,7 +159,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 Coordinate c2 = mapEditor.translateClick(x, y);
                 if (seekRsltsDlg != null && seekRsltsDlg.isDlgOpen()
                         && c1 != null && c2 != null) {
-                    // seekDrawingLayer.drawLine(c1, c2);
                     seekDrawingLayer.getResourceData().setPoint1(c1);
                     seekDrawingLayer.getResourceData().setPoint2(c2);
                     // Calculate distance and direction
@@ -181,8 +181,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
                     String str = seekRsltsDlg.getFormatDistance(distanceInMeter,
                             azimuth);
 
-                    // seekDrawingLayer.clearStrings();
-                    // if (str != null) seekDrawingLayer.drawString(c, str);
                     seekDrawingLayer.getResourceData().clearStrings();
                     if (str != null) {
                         seekDrawingLayer.getResourceData().drawString(c, str);
@@ -218,9 +216,7 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 if (ll == null) {
                     return false;
                 }
-                // seekDrawingLayer.clearStrings();
                 seekDrawingLayer.getResourceData().clearStrings();
-                // seekDrawingLayer.clearLine();
                 seekDrawingLayer.getResourceData().clearLine();
                 mapEditor.refresh();
                 return true;
@@ -262,13 +258,10 @@ public class SeekResultsAction extends AbstractNcModalTool {
                     seekDrawingLayer
                             .init(editor.getActiveDisplayPane().getTarget());
 
-                    addedSeekLayerToResourceList = NcEditorUtil
-                            .getDescriptor(mapEditor).getResourceList()
+                    NcEditorUtil.getDescriptor(mapEditor).getResourceList()
                             .add(seekDrawingLayer);
                 }
-            } catch (VizException e) {
-                e.printStackTrace();
-            } catch (NullPointerException e) {
+            } catch (VizException | NullPointerException e) {
                 e.printStackTrace();
             }
             mapEditor.refresh();
@@ -287,8 +280,6 @@ public class SeekResultsAction extends AbstractNcModalTool {
             if (mapEditor != null) {
                 NcEditorUtil.getDescriptor(mapEditor).getResourceList()
                         .removeRsc(seekDrawingLayer);
-                addedSeekLayerToResourceList = false;
-                // seekDrawingLayer.disposeInternal(); /*Added by archana*/
                 seekDrawingLayer = null;
                 mapEditor.refresh();
             }
@@ -301,5 +292,33 @@ public class SeekResultsAction extends AbstractNcModalTool {
 
     public String getCommandId() {
         return commandId;
+    }
+
+    /*
+     * Now the SeekTool can be used from the D2D perspective also. The old logic
+     * hard coded and checked for items like the instance and display type. It
+     * is still maintained. But also allows simple D2D pane managers.
+     */
+    public static boolean isSeekToolAllowed(AbstractEditor theEditor) {
+
+        if (theEditor == null) {
+            return false;
+        }
+        IEditorInput edin = theEditor.getEditorInput();
+        if (edin instanceof EditorInput && ((EditorInput) edin)
+                .getPaneManager() instanceof AbstractNcPaneManager) {
+            AbstractNcPaneManager pm = (AbstractNcPaneManager) ((EditorInput) edin)
+                    .getPaneManager();
+            if (pm.getDisplayType().equals(NcDisplayType.NMAP_DISPLAY)) {
+                return true;
+            }
+        } else if (theEditor instanceof VizMapEditor) {
+            return true;
+        }
+        return false;
+    }
+
+    protected void takeControl() {
+        seekDrawingLayer.setEditable(true);
     }
 }

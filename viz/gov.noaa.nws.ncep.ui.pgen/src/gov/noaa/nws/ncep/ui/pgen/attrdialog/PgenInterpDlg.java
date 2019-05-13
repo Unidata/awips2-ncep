@@ -34,7 +34,6 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenInterpolationTool;
 
-
 /**
  * Create a dialog for PGEN interpolation action.
  *
@@ -48,8 +47,8 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenInterpolationTool;
  * Nov 2012                J. Wu        Allow using Gfa forecast hour
  * Mar 2013      #928      B. Yin       Made the button bar smaller.
  * Jul 2013                J. Wu        Interpolate GFA's top/bottom
+ * Jan 24, 2019  7716      K. Sunil     Add close button in the dialog.
  * Mar 20, 2019  #7572     dgilling     Code cleanup.
- *
  * </pre>
  *
  * @author
@@ -97,33 +96,36 @@ public class PgenInterpDlg extends AttrDlg {
         return INSTANCE;
     }
 
+     * org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets
+     * .Composite)
     @Override
-    public Control createDialogArea( Composite parent ) {
+    public Control createDialogArea(Composite parent) {
 
-        top = (Composite) super.createDialogArea( parent );
+        top = (Composite) super.createDialogArea(parent);
 
         // Create the main layout for the shell.
         FormLayout mainLayout = new FormLayout();
         mainLayout.marginHeight = 3;
         mainLayout.marginWidth = 3;
-        top.setLayout( mainLayout );
+        top.setLayout(mainLayout);
 
         // Initialize all of the menus, controls, and layouts
         initializeComponents();
 
         return top;
 
-     }
+    }
 
     /*
-     *  Add an Interpolate button on the button bar.
+     * Add an Interpolate button on the button bar.
      */
     @Override
     public void createButtonsForButtonBar(Composite parent) {
         Button interpBtn = createButton(parent, INTERP_ID, INTERP_LABEL, true);
         interpBtn.setEnabled(false);
+        createButton(parent, IDialogConstants.CANCEL_ID,
+                IDialogConstants.CLOSE_LABEL, true);
     }
-
 
     /**
      * Creates buttons, menus, and other controls in the dialog area
@@ -132,7 +134,7 @@ public class PgenInterpDlg extends AttrDlg {
      */
     private void initializeComponents() {
 
-        this.getShell().setText( "Interpolation" );
+        this.getShell().setText("Interpolation");
 
         /*
          * Starting Time label
@@ -230,6 +232,8 @@ public class PgenInterpDlg extends AttrDlg {
                 enableStartTime();
                 enableEndTime();
             }
+        } else if (IDialogConstants.CANCEL_ID == buttonId) {
+            super.cancelPressed();
         }
 
     }

@@ -1,31 +1,17 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.controls.RetrieveActivityDialog
- * 
+ *
  * 29 March 2013
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.VaaInfo;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
-import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
 
@@ -53,19 +39,31 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 
-import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
+
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.VaaInfo;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 
 /**
  * A dialog to Retrieve PGEN activities from EDEX.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	-----------------------------------
- * 03/13		#977		S.gilbert	Modified from PgenFileManageDialog1
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- -----------------------------------
+ * 03/13        #977        S.gilbert   Modified from PgenFileManageDialog1
  * 01/2014      #1105       jwu         Use "subtype" for query as well.
  * 08/2014      TTR867      jwu         Add "time stamp" for activities with same label.
  * 08/2014      ?           jwu         Preserve "outputFile" name when opening an activity.
@@ -73,32 +71,13 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  *                                      Rearranged three sets of two-choice radio buttons.
  *                                      Implemented new logic for selecting activity labels.
  * 04/14/2016   R13245      B. Yin      Changed the format of date/time string.
- * 
+ * Feb 28, 2019 7752        tjensen     Moved ActivityElement to its own class
+ *
  * </pre>
- * 
+ *
  * @author
- * @version 1
  */
 public class RetrieveActivityDialog extends CaveJFACEDialog {
-
-    /*
-     * Internal class used to hold some characteristics of an Activity
-     */
-    static class ActivityElement {
-        String site;
-
-        String desk;
-
-        String dataURI;
-
-        String activityType;
-
-        String activitySubtype;
-
-        String activityLabel;
-
-        Date refTime;
-    }
 
     /*
      * Used to compare Activity's reference times.
@@ -107,47 +86,48 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         @Override
         public int compare(Viewer viewer, Object e1, Object e2) {
-            Date elem1 = ((ActivityElement) e1).refTime;
-            Date elem2 = ((ActivityElement) e2).refTime;
-            return -1 * elem1.compareTo(elem2); // multiply by -1 to reverse
-                                                // ordering
+            // Comparing e2 to e1 to get reverse ordering
+            return ((ActivityElement) e2).compareTo(e1);
         }
 
     }
+
+    private final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(this.getClass());
 
     /**
      * R7806: This flag determines if the options "All" is hidden in the
      * pull-down menu for Type.
      */
-    private final static boolean isToHideOptionAllInType = true;
+    private static final boolean isToHideOptionAllInType = true;
 
     /**
      * R7806: This flag determines if the options "All" is hidden in the
      * pull-down menu for Subtype.
      */
-    private final static boolean isToHideOptionAllInSubtype = true;
+    private static final boolean isToHideOptionAllInSubtype = true;
 
     /**
      * The initial value for the width of the area that display Activity labels.
      */
-    private final static int widthForListArea = 500;
+    private static final int widthForListArea = 500;
 
     /**
      * The initial values for the widths of the areas that display Types and
      * Subtypes.
      */
-    private final static int widthForListArea2 = 240;
+    private static final int widthForListArea2 = 240;
 
     /**
      * The height of the area that displays Activity labels.
      */
-    private final static int heightForListArea = 200;
+    private static final int heightForListArea = 200;
 
     /**
      * The separator between the label and the date string.
      */
-    private final static String DATE_STRING_SEPARATOR = "    ";
-    
+    private static final String DATE_STRING_SEPARATOR = "    ";
+
     /**
      * The last selected Site.
      */
@@ -172,16 +152,6 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
      * This is to access auxiliary methods in the class ActivityCollection.
      */
     private final ActivityCollection ac = new ActivityCollection();
-
-    /**
-     * The title of this dialog window.
-     */
-    private String title = null;
-
-    /**
-     * The SWT Shell, a window.
-     */
-    private Shell shell;
 
     /**
      * The SWT widget for displaying Site.
@@ -212,17 +182,17 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
      * The radio buttons for the options of listing "latest" or "all" activity
      * labels.
      */
-    private Button[] listRadioButtons = new Button[2];
+    private final Button[] listRadioButtons = new Button[2];
 
     /**
      * The radio buttons for the options of sorting order.
      */
-    private Button[] sortRadioButtons = new Button[2];
+    private final Button[] sortRadioButtons = new Button[2];
 
     /**
      * The radio buttons for the options of auto saving.
      */
-    private Button[] autoSaveRadioButtons = new Button[2];
+    private final Button[] autoSaveRadioButtons = new Button[2];
 
     private static final int ADD_ID = IDialogConstants.CLIENT_ID + 7587;
 
@@ -240,58 +210,19 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
     private static final String CLOSE_LABEL = "Close";
 
-    private Button replaceBtn = null;
-
-    private Button addBtn = null;
-
-    private Button appendBtn = null;
-
-    private Button cancelBtn = null;
-
     private static String fullName = null;
 
     /*
      * Constructor
      */
-    public RetrieveActivityDialog(Shell parShell, String btnName)
-            throws VizException {
-
+    public RetrieveActivityDialog(Shell parShell) {
         super(parShell);
-
-        setTitle(btnName);
-
     }
 
-    /*
-     * Set up the file mode.
-     */
-    private void setTitle(String btnName) {
-
-        if (btnName.equals("Open")) {
-            title = "Retrieve a PGEN Activity";
-
-            // To make this dialog window resizable.
-            setShellStyle(getShellStyle() | SWT.RESIZE);
-        }
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets
-     * .Shell)
-     */
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        this.setShellStyle(SWT.RESIZE | SWT.PRIMARY_MODAL);
-
-        this.shell = shell;
-        if (title != null) {
-            shell.setText(title);
-        }
+        shell.setText("Retrieve a PGEN Activity");
     }
 
     /**
@@ -300,7 +231,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
      * window, which include two pull-down menus for Site and Desk, two SWT
      * lists for Type and Subtype, three sets of two-choice radio buttons, and a
      * SWT list for Activity labels.
-     * 
+     *
      * It relies on the class ActivityCollection to provide the contents of the
      * SWT widgets.
      */
@@ -319,8 +250,8 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         menusLayout.numColumns = 2;
         menusLayout.horizontalSpacing = 45;
         headerArea.setLayout(menusLayout);
-        GridData headerAreaData = new GridData(GridData.HORIZONTAL_ALIGN_END
-                | GridData.VERTICAL_ALIGN_CENTER);
+        GridData headerAreaData = new GridData(
+                GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER);
         headerAreaData.horizontalAlignment = SWT.CENTER;
         headerArea.setLayoutData(headerAreaData);
 
@@ -360,6 +291,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         // A change to Site by users will trigger changes to Desk, Type,
         // Subtype, and Activity labels sequentially and immediately.
         siteFilter.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 int siteIndex = siteFilter.getSelectionIndex();
@@ -468,6 +400,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         // A change to Desk by users will trigger changes to Type, Subtype, and
         // Activity labels sequentially and immediately.
         deskFilter.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 int deskIndex = deskFilter.getSelectionIndex();
@@ -546,8 +479,8 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         Composite leftGrid = new Composite(typeSubtypeArea, SWT.RESIZE);
         leftGrid.setLayout(new GridLayout(1, false));
-        GridData midGridLayoutData = new GridData(SWT.FILL, GridData.FILL,
-                true, true);
+        GridData midGridLayoutData = new GridData(SWT.FILL, GridData.FILL, true,
+                true);
         leftGrid.setLayoutData(midGridLayoutData);
 
         Label typeLabel = new Label(leftGrid, SWT.NONE);
@@ -580,8 +513,9 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
             int index = Arrays.asList(currentTypeList)
                     .indexOf(lastSelectedType);
 
-            if (index == -1)
+            if (index == -1) {
                 index = 0;
+            }
 
             ac.changeTypeIndex(index);
             lastSelectedType = currentTypeList[index];
@@ -608,6 +542,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         // A change to Type will trigger changes to Subtype and Activity labels
         // sequentially and immediately.
         typeListWidget.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
 
                 int typeIndex = typeListWidget.getSelectionIndex();
@@ -690,8 +625,8 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                 lastSelectedSubtype = currentSubtypeList[0];
             }
         } else {
-            int index = Arrays.asList(currentSubtypeList).indexOf(
-                    lastSelectedSubtype);
+            int index = Arrays.asList(currentSubtypeList)
+                    .indexOf(lastSelectedSubtype);
 
             if (index == -1) {
                 index = 0;
@@ -723,6 +658,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         // A change to Subtype will trigger a change to Activity labels.
         subtypeListWidget.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 int subtypeIndex = subtypeListWidget.getSelectionIndex();
 
@@ -763,6 +699,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         listRadioButtons[0].setSelection(true);
 
         listRadioButtons[0].addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 listActivities();
             }
@@ -775,6 +712,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         listRadioButtons[1].setText("All");
 
         listRadioButtons[1].addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 listActivities();
             }
@@ -791,6 +729,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         sortRadioButtons[0].setSelection(true);
 
         sortRadioButtons[0].addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 fileListViewer.setComparator(new ViewerComparator());
                 fileListViewer.refresh(true);
@@ -805,6 +744,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         sortRadioButtons[1].setText("By Date");
 
         sortRadioButtons[1].addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 fileListViewer.setComparator(new ActivityTimeComparator());
                 fileListViewer.refresh(true);
@@ -849,34 +789,58 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
             @Override
             public String getText(Object element) {
-                if (element instanceof ActivityElement)
-                    return ((ActivityElement) element).activityLabel;
-                else
-                    return super.getText(element);
+                String label = super.getText(element);
+                if (element instanceof ActivityElement) {
+                    label = ((ActivityElement) element).getActivityLabel();
+                }
+                return label;
             }
 
         });
 
         fileListViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         IStructuredSelection selection = (IStructuredSelection) event
                                 .getSelection();
-                        if (selection.getFirstElement() instanceof ActivityElement) {
+                        if (selection
+                                .getFirstElement() instanceof ActivityElement) {
                             ActivityElement elem = (ActivityElement) selection
                                     .getFirstElement();
-                            fileListViewer.getList().setToolTipText(
-                                    elem.dataURI);
-                        } else
-                            System.out.println("GOT??? "
-                                    + selection.getFirstElement().getClass()
-                                            .getCanonicalName());
+                            fileListViewer.getList()
+                                    .setToolTipText(elem.getDataURI());
+                        } else {
+                            statusHandler.debug(
+                                    "GOT??? " + selection.getFirstElement()
+                                            .getClass().getCanonicalName());
+                        }
                     }
                 });
 
         listActivities();
 
         return dialogArea;
+    }
+
+    @Override
+    protected void buttonPressed(int buttonId) {
+        switch (buttonId) {
+        case ADD_ID:
+            openProducts(false);
+            break;
+        case REPLACE_ID:
+            openProducts(true);
+            break;
+        case ADVANCE_ID:
+            appendProducts();
+            break;
+        case CLOSE_ID:
+            close();
+            break;
+        default:
+            statusHandler.error("Unknown button id: " + buttonId);
+        }
     }
 
     /**
@@ -886,34 +850,10 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
 
-        addBtn = createButton(parent, ADD_ID, ADD_LABEL, true);
-        replaceBtn = createButton(parent, REPLACE_ID, REPLACE_LABEL, true);
-        appendBtn = createButton(parent, ADVANCE_ID, ADVANCE_LABEL, true);
-
-        replaceBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                openProducts(true);
-            }
-        });
-
-        addBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                openProducts(false);
-            }
-        });
-
-        appendBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                appendProducts();
-            }
-        });
-
-        cancelBtn = createButton(parent, CLOSE_ID, CLOSE_LABEL, true);
-        cancelBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                close();
-            }
-        });
+        createButton(parent, ADD_ID, ADD_LABEL, true);
+        createButton(parent, REPLACE_ID, REPLACE_LABEL, true);
+        createButton(parent, ADVANCE_ID, ADVANCE_LABEL, true);
+        createButton(parent, CLOSE_ID, CLOSE_LABEL, true);
 
     }
 
@@ -927,11 +867,11 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         if (elem == null) {
             return;
         }
-        fullName = elem.activityLabel;
+        fullName = elem.getActivityLabel();
 
         java.util.List<Product> pgenProds = null;
         try {
-            pgenProds = StorageUtils.retrieveProduct(elem.dataURI);
+            pgenProds = StorageUtils.retrieveProduct(elem.getDataURI());
         } catch (PgenStorageException e) {
             StorageUtils.showError(e);
         }
@@ -951,23 +891,14 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         PgenResource pgen = PgenSession.getInstance().getPgenResource();
 
         // Force all product/layer display onOff flag to be false at the start.
-        /*
-         * for ( gov.noaa.nws.ncep.ui.pgen.elements.Product prd : pgenProds ) {
-         * prd.setOnOff( false ); for ( gov.noaa.nws.ncep.ui.pgen.elements.Layer
-         * lyr : prd.getLayers() ) { lyr.setOnOff( false ); } }
-         */
         if (replace) {
-            MessageDialog confirmOpen = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm File Replace", null, "Replace Activity <"
-                            + pgen.getActiveProduct().getType()
+            boolean confirmed = MessageDialog.openConfirm(getShell(),
+                    "Confirm File Replace",
+                    "Replace Activity <" + pgen.getActiveProduct().getType()
                             + "> with New Activity <"
-                            + pgenProds.get(0).getType() + "> ?",
-                    MessageDialog.INFORMATION, new String[] { "Yes", "No" }, 0);
+                            + pgenProds.get(0).getType() + "> ?");
 
-            confirmOpen.open();
-
-            if (confirmOpen.getReturnCode() != MessageDialog.OK) {
+            if (!confirmed) {
                 return;
             }
 
@@ -1020,11 +951,11 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         if (elem == null) {
             return;
         }
-        fullName = elem.activityLabel;
+        fullName = elem.getActivityLabel();
 
         java.util.List<Product> pgenProds = null;
         try {
-            pgenProds = StorageUtils.retrieveProduct(elem.dataURI);
+            pgenProds = StorageUtils.retrieveProduct(elem.getDataURI());
         } catch (PgenStorageException e) {
             StorageUtils.showError(e);
         }
@@ -1042,10 +973,10 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         PgenLayerMergeDialog layerMergeDlg = null;
         try {
-            layerMergeDlg = new PgenLayerMergeDialog(shell, pgenProds.get(0),
-                    fullName);
+            layerMergeDlg = new PgenLayerMergeDialog(getShell(),
+                    pgenProds.get(0), fullName);
         } catch (Exception e) {
-            e.printStackTrace();
+            statusHandler.error(e.getLocalizedMessage(), e);
         }
 
         if (layerMergeDlg != null) {
@@ -1078,16 +1009,8 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                     .getSelection();
             elem = (ActivityElement) sel.getFirstElement();
         } else {
-
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Invalid PGEN Selection", null,
-                    "Please select an Activity from the Activity Label list.",
-                    MessageDialog.INFORMATION, new String[] { "OK" }, 0);
-
-            confirmDlg.open();
-
-            return null;
+            MessageDialog.openInformation(getShell(), "Invalid PGEN Selection",
+                    "Please select an Activity from the Activity Label list.");
         }
 
         return elem;
@@ -1095,15 +1018,15 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
     /**
      * Sets the jet snap tool in order to zoom tghe jet correctly.
-     * 
+     *
      * @param prods
      */
     private void setJetTool(
             java.util.List<gov.noaa.nws.ncep.ui.pgen.elements.Product> prods) {
 
-        PgenSnapJet st = new PgenSnapJet(PgenSession.getInstance()
-                .getPgenResource().getDescriptor(), PgenUtil.getActiveEditor(),
-                null);
+        PgenSnapJet st = new PgenSnapJet(
+                PgenSession.getInstance().getPgenResource().getDescriptor(),
+                PgenUtil.getActiveEditor(), null);
 
         for (gov.noaa.nws.ncep.ui.pgen.elements.Product prod : prods) {
             for (Layer layer : prod.getLayers()) {
@@ -1131,34 +1054,29 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
         if (typeListWidget.getSelectionCount() > 0) {
 
             java.util.List<ActivityElement> elems = ac.getCurrentActivityList();
-            java.util.List<ActivityElement> filterElms = new ArrayList<ActivityElement>();
+            java.util.List<ActivityElement> filterElms = new ArrayList<>();
 
-            if (elems.size() > 0) {
+            if (!elems.isEmpty()) {
                 if (listLatest) {
 
                     // Sort all entries based on time, latest first.
-                    Collections.sort(elems, new Comparator<ActivityElement>() {
-                        @Override
-                        public int compare(ActivityElement ae1,
-                                ActivityElement ae2) {
-                            return -1 * ae1.refTime.compareTo(ae2.refTime);
-                        }
-                    });
+                    Collections.sort(elems, Collections.reverseOrder());
 
                     // Remove time stamps resulting from "All"
-                    java.util.List<String> actLbls = new ArrayList<String>();
+                    java.util.List<String> actLbls = new ArrayList<>();
                     for (ActivityElement ae : elems) {
-                        int indx = ae.activityLabel.indexOf(DATE_STRING_SEPARATOR);
+                        int indx = ae.getActivityLabel()
+                                .indexOf(DATE_STRING_SEPARATOR);
                         if (indx >= 0) {
-                            ae.activityLabel = ae.activityLabel.substring(0,
-                                    indx);
+                            ae.setActivityLabel(
+                                    ae.getActivityLabel().substring(0, indx));
                         }
                     }
 
                     // Pick unique labels.
                     for (ActivityElement ae : elems) {
-                        if (!actLbls.contains(ae.activityLabel)) {
-                            actLbls.add(ae.activityLabel);
+                        if (!actLbls.contains(ae.getActivityLabel())) {
+                            actLbls.add(ae.getActivityLabel());
                             filterElms.add(ae);
                         }
                     }
@@ -1172,13 +1090,13 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                         boolean attachReftime = false;
                         for (ActivityElement ae1 : elems) {
                             if (ae1 != ae) {
-                                String aLbl = ae1.activityLabel;
+                                String aLbl = ae1.getActivityLabel();
                                 int loc = aLbl.indexOf(DATE_STRING_SEPARATOR);
                                 if (loc >= 0) {
                                     aLbl = aLbl.substring(0, loc);
                                 }
 
-                                if (ae.activityLabel.equals(aLbl)) {
+                                if (ae.getActivityLabel().equals(aLbl)) {
                                     attachReftime = true;
                                     break;
                                 }
@@ -1190,8 +1108,9 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                             DateFormat fmt = new SimpleDateFormat(
                                     "yyyy-MM-dd   HH:mm:ss");
                             fmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-                            ae.activityLabel = ae.activityLabel + DATE_STRING_SEPARATOR
-                                    + fmt.format(ae.refTime);
+                            ae.setActivityLabel(ae.getActivityLabel()
+                                    + DATE_STRING_SEPARATOR
+                                    + fmt.format(ae.getRefTime()));
                         }
 
                     }

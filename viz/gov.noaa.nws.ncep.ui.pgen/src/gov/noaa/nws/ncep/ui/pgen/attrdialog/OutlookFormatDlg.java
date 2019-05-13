@@ -76,19 +76,19 @@ import com.vividsolutions.jts.geom.Polygon;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/10			?		B. Yin   	Initial Creation.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  -----------  --------------------------
+ * 04/10            ?       B. Yin      Initial Creation.
  * 07/11        #450        G. Hull     NcPathManager
- * 03/12		$703		B. Yin		Generate product text from style sheet
- * 05/12		#710		B. Yin		Format HAIL outlook first
- * 07/12		#789		B. Yin		Change all time to UTC.
- * 11/12		?			B. Yin		Fixed the otlkAll exception.
- * 01/13		#966		B. Yin		Added clipping functions.
- * 08/13		TTR783,773	B. Yin		Order outlook lines when formatting
- * 										Added forecaster drop-down
- * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
- * 12/13		TTR800		B. Yin		Use UTC time class.
+ * 03/12        $703        B. Yin      Generate product text from style sheet
+ * 05/12        #710        B. Yin      Format HAIL outlook first
+ * 07/12        #789        B. Yin      Change all time to UTC.
+ * 11/12        ?           B. Yin        Fixed the otlkAll exception.
+ * 01/13        #966        B. Yin      Added clipping functions.
+ * 08/13        TTR783,773  B. Yin      Order outlook lines when formatting
+ *                                      Added forecaster drop-down
+ * 11/13        #1049       B. Yin      Handle outlook type defined in layer.
+ * 12/13        TTR800      B. Yin      Use UTC time class.
  * 
  * </pre>
  * 
@@ -103,13 +103,10 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     private static HashMap<String, Polygon> bounds;
 
     // Order of labels in the outlook text message
-    private String[] orderedLabels = { "HIGH", "MDT", "SLGT", "TSTM", "NONE",
-            "2%", "5%", "10%", "15%", "25%", "30%", "35%", "40%", "45%", "50%",
-            "60%", "70%", "75%", "HATCHED", "AREA", "ISODRYT", "SCTDRYT",
-            "DRY-TSTM", "ELEVATED", "CRITICAL", "EXTREME", "D3", "D4", "D5",
-            "D6", "D7", "D8", "D3-4", "D3-5", "D3-6", "D3-7", "D3-8", "D4-5",
-            "D4-6", "D4-7", "D4-8", "D5-6", "D5-7", "D5-8", "D6-6", "D6-8",
-            "D7-8" };
+    private String[] orderedLabels = { "HIGH", "MDT", "SLGT", "TSTM", "NONE", "2%", "5%", "10%", "15%", "25%", "30%",
+            "35%", "40%", "45%", "50%", "60%", "70%", "75%", "HATCHED", "AREA", "ISODRYT", "SCTDRYT", "DRY-TSTM",
+            "ELEVATED", "CRITICAL", "EXTREME", "D3", "D4", "D5", "D6", "D7", "D8", "D3-4", "D3-5", "D3-6", "D3-7",
+            "D3-8", "D4-5", "D4-6", "D4-7", "D4-8", "D5-6", "D5-7", "D5-8", "D6-6", "D6-8", "D7-8" };
 
     // instance of the outlook attribute dialog
     private OutlookAttrDlg otlkDlg;
@@ -120,15 +117,11 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     // instance of the outlook element working on
     private Outlook otlk;
 
-    // top level container of all widgets
-    private Composite top;
-
     // day radio buttons
     private Button dayBtn[];
 
-    private static String days[] = { "Day1", "Day2", "Day3", "Day4-8", "Enh00",
-            "Enh04", "Enh12", "Enh16", "Enh20", "Day1 Fire", "Day2 Fire",
-            "Day3-8 Fire" };
+    private static String days[] = { "Day1", "Day2", "Day3", "Day4-8", "Enh00", "Enh04", "Enh12", "Enh16", "Enh20",
+            "Day1 Fire", "Day2 Fire", "Day3-8 Fire" };
 
     // initial date and time
     private DateTime initDate;
@@ -148,8 +141,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     /**
      * Protected constructor
      */
-    public OutlookFormatDlg(Shell parentShell, OutlookAttrDlg otlkDlg,
-            Outlook otlk) {
+    public OutlookFormatDlg(Shell parentShell, OutlookAttrDlg otlkDlg, Outlook otlk) {
 
         super(parentShell);
         this.setShellStyle(SWT.TITLE | SWT.MODELESS | SWT.CLOSE);
@@ -164,8 +156,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     @Override
     public Control createDialogArea(Composite parent) {
 
-        // top level container
-        top = (Composite) super.createDialogArea(parent);
+        Composite top = (Composite) super.createDialogArea(parent);
 
         // set title
         this.getShell().setText("Format Outlook");
@@ -194,10 +185,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (((Button) e.widget).getSelection()) {
-                        setInitDt(getDefaultInitDT(((Button) e.widget)
-                                .getText().replaceAll(" Fire", "")));
-                        setExpDt(getDefaultExpDT(((Button) e.widget).getText()
-                                .replaceAll(" Fire", "")));
+                        setInitDt(getDefaultInitDT(((Button) e.widget).getText().replaceAll(" Fire", "")));
+                        setExpDt(getDefaultExpDT(((Button) e.widget).getText().replaceAll(" Fire", "")));
                     }
 
                 }
@@ -220,9 +209,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         fd.top = new FormAttachment(dayGrp, 2, SWT.BOTTOM);
         fd.left = new FormAttachment(initDate, 5, SWT.RIGHT);
         initTime.setLayoutData(fd);
-        initTime.setUTCTimeTextField(initDt,
-                this.getDefaultInitDT(this.getDays().replaceAll(" Fire", "")),
-                dayGrp, 5, true);
+        initTime.setUTCTimeTextField(initDt, this.getDefaultInitDT(this.getDays().replaceAll(" Fire", "")), dayGrp, 5,
+                true);
 
         setInitDt(this.getDefaultInitDT(this.getDays().replaceAll(" Fire", "")));
 
@@ -239,9 +227,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         fd2.left = new FormAttachment(expDate, 5, SWT.RIGHT);
         expTime.setLayoutData(fd2);
 
-        expTime.setUTCTimeTextField(expDt,
-                this.getDefaultExpDT(this.getDays().replaceAll(" Fire", "")),
-                dayGrp, 5, true);
+        expTime.setUTCTimeTextField(expDt, this.getDefaultExpDT(this.getDays().replaceAll(" Fire", "")), dayGrp, 5,
+                true);
 
         setExpDt(this.getDefaultExpDT(this.getDays().replaceAll(" Fire", "")));
 
@@ -250,9 +237,11 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         fcstLbl.setText("Forecaster:");
         forecasterCombo = new Combo(top, SWT.DROP_DOWN);
         WatchCoordDlg.readForecasterTbl();
-        for (String str : WatchCoordDlg.getForecasters()) { // forecaster table
-                                                            // should be put in
-                                                            // a common place
+        
+        // forecaster table
+        // should be put in
+        // a common place
+        for (String str : WatchCoordDlg.getForecasters()) {
             forecasterCombo.add(str);
         }
 
@@ -311,60 +300,51 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         super.createButtonsForButtonBar(parent);
 
         contBtn.setText("Continue");
-        contBtn.setLayoutData(getButton(IDialogConstants.CANCEL_ID)
-                .getLayoutData());
+        contBtn.setLayoutData(getButton(IDialogConstants.CANCEL_ID).getLayoutData());
         contBtn.addSelectionListener(new SelectionAdapter() {
 
             public void widgetSelected(SelectionEvent e) {
                 Layer layer = otlkDlg.drawingLayer.getActiveLayer();
-                String fmtFlag = layer
-                        .getMetaInfoFromKey(OutlookAttrDlg.OTLK_FORMAT_FLAG_IN_LAYER_META);
-                if (fmtFlag.equalsIgnoreCase("false")) {
-                    MessageDialog infoDlg = new MessageDialog(PlatformUI
-                            .getWorkbench().getActiveWorkbenchWindow()
-                            .getShell(), "Information", null,
-                            "This layer is configured not to be formatted.",
-                            MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+                String fmtFlag = layer.getMetaInfoFromKey(OutlookAttrDlg.OTLK_FORMAT_FLAG_IN_LAYER_META);
+                if ("false".equalsIgnoreCase(fmtFlag)) {
+                    MessageDialog infoDlg = new MessageDialog(
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Information", null,
+                            "This layer is configured not to be formatted.", MessageDialog.INFORMATION,
+                            new String[] { "OK" }, 0);
                     infoDlg.open();
                     return;
                 }
 
-                long mins = (getExpTime().getTime().getTime() - getInitTime()
-                        .getTime().getTime()) / (1000 * 60);
-                String msg = "The duration of your outlook will be "
-                        + (int) Math.floor(mins / 60) + "h " + mins % 60 + "m";
+                long mins = (getExpTime().getTime().getTime() - getInitTime().getTime().getTime()) / (1000 * 60);
+                String msg = "The duration of your outlook will be " + (int) Math.floor(mins / 60) + "h " + mins % 60
+                        + "m";
                 msg += "\n";
                 if (getInitTime().before(Calendar.getInstance())) {
-                    long dMins = (Calendar.getInstance().getTime().getTime() - getInitTime()
-                            .getTime().getTime()) / (1000 * 60);
-                    msg += "The outlook became valid "
-                            + (int) Math.floor(dMins / 60) + "h " + dMins % 60
-                            + "m" + " ago.";
-                } else {
-                    long dMins = (getInitTime().getTime().getTime() - Calendar
-                            .getInstance().getTime().getTime())
+                    long dMins = (Calendar.getInstance().getTime().getTime() - getInitTime().getTime().getTime())
                             / (1000 * 60);
-                    msg += "The outlook will become valid in "
-                            + (int) Math.floor(dMins / 60) + "h " + dMins % 60
+                    msg += "The outlook became valid " + (int) Math.floor(dMins / 60) + "h " + dMins % 60 + "m"
+                            + " ago.";
+                } else {
+                    long dMins = (getInitTime().getTime().getTime() - Calendar.getInstance().getTime().getTime())
+                            / (1000 * 60);
+                    msg += "The outlook will become valid in " + (int) Math.floor(dMins / 60) + "h " + dMins % 60
                             + "m.";
                 }
 
-                MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                        .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                        "Warning", null, msg, MessageDialog.QUESTION,
-                        new String[] { "OK", "Cancel" }, 0);
+                MessageDialog confirmDlg = new MessageDialog(
+                        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Warning", null, msg,
+                        MessageDialog.QUESTION, new String[] { "OK", "Cancel" }, 0);
                 confirmDlg.open();
 
                 if (confirmDlg.getReturnCode() == MessageDialog.OK) {
-                    msgDlg = new OutlookFormatMsgDlg(OutlookFormatDlg.this
-                            .getParentShell(), OutlookFormatDlg.this, otlk,
-                            otlkDlg.drawingLayer.getActiveLayer());
+                    msgDlg = new OutlookFormatMsgDlg(OutlookFormatDlg.this.getParentShell(), OutlookFormatDlg.this,
+                            otlk, otlkDlg.drawingLayer.getActiveLayer());
                     msgDlg.setBlockOnOpen(true);
-                    msgDlg.setMessage(formatOtlk(otlk,
-                            otlkDlg.drawingLayer.getActiveLayer()));
+                    msgDlg.setMessage(formatOtlk(otlk, otlkDlg.drawingLayer.getActiveLayer()));
                     int rt = msgDlg.open();
-                    if (rt == Dialog.OK)
+                    if (rt == Dialog.OK) {
                         cleanup();
+                    }
                 }
             }
         });
@@ -387,8 +367,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     public Calendar getExpTime() {
 
         Calendar expiration = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        expiration.set(expDate.getYear(), expDate.getMonth(), expDate.getDay(),
-                expTime.getHours(), expTime.getMinutes(), 0);
+        expiration.set(expDate.getYear(), expDate.getMonth(), expDate.getDay(), expTime.getHours(),
+                expTime.getMinutes(), 0);
         expiration.set(Calendar.MILLISECOND, 0);
         return expiration;
     }
@@ -400,8 +380,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      */
     public Calendar getInitTime() {
         Calendar init = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        init.set(initDate.getYear(), initDate.getMonth(), initDate.getDay(),
-                initTime.getHours(), initTime.getMinutes());
+        init.set(initDate.getYear(), initDate.getMonth(), initDate.getDay(), initTime.getHours(),
+                initTime.getMinutes());
 
         init.set(Calendar.MILLISECOND, 0);
 
@@ -428,53 +408,50 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         // format order: from current layer goes down then goes to the top if
         // necessary
         Product pd = otlkDlg.drawingLayer.getActiveProduct();
-        int currentLayerIdx = pd.getLayers().indexOf(
-                otlkDlg.drawingLayer.getActiveLayer());
+        int currentLayerIdx = pd.getLayers().indexOf(otlkDlg.drawingLayer.getActiveLayer());
 
         for (int ii = 0; ii < pd.getLayers().size(); ii++) {
             // int jj = (ii+currentLayerIdx)%pd.getLayers().size();
-            Layer fmtLayer = pd.getLayers().get(
-                    (ii + currentLayerIdx) % pd.getLayers().size());
-            String fmtFlag = fmtLayer
-                    .getMetaInfoFromKey(OutlookAttrDlg.OTLK_FORMAT_FLAG_IN_LAYER_META);
-            if (fmtFlag.equalsIgnoreCase("false"))
+            Layer fmtLayer = pd.getLayers().get((ii + currentLayerIdx) % pd.getLayers().size());
+            String fmtFlag = fmtLayer.getMetaInfoFromKey(OutlookAttrDlg.OTLK_FORMAT_FLAG_IN_LAYER_META);
+            if ("false".equalsIgnoreCase(fmtFlag)) {
                 continue;
+            }
 
-            String otlkType = fmtLayer
-                    .getMetaInfoFromKey(OutlookAttrDlg.OTLK_TYPE_IN_LAYER_META);
+            String otlkType = fmtLayer.getMetaInfoFromKey(OutlookAttrDlg.OTLK_TYPE_IN_LAYER_META);
             if (otlkType == null || otlkType.isEmpty()) {
                 otlkType = "OUTLOOK";
             }
 
             // find outlook
-            Iterator<AbstractDrawableComponent> it = fmtLayer
-                    .getComponentIterator();
+            Iterator<AbstractDrawableComponent> it = fmtLayer.getComponentIterator();
             Outlook lk = null;
 
             while (it.hasNext()) {
                 AbstractDrawableComponent adc = it.next();
-                if (adc.getName().equalsIgnoreCase("Outlook")
-                        && ((Outlook) adc).getOutlookType().equalsIgnoreCase(
-                                otlkType)) {
+                if ("Outlook".equalsIgnoreCase(adc.getName())
+                        && ((Outlook) adc).getOutlookType().equalsIgnoreCase(otlkType)) {
                     lk = (Outlook) adc;
                     break;
                 }
-            } // end while loop
+            // end while loop
+            }
 
             if (msgDlg != null) {
                 msgDlg.close();
             }
-            msgDlg = new OutlookFormatMsgDlg(
-                    OutlookFormatDlg.this.getParentShell(),
-                    OutlookFormatDlg.this, lk, fmtLayer);
+            msgDlg = new OutlookFormatMsgDlg(OutlookFormatDlg.this.getParentShell(), OutlookFormatDlg.this, lk,
+                    fmtLayer);
             msgDlg.setBlockOnOpen(true);
             msgDlg.setMessage(formatOtlk(lk, fmtLayer));
 
             int rt = msgDlg.open();
 
-            if (rt == Dialog.CANCEL)
+            if (rt == Dialog.CANCEL) {
                 return;
-        } // end layer loop
+            }
+        // end layer loop
+        }
 
         cleanup();
 
@@ -518,39 +495,34 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
             defaultProduct.addLayer(defaultLayer);
 
             String pdName = otlkDlg.drawingLayer.getActiveProduct().getType();
-            ProductType pt = ProductConfigureDialog.getProductTypes().get(
-                    pdName);
+            ProductType pt = ProductConfigureDialog.getProductTypes().get(pdName);
 
             Polygon boundsPoly = null;
 
             if (pt != null && pt.getClipFlag() != null && pt.getClipFlag()) {
-                boundsPoly = getBoundsPoly(pt.getClipBoundsTable(),
-                        pt.getClipBoundsName());
+                boundsPoly = getBoundsPoly(pt.getClipBoundsTable(), pt.getClipBoundsName());
                 if (boundsPoly != null) {
                     processClip(ol, defaultLayer, boundsPoly);
                 }
             }
 
-            if (pt == null || pt.getClipFlag() == null || !pt.getClipFlag()
-                    || boundsPoly == null) {
+            if (pt == null || pt.getClipFlag() == null || !pt.getClipFlag() || boundsPoly == null) {
                 // add watch collection(box and status line)
                 defaultLayer.addElement(this.issueOutlook(ol));
             }
 
-            ArrayList<Product> prds = new ArrayList<Product>();
+            ArrayList<Product> prds = new ArrayList<>();
             prds.add(defaultProduct);
             Products fileProduct = ProductConverter.convert(prds);
 
             org.w3c.dom.Document sw = null;
 
             try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory
-                        .newInstance();
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setNamespaceAware(true);
                 DocumentBuilder db = dbf.newDocumentBuilder();
                 sw = db.newDocument();
-                Marshaller mar = SerializationUtil.getJaxbContext()
-                        .createMarshaller();
+                Marshaller mar = SerializationUtil.getJaxbContext().createMarshaller();
                 mar.marshal(fileProduct, sw);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -559,39 +531,25 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
             DOMSource ds = new DOMSource(sw);
 
             // get style sheet file path
-            String xsltPath = PgenStaticDataProvider.getProvider()
-                    .getPgenLocalizationRoot()
-                    + File.separator
-                    + "xslt"
-                    + File.separator
-                    + "outlook"
-                    + File.separator
-                    + "Outlook.xlt";
+            String xsltPath = PgenStaticDataProvider.getProvider().getPgenLocalizationRoot() + File.separator + "xslt"
+                    + File.separator + "outlook" + File.separator + "Outlook.xlt";
 
-            LocalizationFile lFile = PgenStaticDataProvider.getProvider()
-                    .getStaticLocalizationFile(xsltPath);
+            LocalizationFile lFile = PgenStaticDataProvider.getProvider().getStaticLocalizationFile(xsltPath);
 
             if (lFile != null) {
-                msg = PgenUtil.applyStyleSheet(ds, lFile.getFile()
-                        .getAbsolutePath());
+                msg = PgenUtil.applyStyleSheet(ds, lFile.getFile().getAbsolutePath());
             }
 
             // show warning if there are different types of outlook in the same
             // layer
-            Iterator<AbstractDrawableComponent> it = layer
-                    .getComponentIterator();
+            Iterator<AbstractDrawableComponent> it = layer.getComponentIterator();
             while (it.hasNext()) {
                 AbstractDrawableComponent adc = it.next();
                 if (adc instanceof Outlook) {
-                    if (!((Outlook) adc).getOutlookType().equalsIgnoreCase(
-                            ol.getOutlookType())) {
+                    if (!((Outlook) adc).getOutlookType().equalsIgnoreCase(ol.getOutlookType())) {
                         MessageDialog warningDlg = new MessageDialog(
-                                PlatformUI.getWorkbench()
-                                        .getActiveWorkbenchWindow().getShell(),
-                                "Warning!",
-                                null,
-                                "More than one outlook types are found in one layer!",
-                                MessageDialog.INFORMATION,
+                                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Warning!", null,
+                                "More than one outlook types are found in one layer!", MessageDialog.INFORMATION,
                                 new String[] { "OK" }, 0);
                         warningDlg.open();
                         break;
@@ -632,8 +590,9 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      * @return
      */
     public String formatOtlk(Outlook ol, Layer layer) {
-        if (ol != null)
+        if (ol != null) {
             otlkDlg.showContLines(ol);
+        }
         return generateOutlookMsg(ol, layer);
     }
 
@@ -669,11 +628,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
 
         if (otlkTimesTbl == null) {
             try {
-                String outlookTimesFile = PgenStaticDataProvider.getProvider()
-                        .getFileAbsolutePath(
-                                PgenStaticDataProvider.getProvider()
-                                        .getPgenLocalizationRoot()
-                                        + "outlooktimes.xml");
+                String outlookTimesFile = PgenStaticDataProvider.getProvider().getFileAbsolutePath(
+                        PgenStaticDataProvider.getProvider().getPgenLocalizationRoot() + "outlooktimes.xml");
 
                 SAXReader reader = new SAXReader();
                 otlkTimesTbl = reader.read(outlookTimesFile);
@@ -696,26 +652,20 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         List<Node> nodes = day.selectNodes("range");
 
         Calendar curDt = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60
-                + curDt.get(Calendar.MINUTE);
+        int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60 + curDt.get(Calendar.MINUTE);
         int initAdjDay = 0;
         int initHH = 0;
         int initMM = 0;
 
         for (Node node : nodes) {
             try {
-                int from = Integer.valueOf(node.valueOf("@from")
-                        .substring(0, 2))
-                        * 60
+                int from = Integer.valueOf(node.valueOf("@from").substring(0, 2)) * 60
                         + Integer.valueOf(node.valueOf("@from").substring(2));
-                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2))
-                        * 60
+                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2)) * 60
                         + Integer.valueOf(node.valueOf("@to").substring(2));
                 if (minutes > from && minutes <= to) {
-                    initHH = Integer.valueOf(node.valueOf("@init").substring(0,
-                            2));
-                    initMM = Integer
-                            .valueOf(node.valueOf("@init").substring(2));
+                    initHH = Integer.valueOf(node.valueOf("@init").substring(0, 2));
+                    initMM = Integer.valueOf(node.valueOf("@init").substring(2));
                     initAdjDay = Integer.valueOf(node.valueOf("@initAdj"));
                     break;
                 }
@@ -745,24 +695,19 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         List<Node> nodes = day.selectNodes("range");
 
         Calendar curDt = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60
-                + curDt.get(Calendar.MINUTE);
+        int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60 + curDt.get(Calendar.MINUTE);
         int expAdjDay = 0;
         int expHH = 0;
         int expMM = 0;
 
         for (Node node : nodes) {
             try {
-                int from = Integer.valueOf(node.valueOf("@from")
-                        .substring(0, 2))
-                        * 60
+                int from = Integer.valueOf(node.valueOf("@from").substring(0, 2)) * 60
                         + Integer.valueOf(node.valueOf("@from").substring(2));
-                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2))
-                        * 60
+                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2)) * 60
                         + Integer.valueOf(node.valueOf("@to").substring(2));
                 if (minutes > from && minutes <= to) {
-                    expHH = Integer.valueOf(node.valueOf("@exp")
-                            .substring(0, 2));
+                    expHH = Integer.valueOf(node.valueOf("@exp").substring(0, 2));
                     expMM = Integer.valueOf(node.valueOf("@exp").substring(2));
                     expAdjDay = Integer.valueOf(node.valueOf("@expAdj"));
                     break;
@@ -886,8 +831,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         // otlkDlg.drawingLayer.addElement( border );
 
         // clip
-        Outlook clipped = new ClipProduct(boundsPoly, true).clipOutlook(this
-                .issueOutlook(ol));
+        Outlook clipped = new ClipProduct(boundsPoly, true).clipOutlook(this.issueOutlook(ol));
 
         // Put it in layer
         layer.addElement(clipped);
@@ -900,8 +844,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         // Clean up. Remove ghost. Re-set selected element.
         if (!clipped.isEmpty() && clipped.getPrimaryDE() instanceof Line) {
             otlkDlg.setDrawableElement(clipped.getPrimaryDE());
-            if (otlkDlg.drawingLayer.getSelectedComp() != null
-                    && !clipped.isEmpty()) {
+            if (otlkDlg.drawingLayer.getSelectedComp() != null && !clipped.isEmpty()) {
                 otlkDlg.drawingLayer.setSelected(clipped.getPrimaryDE());
             }
             otlkDlg.drawingLayer.removeGhostLine();
@@ -923,7 +866,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      */
     private Polygon getBoundsPoly(String boundsTbl, String boundsName) {
         if (bounds == null) {
-            bounds = new HashMap<String, Polygon>();
+            bounds = new HashMap<>();
         }
 
         // check if the polygon is still in memory.
@@ -931,8 +874,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
 
         // load the bounds polygon.
         if (boundsPoly == null) {
-            boundsPoly = PgenStaticDataProvider.getProvider().loadBounds(
-                    boundsTbl, boundsName);
+            boundsPoly = PgenStaticDataProvider.getProvider().loadBounds(boundsTbl, boundsName);
             if (boundsPoly != null) {
                 // only keep one polygon in memory
                 bounds.clear();
@@ -954,53 +896,46 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      */
     private String generateLineInfo(Outlook ol, String lineBreaker) {
 
-        if (ol.getOutlookType().equalsIgnoreCase("EXCE_RAIN"))
+        if ("EXCE_RAIN".equalsIgnoreCase(ol.getOutlookType())) {
             return excessiveRain(ol, lineBreaker);
+        }
 
-        String lnInfo = "";
+        StringBuilder lnInfo = new StringBuilder();
 
-        List<Station> anchors = PgenStaticDataProvider.getProvider()
-                .getAnchorTbl().getStationList();
+        List<Station> anchors = PgenStaticDataProvider.getProvider().getAnchorTbl().getStationList();
 
         Iterator<AbstractDrawableComponent> it = ol.getComponentIterator();
         while (it.hasNext()) {
             AbstractDrawableComponent adc = it.next();
             if (adc.getName().equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
-                Iterator<DrawableElement> itDe = ((DECollection) adc)
-                        .createDEIterator();
-                List<Line> lines = new ArrayList<Line>();
+                Iterator<DrawableElement> itDe = ((DECollection) adc).createDEIterator();
+                List<Line> lines = new ArrayList<>();
                 gov.noaa.nws.ncep.ui.pgen.elements.Text txt = null;
                 while (itDe.hasNext()) {
                     DrawableElement de = itDe.next();
-                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text)
+                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
                         txt = (gov.noaa.nws.ncep.ui.pgen.elements.Text) de;
-                    else if (de instanceof Line)
+                    } else if (de instanceof Line) {
                         lines.add((Line) de);
+                    }
                 }
 
-                String lblInfo = "";
+                StringBuilder lblInfo = new StringBuilder();
                 if (txt == null) {
-                    lblInfo += "LABEL -1 -1" + lineBreaker;
+                    lblInfo.append("LABEL -1 -1").append(lineBreaker);
                 } else {
-                    // lblInfo += txt.getText()[0];
-                    lblInfo = otlkDlg.getTextForLabel(ol.getOutlookType(),
-                            txt.getText()[0]);
-                    // if ( this.outlookType.equalsIgnoreCase("FIREOUTL") ) {
-                    // lblInfo += " AREA FIRE WEATHER";
-                    // }
-                    lblInfo += lineBreaker;
-                    lblInfo += "LABEL "
-                            + String.format("%1$5.2f %2$5.2f",
-                                    txt.getLocation().y, txt.getLocation().x);
-                    lblInfo += lineBreaker;
+                    lblInfo.append(otlkDlg.getTextForLabel(ol.getOutlookType(), txt.getText()[0]));
+                    lblInfo.append(lineBreaker);
+                    lblInfo.append("LABEL ").append(String.format("%1$5.2f %2$5.2f", txt.getLocation().y, txt.getLocation().x));
+                    lblInfo.append(lineBreaker);
                     ;
                 }
 
                 if (!lines.isEmpty()) {
                     for (Line ln : lines) {
-                        lnInfo += lblInfo;
+                        lnInfo.append(lblInfo.toString());
 
-                        ArrayList<Coordinate> points = new ArrayList<Coordinate>();
+                        ArrayList<Coordinate> points = new ArrayList<>();
                         points.addAll(ln.getPoints());
 
                         if (ln.isClosedLine()) {
@@ -1008,55 +943,46 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                         }
 
                         for (Coordinate pt : points) {
-                            Station st = WatchBox.getNearestAnchorPt(pt,
-                                    anchors);
-                            GeodeticCalculator gc = new GeodeticCalculator(
-                                    DefaultEllipsoid.WGS84);
+                            Station st = WatchBox.getNearestAnchorPt(pt, anchors);
+                            GeodeticCalculator gc = new GeodeticCalculator(DefaultEllipsoid.WGS84);
 
-                            gc.setStartingGeographicPoint(st.getLongitude(),
-                                    st.getLatitude());
+                            gc.setStartingGeographicPoint(st.getLongitude(), st.getLatitude());
                             gc.setDestinationGeographicPoint(pt.x, pt.y);
 
-                            long dist = Math.round(gc.getOrthodromicDistance()
-                                    / PgenUtil.SM2M);
+                            long dist = Math.round(gc.getOrthodromicDistance() / PgenUtil.SM2M);
                             long dir = Math.round(gc.getAzimuth());
-                            if (dir < 0)
+                            if (dir < 0) {
                                 dir += 360;
+                            }
 
-                            lnInfo += String
-                                    .format("%1$5.2f %2$7.2f%3$4d %4$-3s%5$4s",
-                                            pt.y, pt.x, dist,
-                                            WatchBox.dirs[(int) Math
-                                                    .round(dir / 22.5)], st
-                                                    .getStid());
-                            lnInfo += lineBreaker;
+                            lnInfo.append(String.format("%1$5.2f %2$7.2f%3$4d %4$-3s%5$4s", pt.y, pt.x, dist,
+                                    WatchBox.dirs[(int) Math.round(dir / 22.5)], st.getStid()));
+                            lnInfo.append(lineBreaker);
 
                         }
-                        lnInfo += "$$" + lineBreaker;
+                        lnInfo.append("$$").append(lineBreaker);
                     }
                 }
-            } else if (adc.getName().equalsIgnoreCase(
-                    Outlook.OUTLOOK_LINE_GROUP)) {
-                Iterator<DrawableElement> itDe = ((DECollection) adc)
-                        .createDEIterator();
-                ArrayList<Line> lns = new ArrayList<Line>();
+            } else if (adc.getName().equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)) {
+                Iterator<DrawableElement> itDe = ((DECollection) adc).createDEIterator();
+                ArrayList<Line> lns = new ArrayList<>();
                 gov.noaa.nws.ncep.ui.pgen.elements.Text txt = null;
                 while (itDe.hasNext()) {
                     DrawableElement de = itDe.next();
-                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text)
+                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
                         txt = (gov.noaa.nws.ncep.ui.pgen.elements.Text) de;
-                    else if (de instanceof Line)
+                    } else if (de instanceof Line) {
                         lns.add((Line) de);
+                    }
                 }
 
                 if (txt == null) {
-                    lnInfo += "LABEL -1 -1" + lineBreaker;
+                    lnInfo.append("LABEL -1 -1").append(lineBreaker);
                 } else {
-                    lnInfo += txt.getText()[0] + lineBreaker;
-                    lnInfo += "LABEL "
-                            + String.format("%1$5.2f %2$5.2f",
-                                    txt.getLocation().y, txt.getLocation().x);
-                    lnInfo += lineBreaker;
+                    lnInfo.append(txt.getText()[0]).append(lineBreaker);
+                    lnInfo.append("LABEL ")
+                        .append(String.format("%1$5.2f %2$5.2f", txt.getLocation().y, txt.getLocation().x));
+                    lnInfo.append(lineBreaker);
                 }
 
                 int iLines = 0;
@@ -1064,116 +990,107 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                     iLines++;
                     for (Coordinate pt : ln.getPoints()) {
                         Station st = WatchBox.getNearestAnchorPt(pt, anchors);
-                        GeodeticCalculator gc = new GeodeticCalculator(
-                                DefaultEllipsoid.WGS84);
+                        GeodeticCalculator gc = new GeodeticCalculator(DefaultEllipsoid.WGS84);
 
-                        gc.setStartingGeographicPoint(st.getLongitude(),
-                                st.getLatitude());
+                        gc.setStartingGeographicPoint(st.getLongitude(), st.getLatitude());
                         gc.setDestinationGeographicPoint(pt.x, pt.y);
 
-                        long dist = Math.round(gc.getOrthodromicDistance()
-                                / PgenUtil.SM2M);
+                        long dist = Math.round(gc.getOrthodromicDistance() / PgenUtil.SM2M);
                         long dir = Math.round(gc.getAzimuth());
-                        if (dir < 0)
+                        if (dir < 0) {
                             dir += 360;
+                        }
 
-                        lnInfo += String.format(
-                                "%1$5.2f %2$7.2f%3$4d %4$-3s%5$4s", pt.y, pt.x,
-                                dist,
-                                WatchBox.dirs[(int) Math.round(dir / 22.5)],
-                                st.getStid());
-                        lnInfo += lineBreaker;
+                        lnInfo.append(String.format("%1$5.2f %2$7.2f%3$4d %4$-3s%5$4s", pt.y, pt.x, dist,
+                                WatchBox.dirs[(int) Math.round(dir / 22.5)], st.getStid()));
+                        lnInfo.append(lineBreaker);
 
                     }
-                    if (iLines < lns.size())
-                        lnInfo += "...CONT..." + lineBreaker;
+                    if (iLines < lns.size()) {
+                        lnInfo.append("...CONT...").append(lineBreaker);
+                    }
                 }
 
-                lnInfo += "$$" + lineBreaker;
+                lnInfo.append("$$").append(lineBreaker);
             }
         }
 
-        return lnInfo;
+        return lnInfo.toString();
     }
 
     private String excessiveRain(Outlook ol, String lineBreaker) {
-        String ret = "";
+        StringBuilder ret = new StringBuilder();
 
         String rainTxt = "RISK OF RAINFALL EXCEEDING FFG TO THE RIGHT OF A LINE FROM";
         String fiveInch = "TOTAL RAINFALL AMOUNTS OF FIVE INCHES WILL BE POSSIBLE TO THE RIGHT OF A LINE FROM";
 
-        List<Station> sfstns = PgenStaticDataProvider.getProvider()
-                .getSfStnTbl().getStationList();
+        List<Station> sfstns = PgenStaticDataProvider.getProvider().getSfStnTbl().getStationList();
 
         Iterator<AbstractDrawableComponent> it = ol.getComponentIterator();
         while (it.hasNext()) {
             AbstractDrawableComponent adc = it.next();
             if (adc.getName().equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
-                Iterator<DrawableElement> itDe = ((DECollection) adc)
-                        .createDEIterator();
-                List<Line> lines = new ArrayList<Line>();
+                Iterator<DrawableElement> itDe = ((DECollection) adc).createDEIterator();
+                List<Line> lines = new ArrayList<>();
                 gov.noaa.nws.ncep.ui.pgen.elements.Text txt = null;
                 while (itDe.hasNext()) {
                     DrawableElement de = itDe.next();
-                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text)
+                    if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
                         txt = (gov.noaa.nws.ncep.ui.pgen.elements.Text) de;
-                    else if (de instanceof Line)
+                    } else if (de instanceof Line) {
                         lines.add((Line) de);
+                    }
                 }
 
-                String lblInfo = "";
+                StringBuilder lblInfo = new StringBuilder();
                 if (txt == null) {
                     break;
-                } else if (txt.getString()[0].equalsIgnoreCase("5_INCH")) {
-                    ret += fiveInch;
-                } else if (txt.getString()[0].equalsIgnoreCase("SLGT")) {
-                    lblInfo += "SLIGHT ";
-                } else if (txt.getString()[0].equalsIgnoreCase("MDT")) {
-                    lblInfo += "MODERATE ";
-                } else if (txt.getString()[0].equalsIgnoreCase("HIGH")) {
-                    lblInfo += "HIGH ";
+                } else if ("5_INCH".equalsIgnoreCase(txt.getString()[0])) {
+                    ret.append(fiveInch);
+                } else if ("MRGL".equalsIgnoreCase(txt.getString()[0])) {
+                    lblInfo.append("MARGINAL ");
+                } else if ("SLGT".equalsIgnoreCase(txt.getString()[0])) {
+                    lblInfo.append("SLIGHT ");
+                } else if ("MOD".equalsIgnoreCase(txt.getString()[0])) {
+                    lblInfo.append("MODERATE ");
+                } else if ("HIGH".equalsIgnoreCase(txt.getString()[0])) {
+                    lblInfo.append("HIGH ");
                 }
 
-                if (!lblInfo.isEmpty())
-                    ret += lblInfo + rainTxt;
+                if (!lblInfo.toString().isEmpty()) {
+                    ret.append(lblInfo.toString()).append(rainTxt);
+                }
 
                 if (!lines.isEmpty()) {
                     for (Line ln : lines) {
                         ArrayList<Coordinate> pts = ln.getPoints();
-                        if (ln.isClosedLine())
+                        if (ln.isClosedLine()) {
                             pts.add(pts.get(0));
+                        }
                         for (Coordinate pt : pts) {
-                            Station st = WatchBox
-                                    .getNearestAnchorPt(pt, sfstns);
-                            GeodeticCalculator gc = new GeodeticCalculator(
-                                    DefaultEllipsoid.WGS84);
+                            Station st = WatchBox.getNearestAnchorPt(pt, sfstns);
+                            GeodeticCalculator gc = new GeodeticCalculator(DefaultEllipsoid.WGS84);
 
-                            gc.setStartingGeographicPoint(st.getLongitude(),
-                                    st.getLatitude());
+                            gc.setStartingGeographicPoint(st.getLongitude(), st.getLatitude());
                             gc.setDestinationGeographicPoint(pt.x, pt.y);
 
-                            long dist = Math.round(gc.getOrthodromicDistance()
-                                    / PgenUtil.SM2M);
+                            long dist = Math.round(gc.getOrthodromicDistance() / PgenUtil.SM2M);
                             long dir = Math.round(gc.getAzimuth());
-                            if (dir < 0)
+                            if (dir < 0) {
                                 dir += 360;
+                            }
 
-                            ret += String
-                                    .format(" %1$d %2$s %3$s",
-                                            (int) (dist / 5 * 5),
-                                            WatchBox.dirs[(int) Math
-                                                    .round(dir / 22.5)], st
-                                                    .getStid());
-
+                            ret.append(String.format(" %1$d %2$s %3$s", (int) (dist / 5 * 5),
+                                    WatchBox.dirs[(int) Math.round(dir / 22.5)], st.getStid()));
                         }
                     }
-                    ret += "\n";
+                    ret.append("\n");
                 }
             }
-            ret += "\n";
+            ret.append("\n");
         }
 
-        return PgenUtil.wrap(ret, 65, "\n", false);
+        return PgenUtil.wrap(ret.toString(), 65, "\n", false);
 
     }
 
@@ -1183,37 +1100,32 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      * @param otlk
      */
     private void reorder(Outlook otlk) {
-        List<AbstractDrawableComponent> ordered = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> ordered = new ArrayList<>();
 
         for (String str : orderedLabels) {
             int ii = 0;
-            Iterator<AbstractDrawableComponent> it = otlk
-                    .getComponentIterator();
+            Iterator<AbstractDrawableComponent> it = otlk.getComponentIterator();
             while (it.hasNext()) {
                 boolean found = false;
                 AbstractDrawableComponent adc = it.next();
                 Iterator<AbstractDrawableComponent> it1 = null;
-                if (adc.getName()
-                        .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
+                if (adc.getName().equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
                     it1 = ((DECollection) adc).getComponentIterator();
-                } else if (adc.getName().equalsIgnoreCase(
-                        Outlook.OUTLOOK_LINE_GROUP)) {
-                    if (((DECollection) adc).getItemAt(0).getName()
-                            .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
-                        it1 = ((DECollection) ((DECollection) adc).getItemAt(0))
-                                .getComponentIterator();
+                } else if (adc.getName().equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)) {
+                    if (((DECollection) adc).getItemAt(0).getName().equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
+                        it1 = ((DECollection) ((DECollection) adc).getItemAt(0)).getComponentIterator();
                     }
                 }
 
-                if (it1 == null)
+                if (it1 == null) {
                     continue;
+                }
 
                 while (it1.hasNext()) {
                     AbstractDrawableComponent adcInside = it1.next();
 
                     if (adcInside instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
-                        if (((gov.noaa.nws.ncep.ui.pgen.elements.Text) adcInside)
-                                .getText()[0].equalsIgnoreCase(str)) {
+                        if (((gov.noaa.nws.ncep.ui.pgen.elements.Text) adcInside).getText()[0].equalsIgnoreCase(str)) {
                             found = true;
                             break;
                         }

@@ -50,7 +50,7 @@ import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
 import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
-import com.raytheon.uf.common.style.LabelingPreferences;
+import com.raytheon.uf.common.style.ImageryLabelingPreferences;
 import com.raytheon.uf.common.style.MatchCriteria;
 import com.raytheon.uf.common.style.ParamLevelMatchCriteria;
 import com.raytheon.uf.common.style.StyleException;
@@ -131,6 +131,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 04/12/2016   R15945  RCReynolds   Added code to build input to customizable getLegendString
  * 06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
  * 06/11/2018   7310    mapeters     Remove unused import
+ * 05/21/2019   64168   ksunil       Use ImageryLabelingPreference
  * </pre>
  *
  * @author kbugenhagen
@@ -687,7 +688,8 @@ public class ModisResource
     private void setColorBar(ImagePreferences preferences,
             ColorMapParameters colorMapParameters) {
         if (preferences != null && preferences.getColorbarLabeling() != null) {
-            LabelingPreferences labelPrefs = preferences.getColorbarLabeling();
+            ImageryLabelingPreferences labelPrefs = preferences
+                    .getColorbarLabeling();
             colorMapParameters.setColorBarIntervals(labelPrefs.getValues());
         }
 

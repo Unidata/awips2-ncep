@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <extension point="com.raytheon.uf.viz.core.component">
+        <component
+            key="viz"
+            class="com.raytheon.uf.viz.gempak.subprocess.GempakSubprocessor" />
+    </extension>
+    <extension
+        id="gempak"
+        point="org.eclipse.core.runtime.products">
+        <product
+            application="com.raytheon.uf.viz.application.application"
+            name="gempak">
+            <property
+                name="appName"
+                value="gempak">
+            </property>
+            <property
+                name="version"
+                value="%caveVersion" />
+        </product>
+    </extension>
+</plugin>

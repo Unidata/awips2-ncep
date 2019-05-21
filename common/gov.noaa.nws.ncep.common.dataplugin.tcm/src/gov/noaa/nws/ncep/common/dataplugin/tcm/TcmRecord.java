@@ -47,6 +47,7 @@ import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
  * Aug 30, 2013 2298   rjpeter Make getPluginName abstract
  * Feb 11, 2014 2784    rferrel    Remove override of setIdentifier.
  * Jun 11, 2014 2061    bsteffen   Remove IDecoderGettable
+ * Jan 25, 2019 7717    ksunil     Remove 8000 char limitation from bullMessage
  * Mar 06, 2019 6140    tgurney    Hibernate 5 @Index fix
  *
  * </pre>
@@ -161,7 +162,7 @@ public class TcmRecord extends PluginDataObject {
     private String mndTime;
 
     /** Bulletin messages */
-    @Column(length = 8000)
+    @Column
     @DynamicSerializeElement
     private String bullMessage;
 

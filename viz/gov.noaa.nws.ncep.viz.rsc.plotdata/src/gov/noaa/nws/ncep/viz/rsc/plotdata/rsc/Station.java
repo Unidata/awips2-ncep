@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.Position;
 
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -11,6 +9,9 @@ import java.util.Set;
 import com.raytheon.uf.viz.core.DrawableBasics;
 import com.raytheon.viz.pointdata.PlotInfo;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.Position;
 
 /**
  * Station
@@ -54,9 +55,9 @@ public class Station {
     public Map<Position, DrawableBasics> positionToLocationMap = null;
 
     public Station() {
-        parametersToPlot = new HashSet<AbstractMetParameter>(0);
-        conditionalColorParameters = new HashSet<AbstractMetParameter>(0);
-        positionToLocationMap = new EnumMap<Position, DrawableBasics>(
+        parametersToPlot = new HashSet<>(0);
+        conditionalColorParameters = new HashSet<>(0);
+        positionToLocationMap = new EnumMap<>(
                 Position.class);
     }
 

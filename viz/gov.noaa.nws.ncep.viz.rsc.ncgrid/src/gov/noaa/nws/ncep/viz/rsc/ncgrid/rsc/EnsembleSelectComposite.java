@@ -2,7 +2,7 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
 import static gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData.CyclePlaceholder.MAX_MODEL_CYCLES;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
 
 import java.util.ArrayList;

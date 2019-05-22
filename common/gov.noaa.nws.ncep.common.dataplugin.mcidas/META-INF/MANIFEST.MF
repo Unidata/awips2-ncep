@@ -18,5 +18,6 @@ Require-Bundle: gov.noaa.nws.ncep.common;bundle-version="1.0.0",
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.status,
  javax.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.mcidas

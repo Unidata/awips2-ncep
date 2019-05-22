@@ -28,6 +28,7 @@ import org.apache.camel.Processor;
  * 07/11/2016    R8514     S. Russell  Updated member variable 
  *                                     HURRICANE_PATTERN and method process() 
  *                                     for new hurricane file name nomenclature.
+ * 08/22/2017    7718      K. Sunil    Updated for new HWRF and HMON file names.
  * 
  * </pre>
  * 
@@ -60,12 +61,16 @@ public class NcgribFileNameProcessor implements Processor {
     // Examples of hurricane data filenames, HWRF and GHM respectively
     // hur_hwrf.2016060806_one01e.2016060806.hwrfprs.storm.0p02.f126.grb2
     // hur_hur.2016060806_one01e.2016060806.grib.1p00.f96.grib2
-    private static final Pattern HURRICANE_PATTERN = Pattern
+    private static final Pattern HURRICANE_HWRF_PATTERN = Pattern
             .compile("^hur_h(ur|wrf)$");
 
     private static final String HURRICANE_MODEL_HWRF = "hwrf";
 
-    private static final String HURRICANE_MODEL_HWRFCORE = "hwrfCore";
+    private static final String HURRICANE_MODEL_HWRF_INNER_CORE = "hwrfInnerCore";
+
+    private static final String HURRICANE_MODEL_HWRF_OUTER_CORE = "hwrfOuterCore";
+
+    private static final String HURRICANE_MODEL_HWRF_GLOBAL = "hwrfGlobal";
 
     private static final String HURRICANE_MODEL_GHM = "ghm";
 
@@ -73,13 +78,29 @@ public class NcgribFileNameProcessor implements Processor {
 
     private static final String HURRICANE_FILE_HEAD_GHM = "hur_hur";
 
-    private static final String HURRICANE_MODEL_RES_P25 = "0p25";
+    private static final String HURRICANE_MODEL_HMON = "hmon";
+
+    private static final String HURRICANE_FILE_HEAD_HMON = "hmon_hmon";
+
+    private static final String HURRICANE_MODEL_RES_P125 = "0p125";
+
+    private static final String HURRICANE_MODEL_RES_P20 = "0p20";
 
     private static final String HURRICANE_MODEL_RES_P02 = "0p02";
 
+    private static final String HURRICANE_MODEL_RES_P06 = "0p06";
+
     private static final String HURRICANE_MODEL_RES_1P0 = "1p00";
 
+    protected static final String EXCHANGE_HEADER = "CamelFileNameOnly";
+
     private static NcgribModelNameMap modelMap = null;
+
+    private String datasetid;
+
+    private String secondaryid;
+
+    private String ensembleid;
 
     /**
      * Extract the datasetid and secondarid or the ensembleid from the name of
@@ -89,6 +110,7 @@ public class NcgribFileNameProcessor implements Processor {
      */
     @Override
     public void process(Exchange exchange) throws Exception {
+
         String flName = (String) exchange.getIn()
                 .getHeader("CamelFileNameOnly");
 
@@ -109,10 +131,9 @@ public class NcgribFileNameProcessor implements Processor {
             }
         }
 
-        String datasetid = null;
-        String secondaryid = null;
-        String ensembleid = null;
         String[] nameTokens = flName.split("\\.");
+
+        String resolution;
 
         for (String token : nameTokens) {
             if (ENSEMBLE_ID_PATTERN.matcher(token).find()) {
@@ -131,10 +152,12 @@ public class NcgribFileNameProcessor implements Processor {
             } else if (HYSPLIT_PATTERN.matcher(token).find()) {
                 secondaryid = nameTokens[0];
                 datasetid = "HYSPLIT";
-            } else if (HURRICANE_PATTERN.matcher(token).find()) {
-                Matcher matcher = HURRICANE_PATTERN.matcher(token);
+
+                // HWRF hurricanes
+
+            } else if (HURRICANE_HWRF_PATTERN.matcher(token).find()) {
+                Matcher matcher = HURRICANE_HWRF_PATTERN.matcher(token);
                 matcher.find();
-                String resolution = null;
 
                 // If HWRF
                 if (nameTokens[0].equalsIgnoreCase(HURRICANE_FILE_HEAD_HWRF)) {
@@ -146,13 +169,18 @@ public class NcgribFileNameProcessor implements Processor {
                     // domain "core" and domain "storm" each have a resolution
                     // of 0p02. Differentiate them by adding the domain
                     // to the datasetid when the domain is "storm"
-
-                    if (resolution.equalsIgnoreCase(HURRICANE_MODEL_RES_P25)) {
+                    if ("global".equalsIgnoreCase(domain)) {
+                        datasetid = HURRICANE_MODEL_HWRF_GLOBAL;
+                    } else if (resolution
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P125)) {
+                        // synoptic
                         datasetid = HURRICANE_MODEL_HWRF;
-                    } else if (domain.equalsIgnoreCase("core")
-                            && resolution
-                                    .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
-                        datasetid = HURRICANE_MODEL_HWRFCORE;
+                    } else if ("storm".equalsIgnoreCase(domain) && resolution
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
+                        datasetid = HURRICANE_MODEL_HWRF_OUTER_CORE;
+                    } else if ("core".equalsIgnoreCase(domain) && resolution
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
+                        datasetid = HURRICANE_MODEL_HWRF_INNER_CORE;
                     } else {
                         datasetid = HURRICANE_MODEL_HWRF + resolution;
                     }
@@ -161,7 +189,8 @@ public class NcgribFileNameProcessor implements Processor {
                 // Else GHM
                 else if (nameTokens[0]
                         .equalsIgnoreCase(HURRICANE_FILE_HEAD_GHM)) {
-                    if (nameTokens[4].equalsIgnoreCase(HURRICANE_MODEL_RES_1P0)) {
+                    if (nameTokens[4]
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_1P0)) {
                         datasetid = HURRICANE_MODEL_GHM;
                     } else {
                         // resource ID + resolution
@@ -170,23 +199,42 @@ public class NcgribFileNameProcessor implements Processor {
                     }
                 }
 
-                // The secondaryid is the storm name embedded in the file name
-                // Example:
-                // hur_hur.2016060806_one01e.2016060806.grib.1p00.f96.grib2
-                // one01e is the name of the storm, the secondaryid
-                String[] underscoreSplitTokens = nameTokens[1].split("_");
-                secondaryid = underscoreSplitTokens[1];
             }
+
+            // Else HMON (else if the first token parsed from the filename
+            // is "hmon")
+            else if (nameTokens[0].equalsIgnoreCase(HURRICANE_FILE_HEAD_HMON)) {
+                // Based on the 5th token (the resolution) set the datasetid
+                resolution = nameTokens[5].toLowerCase();
+
+                if (nameTokens[5].equalsIgnoreCase(HURRICANE_MODEL_RES_P20)) {
+                    datasetid = HURRICANE_MODEL_HMON;
+                } else if (nameTokens[5]
+                        .equalsIgnoreCase(HURRICANE_MODEL_RES_P06)) {
+                    datasetid = HURRICANE_MODEL_HMON + resolution;
+                } else if (nameTokens[5]
+                        .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
+                    datasetid = HURRICANE_MODEL_HMON + resolution;
+                }
+            }
+
+            /*
+             * The secondaryid is the storm name embedded in the file name
+             * Example: hur_hur.2016060806_one01e.2016060806.grib.1p00.f96.grib2
+             * one01e is the name of the storm, the secondaryid
+             */
+            String[] underscoreSplitTokens = nameTokens[1].split("_");
+            secondaryid = underscoreSplitTokens[1];
+
         }
 
-        if (modelMap == null) {
-            modelMap = NcgribModelNameMap.load();
-        }
-        // Get model name from grib file template
         if (datasetid == null) {
+            if (modelMap == null) {
+                modelMap = NcgribModelNameMap.load();
+            }
+            // Get model name from grib file template
             datasetid = modelMap.getModelName(flName);
-        }
-        if (datasetid != null) {
+        } else {
             exchange.getIn().setHeader("datasetid", datasetid);
         }
         if (secondaryid != null) {
@@ -195,5 +243,31 @@ public class NcgribFileNameProcessor implements Processor {
         if (ensembleid != null) {
             exchange.getIn().setHeader("ensembleid", ensembleid);
         }
+
     }
+
+    public String getDatasetid() {
+        return datasetid;
+    }
+
+    public void setDatasetid(String datasetid) {
+        this.datasetid = datasetid;
+    }
+
+    public String getSecondaryid() {
+        return secondaryid;
+    }
+
+    public void setSecondaryid(String secondaryid) {
+        this.secondaryid = secondaryid;
+    }
+
+    public String getEnsembleid() {
+        return ensembleid;
+    }
+
+    public void setEnsembleid(String ensembleid) {
+        this.ensembleid = ensembleid;
+    }
+
 }

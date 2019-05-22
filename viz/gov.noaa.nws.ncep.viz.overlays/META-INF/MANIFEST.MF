@@ -17,7 +17,9 @@ Require-Bundle: com.raytheon.viz.core,
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
  javax.measure,
- javax.xml.bind
+ com.raytheon.uf.viz.core.maps,
+ javax.xml.bind,
+ com.raytheon.uf.viz.localization.perspective
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.overlays,
  gov.noaa.nws.ncep.viz.overlays.dialogs,

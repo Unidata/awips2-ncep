@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.actions;
 
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;

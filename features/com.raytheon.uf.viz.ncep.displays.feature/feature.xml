@@ -301,4 +301,25 @@
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="com.raytheon.uf.viz.gempak.cave"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.raytheon.uf.viz.gempak.common"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.raytheon.uf.viz.ncep.grid"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>

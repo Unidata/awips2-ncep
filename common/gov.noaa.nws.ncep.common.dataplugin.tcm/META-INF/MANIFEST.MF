@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Tcm Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.tcm
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Require-Bundle: com.raytheon.uf.common.dataplugin,
- org.springframework;bundle-version="2.5.6"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+ org.springframework
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.serialization,
@@ -15,3 +15,5 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  org.hibernate.annotations
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.tcm
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
+
+

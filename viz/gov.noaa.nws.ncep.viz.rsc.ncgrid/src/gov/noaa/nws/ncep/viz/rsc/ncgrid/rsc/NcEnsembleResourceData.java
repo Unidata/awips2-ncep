@@ -23,9 +23,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.ncep.grid.util.GridDBConstants;
 
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
+import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
 
 /**
  * Resource data for Ensemble grids

@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.common.dataplugin.tcm;
 
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,28 +10,29 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.hibernate.annotations.Index;
-
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+
 /**
- * 
  * TcmRecord
- * 
+ *
  * This java class performs the mapping to the database tables for TCM.
- * 
+ *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket# Engineer   Description
  * ------------ ------- ---------- ---------------------------------
  * 06/2009      128     T. Lee     Initial coding
@@ -48,21 +47,24 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298   rjpeter Make getPluginName abstract
  * Feb 11, 2014 2784    rferrel    Remove override of setIdentifier.
  * Jun 11, 2014 2061    bsteffen   Remove IDecoderGettable
- * 
+ * Jan 25, 2019 7717    ksunil     Remove 8000 char limitation from bullMessage
+ * Mar 06, 2019 6140    tgurney    Hibernate 5 @Index fix
+ *
  * </pre>
- * 
+ *
  * @author T.Lee
- * @version 1.0
  */
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "tcmseq")
-@Table(name = "tcm", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN,
+        sequenceName = "tcmseq")
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
  */
-@org.hibernate.annotations.Table(appliesTo = "tcm", indexes = { @Index(name = "tcm_refTimeIndex", columnNames = {
-        "refTime", "forecastTime" }) })
+@Table(name = "tcm",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) },
+        indexes = { @Index(name = "tcm_refTimeIndex",
+                columnList = "refTime,forecastTime") })
 @DynamicSerialize
 public class TcmRecord extends PluginDataObject {
 
@@ -160,7 +162,7 @@ public class TcmRecord extends PluginDataObject {
     private String mndTime;
 
     /** Bulletin messages */
-    @Column(length = 8000)
+    @Column
     @DynamicSerializeElement
     private String bullMessage;
 
@@ -168,12 +170,8 @@ public class TcmRecord extends PluginDataObject {
     @DynamicSerializeElement
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
-    @Index(name = "tcmPosWinds_parentid_idex")
-    private Set<TcmPositionWinds> tcmPosWinds = new HashSet<TcmPositionWinds>();
+    private Set<TcmPositionWinds> tcmPosWinds = new HashSet<>();
 
-    /**
-     * Default constructor
-     */
     public TcmRecord() {
         basin = null;
         stormName = null;
@@ -194,7 +192,7 @@ public class TcmRecord extends PluginDataObject {
 
     /**
      * Constructs a TCM record from a dataURI
-     * 
+     *
      * @param uri
      *            the dataURI
      */
@@ -202,17 +200,10 @@ public class TcmRecord extends PluginDataObject {
         super(uri);
     }
 
-    /**
-     * Return the report type
-     */
     public String getReportType() {
         return reportType;
     }
 
-    /**
-     * @param reportType
-     *            the report type to set
-     */
     public void setReportType(String reportType) {
         this.reportType = reportType;
     }
@@ -232,48 +223,26 @@ public class TcmRecord extends PluginDataObject {
         this.basin = basin;
     }
 
-    /**
-     * Return the storm name
-     */
     public String getStormName() {
         return stormName;
     }
 
-    /**
-     * @param stormName
-     *            the storm name to set
-     */
     public void setStormName(String stormName) {
         this.stormName = stormName;
     }
 
-    /**
-     * Return the storm number
-     */
     public String getStormNumber() {
         return stormNumber;
     }
 
-    /**
-     * @param stormNumber
-     *            the storm number to set
-     */
     public void setStormNumber(String stormNumber) {
         this.stormNumber = stormNumber;
     }
-
-    /**
-     * Return the advisory number
-     */
 
     public String getAdvisoryNumber() {
         return advisoryNumber;
     }
 
-    /**
-     * @param advisory
-     *            the advisory number to set
-     */
     public void setAdvisoryNumber(String advisoryNumber) {
         this.advisoryNumber = advisoryNumber;
     }
@@ -293,32 +262,18 @@ public class TcmRecord extends PluginDataObject {
         this.corr = corr;
     }
 
-    /**
-     * Return the storm type
-     */
     public String getStormType() {
         return stormType;
     }
 
-    /**
-     * @param stormType
-     *            the storm type to set
-     */
     public void setStormType(String stormType) {
         this.stormType = stormType;
     }
 
-    /**
-     * Return the eye size
-     */
     public Integer getEyeSize() {
         return eyeSize;
     }
 
-    /**
-     * @param eyeSize
-     *            the eye size to set
-     */
     public void setEyeSize(Integer eyeSize) {
         this.eyeSize = eyeSize;
     }
@@ -338,17 +293,10 @@ public class TcmRecord extends PluginDataObject {
         this.centralPressure = centralPressure;
     }
 
-    /**
-     * Return the position accuracy
-     */
     public Integer getPositionAccuracy() {
         return positionAccuracy;
     }
 
-    /**
-     * @param positionAccuracy
-     *            the position accuracy to set
-     */
     public void setPositionAccuracy(Integer positionAccuracy) {
         this.positionAccuracy = positionAccuracy;
     }
@@ -413,77 +361,42 @@ public class TcmRecord extends PluginDataObject {
         this.nw12ft = nw12ft;
     }
 
-    /**
-     * @return the issueTime
-     */
     public Calendar getIssueTime() {
         return issueTime;
     }
 
-    /**
-     * @param obsTime
-     *            The obsTime to set
-     */
     public void setObsTime(Calendar obsTime) {
         this.obsTime = obsTime;
     }
 
-    /**
-     * @return the obsTime
-     */
     public Calendar getObsTime() {
         return obsTime;
     }
 
-    /**
-     * @param issueTime
-     *            the issueTime to set
-     */
     public void setIssueTime(Calendar issueTime) {
         this.issueTime = issueTime;
     }
 
-    /**
-     * @return the bullMessage
-     */
     public String getBullMessage() {
         return bullMessage;
     }
 
-    /**
-     * @param bullMessage
-     *            the bullMessage to set
-     */
     public void setBullMessage(String bullMessage) {
         this.bullMessage = bullMessage;
     }
 
-    /**
-     * @return the MndTime
-     */
     public String getMndTime() {
         return mndTime;
     }
 
-    /**
-     * @param mndTime
-     *            the mndTime to set
-     */
     public void setMndTime(String mndTime) {
         this.mndTime = mndTime;
     }
 
-    /**
-     * @return the set of position and winds
-     */
     public Set<TcmPositionWinds> getTcmPosWinds() {
         return tcmPosWinds;
     }
 
-    /**
-     * @param tcmPW
-     *            the set of position and winds to set
-     */
     public void setTcmPosWinds(Set<TcmPositionWinds> tcmPosWinds) {
         this.tcmPosWinds = tcmPosWinds;
     }

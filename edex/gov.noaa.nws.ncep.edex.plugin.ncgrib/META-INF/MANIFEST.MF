@@ -11,12 +11,13 @@ Require-Bundle: org.apache.camel,
  com.raytheon.uf.common.serialization,
  javax.xml.bind
 Import-Package: com.raytheon.uf.common.dataplugin,
- com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.common.dataplugin.persist,
  com.raytheon.uf.common.datastorage,
  com.raytheon.uf.common.datastorage.records,
+ com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.message.response,
  com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.edex.database.plugin,
- gov.noaa.nws.ncep.common.dataplugin.ncgrib.request
+ gov.noaa.nws.ncep.common.dataplugin.ncgrib.request,
+ org.apache.cxf.message

@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
-import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.controls.RetrieveActivityDialog.ActivityElement;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,55 +16,60 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 
+import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+
 /**
  * This class retrieves the information of activityElements from the database,
  * maintains the data in a consistent way internally, and prepares the data in
  * proper formats so that they can be easily accessed by the class
  * RetrieveActivityDialog to construct the PGEN open dialog.
- * 
+ *
  * Specifically, this class implements the following criteria to determine the
  * listings of Site, Desk, Type, Subtype, and Activity labels. If a Site is
  * selected by users, the listings of Desk, Type, Subtype, and Activity labels
  * will change based on this Site. Likewise, if a Type is selected, the listings
  * of Subtype and Activity labels will change based on the current Site and
  * Desk. The rule applies to Desk and Subtype in similar ways. Precisely,
- * 
+ *
  * <pre>
  * a change to Site by users will trigger a change to Desk;
  * a change to Desk will trigger a changes to Type;
  * a change to Type will trigger a change to Subtype;
- * a change to Subtype will trigger a change to Activity labels.   
+ * a change to Subtype will trigger a change to Activity labels.
  * The rules are applied sequentially and immediately.
- * 
+ *
  * The listing of Site includes all the sites of Activities in the PGEN table in the database.
  * The listing of Desk includes all the desks for the current Site.
  * The listing of Type includes all the types for the current Site and Desk.
  * The listing of Subtype includes all the subtypes for the current Site and Desk and Type.
  * The listing of Activity labels includes all the labels for the current Site and Desk and Type and Subtype.
  * </pre>
- * 
+ *
  * When the listing of Site, Desk, Type, or Subtype is generated, the first item
  * on the listing is selected in default, which is usually the option "All",
  * although the class RetrieveActivityDialog can choose to hide the option "All"
  * for Type and Subtype.
- * 
+ *
  * The values for Site and Desk are defaulted to the current SITE and DESK of
  * the CAVE session.
- * 
+ *
  * The dialog will remember the selections of Site, Desk, Type, and Subtype
  * within a single instance of CAVE. A new CAVE should reset back to normal.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- -----------------------------------
- * 06/24/2015   R7806       A. Su       Initial creation.
- * 05/03/2016   R16076      J. Wu       pull "optionAll" to PgenConstant.
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- ----------- ---------------------------------------
+ * Jun 24, 2015  R7806    A. Su       Initial creation.
+ * May 03, 2016  R16076   J. Wu       pull "optionAll" to PgenConstant.
+ * Feb 28, 2019  7752     tjensen     Moved ActivityElement to its own class
+ *
  * </pre>
- * 
+ *
  * @author Augustine Su
- * @version 1
  */
 public class ActivityCollection {
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -78,18 +78,18 @@ public class ActivityCollection {
     /**
      * The menu item in pull-down menus and a SWT list to designate all.
      */
-    private final static String optionAll = PgenConstant.OPTION_ALL;
+    private static final String optionAll = PgenConstant.OPTION_ALL;
 
     /**
      * The internal string for empty desk or subtype.
      */
-    private final static String optionSavedEmptyString = "      ";
+    private static final String optionSavedEmptyString = "      ";
 
     /**
      * The menu item in pull-down menus and a SWT list to designate no desk or
      * subtype specified.
      */
-    private final static String optionDisplayedEmptyString = "None";
+    private static final String optionDisplayedEmptyString = "None";
 
     /**
      * A list of activityElements retrieved from the database.
@@ -146,10 +146,10 @@ public class ActivityCollection {
      * database and sets up the default values for the SWT widgets in the PGEN
      * Open dialog.
      */
-    ActivityCollection() {
+    public ActivityCollection() {
         retrievedActivityList = retrieveFromDB();
 
-        if (retrievedActivityList == null || retrievedActivityList.size() == 0) {
+        if (retrievedActivityList == null || retrievedActivityList.isEmpty()) {
             setUpDummyDefaultValues();
             return;
         }
@@ -161,7 +161,7 @@ public class ActivityCollection {
      * This method produces the default value of the index number to the
      * pull-down menu for Site. It is intended to be called during the setup of
      * the PGEN Open dialog.
-     * 
+     *
      * @return the default index if found, or 0 (the first item) otherwise.
      */
     public int getDefaultSiteIndex() {
@@ -183,7 +183,7 @@ public class ActivityCollection {
      * This method produces the default value of the index number to the
      * pull-down menu for Desk. It is intended to be called during the setup of
      * the PGEN Open dialog.
-     * 
+     *
      * @return the default index if found, or 0 (the first item) otherwise.
      */
     public int getDefaultDeskListIndex() {
@@ -205,11 +205,11 @@ public class ActivityCollection {
     /**
      * Call this method if the user changes the selection in the pull-down menu
      * for Site.
-     * 
+     *
      * A change to Site will trigger a change to Desk, which will trigger a
      * change to Type, which will trigger a change to Subtype, which will
      * trigger a change to Activity labels.
-     * 
+     *
      * @param siteIndex
      *            the newly selected index to the pull-down menu for Site.
      */
@@ -235,26 +235,27 @@ public class ActivityCollection {
 
         // Linear search through the retrievedActivityList
         String siteString = currentSiteList[currentSiteIndex];
-        java.util.List<ActivityElement> activityList = new ArrayList<ActivityElement>();
-        TreeSet<String> deskSet = new TreeSet<String>();
-        TreeSet<String> typeSet = new TreeSet<String>();
-        TreeSet<String> subtypeSet = new TreeSet<String>();
+        java.util.List<ActivityElement> activityList = new ArrayList<>();
+        TreeSet<String> deskSet = new TreeSet<>();
+        TreeSet<String> typeSet = new TreeSet<>();
+        TreeSet<String> subtypeSet = new TreeSet<>();
 
         for (ActivityElement e : retrievedActivityList) {
-            if (e.site.equals(siteString)) {
-                if (e.desk == null || e.desk.length() == 0) {
+            if (e.getSite().equals(siteString)) {
+                String desk = e.getDesk();
+                if (desk == null || desk.isEmpty()) {
                     deskSet.add(optionSavedEmptyString);
                 } else {
-                    deskSet.add(e.desk);
+                    deskSet.add(desk);
                 }
 
-                typeSet.add(e.activityType);
+                typeSet.add(e.getActivityType());
 
-                if (e.activitySubtype == null
-                        || e.activitySubtype.length() == 0) {
+                String activitySubtype = e.getActivitySubtype();
+                if (activitySubtype == null || activitySubtype.isEmpty()) {
                     subtypeSet.add(optionSavedEmptyString);
                 } else {
-                    subtypeSet.add(e.activitySubtype);
+                    subtypeSet.add(activitySubtype);
                 }
 
                 activityList.add(e);
@@ -263,10 +264,12 @@ public class ActivityCollection {
 
         int i = 0;
         currentDeskList = new String[deskSet.size() + 1];
-        currentDeskList[i++] = optionAll;
+        currentDeskList[i] = optionAll;
+        i++;
         currentDeskIndex = 0;
         for (String desk : deskSet) {
-            currentDeskList[i++] = desk;
+            currentDeskList[i] = desk;
+            i++;
         }
 
         if (currentDeskList[1].equals(optionSavedEmptyString)) {
@@ -275,18 +278,22 @@ public class ActivityCollection {
 
         int j = 0;
         currentTypeList = new String[typeSet.size() + 1];
-        currentTypeList[j++] = optionAll;
+        currentTypeList[j] = optionAll;
+        j++;
         currentTypeIndex = 0;
         for (String type : typeSet) {
-            currentTypeList[j++] = type;
+            currentTypeList[j] = type;
+            j++;
         }
 
         int k = 0;
         currentSubtypeList = new String[subtypeSet.size() + 1];
-        currentSubtypeList[k++] = optionAll;
+        currentSubtypeList[k] = optionAll;
+        k++;
         currentSubtypeIndex = 0;
         for (String subtype : subtypeSet) {
-            currentSubtypeList[k++] = subtype;
+            currentSubtypeList[k] = subtype;
+            k++;
         }
 
         if (currentSubtypeList[1].equals(optionSavedEmptyString)) {
@@ -299,10 +306,10 @@ public class ActivityCollection {
     /**
      * Call this method if the user changes the selection in the pull-down menu
      * for Desk.
-     * 
+     *
      * A change to Desk will trigger a change to Type, which will trigger a
      * change to Subtype, which will trigger a change to Activity labels.
-     * 
+     *
      * @param deskIndex
      *            the newly selected index to the pull-down menu for Desk.
      */
@@ -325,33 +332,36 @@ public class ActivityCollection {
         }
 
         currentDeskIndex = deskIndex;
-        boolean isEmptyDeskSelected = (currentDeskIndex == 1 && currentDeskList[1]
-                .equals(optionDisplayedEmptyString));
+        boolean isEmptyDeskSelected = (currentDeskIndex == 1
+                && currentDeskList[1].equals(optionDisplayedEmptyString));
 
         // Linear search
         String siteString = currentSiteList[currentSiteIndex];
         String deskString = currentDeskList[currentDeskIndex];
-        TreeSet<String> typeSet = new TreeSet<String>();
-        TreeSet<String> subtypeSet = new TreeSet<String>();
-        java.util.List<ActivityElement> activityList = new ArrayList<ActivityElement>();
+        TreeSet<String> typeSet = new TreeSet<>();
+        TreeSet<String> subtypeSet = new TreeSet<>();
+        java.util.List<ActivityElement> activityList = new ArrayList<>();
 
         for (ActivityElement e : retrievedActivityList) {
-            if (currentSiteIndex != 0 && !e.site.equals(siteString)) {
+            if (currentSiteIndex != 0 && !siteString.equals(e.getSite())) {
                 continue;
             }
 
+            String desk = e.getDesk();
             if (currentDeskIndex != 0
-                    && (!isEmptyDeskSelected || (e.desk != null && e.desk
-                            .length() > 0)) && !e.desk.equals(deskString)) {
+                    && (!isEmptyDeskSelected
+                            || (desk != null && !desk.isEmpty()))
+                    && !deskString.equals(desk)) {
                 continue;
             }
 
-            typeSet.add(e.activityType);
+            typeSet.add(e.getActivityType());
 
-            if (e.activitySubtype == null || e.activitySubtype.length() == 0) {
+            String activitySubtype = e.getActivitySubtype();
+            if (activitySubtype == null || activitySubtype.isEmpty()) {
                 subtypeSet.add(optionSavedEmptyString);
             } else {
-                subtypeSet.add(e.activitySubtype);
+                subtypeSet.add(activitySubtype);
             }
 
             activityList.add(e);
@@ -359,19 +369,23 @@ public class ActivityCollection {
 
         int i = 0;
         currentTypeList = new String[typeSet.size() + 1];
-        currentTypeList[i++] = optionAll;
+        currentTypeList[i] = optionAll;
+        i++;
         currentTypeIndex = 0;
         for (String type : typeSet) {
-            currentTypeList[i++] = type;
+            currentTypeList[i] = type;
+            i++;
         }
 
         int j = 0;
         currentSubtypeList = new String[subtypeSet.size() + 1];
-        currentSubtypeList[j++] = optionAll;
+        currentSubtypeList[j] = optionAll;
+        j++;
         currentSubtypeIndex = 0;
 
         for (String subtype : subtypeSet) {
-            currentSubtypeList[j++] = subtype;
+            currentSubtypeList[j] = subtype;
+            j++;
         }
 
         if (currentSubtypeList[1].equals(optionSavedEmptyString)) {
@@ -385,10 +399,10 @@ public class ActivityCollection {
     /**
      * Call this method if the user changes the selection in the SWT list for
      * Type.
-     * 
+     *
      * A change to Type, which will trigger a change to Subtype, which will
      * trigger a change to Activity labels.
-     * 
+     *
      * @param typeIndex
      *            the newly selected index to the SWT list for Type.
      */
@@ -410,35 +424,39 @@ public class ActivityCollection {
         }
 
         currentTypeIndex = typeIndex;
-        boolean isEmptyDeskSelected = (currentDeskIndex == 1 && currentDeskList[1]
-                .equals(optionDisplayedEmptyString));
+        boolean isEmptyDeskSelected = (currentDeskIndex == 1
+                && currentDeskList[1].equals(optionDisplayedEmptyString));
 
         // Linear search
         String siteString = currentSiteList[currentSiteIndex];
         String deskString = currentDeskList[currentDeskIndex];
         String typeString = currentTypeList[currentTypeIndex];
-        TreeSet<String> subtypeSet = new TreeSet<String>();
-        java.util.List<ActivityElement> activityList = new ArrayList<ActivityElement>();
+        TreeSet<String> subtypeSet = new TreeSet<>();
+        java.util.List<ActivityElement> activityList = new ArrayList<>();
 
         for (ActivityElement e : retrievedActivityList) {
-            if (currentSiteIndex != 0 && !e.site.equals(siteString)) {
+            if (currentSiteIndex != 0 && !e.getSite().equals(siteString)) {
                 continue;
             }
 
+            String desk = e.getDesk();
             if (currentDeskIndex != 0
-                    && (!isEmptyDeskSelected || (e.desk != null && e.desk
-                            .length() > 0)) && !e.desk.equals(deskString)) {
+                    && (!isEmptyDeskSelected
+                            || (desk != null && !desk.isEmpty()))
+                    && !deskString.equals(desk)) {
                 continue;
             }
 
-            if (currentTypeIndex != 0 && !e.activityType.equals(typeString)) {
+            if (currentTypeIndex != 0
+                    && !e.getActivityType().equals(typeString)) {
                 continue;
             }
 
-            if (e.activitySubtype == null || e.activitySubtype.length() == 0) {
+            String activitySubtype = e.getActivitySubtype();
+            if (activitySubtype == null || activitySubtype.isEmpty()) {
                 subtypeSet.add(optionSavedEmptyString);
             } else {
-                subtypeSet.add(e.activitySubtype);
+                subtypeSet.add(activitySubtype);
             }
 
             activityList.add(e);
@@ -446,10 +464,12 @@ public class ActivityCollection {
 
         int i = 0;
         currentSubtypeList = new String[subtypeSet.size() + 1];
-        currentSubtypeList[i++] = optionAll;
+        currentSubtypeList[i] = optionAll;
+        i++;
         currentSubtypeIndex = 0;
         for (String subtype : subtypeSet) {
-            currentSubtypeList[i++] = subtype;
+            currentSubtypeList[i] = subtype;
+            i++;
         }
 
         if (currentSubtypeList[1].equals(optionSavedEmptyString)) {
@@ -463,9 +483,9 @@ public class ActivityCollection {
     /**
      * Call this method if the user changes the selection in the SWT list for
      * Subtype.
-     * 
+     *
      * A change to Subtype, which will trigger a change to Activity labels.
-     * 
+     *
      * @param subtypeIndex
      *            the newly selected index to the SWT list for Subype.
      */
@@ -488,37 +508,40 @@ public class ActivityCollection {
         }
 
         currentSubtypeIndex = subtypeIndex;
-        boolean isEmptyDeskSelected = (currentDeskIndex == 1 && currentDeskList[1]
-                .equals(optionDisplayedEmptyString));
-        boolean isEmptySubtypeSelected = (currentSubtypeIndex == 1 && currentSubtypeList[1]
-                .equals(optionDisplayedEmptyString));
+        boolean isEmptyDeskSelected = (currentDeskIndex == 1
+                && currentDeskList[1].equals(optionDisplayedEmptyString));
+        boolean isEmptySubtypeSelected = (currentSubtypeIndex == 1
+                && currentSubtypeList[1].equals(optionDisplayedEmptyString));
 
         // Linear search
         String siteString = currentSiteList[currentSiteIndex];
         String deskString = currentDeskList[currentDeskIndex];
         String typeString = currentTypeList[currentTypeIndex];
         String subtypeString = currentSubtypeList[currentSubtypeIndex];
-        java.util.List<ActivityElement> activityList = new ArrayList<ActivityElement>();
+        java.util.List<ActivityElement> activityList = new ArrayList<>();
 
         for (ActivityElement e : retrievedActivityList) {
-            if (currentSiteIndex != 0 && !e.site.equals(siteString)) {
+            if (currentSiteIndex != 0 && !siteString.equals(e.getSite())) {
                 continue;
             }
 
+            String desk = e.getDesk();
             if (currentDeskIndex != 0
-                    && (!isEmptyDeskSelected || (e.desk != null && e.desk
-                            .length() > 0)) && !e.desk.equals(deskString)) {
+                    && (!isEmptyDeskSelected
+                            || (desk != null && !desk.isEmpty()))
+                    && !deskString.equals(desk)) {
                 continue;
             }
 
-            if (currentTypeIndex != 0 && !e.activityType.equals(typeString)) {
+            if (currentTypeIndex != 0
+                    && !e.getActivityType().equals(typeString)) {
                 continue;
             }
 
-            if (currentSubtypeIndex != 0
-                    && (!isEmptySubtypeSelected || (e.activitySubtype != null && e.activitySubtype
-                            .length() > 0))
-                    && !e.activitySubtype.equals(subtypeString)) {
+            String activitySubtype = e.getActivitySubtype();
+            if (currentSubtypeIndex != 0 && (!isEmptySubtypeSelected
+                    || (activitySubtype != null && !activitySubtype.isEmpty()))
+                    && !subtypeString.equals(activitySubtype)) {
                 continue;
             }
 
@@ -531,7 +554,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current listing of Site.
-     * 
+     *
      * @return the current listing of Site.
      */
     public String[] getCurrentSiteList() {
@@ -540,7 +563,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current listing of Desk.
-     * 
+     *
      * @return the current listing of Desk.
      */
     public String[] getCurrentDeskList() {
@@ -549,7 +572,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current listing of Type.
-     * 
+     *
      * @return the current listing of Type.
      */
     public String[] getCurrentTypeList() {
@@ -558,7 +581,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current listing of Subtype.
-     * 
+     *
      * @return the current listing of Subtype.
      */
     public String[] getCurrentSubtypeList() {
@@ -567,7 +590,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current index to the listing of Site.
-     * 
+     *
      * @return the current index to the listing of Site.
      */
     public int getCurrentSiteIndex() {
@@ -576,7 +599,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current index to the listing of Desk.
-     * 
+     *
      * @return the current index to the listing of Desk.
      */
     public int getCurrentDeskIndex() {
@@ -585,7 +608,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current index to the listing of Type.
-     * 
+     *
      * @return the current index to the listing of Type.
      */
     public int getCurrentTypeIndex() {
@@ -594,7 +617,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current index to the listing of Subtype.
-     * 
+     *
      * @return the current index to the listing of Subtype.
      */
     public int getCurrentSubtypeIndex() {
@@ -603,7 +626,7 @@ public class ActivityCollection {
 
     /**
      * Retrieve the current listing of ActivityElements after filtering.
-     * 
+     *
      * @return the current listing of ActivityElements after filtering.
      */
     public java.util.List<ActivityElement> getCurrentActivityList() {
@@ -616,73 +639,83 @@ public class ActivityCollection {
      */
     private void setUpDefaultValues() {
 
-        TreeSet<String> siteSet = new TreeSet<String>();
-        TreeSet<String> deskSet = new TreeSet<String>();
-        TreeSet<String> typeSet = new TreeSet<String>();
-        TreeSet<String> subtypeSet = new TreeSet<String>();
+        TreeSet<String> siteSet = new TreeSet<>();
+        TreeSet<String> deskSet = new TreeSet<>();
+        TreeSet<String> typeSet = new TreeSet<>();
+        TreeSet<String> subtypeSet = new TreeSet<>();
         for (ActivityElement e : retrievedActivityList) {
-            siteSet.add(e.site);
+            siteSet.add(e.getSite());
 
-            if (e.desk == null || e.desk.length() == 0) {
+            String desk = e.getDesk();
+            if (desk == null || desk.isEmpty()) {
                 deskSet.add(optionSavedEmptyString);
             } else {
-                deskSet.add(e.desk);
+                deskSet.add(desk);
             }
 
-            typeSet.add(e.activityType);
+            typeSet.add(e.getActivityType());
 
-            if (e.activitySubtype == null || e.activitySubtype.length() == 0) {
+            String activitySubtype = e.getActivitySubtype();
+            if (activitySubtype == null || activitySubtype.isEmpty()) {
                 subtypeSet.add(optionSavedEmptyString);
             } else {
-                subtypeSet.add(e.activitySubtype);
+                subtypeSet.add(activitySubtype);
             }
         }
 
         int i = 0;
         currentSiteList = new String[siteSet.size() + 1];
-        currentSiteList[i++] = optionAll;
+        currentSiteList[i] = optionAll;
+        i++;
         currentSiteIndex = 0;
 
         for (String site : siteSet) {
-            currentSiteList[i++] = site;
+            currentSiteList[i] = site;
+            i++;
         }
 
         int j = 0;
         currentDeskList = new String[deskSet.size() + 1];
-        currentDeskList[j++] = optionAll;
+        currentDeskList[j] = optionAll;
+        j++;
         currentDeskIndex = 0;
 
         for (String desk : deskSet) {
-            currentDeskList[j++] = desk;
+            currentDeskList[j] = desk;
+            j++;
         }
 
-        if (currentDeskList[1].equals(optionSavedEmptyString))
+        if (currentDeskList[1].equals(optionSavedEmptyString)) {
             currentDeskList[1] = optionDisplayedEmptyString;
+        }
 
         int m = 0;
         currentTypeList = new String[typeSet.size() + 1];
-        currentTypeList[m++] = optionAll;
+        currentTypeList[m] = optionAll;
+        m++;
         currentTypeIndex = 0;
 
         for (String type : typeSet) {
-            currentTypeList[m++] = type;
+            currentTypeList[m] = type;
+            m++;
         }
 
         int n = 0;
         currentSubtypeList = new String[subtypeSet.size() + 1];
-        currentSubtypeList[n++] = optionAll;
+        currentSubtypeList[n] = optionAll;
+        n++;
         currentSubtypeIndex = 0;
 
         for (String subtype : subtypeSet) {
-            currentSubtypeList[n++] = subtype;
+            currentSubtypeList[n] = subtype;
+            n++;
         }
 
         if (currentSubtypeList[1].equals(optionSavedEmptyString)) {
             currentSubtypeList[1] = optionDisplayedEmptyString;
         }
 
-        currentActivityList = new ArrayList<ActivityElement>(
-                retrievedActivityList);
+        currentActivityList = new ArrayList<>(retrievedActivityList);
     }
 
     /**
@@ -707,12 +740,12 @@ public class ActivityCollection {
         currentSubtypeList[0] = optionAll;
         currentSubtypeIndex = 0;
 
-        currentActivityList = new ArrayList<ActivityElement>();
+        currentActivityList = new ArrayList<>();
     }
 
     /**
      * Retrieve the information of ActivityElements from the database.
-     * 
+     *
      * @return a list of ActivityElements.
      */
     private java.util.List<ActivityElement> retrieveFromDB() {
@@ -727,28 +760,26 @@ public class ActivityCollection {
         request.addRequestField(PgenRecord.REF_TIME);
 
         DbQueryResponse response;
-        java.util.List<ActivityElement> elements = new ArrayList<ActivityElement>();
+        java.util.List<ActivityElement> elements = new ArrayList<>();
 
         try {
             response = (DbQueryResponse) ThriftClient.sendRequest(request);
 
             for (Map<String, Object> result : response.getResults()) {
-                ActivityElement e = new ActivityElement();
-                e.site = (String) result.get(PgenRecord.SITE);
-                e.desk = (String) result.get(PgenRecord.DESK);
-                e.activityType = (String) result.get(PgenRecord.ACTIVITY_TYPE);
-                e.activitySubtype = (String) result
-                        .get(PgenRecord.ACTIVITY_SUBTYPE);
-                e.activityLabel = (String) result
-                        .get(PgenRecord.ACTIVITY_LABEL);
-                e.dataURI = (String) result.get(PgenRecord.DATAURI);
-                e.refTime = (Date) result.get(PgenRecord.REF_TIME);
+                ActivityElement e = new ActivityElement(
+                        (String) result.get(PgenRecord.SITE),
+                        (String) result.get(PgenRecord.DESK),
+                        (String) result.get(PgenRecord.ACTIVITY_TYPE),
+                        (String) result.get(PgenRecord.ACTIVITY_SUBTYPE),
+                        (String) result.get(PgenRecord.ACTIVITY_LABEL),
+                        (String) result.get(PgenRecord.DATAURI),
+                        (Date) result.get(PgenRecord.REF_TIME));
 
                 elements.add(e);
             }
         } catch (VizException ex) {
-            statusHandler
-                    .handle(Priority.PROBLEM, ex.getLocalizedMessage(), ex);
+            statusHandler.handle(Priority.PROBLEM, ex.getLocalizedMessage(),
+                    ex);
         }
 
         return elements;

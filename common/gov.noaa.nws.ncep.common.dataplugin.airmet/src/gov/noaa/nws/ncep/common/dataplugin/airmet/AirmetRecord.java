@@ -10,13 +10,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.Index;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
@@ -25,51 +24,46 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
  * AirmetRecord
- * 
+ *
  * This java class performs the mapping to the database table for AIRMET
- * 
+ *
  * <pre>
- * HISTORY
- * 
- * Date         Author      Description
- * ------------ ----------  ----------- --------------------------
- * 05/2009      L. Lin      Initial creation    
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
+ * SOFTWARE HISTORY
+ *
  * Date         Ticket#         Engineer    Description
  * ------------ ----------      ----------- --------------------------
  * 05/2009      39              L. Lin      Initial coding
  * 07/2009      39              L. Lin      Migration to TO11
  * 09/2011                      Chin Chen   changed to improve purge performance and
  *                                          removed xml serialization as well
- * Apr 4, 2013        1846 bkowal      Added an index on refTime and forecastTime
- * Apr 12, 2013       1857 bgonzale         Added SequenceGenerator annotation.
+ * Apr 4, 2013  1846            bkowal      Added an index on refTime and forecastTime
+ * Apr 12, 2013 1857            bgonzale    Added SequenceGenerator annotation.
  * May 07, 2013 1869            bsteffen    Remove dataURI column from
  *                                          PluginDataObject.
  * Feb 11, 2014 2784            rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
- * 
+ * Mar 05, 2019 6140            tgurney     Hibernate 5 @Index fix
+ *
  * </pre>
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "airmetseq")
-@Table(name = "airmet", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN,
+        sequenceName = "airmetseq")
+@Table(name = "airmet",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) },
+        indexes = { @Index(name = "airmet_refTimeIndex",
+                columnList = "refTime,forecastTime") })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
  */
-@org.hibernate.annotations.Table(appliesTo = "airmet", indexes = { @Index(name = "airmet_refTimeIndex", columnNames = {
-        "refTime", "forecastTime" }) })
 @DynamicSerialize
 public class AirmetRecord extends PluginDataObject {
 
-    /**
-	 * 
-	 */
     private static final long serialVersionUID = 1L;
 
     // reportType is AIRMET.
@@ -122,7 +116,7 @@ public class AirmetRecord extends PluginDataObject {
     private Integer correctionFlag;
 
     // The entire report
-    @Column(length = 15000)
+    @Column(length = 15_000)
     @DynamicSerializeElement
     private String bullMessage;
 
@@ -132,8 +126,7 @@ public class AirmetRecord extends PluginDataObject {
     @DynamicSerializeElement
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
-    @Index(name = "airmetReport_parentid_idex")
-    private Set<AirmetReport> airmetReport = new HashSet<AirmetReport>();
+    private Set<AirmetReport> airmetReport = new HashSet<>();
 
     /**
      * Default Convstructor
@@ -151,7 +144,7 @@ public class AirmetRecord extends PluginDataObject {
 
     /**
      * Convstructs an airmet record from a dataURI
-     * 
+     *
      * @param uri
      *            The dataURI
      */

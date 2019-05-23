@@ -1,4 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,12 +8,9 @@ import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-
-
-import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-//import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
  
 /**
  * Maps to the GEMPAK parameter WCEQ
@@ -23,8 +21,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 
 
 
-public class WindChillEquivalentTemp extends AbstractMetParameter implements 
-	javax.measure.quantity.Temperature, ISerializableObject {
+public class WindChillEquivalentTemp extends AbstractMetParameter<Temperature>
+    implements ISerializableObject {
 
 	/**
 	 * 
@@ -32,7 +30,7 @@ public class WindChillEquivalentTemp extends AbstractMetParameter implements
 	private static final long serialVersionUID = -7672651387146926009L;
 
 	public WindChillEquivalentTemp( ) {
-		 super( UNIT );
+		 super( SI.KELVIN );
 	}
 	
 	@DeriveMethod

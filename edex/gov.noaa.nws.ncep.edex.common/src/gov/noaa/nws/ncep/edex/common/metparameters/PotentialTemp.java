@@ -2,19 +2,19 @@
  * 
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
- 
+
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-//import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter THTA
@@ -23,35 +23,25 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public final class PotentialTemp extends AbstractMetParameter implements
-						javax.measure.quantity.Temperature, ISerializableObject {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -273204188466291660L;
+public final class PotentialTemp
+        extends AbstractMetParameter<Temperature>
+        implements ISerializableObject {
 
-	public PotentialTemp() throws Exception {
-		 super( new UnitAdapter().marshal( UNIT ) );
-	}
+    private static final long serialVersionUID = -273204188466291660L;
 
-	@DeriveMethod
-	public PotentialTemp derive( AirTemperature t, PressureLevel p ) throws   InvalidValueException, NullPointerException {
-		if ( t.hasValidValue() && p.hasValidValue() ){
-		          Amount thePotentialTempAmount = PRLibrary.prThta(t, p);
-		          this.setValue(thePotentialTempAmount);
-		}else
-	             setValueToMissing();
-		return this;
-	}
-	
-//@DeriveMethod
-//	public PotentialTemp derive( AirTemperature t, SeaLevelPressure p ) throws   InvalidValueException, NullPointerException {
-//		if ( t.hasValidValue() && p.hasValidValue() ){
-//		          Amount thePotentialTempAmount = PRLibrary.prThta(t, p);
-//		          this.setValue(thePotentialTempAmount);
-//		}else
-//	             setValueToMissing();
-//		return this;
-//	}
-	
+    public PotentialTemp() throws Exception {
+        super(SI.KELVIN);
+    }
+
+    @DeriveMethod
+    public PotentialTemp derive(AirTemperature t, PressureLevel p)
+            throws InvalidValueException, NullPointerException {
+        if (t.hasValidValue() && p.hasValidValue()) {
+            Amount thePotentialTempAmount = PRLibrary.prThta(t, p);
+            this.setValue(thePotentialTempAmount);
+        } else
+            setValueToMissing();
+        return this;
+    }
+
 }

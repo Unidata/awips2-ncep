@@ -10,6 +10,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter CMSL
@@ -17,11 +18,10 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CeilingFromSeaLevel extends AbstractMetParameter
-        implements Length {
+public class CeilingFromSeaLevel extends AbstractMetParameter<Length> {
 
     public CeilingFromSeaLevel() {
-        super(UNIT);
+        super(SI.METRE);
     }
 
     @Override

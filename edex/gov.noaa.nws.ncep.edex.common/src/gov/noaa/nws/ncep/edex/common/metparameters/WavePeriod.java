@@ -1,13 +1,15 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 
-import javax.measure.quantity.Duration;
+import javax.measure.quantity.Time;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter WPER
@@ -16,7 +18,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class WavePeriod extends AbstractMetParameter implements Duration, ISerializableObject {
+ public class WavePeriod extends AbstractMetParameter<Time> implements ISerializableObject {
 
 	/**
 	 * 
@@ -24,7 +26,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 7561463713517702035L;
 
 	public WavePeriod() {
-		 super( UNIT );
+		 super( SI.SECOND );
 	}
 	
  }

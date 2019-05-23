@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the bufrmos parameter csevere24hr (new GEMPAK alias used - TC24)
@@ -16,15 +17,13 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class CondProbOf24HrSevereWeather extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+public class CondProbOf24HrSevereWeather
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8606034719943640699L;
+    private static final long serialVersionUID = 8606034719943640699L;
 
-	public CondProbOf24HrSevereWeather()throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-	}
+    public CondProbOf24HrSevereWeather() throws Exception {
+        super(AbstractUnit.ONE);
+    }
 }

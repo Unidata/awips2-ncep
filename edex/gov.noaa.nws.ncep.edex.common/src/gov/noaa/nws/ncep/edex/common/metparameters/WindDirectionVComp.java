@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 
+import javax.measure.quantity.Speed;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -8,11 +9,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter VWND (m/sec) or VKNT (knots)
@@ -22,7 +23,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @DynamicSerialize
 
 
- public class WindDirectionVComp extends AbstractMetParameter implements javax.measure.quantity.Velocity, ISerializableObject{
+ public class WindDirectionVComp extends AbstractMetParameter<Speed> 
+        implements ISerializableObject{
 
 	/**
 	 * 
@@ -31,11 +33,11 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 	private static final long serialVersionUID = -647302759085698122L;
 
 	public WindDirectionVComp() throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
+		 super(SI.METRE_PER_SECOND);
 	}
 
 	@DeriveMethod
-	AbstractMetParameter derive( WindSpeed w, WindDirection d ) throws InvalidValueException, NullPointerException{
+	AbstractMetParameter<Speed> derive( WindSpeed w, WindDirection d ) throws InvalidValueException, NullPointerException{
 		 if ( w.hasValidValue() && d.hasValidValue()){
 		       Amount vWnd  = PRLibrary.prVwnd( w, d );
 		       setValue( vWnd );

@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter HOWW
  */
@@ -17,7 +19,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @DynamicSerialize
 
 
-public class WindWaveHeight extends AbstractMetParameter implements Length, ISerializableObject {
+public class WindWaveHeight extends AbstractMetParameter<Length> implements ISerializableObject {
 
 	/**
 	 * 
@@ -25,7 +27,7 @@ public class WindWaveHeight extends AbstractMetParameter implements Length, ISer
 	private static final long serialVersionUID = 5764540871910027620L;
 
 	public WindWaveHeight() {
-		super( UNIT );
+		super( SI.METRE);
 	}
 	
 }

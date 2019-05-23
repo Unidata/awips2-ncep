@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to GEMPAK parameters PPRB (used in TAF)
@@ -16,17 +17,14 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class Probability
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-public class Probability extends AbstractMetParameter implements
-							Dimensionless, ISerializableObject {
+    private static final long serialVersionUID = -838483615539473672L;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -838483615539473672L;
-
-	public Probability()throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-	}
+    public Probability() throws Exception {
+        super(AbstractUnit.ONE);
+    }
 
 }

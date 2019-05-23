@@ -1,16 +1,19 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
-import javax.measure.unit.SI;
+import javax.measure.quantity.Pressure;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.common.units.UnitConv;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * <pre>
@@ -30,8 +33,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class MeanSeaLevelPres extends AbstractMetParameter implements
-        javax.measure.quantity.Pressure {
+public class MeanSeaLevelPres
+        extends AbstractMetParameter<Pressure> {
 
     private final static String PMSL = "PMSL";
 
@@ -42,7 +45,7 @@ public class MeanSeaLevelPres extends AbstractMetParameter implements
     private final static String MILLIBARS = "mb";
 
     public MeanSeaLevelPres() {
-        super(UNIT);
+        super(SI.PASCAL);
     }
 
     @DeriveMethod
@@ -71,9 +74,10 @@ public class MeanSeaLevelPres extends AbstractMetParameter implements
          * Since all three pressures are suppose to be in millibars we convert
          * value to millibars first if it comes in as something else.
          */
-        if ((!this.getUnit().toString().equals(SI.HECTO(SI.PASCAL).toString()) && !this
-                .getUnit().toString().equals(MILLIBARS))) {
-            presValInMb = this.getUnit().getConverterTo(NcUnits.MILLIBAR)
+        if ((!this.getUnit().toString()
+                .equals(MetricPrefix.HECTO(SI.PASCAL).toString())
+                && !this.getUnit().toString().equals(MILLIBARS))) {
+            presValInMb = UnitConv.getConverterToUnchecked(this.getUnit(), NcUnits.MILLIBAR)
                     .convert(presValInMb);
         }
 

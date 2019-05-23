@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.quantity.RateOfChangeInTemperatureWithHeight;
 /**
  * Maps to the GEMPAK parameter LAPS
  */
@@ -13,9 +15,9 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
  
- public class TempLapseRate extends AbstractMetParameter implements
- gov.noaa.nws.ncep.edex.common.metparameters.quantity.RateOfChangeInTemperatureWithHeight,
- ISerializableObject{
+ public class TempLapseRate 
+         extends AbstractMetParameter<RateOfChangeInTemperatureWithHeight>
+        implements ISerializableObject{
 
      /**
 	 * 
@@ -23,7 +25,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 6960050211358125647L;
 
 	public TempLapseRate(){
-		 super( UNIT );
+		 super( RateOfChangeInTemperatureWithHeight.UNIT );
      }
 	
  }

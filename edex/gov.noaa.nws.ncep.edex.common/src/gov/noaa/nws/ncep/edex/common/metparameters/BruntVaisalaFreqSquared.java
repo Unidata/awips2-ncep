@@ -7,28 +7,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter BVSQ
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class BruntVaisalaFreqSquared extends AbstractMetParameter implements Frequency,
-ISerializableObject{
-      	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2945684208078186666L;
+public class BruntVaisalaFreqSquared
+        extends AbstractMetParameter<Frequency>
+        implements ISerializableObject {
 
-	public BruntVaisalaFreqSquared(){
-		super( UNIT );
-	}
+    private static final long serialVersionUID = -2945684208078186666L;
 
-//	@Override
-//	protected AbstractMetParameter create() {
-//		BruntVaisalaFrequencySquared b = new BruntVaisalaFrequencySquared();
-//		return b;
-//	}
+    public BruntVaisalaFreqSquared() {
+        super(SI.HERTZ);
+    }
 
 }

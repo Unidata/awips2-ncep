@@ -11,6 +11,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter TPOT
  */
@@ -19,8 +21,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @DynamicSerialize
 
 
-public class TurbulenceTypeSymbol extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+public class TurbulenceTypeSymbol extends AbstractMetParameter<Dimensionless> 
+        implements ISerializableObject {
 
 	/**
 	 * 
@@ -28,7 +30,7 @@ public class TurbulenceTypeSymbol extends AbstractMetParameter implements
 	private static final long serialVersionUID = -6287889028169403542L;
 
 	public TurbulenceTypeSymbol() {
-		super(UNIT);
+		super(AbstractUnit.ONE);
 		setValueIsString();
 	}
 

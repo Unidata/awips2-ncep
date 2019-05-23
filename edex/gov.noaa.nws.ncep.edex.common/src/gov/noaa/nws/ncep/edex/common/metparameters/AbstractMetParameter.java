@@ -14,9 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.measure.converter.ConversionException;
-import javax.measure.quantity.Quantity;
-import javax.measure.unit.Unit;
+import javax.measure.Quantity;
+import javax.measure.Unit;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -42,10 +41,6 @@ import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDeriva
  * from the same level. Could also add support for the time or duration for
  * which the value applies.
  * 
- * 
- * TODO : make this a generic for a Quantity? ... AbstractMetParameter<Q extents
- * Quantity>
- * 
  * <pre>
  * 
  * SOFTWARE HISTORY
@@ -65,6 +60,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDeriva
  * 01/25/2017    R27759    S.Russell    added overrideCallChildDeriveAnyway
  *                                      and used it in derive() to make
  *                                      R27759 work, call the child derive()
+ * 04/15/2019    7596      lsingh       Updated units framework to JSR-363. Also updated
+ *                                      AbstractMetParameter to be a generic class.
  * 
  * </pre>
  * 
@@ -74,11 +71,11 @@ import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDeriva
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public abstract class AbstractMetParameter extends Amount
-        implements Quantity, ISerializableObject {
+public abstract class AbstractMetParameter<Q extends Quantity<Q>> extends Amount
+        implements ISerializableObject {
 
     /*-
-     * If you have only one dervive() in the child class, and you want that
+     * If you have only one derive() in the child class, and you want that
      * derive() to be called despite missing values in some of the arguments,
      * and your derive() is set up to handle that -- set this to true in the
      * constructor of the child class.
@@ -98,14 +95,6 @@ public abstract class AbstractMetParameter extends Amount
 
     @DynamicSerializeElement
     protected DataTime dataTime;
-
-    // @DynamicSerializeElement
-    // @XmlJavaTypeAdapter(value = UnitAdapter.class)
-    // private Unit<?> standardUnit;
-
-    // public Unit<?> getStandardUnit() {
-    // return standardUnit;
-    // }
 
     // TTR 923, Holds the second MetParameter in a combination
     // AbstractMetParameter uch as the PTND "button"
@@ -149,8 +138,9 @@ public abstract class AbstractMetParameter extends Amount
     // TTR 923
     public void setAssociatedMetParam(AbstractMetParameter amp) {
         // TODO remove following?
-        if (this.associatedMetParam != null)
+        if (this.associatedMetParam != null){
             this.associatedMetParam = null;
+        }
 
         this.associatedMetParam = amp;
     }
@@ -400,7 +390,7 @@ public abstract class AbstractMetParameter extends Amount
     }
 
     // if this
-    public void setStringValue(String sv) throws ConversionException {
+    public void setStringValue(String sv) {
         setValueToMissing();
 
         valueString = sv;
@@ -448,8 +438,8 @@ public abstract class AbstractMetParameter extends Amount
      * @return true if derivable from availableParams, and false otherwise
      */
     private Boolean derivable(ArrayList<String> checkedParams,
-            Collection<AbstractMetParameter> availableParams,
-            Collection<AbstractMetParameter> usedParams) {
+            Collection<AbstractMetParameter<Q>> availableParams,
+            Collection<AbstractMetParameter<Q>> usedParams) {
         return (getDeriveMethod(checkedParams, availableParams,
                 usedParams) != null);
     }
@@ -464,9 +454,8 @@ public abstract class AbstractMetParameter extends Amount
      * @return Method to derive "this" parameter at the top level
      */
     public Method getDeriveMethod(
-            Collection<AbstractMetParameter> availableParams) {
-        Collection<AbstractMetParameter> usedParams = new HashSet<AbstractMetParameter>();
-        // return getDeriveMethod(availableParams, usedParams);
+            Collection<AbstractMetParameter<Q>> availableParams) {
+        Collection<AbstractMetParameter<Q>> usedParams = new HashSet<>();
         Method returnMethod = getDeriveMethod(availableParams, usedParams);
         // discard usedParams (as this variant doesn't care about returning
         // them)
@@ -487,8 +476,8 @@ public abstract class AbstractMetParameter extends Amount
      * @return Method to derive "this" parameter at the top level
      */
     public Method getDeriveMethod(
-            Collection<AbstractMetParameter> availableParams,
-            Collection<AbstractMetParameter> usedParams) {
+            Collection<AbstractMetParameter<Q>> availableParams,
+            Collection<AbstractMetParameter<Q>> usedParams) {
 
         ArrayList<String> checkedParams = new ArrayList<String>();
 
@@ -496,9 +485,9 @@ public abstract class AbstractMetParameter extends Amount
         // parameters.
         if (preferredDeriveParameters != null) {
 
-            ArrayList<AbstractMetParameter> availableParamsList = new ArrayList<AbstractMetParameter>();
+            ArrayList<AbstractMetParameter<Q>> availableParamsList = new ArrayList<>();
 
-            for (AbstractMetParameter prm : availableParams) {
+            for (AbstractMetParameter<Q> prm : availableParams) {
                 if (preferredDeriveParameters.contains(prm.getMetParamName())) {
                     availableParamsList.add(prm);
                 }
@@ -528,8 +517,8 @@ public abstract class AbstractMetParameter extends Amount
      * @return Method to derive "this" parameter at the top level
      */
     private Method getDeriveMethod(ArrayList<String> checkedParams,
-            Collection<AbstractMetParameter> availableParams,
-            Collection<AbstractMetParameter> usedParams) {
+            Collection<AbstractMetParameter<Q>> availableParams,
+            Collection<AbstractMetParameter<Q>> usedParams) {
 
         // check each of the methods named 'derive' and check to see if the
         // given availableParams are sufficient to derive this ncParameter.
@@ -539,13 +528,13 @@ public abstract class AbstractMetParameter extends Amount
         // map containing derive methods which have been found to be applicable
         // given the set of availableParams, and for each method, the associated
         // subset of non-derived availableParams actually used in the derivation
-        Map<Method, Set<AbstractMetParameter>> foundDeriveMthds = new HashMap<Method, Set<AbstractMetParameter>>();
+        Map<Method, Set<AbstractMetParameter<Q>>> foundDeriveMthds = new HashMap<Method, Set<AbstractMetParameter<Q>>>();
 
         // check each derive method to see if its arguments are in the
         // availableParams
         for (Method m : deriveMthds) {
             boolean derivable = true;
-            Set<AbstractMetParameter> baseParamsForThisMethod = new HashSet<AbstractMetParameter>();
+            Set<AbstractMetParameter<Q>> baseParamsForThisMethod = new HashSet<>();
 
             if (m.getAnnotation(DeriveMethod.class) != null) {
 
@@ -558,7 +547,7 @@ public abstract class AbstractMetParameter extends Amount
                     boolean prmFound = false;
                     boolean prmIsDerivable = false;
 
-                    for (AbstractMetParameter inputPrm : availableParams) {
+                    for (AbstractMetParameter<Q> inputPrm : availableParams) {
                         // if we have this input parameter...
                         if (inputPrm.getClass() == argClass) {
                             prmFound = true;
@@ -573,9 +562,9 @@ public abstract class AbstractMetParameter extends Amount
                     if (!prmFound && !checkedParams
                             .contains(this.getMetParamName())) {
 
-                        AbstractMetParameter argParam;
+                        AbstractMetParameter<Q> argParam;
                         try {
-                            argParam = (AbstractMetParameter) argClass
+                            argParam = (AbstractMetParameter<Q>) argClass
                                     .getConstructor().newInstance();
 
                             checkedParams.add(argParam.getMetParamName());
@@ -619,9 +608,9 @@ public abstract class AbstractMetParameter extends Amount
             return null;
         } else {
             if (usedParams == null) {
-                usedParams = new HashSet<AbstractMetParameter>();
+                usedParams = new HashSet<AbstractMetParameter<Q>>();
             }
-            for (Set<AbstractMetParameter> ampSet : foundDeriveMthds.values()) {
+            for (Set<AbstractMetParameter<Q>> ampSet : foundDeriveMthds.values()) {
                 usedParams.addAll(ampSet);
             }
             return (Method) foundDeriveMthds.keySet().toArray()[0];
@@ -640,10 +629,10 @@ public abstract class AbstractMetParameter extends Amount
      *             if "this" parameter cannot be derived from the
      *             availableParams
      */
-    public AbstractMetParameter derive(
-            Collection<AbstractMetParameter> availableParams)
+    public AbstractMetParameter<Q> derive(
+            Collection<AbstractMetParameter<Q>> availableParams)
             throws NotDerivableException {
-        Collection<AbstractMetParameter> usedParams = null;
+        Collection<AbstractMetParameter<Q>> usedParams = null;
         // this variant (overload) doesn't return usedParams; we just discard
         // the ones passed up to us from below
         return derive(availableParams, usedParams);
@@ -664,9 +653,9 @@ public abstract class AbstractMetParameter extends Amount
      *             if "this" parameter cannot be derived from the
      *             availableParams
      */
-    public AbstractMetParameter derive(
-            Collection<AbstractMetParameter> availableParams,
-            Collection<AbstractMetParameter> usedParams)
+    public AbstractMetParameter<Q> derive(
+            Collection<AbstractMetParameter<Q>> availableParams,
+            Collection<AbstractMetParameter<Q>> usedParams)
             throws NotDerivableException {
 
         Method deriveMthd = getDeriveMethod(availableParams, usedParams);
@@ -686,13 +675,13 @@ public abstract class AbstractMetParameter extends Amount
 
             // a list of the parameter args (actual values) that will be passed
             // to the derive() method.
-            List<AbstractMetParameter> mthdArgs = new ArrayList<AbstractMetParameter>(
+            List<AbstractMetParameter<Q>> mthdArgs = new ArrayList<>(
                     0);
 
             for (Class<?> argClass : deriveMthdArgs) {
                 boolean prmFound = false;
 
-                for (AbstractMetParameter inputPrm : availableParams) {
+                for (AbstractMetParameter<Q> inputPrm : availableParams) {
                     // if we don't have this input parameter, derive it
                     if (inputPrm.getClass() == argClass) {
                         if (!inputPrm.hasValidValue()) {
@@ -713,15 +702,14 @@ public abstract class AbstractMetParameter extends Amount
                     // create an object for this parameter and then set/derive
                     // the value
                     Constructor constr = argClass.getConstructor();
-                    AbstractMetParameter derivedArgPrm = (AbstractMetParameter) constr
+                    AbstractMetParameter<Q> derivedArgPrm = (AbstractMetParameter<Q>) constr
                             .newInstance();
                     derivedArgPrm = derivedArgPrm.derive(availableParams,
                             usedParams);
                     mthdArgs.add(derivedArgPrm);
                 }
             }
-
-            Class<?> rtype = deriveMthd.getReturnType();
+            
             Object derivedParam = null;
 
             switch (mthdArgs.size()) {
@@ -742,7 +730,7 @@ public abstract class AbstractMetParameter extends Amount
                 break;
             }
 
-            return (AbstractMetParameter) derivedParam;
+            return (AbstractMetParameter<Q>) derivedParam;
 
         } catch (IllegalArgumentException e) {
             errMsg = e.getMessage();

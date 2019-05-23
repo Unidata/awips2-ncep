@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter WSYM
  */
@@ -16,7 +18,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class WxPresent extends AbstractMetParameter implements Dimensionless, ISerializableObject {
+ public class WxPresent extends AbstractMetParameter<Dimensionless> implements ISerializableObject {
 
 
      /**
@@ -25,7 +27,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = -8287716899602021479L;
 
 	public WxPresent() {
-		 super( UNIT );
+		 super(AbstractUnit.ONE);
 	}	
 	
   }

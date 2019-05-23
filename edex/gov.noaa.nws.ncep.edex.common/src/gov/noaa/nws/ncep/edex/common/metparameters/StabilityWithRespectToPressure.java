@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -17,18 +16,14 @@ import gov.noaa.nws.ncep.edex.common.metparameters.quantity.RateOfChangeInTemper
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class StabilityWithRespectToPressure
+        extends AbstractMetParameter<RateOfChangeInTemperatureWithPressure>
+        implements ISerializableObject {
 
+    private static final long serialVersionUID = 4499398695128635919L;
 
-public class StabilityWithRespectToPressure extends AbstractMetParameter
-		implements RateOfChangeInTemperatureWithPressure, ISerializableObject {
+    public StabilityWithRespectToPressure() {
+        super(RateOfChangeInTemperatureWithPressure.UNIT);
+    }
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4499398695128635919L;
-
-	public StabilityWithRespectToPressure(){
-		 super( UNIT );
-	}
-  
 }

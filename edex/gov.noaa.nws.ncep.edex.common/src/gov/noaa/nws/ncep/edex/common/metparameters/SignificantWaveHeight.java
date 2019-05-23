@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 import javax.measure.quantity.Dimensionless;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -12,6 +8,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * 
@@ -31,20 +32,21 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class SignificantWaveHeight extends AbstractMetParameter implements
-        Dimensionless, ISerializableObject {
+public class SignificantWaveHeight
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
     @DynamicSerializeElement
     private static final long serialVersionUID = 1L;
 
     public SignificantWaveHeight() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     @DeriveMethod
     public SignificantWaveHeight derive(WindWaveHeight w,
-            PredomSwellWaveHeight p) throws InvalidValueException,
-            NullPointerException {
+            PredomSwellWaveHeight p)
+            throws InvalidValueException, NullPointerException {
 
         if (w.hasValidValue() && p.hasValidValue()) {
             Amount swh = PRLibrary.prSGHT(w, p);

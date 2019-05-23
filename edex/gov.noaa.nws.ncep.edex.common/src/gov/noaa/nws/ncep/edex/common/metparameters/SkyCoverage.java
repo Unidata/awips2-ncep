@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter SKYC
  */
@@ -15,59 +17,15 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class SkyCoverage extends AbstractMetParameter implements
- Dimensionless, ISerializableObject {
+public class SkyCoverage
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1882201043516341917L;
+    private static final long serialVersionUID = 1882201043516341917L;
 
-	public SkyCoverage() {
-		 super( UNIT );
-		 setValueIsString();
-     }	
-	
-	
-//	@DeriveMethod
-//	public AbstractMetParameter determineFromCloudCover( CloudCover[] cldCoverList ) {
-//		// TODO : what is the default "", "CLR"
-//		if( cldCoverList == null || cldCoverList.length == 0 ) {
-//			setStringValue("BLNK");
-//			return this;
-//		}
-//		
-//		// TODO : Raytheon reads the cloud_select.txt file to determine the 'rankedField'
-//		// but here we'll just encode the rules for determining the skyCoverage from the
-//		// various cloud coverages.
-//		//
-//		for( CloudCover cldCov : cldCoverList ) {
-//			
-//		}
-//		
-//		setStringValue("CLR");
-//		
-//		return this;
-//	}
-	
- }
+    public SkyCoverage() {
+        super(AbstractUnit.ONE);
+        setValueIsString();
+    }
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+}

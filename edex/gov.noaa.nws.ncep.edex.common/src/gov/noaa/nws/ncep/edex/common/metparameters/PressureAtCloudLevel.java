@@ -1,15 +1,14 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
-
-import java.io.Serializable;
-
+import javax.measure.quantity.Pressure;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to the modelsounding parameter prCloud
@@ -19,15 +18,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class PressureAtCloudLevel extends AbstractMetParameter implements 
-javax.measure.quantity.Pressure, ISerializableObject {
-	
+public class PressureAtCloudLevel
+        extends AbstractMetParameter<Pressure>
+        implements ISerializableObject {
 
+    private static final long serialVersionUID = 5582361384028648335L;
 
-	private static final long serialVersionUID = 5582361384028648335L;
-
-	public PressureAtCloudLevel()  {
-		super ( UNIT );
-	}
+    public PressureAtCloudLevel() {
+        super(SI.PASCAL);
+    }
 }
-

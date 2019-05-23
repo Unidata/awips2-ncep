@@ -2,12 +2,11 @@ package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.HashMap;
 
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.format.ParserException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,6 +14,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
+
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Creates AbstractNcParameters
@@ -64,7 +66,7 @@ public class MetParameterFactory {
 
     //
     @DynamicSerializeElement
-    private HashMap<String, AbstractMetParameter> ncParamsMap = new HashMap<String, AbstractMetParameter>();
+    private HashMap<String, AbstractMetParameter<?>> ncParamsMap = new HashMap<String, AbstractMetParameter<?>>();
 
     @DynamicSerializeElement
     private static MetParameterFactory instance = null;
@@ -669,12 +671,12 @@ public class MetParameterFactory {
         Unit<?> units;
 
         if (unitName == null) {
-            units = Unit.ONE;
+            units = AbstractUnit.ONE;
         } else {
             try {
-                units = UnitFormat.getUCUMInstance().parseProductUnit(unitName,
+                units = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseProductUnit(unitName, 
                         new ParsePosition(0));
-            } catch (ParseException e) {
+            } catch (ParserException e) {
                 System.out.println("unable to determine units for " + unitName);
                 return null;
             }

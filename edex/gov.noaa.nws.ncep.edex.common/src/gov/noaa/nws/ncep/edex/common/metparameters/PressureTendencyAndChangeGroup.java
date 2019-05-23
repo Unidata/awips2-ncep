@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Dimensionless;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -8,6 +9,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * 
@@ -33,11 +35,11 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class PressureTendencyAndChangeGroup extends AbstractMetParameter
-        implements javax.measure.quantity.Dimensionless {
+public class PressureTendencyAndChangeGroup
+        extends AbstractMetParameter<Dimensionless> {
 
     public PressureTendencyAndChangeGroup() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     /**

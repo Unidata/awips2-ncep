@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 import javax.measure.quantity.Dimensionless;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -10,6 +7,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * combined cloud coverage short code from three levels (AKA CLDS)
@@ -30,16 +31,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CombinedCloud extends AbstractMetParameter implements
-        Dimensionless, ISerializableObject {
+public class CombinedCloud
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -6058298343743033424L;
 
     public CombinedCloud() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     @Override
@@ -79,8 +78,8 @@ public class CombinedCloud extends AbstractMetParameter implements
 
     private static final String getCloudCoverShortCodeFromIndex(int i) {
         final String[][] coverageCodes = new String[][] { { "OVC", "O" },
-                { "BKN", "B" }, { "SCT", "S" }, { "FEW", "-S" },
-                { "SKC", "C" }, { "CLR", "C" }, { "VV", "X" }, { "", "_" } };
+                { "BKN", "B" }, { "SCT", "S" }, { "FEW", "-S" }, { "SKC", "C" },
+                { "CLR", "C" }, { "VV", "X" }, { "", "_" } };
 
         return coverageCodes[i][1];
     }
@@ -106,8 +105,8 @@ public class CombinedCloud extends AbstractMetParameter implements
         // case where coverage exists but elevation is missing... output
         // coverage short code + "__"
         if (!dbValsString[0].isEmpty() && dbValsNumber[0].intValue() < 0) {
-            this.setStringValue(getCloudCoverShortCodeFromIndex(getIndexOfCloudCover(dbValsString[0]))
-                    + "__");
+            this.setStringValue(getCloudCoverShortCodeFromIndex(
+                    getIndexOfCloudCover(dbValsString[0])) + "__");
             return this;
         }
 

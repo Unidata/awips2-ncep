@@ -1,11 +1,9 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.HashMap;
 
-import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.quantity.Angle;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -13,11 +11,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.NonSI;
+import si.uom.SI;
 
  
 /**
@@ -28,7 +27,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class WindDirection extends AbstractMetParameter implements javax.measure.quantity.Angle, ISerializableObject {
+public class WindDirection extends AbstractMetParameter<Angle> 
+        implements ISerializableObject {
 
 	static HashMap<String,Number> newsMap = null;	
 
@@ -39,7 +39,7 @@ public class WindDirection extends AbstractMetParameter implements javax.measure
 	private static final long serialVersionUID = -3145116266557037286L;
 
 	public WindDirection() throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
+		 super(SI.RADIAN);
 	} 
 	
 	// Handle east/west/NE......
@@ -90,7 +90,7 @@ public class WindDirection extends AbstractMetParameter implements javax.measure
 
 
 	@DeriveMethod
-	AbstractMetParameter derive ( WindDirectionUComp u, WindDirectionVComp v) throws InvalidValueException, NullPointerException{
+	AbstractMetParameter<Angle> derive ( WindDirectionUComp u, WindDirectionVComp v) throws InvalidValueException, NullPointerException{
 		if ( u.hasValidValue() && v.hasValidValue() ){     
 		     Amount windDrct = PRLibrary.prDrct( u , v );
 		     setValue(windDrct);

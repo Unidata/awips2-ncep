@@ -1,15 +1,17 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-
-import javax.measure.unit.NonSI;
+import javax.measure.quantity.Pressure;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+import com.raytheon.uf.common.units.UnitConv;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import si.uom.NonSI;
+import si.uom.SI;
 
 /**
  * Maps to either of the GEMPAK parameters ALTI or ALTM depending on the unit
@@ -18,13 +20,13 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class SeaLevelPressure extends AbstractMetParameter implements
-        javax.measure.quantity.Pressure, ISerializableObject {
+public class SeaLevelPressure extends AbstractMetParameter<Pressure> 
+        implements ISerializableObject {
 
     private static final long serialVersionUID = -1025585414782928040L;
 
     public SeaLevelPressure() throws Exception {
-        super(new UnitAdapter().marshal(UNIT));
+        super(SI.PASCAL);
     }
 
     @Override
@@ -40,8 +42,8 @@ public class SeaLevelPressure extends AbstractMetParameter implements
             double newPresValInMb = Double.NaN;
             if ((this.getUnit().toString().compareTo("mb") != 0)) {
                 double oldPresVal = getValue().doubleValue();
-                newPresValInMb = this.getUnit()
-                        .getConverterTo(NcUnits.MILLIBAR).convert(oldPresVal);
+                newPresValInMb = UnitConv.getConverterToUnchecked(this.getUnit(),
+                        NcUnits.MILLIBAR).convert(oldPresVal);
             }
 
             double abbrevPressVal = (newPresValInMb % 100) * 10;
@@ -57,8 +59,8 @@ public class SeaLevelPressure extends AbstractMetParameter implements
             double newPresValInMb = Double.NaN;
             double oldPresVal = getValue().doubleValue();
             if ((this.getUnit().toString().compareTo("inHg") != 0)) {
-                newPresValInMb = this.getUnit()
-                        .getConverterTo(NonSI.INCH_OF_MERCURY)
+                newPresValInMb = UnitConv.getConverterToUnchecked(this.getUnit(),
+                        NonSI.INCH_OF_MERCURY)
                         .convert(oldPresVal);
             } else {
                 newPresValInMb = oldPresVal;

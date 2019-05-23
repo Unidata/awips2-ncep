@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
 import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -9,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter HOSW
  */
@@ -16,15 +17,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class PredomSwellWaveHeight
+        extends AbstractMetParameter<Length>
+        implements ISerializableObject {
 
-public class PredomSwellWaveHeight extends AbstractMetParameter implements Length, ISerializableObject {
+    private static final long serialVersionUID = -4506732984397655917L;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4506732984397655917L;
-
-	public PredomSwellWaveHeight() {
-		super( UNIT );
-	}
+    public PredomSwellWaveHeight() {
+        super(SI.METRE);
+    }
 }

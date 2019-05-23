@@ -1,15 +1,17 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter LTMP
@@ -30,11 +32,10 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class LiftedSurfaceAirTempAt500mb extends AbstractMetParameter implements
-        javax.measure.quantity.Temperature {
+public class LiftedSurfaceAirTempAt500mb extends AbstractMetParameter<Temperature> {
 
     public LiftedSurfaceAirTempAt500mb() {
-        super(UNIT);
+        super(SI.KELVIN);
     }
 
     @DeriveMethod

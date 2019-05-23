@@ -1,9 +1,9 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import java.text.ParseException;
+import java.text.ParsePosition;
 
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.format.ParserException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -12,6 +12,10 @@ import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.units.UnitAdapter;
+import com.raytheon.uf.common.units.UnitConv;
+
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Class used to hold a value and its units.
@@ -25,6 +29,7 @@ import com.raytheon.uf.common.units.UnitAdapter;
  *                                    make value private
  *  11/14/2011              B Hebbard Resolve unit serialization issues
  *  04/01/2014   #1040      B Hebbard In syncUnits(), map unitStr "count" to Unit.ONE
+ *  04/15/2018   7596       lsingh    Upgraded to JSR-363. Handled unit conversion.
  * 
  * </pre>
  * 
@@ -96,7 +101,7 @@ public class Amount implements ISerializableObject {
     //
     public Number getValueAs(Unit<?> unitNeeded) {
         if (unitNeeded != unit && unitNeeded.isCompatible(unit)) {
-            double newValue = unit.getConverterTo(unitNeeded).convert(
+            double newValue = UnitConv.getConverterToUnchecked(unit,unitNeeded).convert(
                     value.doubleValue());
             return newValue;
         } else {
@@ -110,15 +115,17 @@ public class Amount implements ISerializableObject {
 
     public Unit<?> getUnit() {
         if (this.unitStr == null)
-            return Unit.ONE;
+            return AbstractUnit.ONE;
         if (this.unit == null) {
             try {
-                this.unit = (Unit<?>) UnitFormat.getUCUMInstance().parseObject(
-                        this.unitStr);
-            } catch (ParseException e) {
+                this.unit = (Unit<?>) SimpleUnitFormat
+                        .getInstance(SimpleUnitFormat.Flavor.ASCII)
+                        .getInstance()
+                        .parseObject(this.unitStr, new ParsePosition(0));
+            } catch (ParserException e) {
                 // logger.warn("ParseException while parsing unit string: "
                 // + this.unit + " defaulting to unit: " + Unit.ONE);
-                this.unit = Unit.ONE;
+                this.unit = AbstractUnit.ONE;
             }
         }
         return this.unit;
@@ -279,7 +286,7 @@ public class Amount implements ISerializableObject {
          * System.out.println("...changing from hPa to Pa..."); } unitStr =
          * newUnitStr; DEBUG
          */
-        unitStr = UnitFormat.getUCUMInstance().format(u);
+        unitStr = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).format(u);
     }
 
     public void setUnitPairAndConvertValue(Unit<?> u) {
@@ -302,13 +309,13 @@ public class Amount implements ISerializableObject {
          * System.out.println("...changing from hPa to Pa..."); } unitStr =
          * newUnitStr; DEBUG
          */
-        unitStr = UnitFormat.getUCUMInstance().format(u);
+        unitStr = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).format(u);
     }
 
     public void syncUnits() {
         Unit<?> u;
         if (unitStr.equals("count")) {
-            u = Unit.ONE;
+            u = AbstractUnit.ONE;
         } else {
             try {
                 u = new UnitAdapter().unmarshal(unitStr);

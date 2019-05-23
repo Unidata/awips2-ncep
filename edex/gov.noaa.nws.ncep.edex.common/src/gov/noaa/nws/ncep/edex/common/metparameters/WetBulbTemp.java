@@ -1,14 +1,16 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * 
@@ -28,15 +30,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class WetBulbTemp extends AbstractMetParameter implements
-        javax.measure.quantity.Temperature {
+public class WetBulbTemp extends AbstractMetParameter<Temperature> {
 
     public WetBulbTemp() {
-        super(UNIT);
+        super(SI.KELVIN);
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(AirTemperature t, MixingRatio m, PressureLevel p)
+    AbstractMetParameter<Temperature> derive(AirTemperature t, MixingRatio m, PressureLevel p)
             throws InvalidValueException, NullPointerException {
 
         if (t.hasValidValue() && m.hasValidValue() && p.hasValidValue()) {
@@ -49,7 +50,7 @@ public class WetBulbTemp extends AbstractMetParameter implements
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(AirTemperature t, SurfaceMixingRatio m,
+    AbstractMetParameter<Temperature> derive(AirTemperature t, SurfaceMixingRatio m,
             SurfacePressure p) throws InvalidValueException,
             NullPointerException {
 
@@ -63,7 +64,7 @@ public class WetBulbTemp extends AbstractMetParameter implements
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(AirTemperature t, DewPointTemp d,
+    AbstractMetParameter<Temperature> derive(AirTemperature t, DewPointTemp d,
             SurfacePressure p) throws InvalidValueException,
             NullPointerException {
 
@@ -79,7 +80,7 @@ public class WetBulbTemp extends AbstractMetParameter implements
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(AirTemperature t, DewPointTemp d,
+    AbstractMetParameter<Temperature> derive(AirTemperature t, DewPointTemp d,
             PressureLevel pl) throws InvalidValueException,
             NullPointerException {
 

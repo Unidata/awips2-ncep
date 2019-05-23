@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter SKYC
  */
@@ -15,38 +17,15 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class ProbableSkyCoverage extends AbstractMetParameter implements
- Dimensionless, ISerializableObject {
+public class ProbableSkyCoverage
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1882201043516341918L;
+    private static final long serialVersionUID = 1882201043516341918L;
 
-	public ProbableSkyCoverage() {
-		 super( UNIT );
-		 setValueIsString();
-     }	
-	
-	
- }
+    public ProbableSkyCoverage() {
+        super(AbstractUnit.ONE);
+        setValueIsString();
+    }
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+}

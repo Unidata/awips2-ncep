@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
@@ -15,8 +17,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 /**
  * Maps to the GEMPAK parameter CL12
  */
- public class TotalSkyCoverFcst12hr extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+ public class TotalSkyCoverFcst12hr extends AbstractMetParameter<Dimensionless> 
+        implements ISerializableObject {
 
 	 /**
 	 * 
@@ -24,7 +26,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 4375299581116360694L;
 
 	public TotalSkyCoverFcst12hr() {
-		 super( UNIT );
+		 super( AbstractUnit.ONE );
 	}
 	 
   

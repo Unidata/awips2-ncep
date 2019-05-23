@@ -1,13 +1,7 @@
 package gov.noaa.nws.ncep.viz.common;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-
-import com.vividsolutions.jts.geom.Coordinate;
-
 
 public class LocatorUtil {
 		

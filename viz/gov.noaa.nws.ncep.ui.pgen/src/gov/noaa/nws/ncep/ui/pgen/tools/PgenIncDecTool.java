@@ -29,7 +29,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Implements PGEN palette Inc/Dec functions.

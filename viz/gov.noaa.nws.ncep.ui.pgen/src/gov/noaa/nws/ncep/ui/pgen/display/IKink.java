@@ -11,7 +11,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.ArrowHead.ArrowHeadType;
 
 import java.awt.Color;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Interface used to get specific attributes of a PGEN Geographic two-point object

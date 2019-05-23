@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.gempak.util;
 
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -9,6 +8,7 @@ import javax.measure.unit.Unit;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.datum.DefaultGeodeticDatum;
 import org.geotools.referencing.datum.DefaultPrimeMeridian;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
@@ -19,7 +19,8 @@ import com.raytheon.uf.common.gridcoverage.PolarStereoGridCoverage;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
-import com.vividsolutions.jts.geom.Polygon;
+
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
 
 /**
  * @author gamaz

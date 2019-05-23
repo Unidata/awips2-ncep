@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.util;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
-import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
-
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
@@ -16,6 +13,9 @@ import javax.measure.unit.Unit;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridGeometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -40,9 +40,9 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource.ResourceStatus;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
 
 /**
  * Provides sampling capability for a resource, draws sampled text to the

@@ -14,7 +14,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.IText;
 
 import java.awt.Color;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class used to represent a Text drawable element.

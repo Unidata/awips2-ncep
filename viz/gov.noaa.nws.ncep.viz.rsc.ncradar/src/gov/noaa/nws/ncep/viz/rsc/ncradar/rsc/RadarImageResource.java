@@ -27,6 +27,7 @@ import javax.measure.unit.UnitFormat;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
@@ -77,7 +78,6 @@ import com.raytheon.viz.awipstools.capabilities.RangeRingsOverlayCapability;
 import com.raytheon.viz.awipstools.capabilityInterfaces.IRangeableResource;
 import com.raytheon.viz.radar.VizRadarRecord;
 import com.raytheon.viz.radar.util.DataUtilities;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;

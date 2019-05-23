@@ -27,7 +27,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.viz.ui.color.BackgroundColor;
 import com.raytheon.viz.ui.color.IBackgroundColorChangedListener.BGColorMode;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * This class contains static utility methods for creating symbol/marker images and

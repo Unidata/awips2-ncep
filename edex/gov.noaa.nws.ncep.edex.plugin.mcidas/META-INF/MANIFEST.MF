@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mcidas Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.mcidas
-Bundle-Version: 1.15.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.edex.exception,
  com.raytheon.edex.plugin,
  com.raytheon.uf.common.dataplugin,
@@ -12,8 +12,8 @@ Import-Package: com.raytheon.edex.exception,
  com.raytheon.uf.common.numeric.buffer,
  com.raytheon.uf.common.time,
  com.raytheon.uf.edex.decodertools.time,
- com.vividsolutions.jts.geom,
- com.vividsolutions.jts.io,
+ org.locationtech.jts.geom,
+ org.locationtech.jts.io,
  org.geotools.geometry,
  org.opengis.referencing.crs,
  org.opengis.referencing.operation

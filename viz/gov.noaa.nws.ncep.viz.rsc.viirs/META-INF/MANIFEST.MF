@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: viirs
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.viirs;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.viz.ui;bundle-version="1.15.2",
  gov.noaa.nws.ncep.viz.common;bundle-version="1.15.0",
  com.raytheon.uf.common.inventory;bundle-version="1.14.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.persist,
  com.raytheon.uf.common.datastorage,
@@ -30,5 +30,5 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.viz.ui.editor,
  com.raytheon.viz.ui.input,
  com.raytheon.viz.ui.panes,
- com.vividsolutions.jts.geom,
+ org.locationtech.jts.geom,
  gov.noaa.nws.ncep.viz.rsc.satellite.rsc

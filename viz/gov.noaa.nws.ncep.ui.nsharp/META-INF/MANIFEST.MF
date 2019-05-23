@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Nsharp Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.ui.nsharp;singleton:=true
-Bundle-Version: 1.18.1.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: SIB
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
@@ -24,7 +24,6 @@ Import-Package: com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.viz.d2d.core.time,
  com.raytheon.uf.viz.d2d.ui.perspectives,
  com.raytheon.viz.core,
- com.vividsolutions.jts.geom,
  gov.noaa.nws.ncep.common.dataplugin.gpd,
  gov.noaa.nws.ncep.common.dataplugin.gpd.product,
  gov.noaa.nws.ncep.common.dataplugin.gpd.query,
@@ -41,6 +40,8 @@ Import-Package: com.raytheon.uf.common.dataplugin.grid,
  gov.noaa.nws.ncep.viz.ui.display,
  javax.measure.converter,
  javax.measure.unit
+ org.locationtech.jts.geom,
+ org.locationtech.jts.linearref
 Export-Package: gov.noaa.nws.ncep.ui.nsharp,
  gov.noaa.nws.ncep.ui.nsharp.background,
  gov.noaa.nws.ncep.ui.nsharp.display,

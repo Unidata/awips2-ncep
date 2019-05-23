@@ -34,7 +34,7 @@ import com.raytheon.uf.common.sounding.WxMath;
 import com.raytheon.uf.common.sounding.util.UAPoint;
 import com.raytheon.viz.core.graphing.LineStroke;
 import com.raytheon.viz.core.graphing.WindBarbFactory;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;

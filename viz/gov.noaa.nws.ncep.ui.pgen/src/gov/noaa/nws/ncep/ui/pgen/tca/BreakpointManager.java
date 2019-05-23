@@ -16,10 +16,10 @@ import java.util.List;
 import org.geotools.referencing.GeodeticCalculator;
 
 import com.raytheon.uf.common.serialization.SerializationUtil;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateList;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.index.quadtree.Quadtree;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.index.quadtree.Quadtree;
 
 /**
  * This singleton reads in tropical cyclone breakpoint information from various

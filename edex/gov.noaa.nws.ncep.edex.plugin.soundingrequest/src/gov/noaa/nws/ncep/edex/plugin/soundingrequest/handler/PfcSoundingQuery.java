@@ -1,5 +1,40 @@
 package gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.locationtech.jts.geom.Coordinate;
+
+import com.raytheon.uf.common.dataplugin.modelsounding.ModelSoundingParameters;
+import com.raytheon.uf.common.dataplugin.modelsounding.ModelSoundingPointDataTransform;
+import com.raytheon.uf.common.dataplugin.modelsounding.SoundingLevel;
+import com.raytheon.uf.common.dataplugin.modelsounding.SoundingSite;
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.edex.database.dao.CoreDao;
+import com.raytheon.uf.edex.database.dao.DaoConfig;
+
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+
+import javax.measure.converter.UnitConverter;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+
 /**
  * 
  * gov.noaa.nws.ncep.edex.uengine.tasks.profile.PfcSoundingQuery
@@ -16,15 +51,12 @@ package gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  * 12/16/2010   301         Chin Chen   add support of PFC (NAM and GFS) model sounding data
  * 02/28/2012               Chin Chen   modify several sounding query algorithms for better performance
  * 12/20/2013   2537        bsteffen    Update ModelSoundingPointDataTransform
- ***********************************************************************************************************
- *
- *
  * 05/20/2015   RM#8306     Chin Chen   eliminate NSHARP dependence on uEngine.
  *                                      Copy whole file PfcSoundingQuery.java from uEngine project to this serverRequestService project.
  *                                      "refactor" and clean up unused code for this ticket.
  * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
- * 07/21/2015   RM#9173    Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
- * 04/19/2016   #17875     Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
+ * 07/21/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
+ * 04/19/2016   #17875      Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
  * 03/05/2017   18784       wkwock      Handle not integer stationID.
  *  *
  * </pre>
@@ -32,40 +64,6 @@ package gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  * @author Chin Chen
  * @version 1.0
  */
-
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
-import com.raytheon.uf.common.dataplugin.modelsounding.ModelSoundingParameters;
-import com.raytheon.uf.common.dataplugin.modelsounding.ModelSoundingPointDataTransform;
-import com.raytheon.uf.common.dataplugin.modelsounding.SoundingLevel;
-import com.raytheon.uf.common.dataplugin.modelsounding.SoundingSite;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.edex.database.dao.CoreDao;
-import com.raytheon.uf.edex.database.dao.DaoConfig;
-import com.vividsolutions.jts.geom.Coordinate;
 
 public class PfcSoundingQuery {
     private static final String PFC_TBL_NAME = "modelsounding";

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Nctextui Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.ui.nctextui;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.ui.nctextui.Activator
 Eclipse-BuddyPolicy: registered, ext, global
 Eclipse-RegisterBuddy: com.raytheon.viz.core, com.raytheon.uf.common.serialization
@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.viz.datacube
 Eclipse-LazyStart: true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: SIB
 Import-Package: com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.dataplugin,
@@ -28,7 +28,7 @@ Import-Package: com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.viz.core.map,
  com.raytheon.uf.viz.core.rsc,
  com.raytheon.viz.pointdata,
- com.vividsolutions.jts.geom,
+ org.locationtech.jts.geom,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.localization,
  gov.noaa.nws.ncep.viz.overlays,

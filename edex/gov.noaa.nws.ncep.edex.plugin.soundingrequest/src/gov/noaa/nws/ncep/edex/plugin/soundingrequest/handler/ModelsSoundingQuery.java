@@ -12,6 +12,7 @@ import javax.media.jai.InterpolationBilinear;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.geometry.DirectPosition2D;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,6 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;

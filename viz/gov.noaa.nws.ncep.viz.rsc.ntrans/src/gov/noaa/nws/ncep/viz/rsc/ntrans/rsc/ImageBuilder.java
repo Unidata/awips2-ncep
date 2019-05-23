@@ -35,7 +35,7 @@ import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IFont.Style;
 import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 
 import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Command;
 import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.INcCommand;

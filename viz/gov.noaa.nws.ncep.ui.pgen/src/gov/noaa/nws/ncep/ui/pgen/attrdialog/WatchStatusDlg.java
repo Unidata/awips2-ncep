@@ -44,7 +44,7 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Implementation of a watch status dialog.

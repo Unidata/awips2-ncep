@@ -12,7 +12,7 @@ import java.awt.Color;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;

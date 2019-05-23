@@ -27,7 +27,7 @@ import java.util.Collection;
 import org.geotools.coverage.grid.GridEnvelope2D;
 
 import com.raytheon.uf.viz.core.IExtent;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * An algorithm for choosing which grid points to display. This algorithm is

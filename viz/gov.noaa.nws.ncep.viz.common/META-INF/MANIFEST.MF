@@ -2,7 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Data Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.common;singleton:=true
-Bundle-Version: 1.19.0.qualifier
+Bundle-Version: 1.19.1.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: gov.noaa.nws.ncep.viz.common.Activator
 Eclipse-BuddyPolicy: registered
 Require-Bundle: org.eclipse.ui,
@@ -29,6 +30,6 @@ Export-Package: gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.common.ui.color
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.viz.pointdata,
- com.vividsolutions.jts.geom,
- javax.measure.unit
+ org.locationtech.jts.geom,
+ org.locationtech.jts.io
 

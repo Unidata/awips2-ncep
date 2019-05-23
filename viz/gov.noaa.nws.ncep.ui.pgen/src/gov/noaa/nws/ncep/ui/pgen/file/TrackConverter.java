@@ -26,7 +26,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Define a ProductConverter Class - some methods to convert the products

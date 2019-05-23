@@ -16,7 +16,7 @@ import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.panes.VizDisplayPane;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightProcesser;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;

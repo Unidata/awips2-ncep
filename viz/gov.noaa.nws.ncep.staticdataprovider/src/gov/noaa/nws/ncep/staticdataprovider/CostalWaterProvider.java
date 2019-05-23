@@ -15,9 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKBReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKBReader;
 
 /**
  * Class to provide costal water information.

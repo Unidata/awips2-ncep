@@ -19,6 +19,7 @@ import javax.measure.unit.UnitFormat;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GridGeometry2D;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -71,7 +72,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;

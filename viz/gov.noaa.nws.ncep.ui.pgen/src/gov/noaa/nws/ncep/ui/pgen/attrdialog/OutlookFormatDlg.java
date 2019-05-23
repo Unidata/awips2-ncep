@@ -68,8 +68,8 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * Implementation of outlook format dialog.

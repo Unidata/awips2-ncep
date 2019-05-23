@@ -1,5 +1,7 @@
 package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 
+import org.locationtech.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.LongitudeCoding;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.WindDirectionSense;
@@ -8,8 +10,6 @@ import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatPoint;
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-
-import com.vividsolutions.jts.geom.Coordinate;
 
 /**
  * NcscatPointData - Class to hold numerical and boolean data for a single

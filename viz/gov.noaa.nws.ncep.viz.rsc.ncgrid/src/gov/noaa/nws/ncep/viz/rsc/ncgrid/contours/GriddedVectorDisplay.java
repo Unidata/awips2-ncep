@@ -5,6 +5,11 @@ import java.util.Map;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.impl.PackedCoordinateSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +30,6 @@ import com.raytheon.uf.viz.core.point.display.VectorGraphicsConfig;
 import com.raytheon.uf.viz.core.rsc.DisplayType;
 import com.raytheon.uf.viz.ncep.grid.FloatGridData;
 import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
@@ -512,7 +512,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                 double[] triangleRaw = { ix1, jy1, ix2, jy2, ix3, jy3, ix1,
                         jy1 };
                 CoordinateSequence triangleSeq = new PackedCoordinateSequence.Double(
-                        triangleRaw, 2);
+                        triangleRaw, 2, 0);
                 LineString triangleLS = new GeometryFactory()
                         .createLineString(triangleSeq);
                 filledShape.addPolygonPixelSpace(

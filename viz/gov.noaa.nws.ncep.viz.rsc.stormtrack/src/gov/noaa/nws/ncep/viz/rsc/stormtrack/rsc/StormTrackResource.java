@@ -7,17 +7,6 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.stormtrack.StormTrackRecord;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc.StormTrackResourceData.ModelDisplayAttrs;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -30,6 +19,8 @@ import java.util.TreeSet;
 import javax.measure.unit.NonSI;
 
 import org.eclipse.swt.graphics.RGB;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateList;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
@@ -44,7 +35,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
 import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
 import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
 import com.raytheon.uf.viz.core.PixelExtent;
-import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
@@ -54,9 +44,17 @@ import com.raytheon.uf.viz.core.geom.PixelCoordinate;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateList;
+
+import gov.noaa.nws.ncep.common.dataplugin.stormtrack.StormTrackRecord;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc.StormTrackResourceData.ModelDisplayAttrs;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * Displays the Ensemble Storm Track ( ENS_CYC - MISC resource)  

@@ -11,7 +11,7 @@ package gov.noaa.nws.ncep.ui.pgen;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class used to hold the range record for a PGEN element.

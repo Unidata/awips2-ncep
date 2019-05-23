@@ -10,7 +10,7 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import java.util.LinkedHashMap;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Classes that implement this interface generate a set of Coordinate pairs that map Coordinates of

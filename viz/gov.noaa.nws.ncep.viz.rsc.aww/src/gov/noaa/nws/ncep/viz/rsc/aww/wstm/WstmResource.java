@@ -1,22 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.wstm;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.rsc.aww.query.WstmQueryResult;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.CountyObjectCreator;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.PreProcessDisplay;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +18,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.swt.graphics.RGB;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
@@ -64,9 +53,23 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKBReader;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
+import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.WstmQueryResult;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.CountyObjectCreator;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.PreProcessDisplay;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * WstmResource - Displays Winter Storm Misc Resource
@@ -1070,9 +1073,9 @@ public class WstmResource extends
                             for (Object[] result : zones) {
                                 int k = 0;
                                 byte[] wkb1 = (byte[]) result[k];
-                                com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
+                                MultiPolygon countyGeo = null;
                                 try {
-                                    countyGeo = (com.vividsolutions.jts.geom.MultiPolygon) wkbReader
+                                    countyGeo = (MultiPolygon) wkbReader
                                             .read(wkb1);
                                     if (countyGeo != null
                                             && countyGeo.isValid()
@@ -1108,7 +1111,7 @@ public class WstmResource extends
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
 
-            com.vividsolutions.jts.geom.GeometryCollection gColl = (com.vividsolutions.jts.geom.GeometryCollection) new com.vividsolutions.jts.geom.GeometryFactory()
+            GeometryCollection gColl = (GeometryCollection) new GeometryFactory()
                     .buildGeometry(gw);
 
             try {

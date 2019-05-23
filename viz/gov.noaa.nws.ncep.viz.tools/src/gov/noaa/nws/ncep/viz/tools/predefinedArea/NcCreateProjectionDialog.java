@@ -74,7 +74,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * TODO Add Description

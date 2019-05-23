@@ -11,6 +11,8 @@ import javax.measure.converter.UnitConverter;
 import javax.measure.unit.Unit;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
@@ -40,8 +42,6 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.sampling.ISamplingResource;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
 import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;

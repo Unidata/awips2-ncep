@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: NTRANS Metafile Display Resource
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.ntrans;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ntrans.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -16,10 +16,10 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common.dataplugin.ntrans;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.viz.xy.graph,
  com.raytheon.viz.core.graphing,
- com.vividsolutions.jts.geom,
+ org.locationtech.jts.geom,
  gov.noaa.nws.ncep.viz.ui.display,
  org.apache.commons.logging
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ntrans,

@@ -39,7 +39,7 @@ import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 //import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
 

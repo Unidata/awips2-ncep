@@ -8,7 +8,7 @@
 
 package gov.noaa.nws.ncep.staticdataprovider;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Utility class for the static data provider

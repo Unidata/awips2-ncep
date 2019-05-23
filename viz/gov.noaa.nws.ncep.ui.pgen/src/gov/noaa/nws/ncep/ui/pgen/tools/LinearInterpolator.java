@@ -11,8 +11,8 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineSegment;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineSegment;
 
 /**
  * This class is used as part of the PgenInterpolator.  It accepts an ordered map of Coordinate

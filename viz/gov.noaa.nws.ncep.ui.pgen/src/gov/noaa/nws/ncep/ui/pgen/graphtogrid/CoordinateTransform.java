@@ -21,7 +21,7 @@ import org.opengis.referencing.operation.MathTransform;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class to generate a grid space and transform coordinates between the grid

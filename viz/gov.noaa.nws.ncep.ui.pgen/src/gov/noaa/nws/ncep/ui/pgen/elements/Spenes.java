@@ -20,8 +20,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * Software History

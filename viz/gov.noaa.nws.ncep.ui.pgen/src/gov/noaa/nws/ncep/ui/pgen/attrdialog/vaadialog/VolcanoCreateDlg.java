@@ -48,7 +48,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.*;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * The class for Volcano create dialog 

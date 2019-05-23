@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import com.raytheon.uf.common.geospatial.adapter.CoordAdapter;
 import com.raytheon.uf.common.serialization.ISerializableObject;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Breakpoints are geographic defining points specified in tropical cyclone

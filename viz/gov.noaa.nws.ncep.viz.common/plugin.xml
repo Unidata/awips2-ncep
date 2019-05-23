@@ -57,12 +57,6 @@
             id="gov.noaa.nws.ncep.viz.common.NcepGeneralPreferencesPage"
             name="General">
       </page>
-      <page
-            category="gov.noaa.nws.ncep.viz.common.nceppreferences"
-            class="gov.noaa.nws.ncep.viz.common.preferences.GraphicsAreaPreferences"
-            id="gov.noaa.nws.ncep.viz.common.GraphicsAreaPreferences"
-            name="Data Area">
-      </page>
    </extension>
    
    <!-- Note that the sourceLocation is currently not used by the Factories.

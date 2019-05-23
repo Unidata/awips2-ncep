@@ -75,7 +75,9 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
  * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
  * 06/16/2016   R18370      B. Yin      Set focus back to map editor when multi-selecting
  * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
+ * 01/23/2019   7716        K. Sunil    return true in createButtonBar call in case of PgenInterpDlg.
  * 03/20/2019   #7572       dgilling    Code cleanup.
+ 
  *
  * </pre>
  *
@@ -146,7 +148,8 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 || PgenSession.getInstance().getPgenPalette()
                         .getCurrentCategory()
                         .equalsIgnoreCase(PgenConstant.CATEGORY_MET)
-                || this instanceof CycleDlg) {
+                || this instanceof CycleDlg 
+                || this instanceof PgenInterpDlg) { 
 
             Control bar = super.createButtonBar(parent);
             ((GridData) bar.getLayoutData()).horizontalAlignment = SWT.CENTER;
@@ -319,8 +322,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                     AttrSettings.getInstance().setSettings(newEl);
                 }
 
-                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(
-                        adcList);
+                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(adcList);
                 drawingLayer.replaceElements(null, oldList, newList);
             }
 

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+    This_software_was_developed_and_/_or_modified_by_Raytheon_Company,
+    pursuant_to_Contract_DG133W-05-CQ-1067_with_the_US_Government.
+
+    U.S._EXPORT_CONTROLLED_TECHNICAL_DATA
+    This_software_product_contains_export-restricted_data_whose
+    export/transfer/disclosure_is_restricted_by_U.S._law._Dissemination
+    to_non-U.S._persons_whether_in_the_United_States_or_abroad_requires
+    an_export_license_or_other_authorization.
+
+    Contractor_Name:________Raytheon_Company
+    Contractor_Address:_____6825_Pine_Street,_Suite_340
+    ________________________Mail_Stop_B8
+    ________________________Omaha,_NE_68106
+    ________________________402.291.0100
+
+    See_the_AWIPS_II_Master_Rights_File_("Master_Rights_File.pdf")_for
+    further_licensing_information.
+-->
+
+<!--
+    This is an incremental override file, indicating that the files at
+    different localization levels will be combined.
+-->
+<nsbnTransferDirectories>
+    <nsbnTransferDirectory id="grib">
+        <scanDir>grib_ingest</scanDir>
+        <destinationQueue>Ingest.ncGrib</destinationQueue>
+        <destinationDir>/nsbn_store/grib</destinationDir>
+        <exclude></exclude>
+        <include></include>
+        <threadpoolCount>2</threadpoolCount>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="sat">
+        <scanDir>sat_ingest</scanDir>
+        <destinationQueue>Ingest.mcidas</destinationQueue>
+        <destinationDir>/nsbn_store/mcidas</destinationDir>
+        <exclude></exclude>
+        <include></include>
+        <threadpoolCount>2</threadpoolCount>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="rad">
+        <scanDir>rad_ingest</scanDir>
+        <destinationQueue>Ingest.Mosaic</destinationQueue>
+        <destinationDir>/nsbn_store/mosaic</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="ntrans">
+        <scanDir>ntrans_ingest</scanDir>
+        <destinationQueue>Ingest.Ntrans</destinationQueue>
+        <destinationDir>/nsbn_store/ntrans</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="pgen">
+        <scanDir>pgen_ingest</scanDir>
+        <destinationQueue></destinationQueue>
+        <destinationDir>/nsbn_store/pgen</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="viirs">
+        <scanDir>viirs_ingest</scanDir>
+        <destinationQueue>Ingest.VIIRS</destinationQueue>
+        <destinationDir>/nsbn_store/viirs</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="solarImage">
+        <scanDir>SolarImage_ingest</scanDir>
+        <destinationQueue>Ingest.SolarImage</destinationQueue>
+        <destinationDir>/nsbn_store/SolarImage</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="geomag">
+        <scanDir>GeoMag_ingest</scanDir>
+        <destinationQueue>Ingest.GeoMag</destinationQueue>
+        <destinationDir>/nsbn_store/GeoMag</destinationDir>
+        <exclude></exclude>
+        <include></include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="goesr">
+        <scanDir>GOESR_ingest</scanDir>
+        <destinationQueue>Ingest.GOESR</destinationQueue>
+        <destinationDir>/nsbn_store/GOESR</destinationDir>
+        <exclude></exclude>
+        <include></include>
+        <threadpoolCount>2</threadpoolCount>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="atcf">
+        <scanDir>misc_ingest</scanDir>
+        <destinationQueue>Ingest.atcf</destinationQueue>
+        <destinationDir>/nsbn_store/atcf</destinationDir>
+        <exclude></exclude>
+        <include>^aal</include>
+        <include>^acp</include>
+        <include>^aep</include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="sgwhv">
+        <scanDir>misc_ingest</scanDir>
+        <destinationQueue>Ingest.sgwhv</destinationQueue>
+        <destinationDir>/nsbn_store/sgwhv</destinationDir>
+        <exclude></exclude>
+        <include>^js2</include>
+        <include>^cr2</include>
+        <include>^jso</include>
+        <include>^enf</include>
+        <include>^atk</include>
+        <include>^jason3</include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="stormtrack">
+        <scanDir>misc_ingest</scanDir>
+        <destinationQueue>Ingest.stormtrack</destinationQueue>
+        <destinationDir>/nsbn_store/stormtrack</destinationDir>
+        <exclude></exclude>
+        <include>cyclone</include>
+    </nsbnTransferDirectory>
+    <nsbnTransferDirectory id="Ncscat">
+        <scanDir>misc_ingest</scanDir>
+        <destinationQueue>Ingest.Ncscat</destinationQueue>
+        <destinationDir>/nsbn_store/Ncscat</destinationDir>
+        <exclude></exclude>
+        <include>^wsat_</include>
+        <include>^ascatd_</include>
+        <include>qsct$</include>
+    </nsbnTransferDirectory>
+</nsbnTransferDirectories>

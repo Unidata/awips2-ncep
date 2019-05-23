@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
-<plugin>
-      
+<plugin>   
    <extension
          point="org.eclipse.ui.commands">
       <command
@@ -10,10 +9,18 @@
           name="Seek Results">
       </command>
    </extension>
-      
    <extension
-         point="org.eclipse.ui.handlers">
-      
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:tools?after=tools.Pg">   
+           <command
+              label="Seek Tool D2D"
+              commandId="gov.noaa.nws.ncep.viz.ui.actions.seekD2D">
+           </command>                                 
+       </menuContribution>               
+   </extension>   
+   <extension
+         point="org.eclipse.ui.handlers">     
       <handler
             class="gov.noaa.nws.ncep.viz.ui.seek.SeekResultsAction"
             commandId="gov.noaa.nws.ncep.viz.ui.actions.seek">
@@ -23,6 +30,9 @@
             </reference>
          </enabledWhen>
       </handler>
+      <handler
+            class="gov.noaa.nws.ncep.viz.ui.seek.SeekResultsAction"
+            commandId="gov.noaa.nws.ncep.viz.ui.actions.seekD2D">      
+      </handler>
    </extension>
-
 </plugin>

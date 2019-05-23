@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.viz.ui.locator.resource;
 
-import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -17,6 +14,9 @@ import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
+import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
+
 /**
  * 
  * <pre>
@@ -27,7 +27,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * ???????????  ???         ???         Created
  * 12/14/1212   #903        Greg Hull   fontSize, fontName, and color
  * 11/05/2015    5070       randerso    Adjust font sizes for dpi scaling
- * 
+ * 04/24/2019   #62919      ksunil      changes to support NCP's locator tool in D2D. Fixed extra spaces in the label
  * </pre>
  * 
  * @author ghull
@@ -36,392 +36,398 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  */
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name="LocatorResourceData")
+@XmlType(name = "LocatorResourceData")
 public class LocatorResourceData extends AbstractNatlCntrsResourceData {
-	
-	public static final int MAX_NUM_SOURCES = 5;
+
+    public static final int MAX_NUM_SOURCES = 5;
 
     @XmlElement
-	private Integer fontSize;
+    private Integer fontSize;
 
     @XmlElement
-	private String fontName;
+    private String fontName;
 
     @XmlElement
-	private String pos1LocatorSource = ""; 
- 
+    private String pos1LocatorSource = "";
+
     @XmlElement
-	private Integer pos1RoundToNearest=1;
-    
+    private Integer pos1RoundToNearest = 1;
+
     @XmlElement
-	private String pos1DisplayUnit="";
-    
+    private String pos1DisplayUnit = "";
+
     @XmlElement
-	private String pos1DirectionUnit="";
+    private String pos1DirectionUnit = "";
 
     // Position 2
     @XmlElement
-	private String pos2LocatorSource = "";
+    private String pos2LocatorSource = "";
 
     @XmlElement
-	private Integer pos2RoundToNearest=1;
-    
+    private Integer pos2RoundToNearest = 1;
+
     @XmlElement
-	private String pos2DisplayUnit="";
-    
+    private String pos2DisplayUnit = "";
+
     @XmlElement
-	private String pos2DirectionUnit="";
+    private String pos2DirectionUnit = "";
 
     // Position 3
     @XmlElement
-	private String pos3LocatorSource = "";
+    private String pos3LocatorSource = "";
 
     @XmlElement
-	private Integer pos3RoundToNearest=1;
-    
+    private Integer pos3RoundToNearest = 1;
+
     @XmlElement
-	private String pos3DisplayUnit = "";
-    
+    private String pos3DisplayUnit = "";
+
     @XmlElement
-	private String pos3DirectionUnit = "";
+    private String pos3DirectionUnit = "";
 
     // Position 4
     @XmlElement
-	private String pos4LocatorSource = "";
+    private String pos4LocatorSource = "";
 
     @XmlElement
-	private Integer pos4RoundToNearest=1;
-    
+    private Integer pos4RoundToNearest = 1;
+
     @XmlElement
-	private String pos4DisplayUnit = "";
-    
+    private String pos4DisplayUnit = "";
+
     @XmlElement
-	private String pos4DirectionUnit = "";
+    private String pos4DirectionUnit = "";
 
     // Position 5
     @XmlElement
-	private String pos5LocatorSource = "";
+    private String pos5LocatorSource = "";
 
     @XmlElement
-	private Integer pos5RoundToNearest=1;
-    
-    @XmlElement
-	private String pos5DisplayUnit = "";
-    
-    @XmlElement
-	private String pos5DirectionUnit = "";
-
+    private Integer pos5RoundToNearest = 1;
 
     @XmlElement
-	@XmlJavaTypeAdapter(RGBColorAdapter.class)
+    private String pos5DisplayUnit = "";
+
+    @XmlElement
+    private String pos5DirectionUnit = "";
+
+    @XmlElement
+    @XmlJavaTypeAdapter(RGBColorAdapter.class)
     private RGB color = null;
-    
-    private RGB dfltColor = new RGB(255, 255, 255);
-    	
-    private String legendStr = null;
-    
-	public LocatorResourceData() {
-		super();
-		
-		this.nameGenerator = new AbstractNameGenerator(){
-			@Override
-			public String getName(AbstractVizResource<?,?> resource ){
-				if( legendStr == null ) {
-					createLegend();
-				}
-				return legendStr;
-			}
-		};		
-	}
 
-	private void createLegend() {
-		legendStr = "Locator (";
-		if( getPos1Enabled() ) {
-			legendStr += " "+getPos1LocatorSource();
-		}
-		if( getPos2Enabled() ) {
-			legendStr += ", "+getPos2LocatorSource();
-		}
-		if( getPos3Enabled() ) {
-			legendStr += ", "+getPos3LocatorSource();
-		}
-		if( getPos4Enabled() ) {
-			legendStr += ", "+getPos4LocatorSource();
-		}
-		if( getPos5Enabled() ) {
-			legendStr += ", "+getPos5LocatorSource();
-		}
-		legendStr += ")";
-	}
+    private RGB dfltColor = new RGB(255, 255, 255);
+
+    private String legendStr = null;
+
+    public LocatorResourceData() {
+        super();
+
+        this.nameGenerator = new AbstractNameGenerator() {
+            @Override
+            public String getName(AbstractVizResource<?, ?> resource) {
+                if (legendStr == null) {
+                    createLegend();
+                }
+                return legendStr;
+            }
+        };
+    }
+
+    private void createLegend() {
+        legendStr = "Locator (";
+        String hasPrevPosition = "";
+        if (getPos1Enabled()) {
+            legendStr += getPos1LocatorSource();
+            hasPrevPosition = ", ";
+        }
+        if (getPos2Enabled()) {
+            legendStr += hasPrevPosition + getPos2LocatorSource();
+            hasPrevPosition = ", ";
+        }
+        if (getPos3Enabled()) {
+            legendStr += hasPrevPosition + getPos3LocatorSource();
+            hasPrevPosition = ", ";
+        }
+        if (getPos4Enabled()) {
+            legendStr += hasPrevPosition + getPos4LocatorSource();
+            hasPrevPosition = ", ";
+        }
+        if (getPos5Enabled()) {
+            legendStr += hasPrevPosition + getPos5LocatorSource();
+        }
+        legendStr += ")";
+    }
 
     @Override
     public String toString() {
-    	return "Locator/"+getResourceName().getRscAttrSetName();  
-    }    
+        return "Locator/" + getResourceName().getRscAttrSetName();
+    }
 
-	@Override
-	public AbstractVizResource<?, ?> constructResource(
-			LoadProperties loadProperties, IDescriptor descriptor)
-			throws VizException {
-		return new LocatorResource(this, loadProperties);
-	}
+    @Override
+    public AbstractVizResource<?, ?> constructResource(
+            LoadProperties loadProperties, IDescriptor descriptor)
+            throws VizException {
+        return new LocatorResource(this, loadProperties);
+    }
 
-	private Boolean isValidDataSourceName( String srcName ) {
-		return ( srcName != null && 
-				!srcName.isEmpty() &&
-				!srcName.equalsIgnoreCase("omit") &&
-				!srcName.equalsIgnoreCase("none") );
-	}
-	
-	public String getPos1LocatorSource() {
-		return pos1LocatorSource;
-	}
+    private Boolean isValidDataSourceName(String srcName) {
+        return (srcName != null && !srcName.isEmpty()
+                && !srcName.equalsIgnoreCase("omit")
+                && !srcName.equalsIgnoreCase("none"));
+    }
 
-	public void setPos1LocatorSource(String pos1LocatorSource) {
-		this.pos1LocatorSource = pos1LocatorSource;
-		createLegend();
-	}
+    public String getPos1LocatorSource() {
+        return pos1LocatorSource;
+    }
 
-	public Boolean getPos1Enabled() {
-		return isValidDataSourceName( pos1LocatorSource );
-	}
+    public void setPos1LocatorSource(String pos1LocatorSource) {
+        this.pos1LocatorSource = pos1LocatorSource;
+        createLegend();
+    }
 
-	public Integer getPos1RoundToNearest() {
-		return pos1RoundToNearest;
-	}
+    public Boolean getPos1Enabled() {
+        return isValidDataSourceName(pos1LocatorSource);
+    }
 
-	public void setPos1RoundToNearest(Integer pos1RoundToNearest) {
-		this.pos1RoundToNearest = pos1RoundToNearest;
-	}
+    public Integer getPos1RoundToNearest() {
+        return pos1RoundToNearest;
+    }
 
-	public String getPos1DisplayUnit() {
-		return pos1DisplayUnit;
-	}
+    public void setPos1RoundToNearest(Integer pos1RoundToNearest) {
+        this.pos1RoundToNearest = pos1RoundToNearest;
+    }
 
-	public void setPos1DisplayUnit(String pos1DisplayUnit) {
-		this.pos1DisplayUnit = pos1DisplayUnit;
-	}
+    public String getPos1DisplayUnit() {
+        return pos1DisplayUnit;
+    }
 
-	public String getPos1DirectionUnit() {
-		return pos1DirectionUnit;
-	}
+    public void setPos1DisplayUnit(String pos1DisplayUnit) {
+        this.pos1DisplayUnit = pos1DisplayUnit;
+    }
 
-	public void setPos1DirectionUnit(String pos1DirectionUnit) {
-		this.pos1DirectionUnit = pos1DirectionUnit;
-	}
+    public String getPos1DirectionUnit() {
+        return pos1DirectionUnit;
+    }
 
-	public String getPos2LocatorSource() {
-		return pos2LocatorSource;
-	}
+    public void setPos1DirectionUnit(String pos1DirectionUnit) {
+        this.pos1DirectionUnit = pos1DirectionUnit;
+    }
 
-	public void setPos2LocatorSource(String pos2LocatorSource) {
-		this.pos2LocatorSource = pos2LocatorSource;
-		createLegend();
-	}
+    public String getPos2LocatorSource() {
+        return pos2LocatorSource;
+    }
 
-	public Boolean getPos2Enabled() {
-		return isValidDataSourceName( pos2LocatorSource );
-	}
+    public void setPos2LocatorSource(String pos2LocatorSource) {
+        this.pos2LocatorSource = pos2LocatorSource;
+        createLegend();
+    }
 
-	public Integer getPos2RoundToNearest() {
-		return pos2RoundToNearest;
-	}
+    public Boolean getPos2Enabled() {
+        return isValidDataSourceName(pos2LocatorSource);
+    }
 
-	public void setPos2RoundToNearest(Integer pos2RoundToNearest) {
-		this.pos2RoundToNearest = pos2RoundToNearest;
-	}
+    public Integer getPos2RoundToNearest() {
+        return pos2RoundToNearest;
+    }
 
-	public String getPos2DisplayUnit() {
-		return pos2DisplayUnit;
-	}
+    public void setPos2RoundToNearest(Integer pos2RoundToNearest) {
+        this.pos2RoundToNearest = pos2RoundToNearest;
+    }
 
-	public void setPos2DisplayUnit(String pos2DisplayUnit) {
-		this.pos2DisplayUnit = pos2DisplayUnit;
-	}
+    public String getPos2DisplayUnit() {
+        return pos2DisplayUnit;
+    }
 
-	public String getPos2DirectionUnit() {
-		return pos2DirectionUnit;
-	}
+    public void setPos2DisplayUnit(String pos2DisplayUnit) {
+        this.pos2DisplayUnit = pos2DisplayUnit;
+    }
 
-	public void setPos2DirectionUnit(String pos2DirectionUnit) {
-		this.pos2DirectionUnit = pos2DirectionUnit;
-	}
+    public String getPos2DirectionUnit() {
+        return pos2DirectionUnit;
+    }
 
-	public String getPos3LocatorSource() {
-		return pos3LocatorSource;
-	}
+    public void setPos2DirectionUnit(String pos2DirectionUnit) {
+        this.pos2DirectionUnit = pos2DirectionUnit;
+    }
 
-	public void setPos3LocatorSource(String pos3LocatorSource) {
-		this.pos3LocatorSource = pos3LocatorSource;
-		createLegend();
-	}
+    public String getPos3LocatorSource() {
+        return pos3LocatorSource;
+    }
 
-	public Boolean getPos3Enabled() {
-		return isValidDataSourceName( pos3LocatorSource );
-	}
+    public void setPos3LocatorSource(String pos3LocatorSource) {
+        this.pos3LocatorSource = pos3LocatorSource;
+        createLegend();
+    }
 
-	public Integer getPos3RoundToNearest() {
-		return pos3RoundToNearest;
-	}
+    public Boolean getPos3Enabled() {
+        return isValidDataSourceName(pos3LocatorSource);
+    }
 
-	public void setPos3RoundToNearest(Integer pos3RoundToNearest) {
-		this.pos3RoundToNearest = pos3RoundToNearest;
-	}
+    public Integer getPos3RoundToNearest() {
+        return pos3RoundToNearest;
+    }
 
-	public String getPos3DisplayUnit() {
-		return pos3DisplayUnit;
-	}
+    public void setPos3RoundToNearest(Integer pos3RoundToNearest) {
+        this.pos3RoundToNearest = pos3RoundToNearest;
+    }
 
-	public void setPos3DisplayUnit(String pos3DisplayUnit) {
-		this.pos3DisplayUnit = pos3DisplayUnit;
-	}
+    public String getPos3DisplayUnit() {
+        return pos3DisplayUnit;
+    }
 
-	public String getPos3DirectionUnit() {
-		return pos3DirectionUnit;
-	}
+    public void setPos3DisplayUnit(String pos3DisplayUnit) {
+        this.pos3DisplayUnit = pos3DisplayUnit;
+    }
 
-	public void setPos3DirectionUnit(String pos3DirectionUnit) {
-		this.pos3DirectionUnit = pos3DirectionUnit;
-	}
+    public String getPos3DirectionUnit() {
+        return pos3DirectionUnit;
+    }
 
-	public String getPos4LocatorSource() {
-		return pos4LocatorSource;
-	}
+    public void setPos3DirectionUnit(String pos3DirectionUnit) {
+        this.pos3DirectionUnit = pos3DirectionUnit;
+    }
 
-	public void setPos4LocatorSource(String pos4LocatorSource) {
-		this.pos4LocatorSource = pos4LocatorSource;
-		createLegend();
-	}
+    public String getPos4LocatorSource() {
+        return pos4LocatorSource;
+    }
 
-	public Boolean getPos4Enabled() {
-		return isValidDataSourceName( pos4LocatorSource );
-	}
+    public void setPos4LocatorSource(String pos4LocatorSource) {
+        this.pos4LocatorSource = pos4LocatorSource;
+        createLegend();
+    }
 
-	public Integer getPos4RoundToNearest() {
-		return pos4RoundToNearest;
-	}
+    public Boolean getPos4Enabled() {
+        return isValidDataSourceName(pos4LocatorSource);
+    }
 
-	public void setPos4RoundToNearest(Integer pos4RoundToNearest) {
-		this.pos4RoundToNearest = pos4RoundToNearest;
-	}
+    public Integer getPos4RoundToNearest() {
+        return pos4RoundToNearest;
+    }
 
-	public String getPos4DisplayUnit() {
-		return pos4DisplayUnit;
-	}
+    public void setPos4RoundToNearest(Integer pos4RoundToNearest) {
+        this.pos4RoundToNearest = pos4RoundToNearest;
+    }
 
-	public void setPos4DisplayUnit(String pos4DisplayUnit) {
-		this.pos4DisplayUnit = pos4DisplayUnit;
-	}
+    public String getPos4DisplayUnit() {
+        return pos4DisplayUnit;
+    }
 
-	public String getPos4DirectionUnit() {
-		return pos4DirectionUnit;
-	}
+    public void setPos4DisplayUnit(String pos4DisplayUnit) {
+        this.pos4DisplayUnit = pos4DisplayUnit;
+    }
 
-	public void setPos4DirectionUnit(String pos4DirectionUnit) {
-		this.pos4DirectionUnit = pos4DirectionUnit;
-	}
+    public String getPos4DirectionUnit() {
+        return pos4DirectionUnit;
+    }
 
-	public String getPos5LocatorSource() {
-		return pos5LocatorSource;
-	}
+    public void setPos4DirectionUnit(String pos4DirectionUnit) {
+        this.pos4DirectionUnit = pos4DirectionUnit;
+    }
 
-	public void setPos5LocatorSource(String pos5LocatorSource) {
-		this.pos5LocatorSource = pos5LocatorSource;
-		createLegend();
-	}
+    public String getPos5LocatorSource() {
+        return pos5LocatorSource;
+    }
 
-	public Boolean getPos5Enabled() {
-		return isValidDataSourceName( pos5LocatorSource );
-	}
+    public void setPos5LocatorSource(String pos5LocatorSource) {
+        this.pos5LocatorSource = pos5LocatorSource;
+        createLegend();
+    }
 
-	public Integer getPos5RoundToNearest() {
-		return pos5RoundToNearest;
-	}
+    public Boolean getPos5Enabled() {
+        return isValidDataSourceName(pos5LocatorSource);
+    }
 
-	public void setPos5RoundToNearest(Integer pos5RoundToNearest) {
-		this.pos5RoundToNearest = pos5RoundToNearest;
-	}
+    public Integer getPos5RoundToNearest() {
+        return pos5RoundToNearest;
+    }
 
-	public String getPos5DisplayUnit() {
-		return pos5DisplayUnit;
-	}
+    public void setPos5RoundToNearest(Integer pos5RoundToNearest) {
+        this.pos5RoundToNearest = pos5RoundToNearest;
+    }
 
-	public void setPos5DisplayUnit(String pos5DisplayUnit) {
-		this.pos5DisplayUnit = pos5DisplayUnit;
-	}
+    public String getPos5DisplayUnit() {
+        return pos5DisplayUnit;
+    }
 
-	public String getPos5DirectionUnit() {
-		return pos5DirectionUnit;
-	}
+    public void setPos5DisplayUnit(String pos5DisplayUnit) {
+        this.pos5DisplayUnit = pos5DisplayUnit;
+    }
 
-	public void setPos5DirectionUnit(String pos5DirectionUnit) {
-		this.pos5DirectionUnit = pos5DirectionUnit;
-	}
+    public String getPos5DirectionUnit() {
+        return pos5DirectionUnit;
+    }
 
-	public RGB getColor() {
-		return (color==null?dfltColor:color);
-	}
+    public void setPos5DirectionUnit(String pos5DirectionUnit) {
+        this.pos5DirectionUnit = pos5DirectionUnit;
+    }
 
-	public void setColor(RGB _color) {
-		color = _color; 
-		this.legendColor = color;
-	}
+    public RGB getColor() {
+        return (color == null ? dfltColor : color);
+    }
 
-	public String getFontName() {
-		return fontName;
-	}
+    public void setColor(RGB _color) {
+        color = _color;
+        this.legendColor = color;
+    }
 
-	public void setFontName(String fontName) {
-		this.fontName = fontName;
-	}
+    public String getFontName() {
+        return fontName;
+    }
 
-	public Integer getFontSize() {
-		return (fontSize == null ? 10 : fontSize);
-	}
+    public void setFontName(String fontName) {
+        this.fontName = fontName;
+    }
 
-	public void setFontSize(Integer fs) {
-		this.fontSize = fs;
-	}
+    public Integer getFontSize() {
+        return (fontSize == null ? 10 : fontSize);
+    }
 
-	public LocatorDisplayAttributes getDisplayAttributesForPosition( int pos ) {
-		
-		switch( pos ) {
-		case 0 : 
-			return ( !getPos1Enabled() ? null : 
-						new LocatorDisplayAttributes( pos1LocatorSource, pos1RoundToNearest, 
-											pos1DisplayUnit, pos1DirectionUnit ) );
-		case 1 : 
-			return ( !getPos2Enabled() ? null : 
-						new LocatorDisplayAttributes( pos2LocatorSource, pos2RoundToNearest, 
-											pos2DisplayUnit, pos2DirectionUnit ) );
-		case 2 : 
-			return ( !getPos3Enabled() ? null : 
-						new LocatorDisplayAttributes( pos3LocatorSource, pos3RoundToNearest, 
-											pos3DisplayUnit, pos3DirectionUnit ) );
-		case 3 : 
-			return ( !getPos4Enabled() ? null : 
-						new LocatorDisplayAttributes( pos4LocatorSource, pos4RoundToNearest, 
-											pos4DisplayUnit, pos4DirectionUnit ) );
-		case 4 : 
-			return ( !getPos5Enabled() ? null : 
-						new LocatorDisplayAttributes( pos5LocatorSource, pos5RoundToNearest, 
-											pos5DisplayUnit, pos5DirectionUnit ) );
-		}
-		return null;
-	}
+    public void setFontSize(Integer fs) {
+        this.fontSize = fs;
+    }
 
-	@Override
-	public boolean equals( Object obj ) {
-		if (!super.equals(obj)) {
-			return false;
-		}
+    public LocatorDisplayAttributes getDisplayAttributesForPosition(int pos) {
 
-		if (obj instanceof LocatorResourceData == false) {
-			return false;
-		}
+        switch (pos) {
+        case 0:
+            return (!getPos1Enabled() ? null
+                    : new LocatorDisplayAttributes(pos1LocatorSource,
+                            pos1RoundToNearest, pos1DisplayUnit,
+                            pos1DirectionUnit));
+        case 1:
+            return (!getPos2Enabled() ? null
+                    : new LocatorDisplayAttributes(pos2LocatorSource,
+                            pos2RoundToNearest, pos2DisplayUnit,
+                            pos2DirectionUnit));
+        case 2:
+            return (!getPos3Enabled() ? null
+                    : new LocatorDisplayAttributes(pos3LocatorSource,
+                            pos3RoundToNearest, pos3DisplayUnit,
+                            pos3DirectionUnit));
+        case 3:
+            return (!getPos4Enabled() ? null
+                    : new LocatorDisplayAttributes(pos4LocatorSource,
+                            pos4RoundToNearest, pos4DisplayUnit,
+                            pos4DirectionUnit));
+        case 4:
+            return (!getPos5Enabled() ? null
+                    : new LocatorDisplayAttributes(pos5LocatorSource,
+                            pos5RoundToNearest, pos5DisplayUnit,
+                            pos5DirectionUnit));
+        }
+        return null;
+    }
 
-		LocatorResourceData other = (LocatorResourceData) obj;
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
 
-		return true;
-	}
+        if (obj instanceof LocatorResourceData == false) {
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -2,7 +2,6 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -14,10 +13,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.measure.Unit;
+import javax.measure.format.ParserException;
 import javax.measure.quantity.Angle;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
@@ -58,6 +56,9 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import si.uom.NonSI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * <pre>
@@ -132,7 +133,7 @@ public class NcPlotImageCreator {
 
     private static double ZOOM_TOLERANCE = 1E-04;
 
-    private static Amount WIND_SPD_3KNOTS = new Amount(3, NonSI.KNOT);
+    private static Amount WIND_SPD_3KNOTS = new Amount(3, USCustomary.KNOT);
 
     private Map<PlotSymbolType, StringLookup> symbolTypeToLookupTableMap = null;
 
@@ -689,8 +690,8 @@ public class NcPlotImageCreator {
                             : speedConverted.doubleValue();
                     double dSpeed = Double.MIN_VALUE;
                     Unit<?> unit;
-                    unit = (Unit<?>) UnitFormat.getUCUMInstance()
-                            .parseObject(plotUnit);
+                    unit = (Unit<?>) SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII)
+                            .parse(plotUnit);
                     double cWindSpeedThresh = WIND_SPD_3KNOTS.getValueAs(unit)
                             .doubleValue();
                     if (uSpeed >= cWindSpeedThresh) {
@@ -735,7 +736,7 @@ public class NcPlotImageCreator {
 
                 }
 
-            } catch (ParseException e) {
+            } catch (ParserException e) {
                 statusHandler
                         .warn("Failed to parse plot unit from string (value: "
                                 + Objects.toString(plotUnit) + ")", e);

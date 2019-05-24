@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.measure.converter.UnitConverter;
+import javax.measure.UnitConverter;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;

@@ -1,7 +1,7 @@
 
 package gov.noaa.nws.ncep.edex.plugin.mosaic.uengine;
 
-import javax.measure.converter.UnitConverter;
+import javax.measure.UnitConverter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,6 +14,7 @@ import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.datastorage.records.ShortDataRecord;
 
 import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import tec.uom.se.AbstractConverter;
 
 /**
  * Derived from original uEngine DecodeMosaicImage task.
@@ -79,7 +80,7 @@ public class DecodeMosaicImage {
             }
         }
         if ("GEMPAK".equals(clientName)) {
-        	UnitConverter dataConverter = UnitConverter.IDENTITY;
+        	UnitConverter dataConverter = AbstractConverter.IDENTITY;
             int tileSize = 2 * mosaicRecord.getNx();
             mosaicTiler = new MosaicTiler(mosaicRecord, 1, tileSize, dataConverter);
         }

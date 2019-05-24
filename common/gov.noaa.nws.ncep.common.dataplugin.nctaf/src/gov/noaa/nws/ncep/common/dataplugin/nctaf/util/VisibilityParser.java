@@ -2,9 +2,11 @@ package gov.noaa.nws.ncep.common.dataplugin.nctaf.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * TODO Parse visibility provided in different formats.
@@ -36,8 +38,8 @@ public class VisibilityParser {
     private static final double MAX = 2147483647;
     
     public VisibilityParser() {
-        this.miles2Meters = NonSI.MILE.getConverterTo(SI.METER);
-        this.miles2Km = NonSI.MILE.getConverterTo(SI.KILOMETER);
+        this.miles2Meters = USCustomary.MILE.getConverterTo(SI.METRE);
+        this.miles2Km = USCustomary.MILE.getConverterTo(MetricPrefix.KILO(SI.METRE));
         this.visibility = new String();
         this.prevail_vsbySM = 0.0;
         this.vsby_Dir = new String();

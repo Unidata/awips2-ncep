@@ -1,15 +1,15 @@
 package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 
+import javax.measure.UnitConverter;
+
 import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.LongitudeCoding;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.WindDirectionSense;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatPoint;
-
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * NcscatPointData - Class to hold numerical and boolean data for a single
@@ -37,8 +37,8 @@ class NcscatPointData {
 
     // @formatter:off
     
-    private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static final UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     private Coordinate location;        // lat/lon of this point
     private float direction;            // "from" direction in bulletin

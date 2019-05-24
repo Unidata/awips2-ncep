@@ -1,22 +1,10 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleIntervalMode;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleLatMode;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleModel;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScalePosition;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextFont;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextSize;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextStyle;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleUnit;
-import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
-
 import java.text.DecimalFormat;
 
-import javax.measure.converter.UnitConverter;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.measure.quantity.Length;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
@@ -34,6 +22,18 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleIntervalMode;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleLatMode;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleModel;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScalePosition;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextFont;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextSize;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextStyle;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleUnit;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * Modified from DistanceTool class. Tool to display the distance scale on the
@@ -64,9 +64,9 @@ public class ScaleOverlayResource extends
     private static final double[] scales = new double[] { 0.1, 0.2, 0.4, 1, 2,
             4, 10, 20, 40, 100, 200, 400, 1000, 2000, 4000, 10000 };
 
-    private static Unit<Length> displayUnit = NonSI.MILE;
+    private static Unit<Length> displayUnit = USCustomary.MILE;
 
-    private static UnitConverter toDisplay = SI.METER
+    private static UnitConverter toDisplay = SI.METRE
             .getConverterTo(displayUnit);
 
     private GeodeticCalculator gc;
@@ -119,7 +119,7 @@ public class ScaleOverlayResource extends
                 .getScaleTextStyle()];
 
         displayUnit = scaleUnit.getUnit();
-        toDisplay = SI.METER.getConverterTo(displayUnit);
+        toDisplay = SI.METRE.getConverterTo(displayUnit);
 
         IFont font = target.initializeFont(scaleTextFont.getFontName(),
                 12 * scaleTextSize.getSoftwareSize(),

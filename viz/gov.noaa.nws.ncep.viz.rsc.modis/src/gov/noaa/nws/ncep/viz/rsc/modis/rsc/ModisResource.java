@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -23,7 +24,6 @@ import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.measure.Measure;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.algorithm.CGAlgorithms;
 import org.locationtech.jts.geom.Coordinate;
@@ -110,6 +110,8 @@ import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.quantity.Quantities;
 
 /**
  *
@@ -131,6 +133,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 04/12/2016   R15945  RCReynolds   Added code to build input to customizable getLegendString
  * 06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
  * 06/11/2018   7310    mapeters     Remove unused import
+ * 04/15/2019   7596    lsingh       Updated units framework to JSR-363.
  * </pre>
  *
  * @author kbugenhagen
@@ -649,9 +652,9 @@ public class ModisResource
             ImagePreferences preferences, ColorMapParameters colorMapParameters)
             throws VizException {
 
-        colorMapParameters.setColorMapUnit(Unit.ONE);
+        colorMapParameters.setColorMapUnit(AbstractUnit.ONE);
 
-        Unit<?> displayUnit = Unit.ONE;
+        Unit<?> displayUnit = AbstractUnit.ONE;
         if (preferences != null) {
             if (preferences.getDisplayUnits() != null) {
                 displayUnit = preferences.getDisplayUnits();
@@ -666,12 +669,12 @@ public class ModisResource
                 UnitConverter displayToColorMap = colorMapParameters
                         .getDisplayToColorMapConverter();
                 if (scale.getMinValue() != null) {
-                    colorMapParameters.setColorMapMin((float) displayToColorMap
-                            .convert(scale.getMinValue()));
+                    colorMapParameters.setColorMapMin(displayToColorMap
+                            .convert(scale.getMinValue()).floatValue());
                 }
                 if (scale.getMaxValue() != null) {
-                    colorMapParameters.setColorMapMax((float) displayToColorMap
-                            .convert(scale.getMaxValue()));
+                    colorMapParameters.setColorMapMax(displayToColorMap
+                            .convert(scale.getMaxValue()).floatValue());
                 }
             }
         }
@@ -1248,7 +1251,7 @@ public class ModisResource
             interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
         }
         interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
-                Measure.valueOf(ciValue, colorMapParameters.getDisplayUnit()));
+                Quantities.getQuantity(ciValue, colorMapParameters.getDisplayUnit()));
 
         return interMap;
     }

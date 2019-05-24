@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 import javax.media.jai.InterpolationBilinear;
 
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -36,6 +34,9 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingModel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.unit.Units;
 
 /**
  *
@@ -71,6 +72,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
  *                                          set surface elevation to 0.0; cleaned up code.
  * 05/07/2018   7283        mapeters    Fully eliminate uEngine dependence
  * 06/22/2018   17341       mgamazaychikov  Reconcile differences with 30518.
+ * 04/15/2019   7596        lsingh      Updated units framework to JSR-363.
  *
  * </pre>
  *
@@ -91,11 +93,11 @@ public class ModelsSoundingQuery {
         GH, uW, vW, T, SH, RH, DpD, DpT, PVV
     };
 
-    private static UnitConverter kelvinToCelsius = SI.KELVIN
+    private static UnitConverter kelvinToCelsius = Units.KELVIN
             .getConverterTo(SI.CELSIUS);
 
-    private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static final UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     private static float FRAC_ERROR = -9999;
 

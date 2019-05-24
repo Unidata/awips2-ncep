@@ -1,18 +1,7 @@
 package gov.noaa.nws.ncep.viz.rsc.mosaic.rsc;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,8 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.format.ParserException;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -68,6 +57,18 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
+
+import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Provide Radar Mosaic raster rendering support
@@ -430,13 +431,13 @@ public class MosaicResource extends
         Unit<?> dataUnit = null;
         if (radarRecord.getUnit() != null) {
             try {
-                dataUnit = UnitFormat.getUCUMInstance().parseProductUnit(
+                dataUnit = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseProductUnit(
                         radarRecord.getUnit(), new ParsePosition(0));
-            } catch (ParseException e) {
+            } catch (ParserException e) {
                 throw new VizException("Unable to parse units ", e);
             }
         } else {
-            dataUnit = Unit.ONE;
+            dataUnit = AbstractUnit.ONE;
         }
         Object[] thresholds = radarRecord.getDecodedThresholds();
         if (thresholds[0] == null) {

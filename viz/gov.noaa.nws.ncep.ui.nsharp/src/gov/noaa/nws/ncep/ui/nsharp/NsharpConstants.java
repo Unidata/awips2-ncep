@@ -3,9 +3,10 @@ package gov.noaa.nws.ncep.ui.nsharp;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
@@ -55,9 +56,9 @@ public class NsharpConstants {
 
     public static final UnitConverter kelvinToCelsius = SI.KELVIN.getConverterTo(SI.CELSIUS);
 
-    public static final UnitConverter metersToFeet = SI.METER.getConverterTo(NonSI.FOOT);
+    public static final UnitConverter metersToFeet = SI.METRE.getConverterTo(USCustomary.FOOT);
 
-    public static final UnitConverter feetToMeters = NonSI.FOOT.getConverterTo(SI.METRE);
+    public static final UnitConverter feetToMeters = USCustomary.FOOT.getConverterTo(SI.METRE);
 
     public static final int WINDBARB_DISTANCE_DEFAULT = 600; // in meters
 

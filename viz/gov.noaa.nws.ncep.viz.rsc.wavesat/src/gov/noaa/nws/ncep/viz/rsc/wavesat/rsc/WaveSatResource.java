@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -49,6 +47,8 @@ import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * AbstractWaveSatResource - Display SGWH(V) data.
@@ -93,7 +93,7 @@ public class WaveSatResource
 
     private WaveSatResourceData waveSatResourceData;
 
-    private Unit<?> waveHeightUnits = SI.METER;
+    private Unit<?> waveHeightUnits = SI.METRE;
 
     private IFont font = null;
 
@@ -345,7 +345,7 @@ public class WaveSatResource
         super(ncresourceData, loadProperties);
         this.waveSatResourceData = (WaveSatResourceData) resourceData;
         this.waveHeightUnits = this.waveSatResourceData
-                .getUseFeetInsteadOfMeters() ? NonSI.FOOT : SI.METER;
+                .getUseFeetInsteadOfMeters() ? USCustomary.FOOT : SI.METRE;
 
         ncresourceData.setAlertParser(new WaveSatAlertParser());
     }

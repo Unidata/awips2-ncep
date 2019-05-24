@@ -3,21 +3,19 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
 import gov.noaa.nws.ncep.edex.common.metparameters.WetBulbPotentialTemp;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.AbstractUnit;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-
-////import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 /**
  * @author archana
  * 
@@ -45,10 +43,10 @@ public final class PSLibrary {
          */
         if (!PRLibrary.checkNullOrInvalidValue(td850)
                 || !PRLibrary.checkNullOrInvalidValue(t500)) {
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         }
         Amount psCtot = new Amount(td850.getValue().floatValue()
-                - t500.getValue().floatValue(), Unit.ONE);
+                - t500.getValue().floatValue(), AbstractUnit.ONE);
         return psCtot;
     }
 
@@ -76,7 +74,7 @@ public final class PSLibrary {
                 || !PRLibrary.checkNullOrInvalidValue(tc2Amt)
                 || !PRLibrary.checkNullOrInvalidValue(dwpcAmt)
                 || !PRLibrary.checkNullOrInvalidValue(itypeAmt))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         float a = GempakConstants.RMISSD;
         float b = GempakConstants.RMISSD;
         float tc1 = tc1Amt.getValue().floatValue();
@@ -99,7 +97,7 @@ public final class PSLibrary {
         a = (a < 3.1f ? a : 3.1f);
         b = (b > 0.9f ? b : 0.9f);
         b = (b < 3.1f ? b : 3.1f);
-        pshans = new Amount(a + b, Unit.ONE);
+        pshans = new Amount(a + b, AbstractUnit.ONE);
         // }
         return pshans;
     }
@@ -131,12 +129,12 @@ public final class PSLibrary {
                 || !PRLibrary.checkNullOrInvalidValue(t500)
                 || !PRLibrary.checkNullOrInvalidValue(td850)
                 || !PRLibrary.checkNullOrInvalidValue(td700))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         pskinx = new Amount(
                 (t850.getValue().floatValue() - t500.getValue().floatValue())
                         + td850.getValue().floatValue()
                         - (t700.getValue().floatValue() - td700.getValue()
-                                .floatValue()), Unit.ONE);
+                                .floatValue()), AbstractUnit.ONE);
 
         return pskinx;
     }
@@ -161,7 +159,7 @@ public final class PSLibrary {
         if (!PRLibrary.checkNullOrInvalidValue(t850Amt)
                 || !PRLibrary.checkNullOrInvalidValue(td850Amt)
                 || !PRLibrary.checkNullOrInvalidValue(t500Amt))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         float p850 = 850;
         float p500 = 500;
         float guess = 0;
@@ -172,14 +170,14 @@ public final class PSLibrary {
         Amount thtlcl = PRLibrary.prThte(new Amount(p850, NcUnits.MILLIBAR),
                 t850Amt, td850Amt);
         if (!PRLibrary.checkNullOrInvalidValue(thtlcl))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         /*
          * Find parcel temperature along pseudoadiabat at 500 mb. The parcel
          * temperature tp is the temperature in Celsius at 500 mb of a parcel,
          * which lies on the moist adiabat determined by the sounding at 850 mb
          */
         Amount tp = PRLibrary.prTmst(thtlcl,
-                new Amount(p500, NcUnits.MILLIBAR), new Amount(0, Unit.ONE));
+                new Amount(p500, NcUnits.MILLIBAR), new Amount(0, AbstractUnit.ONE));
 
         /*
          * Subtract the parcel temperature from the temperature at 500 mb, is
@@ -187,13 +185,13 @@ public final class PSLibrary {
          */
 
         if (!PRLibrary.checkNullOrInvalidValue(tp))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         t500Amt = PRLibrary.checkAndConvertInputAmountToExpectedUnits(t500Amt,
                 SI.KELVIN);
         float t500 = t500Amt.getValue().floatValue();
         psshow = t500 - tp.getValue().floatValue();
 
-        return new Amount(psshow, Unit.ONE);
+        return new Amount(psshow, AbstractUnit.ONE);
     }
 
     /**
@@ -212,10 +210,10 @@ public final class PSLibrary {
     public final static Amount psVtot(Amount t850, Amount t500) {
         if (!PRLibrary.checkNullOrInvalidValue(t850)
                 || !PRLibrary.checkNullOrInvalidValue(t500))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
 
         return new Amount(t850.getValue().floatValue()
-                - t500.getValue().floatValue(), Unit.ONE);
+                - t500.getValue().floatValue(), AbstractUnit.ONE);
     }
 
     /**
@@ -239,7 +237,7 @@ public final class PSLibrary {
         if (!PRLibrary.checkNullOrInvalidValue(t500)
                 || !PRLibrary.checkNullOrInvalidValue(td850)
                 || !PRLibrary.checkNullOrInvalidValue(t850))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
 
         /* Compute the vertical totals */
         Amount vtot = psVtot(t850, t500);
@@ -249,10 +247,10 @@ public final class PSLibrary {
 
         if (!PRLibrary.checkNullOrInvalidValue(vtot)
                 || !PRLibrary.checkNullOrInvalidValue(ctot))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         pstotl = vtot.getValue().floatValue() + ctot.getValue().floatValue();
 
-        return new Amount(pstotl, Unit.ONE);
+        return new Amount(pstotl, AbstractUnit.ONE);
     }
 
     /**
@@ -287,7 +285,7 @@ public final class PSLibrary {
                 || !PRLibrary.checkNullOrInvalidValue(spd500)
                 || !PRLibrary.checkNullOrInvalidValue(dir850)
                 || !PRLibrary.checkNullOrInvalidValue(dir500))
-            return new Amount(Unit.ONE);
+            return new Amount(AbstractUnit.ONE);
         /*
          * (Non-Javadoc): All computations are from Miller, R.C., 1972: Notes on
          * Severe Storm Forecasting Procedures of the Air Force Global Weather
@@ -295,9 +293,9 @@ public final class PSLibrary {
          */
         /* Convert meters per second to knots */
         Amount skt850 = PRLibrary.checkAndConvertInputAmountToExpectedUnits(
-                spd850, NonSI.KNOT);
+                spd850, USCustomary.KNOT);
         Amount skt500 = PRLibrary.checkAndConvertInputAmountToExpectedUnits(
-                spd500, NonSI.KNOT);
+                spd500, USCustomary.KNOT);
 
         /* Compute the total totals index. If < 49, set term to zero. */
         float total = psTotl(t850, td850, t500).getValue().floatValue();
@@ -334,7 +332,7 @@ public final class PSLibrary {
 
         /* Calculate SWEAT index */
         pssweat = 12 * dwp850 + 20 * term2 + 2 * skt850Val + skt500Val + shear;
-        return new Amount(pssweat, Unit.ONE);
+        return new Amount(pssweat, AbstractUnit.ONE);
     }
 
     /**
@@ -443,27 +441,10 @@ public final class PSLibrary {
                         outputNcSoundingLayer
                                 .setSpecificHumidity(currNcSoundingLayer
                                         .getSpecificHumidity());
-                        // System.out.println("Outdat: "
-                        // + outputNcSoundingLayer.getPressure().getValueAs(
-                        // NcUnits.MILLIBAR ).floatValue() + " "
-                        // + outputNcSoundingLayer.getTemperature().getValueAs(
-                        // SI.CELSIUS ).floatValue() + " "
-                        // + outputNcSoundingLayer.getDewpoint().getValueAs(
-                        // SI.CELSIUS ).floatValue() + " "
-                        // + outputNcSoundingLayer.getWindSpeed().getValueAs(
-                        // SI.METERS_PER_SECOND ).floatValue() + " "
-                        // +
-                        // outputNcSoundingLayer.getWindDirection().getValueAs(
-                        // NonSI.DEGREE_ANGLE ).floatValue() + " "
-                        // + outputNcSoundingLayer.getGeoHeight().getValueAs(
-                        // SI.METER ).floatValue() );
                     }
 
                 }
-                // System.out.println("Pressure value is " +
-                // pressure.getValue().floatValue() + " " +
-                // pressure.getUnit().toString() );
-                // System.out.println("lev is " + lev );
+                
                 lev++;
                 if (pressure.hasValidValue()
                         && pressure.getValue().floatValue() <= plevVal) {
@@ -472,20 +453,7 @@ public final class PSLibrary {
                 }
             }
         }
-        //System.out.println("PSLibrary/psUstb Outdat: "
-        //        + outputNcSoundingLayer.getPressure().getValue().floatValue()
-        //        + " "
-        //        + outputNcSoundingLayer.getTemperature().getValue()
-        //                .floatValue()
-        //        + " "
-        //        + outputNcSoundingLayer.getDewpoint().getValue().floatValue()
-        //        + " "
-        //        + outputNcSoundingLayer.getWindSpeed().getValue().floatValue()
-        //        + " "
-        //        + outputNcSoundingLayer.getWindDirection().getValue()
-        //                .floatValue() + " "
-        //        + outputNcSoundingLayer.getGeoHeight().getValue().floatValue());
-
+     
         return outputNcSoundingLayer;
     }
 

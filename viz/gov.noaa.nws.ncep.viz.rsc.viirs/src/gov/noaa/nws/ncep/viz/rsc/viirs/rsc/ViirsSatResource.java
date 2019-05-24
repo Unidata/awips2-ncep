@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.viirs.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatDataRetriever;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
-
 import java.awt.Rectangle;
 import java.text.ParsePosition;
 import java.util.ArrayList;
@@ -11,9 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -49,6 +44,12 @@ import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
+
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatDataRetriever;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Class for display of the Viirs satellite data.
@@ -257,13 +258,13 @@ public class ViirsSatResource extends
             ColorMapParameters colorMapParameters) throws StyleException {
 
         // Setup units for display and data
-        Unit<?> displayUnit = Unit.ONE;
+        Unit<?> displayUnit = AbstractUnit.ONE;
         if (imagePreferences != null) {
             if (imagePreferences.getDisplayUnits() != null) {
                 displayUnit = imagePreferences.getDisplayUnits();
             }
         }
-        Unit<?> dataUnit = Unit.ONE;
+        Unit<?> dataUnit = AbstractUnit.ONE;
 
         try {
             IDataRecord dataRecord = DataCubeContainer.getDataRecord(
@@ -282,17 +283,17 @@ public class ViirsSatResource extends
                 }
                 if (unitStr != null) {
                     try {
-                        dataUnit = UnitFormat.getUCUMInstance().parseObject(
+                        dataUnit = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseObject(
                                 unitStr, new ParsePosition(0));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 if (offset != null && offset != 0.0) {
-                    dataUnit = dataUnit.plus(offset);
+                    dataUnit = dataUnit.shift(offset);
                 }
                 if (scale != null && scale != 0.0) {
-                    dataUnit = dataUnit.times(scale);
+                    dataUnit = dataUnit.multiply(scale);
                 }
             }
         } catch (Exception e) {
@@ -389,7 +390,7 @@ public class ViirsSatResource extends
      */
     @Override
     public Unit<?> getRecordUnit(IPersistable dataRecord) {
-        return Unit.ONE;
+        return AbstractUnit.ONE;
     }
 
     /*

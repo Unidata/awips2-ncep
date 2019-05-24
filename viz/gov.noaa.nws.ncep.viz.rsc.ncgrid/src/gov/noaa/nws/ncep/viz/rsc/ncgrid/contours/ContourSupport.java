@@ -30,8 +30,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import javax.measure.unit.SI;
-
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -123,6 +121,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.NcGridDataProxy;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import si.uom.SI;
+import tec.uom.se.AbstractUnit;
 
 /**
  * ContourSupport
@@ -1226,7 +1226,7 @@ public class ContourSupport {
             contourGroup.colorImage = true;
 
             GeneralGridData ggd = GeneralGridData
-                    .createScalarData(imageGridGeometry, cntrData, SI.METER);
+                    .createScalarData(imageGridGeometry, cntrData, SI.METRE);
 
             contourGroup.colorFillImage = createRenderableImage(target, ggd);
         }
@@ -1364,7 +1364,7 @@ public class ContourSupport {
             displays[i] = contourGroup.fvalues.get(i - 1);
         }
 
-        params.setColorMapUnit(new ContourUnit<>(SI.METER, pixels, displays));
+        params.setColorMapUnit(new ContourUnit<>((AbstractUnit<?>)SI.METRE, pixels, displays));
         params.setColorMapMin((float) displays[0]);
         params.setColorMapMax((float) displays[displays.length - 1]);
 
@@ -1690,7 +1690,7 @@ public class ContourSupport {
             // build a line
             float[] pointArray = contours.xyContourPoints.get(i);
             CoordinateSequence coords = new PackedCoordinateSequence.Double(
-                    pointArray, 2);
+                    pointArray, 2, 0);
             if (coords.size() < 2) {
                 continue;
             }

@@ -11,7 +11,6 @@ package gov.noaa.nws.ncep.viz.rsc.ncradar.rsc;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.measure.converter.MultiplyConverter;
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.IncommensurableException;
+import javax.measure.UnconvertibleException;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
+import javax.measure.format.ParserException;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.CRS;
@@ -54,6 +54,7 @@ import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.style.image.SamplePreferences;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.units.PiecewisePixel;
+import com.raytheon.uf.common.units.UnitConv;
 import com.raytheon.uf.viz.core.DrawableImage;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IMesh;
@@ -83,6 +84,10 @@ import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import tec.uom.se.AbstractConverter;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
+import tec.uom.se.function.MultiplyConverter;
 
 /**
  * TODO Add Description
@@ -105,6 +110,8 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  * 06/30/2014    3165      njensen     Use ColorMapLoader to get ColorMap
  * 06/15/2016   R19647     bsteffen    Remove unused reference to RadarTileSet, formatting, and cleanup.
  * Mar 20, 2019 7569       tgurney     Fix colorbar alignment
+ * Apr 15, 2019 7596       lsingh      Updated units framework to JSR-363.
+ * 
  *
  * </pre>
  *
@@ -192,13 +199,13 @@ public abstract class RadarImageResource<D extends IDescriptor>
         Unit<?> dataUnit = null;
         if (radarRecord.getUnit() != null) {
             try {
-                dataUnit = UnitFormat.getUCUMInstance().parseProductUnit(
+                dataUnit = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseProductUnit(
                         radarRecord.getUnit(), new ParsePosition(0));
-            } catch (ParseException e) {
+            } catch (ParserException e) {
                 throw new VizException("Unable to parse units ", e);
             }
         } else {
-            dataUnit = Unit.ONE;
+            dataUnit = AbstractUnit.ONE;
         }
         int numLevels = radarRecord.getNumLevels();
         Object[] thresholds = radarRecord.getDecodedThresholds();
@@ -635,12 +642,17 @@ public abstract class RadarImageResource<D extends IDescriptor>
         Unit<?> dataUnit = DataUtilities.getDataUnit(record);
         if (dataUnit != null && !dataUnit.equals(params.getDataUnit())) {
             Unit<?> imageUnit = params.getImageUnit();
-            if (imageUnit != null && dataUnit.isCompatible(imageUnit)) {
-                dataToImage = dataUnit.getConverterTo(imageUnit);
-            } else if (imageUnit != null) {
-                dataUnit = DataUtilities.getDataUnit(record, resourceData.mode);
+            if (imageUnit != null) {
                 if (dataUnit.isCompatible(imageUnit)) {
-                    dataToImage = dataUnit.getConverterTo(imageUnit);
+                    dataToImage = UnitConv.getConverterToUnchecked(dataUnit,
+                            imageUnit);
+                } else {
+                    dataUnit = DataUtilities.getDataUnit(record,
+                            resourceData.mode);
+                    if (dataUnit.isCompatible(imageUnit)) {
+                        dataToImage = UnitConv.getConverterToUnchecked(dataUnit,
+                                imageUnit);
+                    }
                 }
             }
         } else {
@@ -649,7 +661,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
         if (dataToImage == null && record.getNumLevels() <= 16) {
             dataToImage = new MultiplyConverter(16);
         } else if (dataToImage == null) {
-            dataToImage = UnitConverter.IDENTITY;
+            dataToImage = AbstractConverter.IDENTITY;
         }
         // precompute the converted value for every possible value in the
         // record.
@@ -657,8 +669,21 @@ public abstract class RadarImageResource<D extends IDescriptor>
         for (int i = 0; i < record.getNumLevels(); i++) {
             double image = dataToImage.convert(i);
             if (Double.isNaN(image)) {
-                double d = dataUnit.getConverterTo(params.getDisplayUnit())
-                        .convert(i);
+                double d = Double.NaN;
+                try {
+                    if (dataUnit != null) {
+                        d = dataUnit.getConverterToAny(params.getDisplayUnit())
+                                .convert(i);
+                    }
+                } catch (IncommensurableException | UnconvertibleException e) {
+                    SimpleUnitFormat fm = SimpleUnitFormat
+                            .getInstance(SimpleUnitFormat.Flavor.ASCII);
+                    statusHandler.handle(Priority.INFO,
+                            "Unable to convert unit " + fm.format(dataUnit)
+                                    + " to unit "
+                                    + fm.format(params.getDisplayUnit()),
+                            e);
+                }
                 if (Double.isNaN(d)) {
                     // This means that the data is a non-numeric value, most
                     // likely a flag of some sort

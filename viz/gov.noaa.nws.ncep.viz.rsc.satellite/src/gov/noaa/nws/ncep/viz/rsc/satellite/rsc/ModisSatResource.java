@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
@@ -11,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -31,6 +27,11 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
+import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import tec.uom.se.AbstractUnit;
+
 /**
  * Class for display of the MODIS satellite data. Also provides the capability
  * to generate a GeoTIFF image from the MODIS image.
@@ -41,7 +42,7 @@ import com.raytheon.uf.viz.core.tile.TileSetRenderable;
  * 
  *  Date         Ticket#    Engineer     Description
  *  ------------ --------   -----------  --------------------------
- *  05/17/2016   R18511     kbugenhagen  Refactored to use a common base class
+ *  May 17, 2016 R18511     kbugenhagen  Refactored to use a common base class
  * </pre>
  * 
  * @author kbugenhagen
@@ -284,7 +285,7 @@ public class ModisSatResource extends
      */
     @Override
     public Unit<?> getRecordUnit(IPersistable dataRecord) {
-        return Unit.ONE;
+        return AbstractUnit.ONE;
     }
 
     /*

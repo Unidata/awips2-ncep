@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.measure.UnitConverter;
+
 import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.dataplugin.modelsounding.ModelSoundingParameters;
@@ -30,10 +32,8 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
-
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * 
@@ -64,7 +64,6 @@ import javax.measure.unit.SI;
  * @author Chin Chen
  * @version 1.0
  */
-
 public class PfcSoundingQuery {
     private static final String PFC_TBL_NAME = "modelsounding";
 
@@ -75,8 +74,8 @@ public class PfcSoundingQuery {
     private static UnitConverter kelvinToCelsius = SI.KELVIN
             .getConverterTo(SI.CELSIUS);
 
-    private static UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     protected static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(PfcSoundingQuery.class);

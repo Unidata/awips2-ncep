@@ -19,8 +19,8 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.serialization.annotations,
  com.raytheon.uf.common.time,
- javax.measure.unit,
  org.locationtech.jts.geom,
+ javax.measure,
  javax.persistence
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.pirep
 

@@ -22,6 +22,6 @@ Import-Package: com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,
  gov.noaa.nws.ncep.viz.ui.display,
- javax.measure.unit
+ javax.measure
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncscat,
  gov.noaa.nws.ncep.viz.rsc.ncscat.rsc

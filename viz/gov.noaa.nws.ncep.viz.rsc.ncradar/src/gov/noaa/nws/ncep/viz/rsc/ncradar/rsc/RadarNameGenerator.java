@@ -8,13 +8,8 @@
 
 package gov.noaa.nws.ncep.viz.rsc.ncradar.rsc;
 
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-
 import java.util.Arrays;
 import java.util.regex.Pattern;
-
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.dataplugin.radar.RadarRecord;
@@ -34,6 +29,10 @@ import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.capabilities.BlendedCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
+
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Name generator for radar products.
@@ -283,7 +282,7 @@ public class RadarNameGenerator extends AbstractNameGenerator {
                 ImagePreferences preferences = (ImagePreferences) sr
                         .getPreferences();
                 if (preferences.getDisplayUnitLabel() != null
-                        && !preferences.getDisplayUnits().equals(Unit.ONE)) {
+                        && !preferences.getDisplayUnits().equals(AbstractUnit.ONE)) {
                     unitName = preferences.getDisplayUnitLabel();
                     // unitName = "(" + unitName + ") ";
                 }
@@ -297,8 +296,8 @@ public class RadarNameGenerator extends AbstractNameGenerator {
         if (unitName.equals("") && params != null
                 && params.getDisplayUnit() != null) {
             try {
-                if (params.getDisplayUnit() != Unit.ONE) {
-                    unitName = UnitFormat.getUCUMInstance().format(
+                if (params.getDisplayUnit() != AbstractUnit.ONE) {
+                    unitName = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).format(
                             params.getDisplayUnit());
                     // unitName = "(" + unitName + ") ";
                 } else {

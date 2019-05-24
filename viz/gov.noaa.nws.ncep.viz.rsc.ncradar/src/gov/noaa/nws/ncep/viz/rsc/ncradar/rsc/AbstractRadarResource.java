@@ -13,9 +13,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.measure.Measure;
+import javax.measure.Quantity;
 import javax.measure.quantity.Length;
-import javax.measure.unit.NonSI;
 
 import org.locationtech.jts.geom.Coordinate;
 
@@ -44,6 +43,8 @@ import com.raytheon.viz.radar.VizRadarRecord;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import systems.uom.common.USCustomary;
+import tec.uom.se.quantity.Quantities;
 
 /**
  * Top level radar resource that contains the code that is shared by all below
@@ -329,8 +330,8 @@ public abstract class AbstractRadarResource<D extends IDescriptor> extends
      * getElevation()
      */
     @Override
-    public Measure<?, Length> getElevation() {
-        return Measure.valueOf(0.0, NonSI.FOOT);
+    public Quantity<Length> getElevation() {
+        return Quantities.getQuantity(0.0, USCustomary.FOOT);
     }
 
     /*

@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
-import javax.measure.unit.NonSI;
-
 import org.eclipse.swt.graphics.RGB;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateList;
@@ -55,6 +53,7 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc.StormTrackResourceData.ModelDisplayAttrs;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import systems.uom.common.USCustomary;
 
 /**
  * Displays the Ensemble Storm Track ( ENS_CYC - MISC resource)  
@@ -523,7 +522,7 @@ implements INatlCntrsResource{
 										continue;
 									}
 									if( windSpeedClrBar.isValueInInterval( 
-											windSpdIntrvl, seldFcstHrLoc.getWindMax(), NonSI.KNOT ) ) {
+											windSpdIntrvl, seldFcstHrLoc.getWindMax(), USCustomary.KNOT ) ) {
 									}
 
 									wfDispAttrs.color = windSpeedClrBar.getRGB( windSpdIntrvl );
@@ -569,7 +568,7 @@ implements INatlCntrsResource{
 							for( StormLocation sloc : st.getTrack() ) {
 								
 								if( windSpeedClrBar.isValueInInterval( 
-										windSpdIntrvl, sloc.getWindMax(), NonSI.KNOT ) ) {
+										windSpdIntrvl, sloc.getWindMax(), USCustomary.KNOT ) ) {
 									
 									if( trackSegData.stormLocs.isEmpty() &&
 										prevLoc != null ) {

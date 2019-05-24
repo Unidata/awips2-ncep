@@ -1,11 +1,14 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.contours;
 
 import java.util.Arrays;
+import java.util.Map;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.quantity.Quantity;
-import javax.measure.unit.DerivedUnit;
-import javax.measure.unit.Unit;
+import javax.measure.Dimension;
+import javax.measure.Quantity;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * ContourUnit
@@ -18,6 +21,7 @@ import javax.measure.unit.Unit;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 11/16/2015   R13016     mkean       Initial creation.
+ * 04/15/2019   7596       lsingh      Updated units framework to JSR-363.
  * 
  * </pre>
  * 
@@ -25,16 +29,16 @@ import javax.measure.unit.Unit;
  * @version 1.0
  */
 
-public class ContourUnit<Q extends Quantity> extends DerivedUnit<Q> {
+public class ContourUnit<Q extends Quantity<Q>> extends AbstractUnit<Q> {
 
-    private final Unit<Q> stdUnit;
+    private final AbstractUnit<Q> stdUnit;
 
     private final double[] pixelValues;
 
     private final double[] stdValues;
 
     @SuppressWarnings("unchecked")
-    public ContourUnit(Unit<Q> dispUnit, double[] pixelValues,
+    public ContourUnit(AbstractUnit<Q> dispUnit, double[] pixelValues,
             double[] dispValues) {
         super();
         if (pixelValues.length != dispValues.length) {
@@ -43,10 +47,10 @@ public class ContourUnit<Q extends Quantity> extends DerivedUnit<Q> {
         }
         this.pixelValues = pixelValues;
 
-        if (!dispUnit.toStandardUnit().isLinear()) {
+        if (!dispUnit.getSystemConverter().isLinear()) {
             stdUnit = dispUnit;
         } else {
-            this.stdUnit = (Unit<Q>) dispUnit.getStandardUnit();
+            this.stdUnit = (AbstractUnit<Q>) dispUnit.getSystemUnit();
         }
 
         UnitConverter toStd = dispUnit.getConverterTo(stdUnit);
@@ -59,37 +63,22 @@ public class ContourUnit<Q extends Quantity> extends DerivedUnit<Q> {
 
     private static final long serialVersionUID = 1L;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.measure.unit.Unit#getStandardUnit()
-     */
     @SuppressWarnings("unchecked")
     @Override
-    public Unit<Q> getStandardUnit() {
-        return (Unit<Q>) stdUnit.getStandardUnit();
+    public Unit<Q> toSystemUnit() {
+        return (Unit<Q>) stdUnit.getSystemUnit();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.measure.unit.Unit#toStandardUnit()
-     */
     @Override
-    public UnitConverter toStandardUnit() {
-        if (!stdUnit.toStandardUnit().isLinear()) {
-            return stdUnit.toStandardUnit().concatenate(
+    public UnitConverter getSystemConverter() {
+        if (!stdUnit.getSystemConverter().isLinear()) {
+            return stdUnit.getSystemConverter().concatenate(
                     new ContourUnitConverter(pixelValues, stdValues));
         } else {
             return new ContourUnitConverter(pixelValues, stdValues);
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -100,11 +89,6 @@ public class ContourUnit<Q extends Quantity> extends DerivedUnit<Q> {
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj) {
@@ -125,5 +109,15 @@ public class ContourUnit<Q extends Quantity> extends DerivedUnit<Q> {
         if (!Arrays.equals(stdValues, other.stdValues))
             return false;
         return true;
+    }
+
+    @Override
+    public Map<? extends Unit<?>, Integer> getBaseUnits() {
+        return stdUnit.getBaseUnits();
+    }
+
+    @Override
+    public Dimension getDimension() {
+        return stdUnit.getDimension();
     }
 }

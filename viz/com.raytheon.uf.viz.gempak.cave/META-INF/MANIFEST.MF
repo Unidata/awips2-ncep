@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GEMPAK CAVE
 Bundle-SymbolicName: com.raytheon.uf.viz.gempak.cave;singleton:=true
-Bundle-Version: 1.18.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.gempak.common,
@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  com.raytheon.uf.common.gridcoverage,
  org.geotools,
- com.raytheon.uf.common.geospatial
+ com.raytheon.uf.common.geospatial,
+ javax.measure
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.uf.common.dataplugin,
@@ -34,6 +35,5 @@ Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.viz.ui.perspectives,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
- gov.noaa.nws.ncep.viz.gempak.util,
- javax.measure.converter
+ gov.noaa.nws.ncep.viz.gempak.util
 Export-Package: com.raytheon.uf.viz.gempak.cave

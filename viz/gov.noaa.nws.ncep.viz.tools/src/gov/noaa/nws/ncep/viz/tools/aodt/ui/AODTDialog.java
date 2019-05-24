@@ -6,8 +6,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
@@ -54,6 +53,7 @@ import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+import si.uom.SI;
 
 /**
  * AODT History file management Dialog.
@@ -380,7 +380,7 @@ public class AODTDialog extends Dialog implements ICloseCallbackDialog {
                     // otherwise will crash CAVE
 
                 } else if (tempUnitsConverter != null) {
-                    temps[indx] = (float) tempUnitsConverter.convert(tmpC);
+                    temps[indx] = tempUnitsConverter.convert(tmpC).floatValue();
                 } else {
                     temps[indx] = tmpC.floatValue();
                 }

@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -62,6 +61,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
+import si.uom.SI;
 
 /**
  * Cloud Height Processor
@@ -188,7 +188,7 @@ public class CloudHeightProcesser {
         cldHghtDlg = dlg;
         aListOfNcSoundingLayers = new ArrayList<>(0);
         // tell the dialog what units the data values will be in.
-        cldHghtDlg.setWorkingUnits(SI.METER, SI.CELSIUS, SI.METER);
+        cldHghtDlg.setWorkingUnits(SI.METRE, SI.CELSIUS, SI.METRE);
         celsiusToKelvinConverter = SI.CELSIUS.getConverterTo(SI.KELVIN);
         pixelToTemperatureConverter = new NcIRPixelToTempConverter();
         // set cldHghtRsc and satRsc
@@ -322,8 +322,8 @@ public class CloudHeightProcesser {
 
                     if ((cloudHeights != null) && cloudHeights.isEmpty()) {
                         if (aListOfNcSoundingLayers != null) {
-                            float tempInKelvin = (float) celsiusToKelvinConverter
-                                    .convert(tempC);
+                            float tempInKelvin = celsiusToKelvinConverter
+                                    .convert(tempC).floatValue();
                             if (!(aListOfNcSoundingLayers.isEmpty())) {
                                 cloudHeights = moistAdiabaticMethod(
                                         aListOfNcSoundingLayers, new Amount(
@@ -336,8 +336,8 @@ public class CloudHeightProcesser {
                     }
                 } else {
                     if (compMthd.compareTo(ComputationalMethod.MOIST_ADIABATIC) == 0) {
-                        float tempInKelvin = (float) celsiusToKelvinConverter
-                                .convert(tempC);
+                        float tempInKelvin = celsiusToKelvinConverter
+                                .convert(tempC).floatValue();
                         cloudHeights = moistAdiabaticMethod(
                                 aListOfNcSoundingLayers, new Amount(
                                         tempInKelvin, SI.KELVIN));
@@ -352,8 +352,8 @@ public class CloudHeightProcesser {
 
                 if (((cloudHeights != null) && cloudHeights.isEmpty())) {
                     if (aListOfNcSoundingLayers != null) {
-                        float tempInKelvin = (float) celsiusToKelvinConverter
-                                .convert(tempC);
+                        float tempInKelvin = celsiusToKelvinConverter
+                                .convert(tempC).floatValue();
 
                         /*
                          * If the moist adiabatic method is unable to return a
@@ -380,7 +380,7 @@ public class CloudHeightProcesser {
 
             if (tempUnitsConverter != null && tempC != null) {
                 // Convert the temperature into the units selected by the user
-                tempC = tempUnitsConverter.convert(tempC);
+                tempC = tempUnitsConverter.convert(tempC).doubleValue();
             }
 
             // Update the GUI.
@@ -570,7 +570,7 @@ public class CloudHeightProcesser {
                                             PCLibrary.VerticalCoordinate.PRESSURE);
                             newCldHgtData = new CloudHeightData(
                                     interpolatedSounding.getGeoHeight()
-                                            .getValueAs(SI.METER).doubleValue(),
+                                            .getValueAs(SI.METRE).doubleValue(),
                                     interpolatedSounding.getPressure()
                                             .getValueAs(NcUnits.MILLIBAR)
                                             .doubleValue());
@@ -578,7 +578,7 @@ public class CloudHeightProcesser {
                             NcSoundingLayer2 tempSounding = nearestSoundingLevels
                                     .get(0);
                             newCldHgtData = new CloudHeightData(tempSounding
-                                    .getGeoHeight().getValueAs(SI.METER)
+                                    .getGeoHeight().getValueAs(SI.METRE)
                                     .doubleValue(), tempSounding.getPressure()
                                     .getValueAs(NcUnits.MILLIBAR).doubleValue());
                         }

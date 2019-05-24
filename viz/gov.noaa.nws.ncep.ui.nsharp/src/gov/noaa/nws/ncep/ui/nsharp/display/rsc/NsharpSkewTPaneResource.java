@@ -7,9 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
@@ -69,6 +67,8 @@ import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  *
@@ -1119,7 +1119,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         curStrFormat1 = "%s(%s) %4.1f/%4.1f%cF(%4.1f/%4.1f%cC)\n";
         temp = NsharpLibBasics.i_temp(soundingLys, (float) p_mb);
         UnitConverter celciusToFahrenheit = SI.CELSIUS
-                .getConverterTo(NonSI.FAHRENHEIT);
+                .getConverterTo(USCustomary.FAHRENHEIT);
         double tempF = celciusToFahrenheit.convert(temp);
         double dp = NsharpLibBasics.i_dwpt(soundingLys, (float) p_mb);
         double dpF = celciusToFahrenheit.convert(dp);

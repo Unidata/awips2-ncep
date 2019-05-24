@@ -19,14 +19,17 @@
  ******************************************************************************************/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 
 import com.raytheon.uf.common.dataplugin.grid.GridRecord;
 import com.raytheon.uf.common.style.level.Level;
 import com.raytheon.uf.common.style.level.SingleLevel;
+import com.raytheon.uf.common.units.UnitConv;
+
+import si.uom.NonSI;
+import tec.uom.se.AbstractConverter;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * Grid Level Translator
@@ -81,9 +84,10 @@ public class GridLevelTranslator {
     public static SingleLevel construct(GridRecord record) {
         Unit<?> levelUnits = record.getLevel().getMasterLevel().getUnit();
 
-        UnitConverter levelConverter = UnitConverter.IDENTITY;
-        if (levelUnits.isCompatible(SI.MILLI(NonSI.BAR))) {
-            levelConverter = levelUnits.getConverterTo(SI.MILLI(NonSI.BAR));
+        UnitConverter levelConverter = AbstractConverter.IDENTITY;
+        if (levelUnits.isCompatible(MetricPrefix.MILLI(NonSI.BAR))) {
+            levelConverter = UnitConv.getConverterToUnchecked(levelUnits,
+                    MetricPrefix.MILLI(NonSI.BAR));
         }
 
         float convertedLevel = (float) levelConverter.convert(record

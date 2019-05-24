@@ -2,7 +2,7 @@ package gov.noaa.nws.ncep.viz.ui.display;
 
 
 
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;

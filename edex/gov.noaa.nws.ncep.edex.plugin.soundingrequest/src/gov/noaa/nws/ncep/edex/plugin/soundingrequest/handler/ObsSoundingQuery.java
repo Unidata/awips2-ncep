@@ -7,9 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.locationtech.jts.geom.Coordinate;
 
@@ -46,6 +44,8 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * 
@@ -87,15 +87,15 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
  *  07/19/2016   5736    bsteffen   Handle prSigW data.
  *  09/29/2016   RM15953 R.Reynolds  Added capability for wind interpolation
  *  03/05/2017   18784   wkwock     Handle not integer stationID.
+ *  04/15/2019   7596    lsingh     Updated units framework to JSR-363.
  *  
  *  @author Chin Chen
- * @version 1.0
  */
 
 public class ObsSoundingQuery {
 
-    private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static final UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     private static final UnitConverter kelvinToCelsius = SI.KELVIN
             .getConverterTo(SI.CELSIUS);

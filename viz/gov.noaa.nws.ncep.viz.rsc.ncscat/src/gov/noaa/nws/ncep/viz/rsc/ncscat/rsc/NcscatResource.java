@@ -6,8 +6,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
 
 import org.eclipse.swt.graphics.RGB;
 import org.locationtech.jts.geom.Coordinate;
@@ -48,6 +47,7 @@ import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import systems.uom.common.USCustomary;
 
 /**
  * NcscatResource - Class for display of all types of satellite
@@ -110,7 +110,7 @@ public class NcscatResource extends
 
     private NcscatResourceData ncscatResourceData;
 
-    private Unit<?> windSpeedUnits = NonSI.KNOT;
+    private Unit<?> windSpeedUnits = USCustomary.KNOT;
 
     // Two color bars are used in this resource; one for normal points, and an
     // optional one to be applied only to certain points (e.g, marked as

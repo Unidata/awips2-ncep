@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GEMPAK CAVE
 Bundle-SymbolicName: com.raytheon.uf.viz.gempak.cave;singleton:=true
-Bundle-Version: 1.18.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.gempak.common,
@@ -10,8 +10,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  com.raytheon.uf.common.gridcoverage,
  org.geotools,
- com.raytheon.uf.common.geospatial
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+ com.raytheon.uf.common.geospatial,
+ javax.xml.bind
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.grid.dataquery,

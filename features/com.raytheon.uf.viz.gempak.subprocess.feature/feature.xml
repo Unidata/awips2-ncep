@@ -319,13 +319,13 @@
          id="org.hibernate"
          download-size="0"
          install-size="0"
-         version="4.2.15"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.javassist"
          download-size="0"
          install-size="0"
-         version="3.18.1.GA"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.digester"

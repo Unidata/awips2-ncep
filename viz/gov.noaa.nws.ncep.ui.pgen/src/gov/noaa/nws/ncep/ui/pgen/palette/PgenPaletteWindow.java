@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow
- * 
+ *
  * 25 November 2008
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -106,59 +106,69 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * responsible for managing many listeners as well as loading/unloading the
  * appropriate modal tools required to create and modify PGEN drawable objects
  * in the resource.
- * 
+ *
  * The Display of the View consists of many buttons representing a drawing
  * Palette. They allow users to pick specific objects, modify their attributes,
  * and create various products based on the geographic objects created.
- * 
+ *
  * PGEN can be run in one of two modes. SINGLE mode mimics the behavior in
  * legacy NAWIPS application NMAP, where a single PGEN ResourceData is displayed
  * on every editor. Any change made to the data objects in any one map editor
  * are reflected in all the others as well. Optionally, PGEN can be run in
  * MULTIPLE mode which allows any map editor to contain its own unique instance
  * of a PGEN resource.
- * 
+ *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ -----------------------------------------------------------------
- * 01/10        ?           S. Gilbert  Initial Creation.
- * 08/13        TTR696/774  J. Wu       Reset title/Close product manage dialog.
- * 11/13        #1081       B. Yin      Get selected DE to change front/line type.
- * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
- * 06/15        R8354       J. Wu       Deactivate Pgen Context when palette is closed, 
- *                                      hidden, or deactivated.
- * 06/15        R8199       S. Russell  Updated createPaletteSection() to suppress
- *                                      unwanted button creation. Converted literals
- *                                      from the legacy into constants there.
- * 09/04/2015   RM 11495    S. Russell  Update a loop in createPaletteSection()
- *                                      to fix a merge conflict
- * 
- * 11/09/2015   R9399       J. Lopez    Added the ability to specify the number
- *                                      of buttons per row
- * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
- * 05/10/2016   R13560      S. Russell  Updated class declaration to implement
- *                                      ISaveablePart2.  Added the Interface
- *                                      methods for ISaveablePart and 
- *                                      ISaveablePart2 *
- * 05/16/2016   R18388      J. Wu       Show all classes for MULTI-SELECT.
- * 05/17/2016   5641        njensen     Don't activate context outside of NCP 
- * 06/02/2016   R19326      S. Russell  updated method isDirty()
- * 06/13/2016   5640        bsteffen    Delay opening of remind dialog during close.
- * 06/15/2016   R19326      S. Russell  updated method isDirty()
- * 06/29/2016   R18611      S. Russell  updated method isDirty() to avoid a
- *                                      possible null pointer situation
- * 06/30/2016   R17964      J. Wu       Update filter after setting category.
- * 08/05/2016   R17973      B. Yin      Added setCurrentAction method.
- * 07/28/2016   R17954      B. Yin      handle CANCEL status of the SAVE dialog.
- * 11/30/2016   R17954      Bugenhagen  Changed promptToSaveOnClose to only prompt
- *                                      if editor has any elements drawn.
- * 12/27/2016   R27572      B. Yin      Fixed an undo/redo exception.
- * 
+ *
+ * Date          Ticket#     Engineer    Description
+ * ------------- ----------- ----------- ---------------------------------------
+ * 01/10         ?           S. Gilbert  Initial Creation.
+ * 08/13         TTR696/774  J. Wu       Reset title/Close product manage
+ *                                       dialog.
+ * 11/13         1081        B. Yin      Get selected DE to change front/line
+ *                                       type.
+ * 04/15         7805        J. Wu       Highlight only one PGEN action mode at
+ *                                       a time.
+ * 06/15         8354        J. Wu       Deactivate Pgen Context when palette is
+ *                                       closed, hidden, or deactivated.
+ * 06/15         8199        S. Russell  Updated createPaletteSection() to
+ *                                       suppress unwanted button creation.
+ *                                       Converted literals from the legacy into
+ *                                       constants there.
+ * Sep 04, 2015  11495       S. Russell  Update a loop in createPaletteSection()
+ *                                       to fix a merge conflict
+ * Nov 09, 2015  9399        J. Lopez    Added the ability to specify the number
+ *                                       of buttons per row
+ * Dec 21, 2015  12964       J. Lopez    Layers remember the last selected class
+ * May 10, 2016  13560       S. Russell  Updated class declaration to implement
+ *                                       ISaveablePart2.  Added the Interface
+ *                                       methods for ISaveablePart and
+ *                                       ISaveablePart2 *
+ * May 16, 2016  18388       J. Wu       Show all classes for MULTI-SELECT.
+ * May 17, 2016  5641        njensen     Don't activate context outside of NCP
+ * Jun 02, 2016  19326       S. Russell  updated method isDirty()
+ * Jun 13, 2016  5640        bsteffen    Delay opening of remind dialog during
+ *                                       close.
+ * Jun 15, 2016  19326       S. Russell  updated method isDirty()
+ * Jun 29, 2016  18611       S. Russell  updated method isDirty() to avoid a
+ *                                       possible null pointer situation
+ * Jun 30, 2016  17964       J. Wu       Update filter after setting category.
+ * Aug 05, 2016  17973       B. Yin      Added setCurrentAction method.
+ * Jul 28, 2016  17954       B. Yin      handle CANCEL status of the SAVE
+ *                                       dialog.
+ * Nov 30, 2016  17954       Bugenhagen  Changed promptToSaveOnClose to only
+ *                                       prompt if editor has any elements
+ *                                       drawn.
+ * Dec 27, 2016  27572       B. Yin      Fixed an undo/redo exception.
+ * Jun 24, 2019  65204       tjensen     Moved setEditable call to on button
+ *                                       clicks instead of on focus
+ *
  * </pre>
- * 
+ *
  * @author sgilbert
- * 
+ *
  */
 public class PgenPaletteWindow extends ViewPart
         implements SelectionListener, DisposeListener, CommandStackListener,
@@ -170,8 +180,8 @@ public class PgenPaletteWindow extends ViewPart
     /*-
      * 1. Constants should be put in one place, probably in Utils.java.
      *
-     * 2. The  number of column is a configurable constant. User should be 
-     * able to change it. 
+     * 2. The  number of column is a configurable constant. User should be
+     * able to change it.
      *
      * TODO: We need to find a way to deal with these constants.
      */
@@ -269,7 +279,7 @@ public class PgenPaletteWindow extends ViewPart
 
     /**
      * Constructor
-     * 
+     *
      */
     public PgenPaletteWindow() {
 
@@ -280,6 +290,7 @@ public class PgenPaletteWindow extends ViewPart
     /**
      * Invoked by the workbench to initialize this View.
      */
+    @Override
     public void init(IViewSite site) {
 
         try {
@@ -318,16 +329,15 @@ public class PgenPaletteWindow extends ViewPart
         classNames = new ArrayList<>();
         objectNames = new ArrayList<>();
 
-        for (int i = 0; i < paletteElements.length; i++) {
+        for (IConfigurationElement paletteElement : paletteElements) {
 
             // Add item to hash map
-            String itemName = paletteElements[i]
-                    .getAttribute(PgenConstant.NAME);
-            itemMap.put(itemName, paletteElements[i]);
+            String itemName = paletteElement.getAttribute(PgenConstant.NAME);
+            itemMap.put(itemName, paletteElement);
 
             // create a list of item names that have been registered with each
             // section of the palette
-            String type = paletteElements[i].getName();
+            String type = paletteElement.getName();
             if (type.equals(CONTROL_SECTION)) {
                 controlNames.add(itemName);
             } else if (type.equals(ACTION_SECTION)) {
@@ -354,6 +364,7 @@ public class PgenPaletteWindow extends ViewPart
     /**
      * Disposes resource. invoked by the workbench
      */
+    @Override
     public void dispose() {
 
         super.dispose();
@@ -407,6 +418,7 @@ public class PgenPaletteWindow extends ViewPart
         // Add listener to scrolled composite to
         // change palette size when scroll size changes
         scroll.addControlListener(new ControlAdapter() {
+            @Override
             public void controlResized(ControlEvent e) {
                 paletteResize();
             }
@@ -437,7 +449,7 @@ public class PgenPaletteWindow extends ViewPart
 
     /**
      * create section of Palette where Objects will be displayed later
-     * 
+     *
      * @param parent
      *            parent widget
      */
@@ -466,7 +478,7 @@ public class PgenPaletteWindow extends ViewPart
     /**
      * Creates a section of the palette window and adds buttons for each item
      * that was registered with the specified section
-     * 
+     *
      * @param parent
      *            - parent Widget
      * @param section
@@ -550,8 +562,9 @@ public class PgenPaletteWindow extends ViewPart
             Button item = new Button(groupOutline, SWT.PUSH);
 
             // set label of button
-            if (element.getAttribute(PgenConstant.LABEL) != null)
+            if (element.getAttribute(PgenConstant.LABEL) != null) {
                 item.setToolTipText(element.getAttribute(PgenConstant.LABEL));
+            }
 
             // create an icon image for the button, if an icon was specified in
             // the registered item.
@@ -627,7 +640,7 @@ public class PgenPaletteWindow extends ViewPart
     /**
      * Resets the Pgen Palette to display only the buttons specified in the
      * buttonNames list
-     * 
+     *
      * @param buttonNames
      *            list of item Names that should be displayed on the palette. If
      *            null, display all possible buttons.
@@ -639,8 +652,8 @@ public class PgenPaletteWindow extends ViewPart
 
         // Dispose of all widgets currently in the palette
         Control[] kids = paletteComp.getChildren();
-        for (int j = 0; j < kids.length; j++) {
-            kids[j].dispose();
+        for (Control kid : kids) {
+            kid.dispose();
         }
 
         // create each section of the palette
@@ -679,6 +692,7 @@ public class PgenPaletteWindow extends ViewPart
     /**
      * Invoked when SWT item is selected
      */
+    @Override
     public void widgetSelected(SelectionEvent se) {
 
         IEditorPart editor = VizWorkbenchManager.getInstance()
@@ -697,6 +711,23 @@ public class PgenPaletteWindow extends ViewPart
 
         if (editor instanceof AbstractEditor) {
 
+            // Ensure Pgen Resource is editable
+            AbstractEditor abEditor = (AbstractEditor) editor;
+            IRenderableDisplay display = abEditor.getActiveDisplayPane()
+                    .getRenderableDisplay();
+            ResourceList rscList = display.getDescriptor().getResourceList();
+
+            for (ResourcePair rp : rscList) {
+
+                if (rp != null && rp.getResource() instanceof PgenResource) {
+                    ((PgenResource) (rp.getResource())).setEditable(true);
+                    if (!rp.getProperties().isVisible()) {
+                        rp.getProperties().setVisible(true);
+                    }
+                }
+            }
+            abEditor.refresh();
+
             // get the endpoint information associated with this button.
             Button btn = (Button) se.getSource();
             IConfigurationElement elem = itemMap.get(btn.getData());
@@ -709,7 +740,7 @@ public class PgenPaletteWindow extends ViewPart
              * When enter from "non-Multi_Select" to "Multi-Select", save off
              * the buttons in current palette and set palette to show all PGEN
              * classes.
-             * 
+             *
              * When exit from Multi_Select to "non-Multi_Select", reset to show
              * classes defined in the current activity - what saved off in
              * "prevButtonList".
@@ -816,13 +847,14 @@ public class PgenPaletteWindow extends ViewPart
                     exeCommand(elem);
 
                     /*
-                     * Sets current action. 
-                     * Don't set current action to undo/redo. Undo/redo button never 
-                     * gets highlighted. 
+                     * Sets current action. Don't set current action to
+                     * undo/redo. Undo/redo button never gets highlighted.
                      */
-                    if (point.equals(ACTION_SECTION) 
-                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.UNDO)
-                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.REDO)) {
+                    if (point.equals(ACTION_SECTION)
+                            && !elem.getAttribute(PgenConstant.NAME)
+                                    .equalsIgnoreCase(PgenConstant.UNDO)
+                            && !elem.getAttribute(PgenConstant.NAME)
+                                    .equalsIgnoreCase(PgenConstant.REDO)) {
                         currentAction = elem.getAttribute(PgenConstant.NAME);
                     }
                 }
@@ -849,16 +881,18 @@ public class PgenPaletteWindow extends ViewPart
         }
     }
 
+    @Override
     public void widgetDefaultSelected(SelectionEvent se) {
 
     }
 
     /**
      * invoked when widget is disposed
-     * 
+     *
      * @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt
      *      .events.DisposeEvent)
      */
+    @Override
     public void widgetDisposed(DisposeEvent event) {
 
         // If a button is being disposed, remove it from the map of currently
@@ -877,20 +911,23 @@ public class PgenPaletteWindow extends ViewPart
      * object is registered with the PgenCommandManager. Disables Undo and/or
      * Redo button when the stack is empty. Enables the button otherwise.
      */
+    @Override
     public void stacksUpdated(int undoSize, int redoSize) {
 
         if (undoButton != null) {
-            if (undoSize <= 0)
+            if (undoSize <= 0) {
                 undoButton.setEnabled(false);
-            else
+            } else {
                 undoButton.setEnabled(true);
+            }
         }
 
         if (redoButton != null) {
-            if (redoSize <= 0)
+            if (redoSize <= 0) {
                 redoButton.setEnabled(false);
-            else
+            } else {
                 redoButton.setEnabled(true);
+            }
         }
 
     }
@@ -935,26 +972,6 @@ public class PgenPaletteWindow extends ViewPart
             activatePGENContext();
         } else if (part instanceof PgenPaletteWindow) {
             activatePGENContext();
-
-            // found NCMapEditor
-            AbstractEditor editor = PgenUtil.getActiveEditor();
-            if (editor != null) {
-                IRenderableDisplay display = editor.getActiveDisplayPane()
-                        .getRenderableDisplay();
-                ResourceList rscList = display.getDescriptor()
-                        .getResourceList();
-
-                for (ResourcePair rp : rscList) {
-
-                    if (rp != null
-                            && rp.getResource() instanceof PgenResource) {
-                        ((PgenResource) (rp.getResource())).setEditable(true);
-                        if (!rp.getProperties().isVisible())
-                            rp.getProperties().setVisible(true);
-                    }
-                }
-                editor.refresh();
-            }
         }
 
     }
@@ -963,7 +980,7 @@ public class PgenPaletteWindow extends ViewPart
      * Workbench part was brought on top. If it was an instance of NCMapEditor
      * and there is an instance of PgenResource for that editor, register it
      * with the PgenSession singleton.
-     * 
+     *
      */
     @Override
     public void partBroughtToTop(IWorkbenchPartReference partRef) {
@@ -992,8 +1009,9 @@ public class PgenPaletteWindow extends ViewPart
             }
 
             // Open Product or Layer management dialog if necessary
-            if (rsc != null)
+            if (rsc != null) {
                 VizApp.runAsync(new ProductDialogStarter(rsc));
+            }
         }
 
     }
@@ -1155,7 +1173,7 @@ public class PgenPaletteWindow extends ViewPart
     }
 
     /**
-     * 
+     *
      * @return the currently selected category on the palette
      */
     public String getCurrentCategory() {
@@ -1170,10 +1188,9 @@ public class PgenPaletteWindow extends ViewPart
         /*
          * If icon already loaded, use it
          */
-        if (iconMap.containsKey(iconLocation))
+        if (iconMap.containsKey(iconLocation)) {
             return iconMap.get(iconLocation);
-
-        else {
+        } else {
             /*
              * load icon image from location specified.
              */
@@ -1184,8 +1201,9 @@ public class PgenPaletteWindow extends ViewPart
                 // add it to the available icon map
                 iconMap.put(iconLocation, icon);
                 return icon;
-            } else
+            } else {
                 return null;
+            }
         }
     }
 
@@ -1228,10 +1246,11 @@ public class PgenPaletteWindow extends ViewPart
 
             for (int y = 0; y < id.height; y++) {
                 for (int x = 0; x < id.width; x++) {
-                    if (id.getPixel(x, y) == 0)
+                    if (id.getPixel(x, y) == 0) {
                         id.setPixel(x, y, fgcolor);
-                    else
+                    } else {
                         id.setPixel(x, y, bgcolor);
+                    }
                 }
             }
 
@@ -1249,11 +1268,13 @@ public class PgenPaletteWindow extends ViewPart
     public void resetIcon(String name) {
 
         // if name not recognized, do nothing
-        if (!itemMap.containsKey(name))
+        if (!itemMap.containsKey(name)) {
             return;
+        }
         // if button not currently displayed on palette, do nothing
-        if (!buttonMap.containsKey(name))
+        if (!buttonMap.containsKey(name)) {
             return;
+        }
 
         IConfigurationElement elem = itemMap.get(name);
 
@@ -1273,11 +1294,11 @@ public class PgenPaletteWindow extends ViewPart
         /*
          * This code taken directly from
          * com.raytheon.viz.ui.glmap.actions.ClearAction
-         * 
+         *
          * Finds the AbstractHandler currently registered with this commandId
          */
         IEditorPart part = VizWorkbenchManager.getInstance().getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite()
+        ICommandService service = part.getSite()
                 .getService(ICommandService.class);
         Command cmd = service.getCommand(commandId);
 
@@ -1317,7 +1338,7 @@ public class PgenPaletteWindow extends ViewPart
     }
 
     /**
-     * 
+     *
      * @return A list of names for the available buttons in the Control Section
      *         of the Palette
      */
@@ -1326,7 +1347,7 @@ public class PgenPaletteWindow extends ViewPart
     }
 
     /**
-     * 
+     *
      * @return A list of names for the available buttons in the Action Section
      *         of the Palette
      */
@@ -1335,7 +1356,7 @@ public class PgenPaletteWindow extends ViewPart
     }
 
     /**
-     * 
+     *
      * @return A list of names for the available buttons in the Class Section of
      *         the Palette
      */
@@ -1344,7 +1365,7 @@ public class PgenPaletteWindow extends ViewPart
     }
 
     /**
-     * 
+     *
      * @return A list of names for the available buttons in the Object Section
      *         of the Palette
      */
@@ -1362,8 +1383,9 @@ public class PgenPaletteWindow extends ViewPart
         ArrayList<String> objs = new ArrayList<>();
         for (String name : getObjectNames()) {
             if (itemMap.get(name).getAttribute(PgenConstant.CLASSNAME)
-                    .equals(className))
+                    .equals(className)) {
                 objs.add(name);
+            }
         }
         return objs;
     }
@@ -1391,10 +1413,11 @@ public class PgenPaletteWindow extends ViewPart
 
         for (int ii = 0; ii < id.height; ii++) {
             for (int jj = 0; jj < id.width; jj++) {
-                if (id.getPixel(jj, ii) == 0)
+                if (id.getPixel(jj, ii) == 0) {
                     id.setPixel(jj, ii, fg);
-                else
+                } else {
                     id.setPixel(jj, ii, bg);
+                }
             }
         }
 
@@ -1414,7 +1437,7 @@ public class PgenPaletteWindow extends ViewPart
         IEditorPart editor = EditorUtil.getActiveEditor();
         if (pgenContextActivation != null
                 && PgenUtil.isNatlCntrsEditor(editor)) {
-            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+            IContextService ctxSvc = PlatformUI.getWorkbench()
                     .getService(IContextService.class);
             ctxSvc.deactivateContext(pgenContextActivation);
             pgenContextActivation = null;
@@ -1429,7 +1452,7 @@ public class PgenPaletteWindow extends ViewPart
         IEditorPart editor = EditorUtil.getActiveEditor();
         if (pgenContextActivation == null
                 && PgenUtil.isNatlCntrsEditor(editor)) {
-            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+            IContextService ctxSvc = PlatformUI.getWorkbench()
                     .getService(IContextService.class);
             pgenContextActivation = ctxSvc
                     .activateContext("gov.noaa.nws.ncep.ui.pgen.pgenContext");
@@ -1492,8 +1515,8 @@ public class PgenPaletteWindow extends ViewPart
     private void populateObjectSection(String elem) {
         // remove currently loaded buttons from the Object section
         org.eclipse.swt.widgets.Control[] kids = objectBox.getChildren();
-        for (int j = 0; j < kids.length; j++) {
-            kids[j].dispose();
+        for (Control kid : kids) {
+            kid.dispose();
         }
 
         // reset the previous category's button icon
@@ -1518,15 +1541,17 @@ public class PgenPaletteWindow extends ViewPart
             // determine if button should be added to palette
 
             if (buttonList != null) {
-                if (!buttonList.contains(bname))
+                if (!buttonList.contains(bname)) {
                     continue;
+                }
             }
 
             Button item = new Button(objectBox, SWT.PUSH);
 
             // Add button label
-            if (element.getAttribute(PgenConstant.ICON) != null)
+            if (element.getAttribute(PgenConstant.ICON) != null) {
                 item.setToolTipText(element.getAttribute(PgenConstant.LABEL));
+            }
 
             // create an icon image for the button, if an icon was
             // specified in the registered item.
@@ -1594,13 +1619,14 @@ public class PgenPaletteWindow extends ViewPart
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * After the user has pressed "Yes" to save their PGen work launch a
      * StoreActivityDialog for them to fill out the things in order to save it.
-     * 
+     *
      * @see org.eclipse.ui.ISaveablePart#doSave(org.eclipse.core.runtime.
      * IProgressMonitor )
      */
+    @Override
     public void doSave(IProgressMonitor monitor) {
 
         StoreActivityDialog storeDialog = null;
@@ -1622,11 +1648,12 @@ public class PgenPaletteWindow extends ViewPart
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * Is there unsaved PGen work?
-     * 
+     *
      * @see org.eclipse.ui.ISaveablePart#isDirty()
      */
+    @Override
     public boolean isDirty() {
         boolean needsSaving = false;
         PgenSession pgenSession = PgenSession.getInstance();
@@ -1650,12 +1677,13 @@ public class PgenPaletteWindow extends ViewPart
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * Launch a custom dialog box to ask the user if they want to save their
      * PGen work.
-     * 
+     *
      * @see org.eclipse.ui.ISaveablePart2#promptToSaveOnClose()
      */
+    @Override
     public int promptToSaveOnClose() {
 
         int returnCode = 0;
@@ -1712,38 +1740,26 @@ public class PgenPaletteWindow extends ViewPart
         return returnCode;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.ui.ISaveablePart#isSaveAsAllowed()
-     */
+    @Override
     public boolean isSaveAsAllowed() {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.ui.ISaveablePart#isSaveOnCloseNeeded()
-     */
+    @Override
     public boolean isSaveOnCloseNeeded() {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.ui.ISaveablePart#doSaveAs()
-     */
+    @Override
     public void doSaveAs() {
     }
 
     /*
      * Returns a name list of current control/action/object buttons in the
      * palette, and ALL class buttons.
-     * 
+     *
      * @param btnList The list of current buttons in the palette.
-     * 
+     *
      * @return The name list of current control/action/object buttons in the
      * palette, and ALL class button names.
      */

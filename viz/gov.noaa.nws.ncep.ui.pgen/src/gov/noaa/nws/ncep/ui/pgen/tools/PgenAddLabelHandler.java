@@ -41,10 +41,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Mouse handler to add labels when drawing labeled lines.

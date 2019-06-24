@@ -9,7 +9,7 @@ package gov.noaa.nws.ncep.ui.pgen.display;
 
 import java.awt.Color;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Interface used to get specific attributes of a PGEN text drawable object

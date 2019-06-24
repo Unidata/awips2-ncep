@@ -21,5 +21,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.ui.display
 Import-Package: com.raytheon.uf.viz.core.rsc.legend,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,
- javax.measure.unit
-
+ javax.measure

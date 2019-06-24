@@ -9,7 +9,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.quantity.TemperatureTendency;
 
@@ -20,7 +19,8 @@ import gov.noaa.nws.ncep.edex.common.metparameters.quantity.TemperatureTendency;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class TempTndncyFromShortWaveRad extends AbstractMetParameter implements TemperatureTendency, ISerializableObject{
+public class TempTndncyFromShortWaveRad extends AbstractMetParameter<TemperatureTendency> 
+        implements ISerializableObject{
 	/**
 	 * 
 	 */
@@ -28,6 +28,6 @@ public class TempTndncyFromShortWaveRad extends AbstractMetParameter implements 
 	private static final long serialVersionUID = -7527533400470345687L;
 
 	public TempTndncyFromShortWaveRad() throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
+		 super(TemperatureTendency.UNIT);
 	}
 }

@@ -1,5 +1,11 @@
 package gov.noaa.nws.ncep.edex.common.sounding;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+
 import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 import gov.noaa.nws.ncep.edex.common.metparameters.DewPointTemp;
@@ -9,15 +15,9 @@ import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirection;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * 
@@ -231,11 +231,11 @@ public class NcSoundingTools {
 
                     WindSpeed windSpeed = new WindSpeed();
                     // HDF5 data in unit of Knots, no conversion needed
-                    windSpeed.setValue(level.getWindSpeed(), NonSI.KNOT);
+                    windSpeed.setValue(level.getWindSpeed(), USCustomary.KNOT);
                     soundingLy2.setWindSpeed(windSpeed);
 
                     HeightAboveSeaLevel height = new HeightAboveSeaLevel();
-                    height.setValue(level.getGeoHeight(), SI.METER);
+                    height.setValue(level.getGeoHeight(), SI.METRE);
                     soundingLy2.setGeoHeight(height);
 
                     Omega omega = new Omega();

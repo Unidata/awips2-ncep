@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter CBAS
  * 
@@ -27,14 +29,12 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CloudLayerBase extends AbstractMetParameter implements Length {
+public class CloudLayerBase
+        extends AbstractMetParameter<Length> {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1882201043516341917L;
 
     public CloudLayerBase() {
-        super(UNIT);
+        super(SI.METRE);
     }
 }

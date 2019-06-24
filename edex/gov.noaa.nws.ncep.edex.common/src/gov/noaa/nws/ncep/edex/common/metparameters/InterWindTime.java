@@ -4,14 +4,15 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
-import javax.measure.quantity.Duration;
+import javax.measure.quantity.Time;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to the parameter ITIM
@@ -20,15 +21,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class InterWindTime
+        extends AbstractMetParameter<Time>
+        implements ISerializableObject {
 
-public class InterWindTime extends AbstractMetParameter implements Duration,
-ISerializableObject{
-                /**
-	 * 
-	 */
-	private static final long serialVersionUID = -774409538192328195L;
+    private static final long serialVersionUID = -774409538192328195L;
 
-				public InterWindTime () {
-                	super ( UNIT );
-                }
+    public InterWindTime() {
+        super(SI.SECOND);
+    }
 }

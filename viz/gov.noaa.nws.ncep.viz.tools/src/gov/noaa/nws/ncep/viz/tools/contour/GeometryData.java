@@ -8,8 +8,8 @@
 
 package gov.noaa.nws.ncep.viz.tools.contour;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Holds the area and centroid of a polygon.  Implements the Comparable interface so

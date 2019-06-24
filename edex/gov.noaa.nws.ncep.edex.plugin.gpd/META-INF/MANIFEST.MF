@@ -9,7 +9,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.serialization.comm,
  gov.noaa.nws.ncep.edex.common.sounding,
- javax.measure.unit,
+ javax.measure,
  org.apache.commons.logging,
  javax.xml.bind
 Require-Bundle: com.raytheon.edex.common,

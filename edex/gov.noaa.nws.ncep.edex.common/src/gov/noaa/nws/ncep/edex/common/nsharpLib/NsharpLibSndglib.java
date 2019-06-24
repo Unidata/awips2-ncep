@@ -24,8 +24,8 @@ package gov.noaa.nws.ncep.edex.common.nsharpLib;
  * 
  */
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
+import si.uom.SI;
 
 public class NsharpLibSndglib {
 

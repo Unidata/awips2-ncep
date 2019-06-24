@@ -20,7 +20,7 @@ import com.raytheon.uf.viz.core.datastructure.LoopProperties;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.IInputHandler.InputPriority;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Bundle for Natl Cntrs Resources

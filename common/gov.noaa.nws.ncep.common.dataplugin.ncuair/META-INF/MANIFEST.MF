@@ -18,5 +18,5 @@ Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncuair,
  gov.noaa.nws.ncep.common.dataplugin.ncuair.dao
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.pointdata.spatial,
- com.vividsolutions.jts.geom,
+ org.locationtech.jts.geom,
  org.apache.commons.logging

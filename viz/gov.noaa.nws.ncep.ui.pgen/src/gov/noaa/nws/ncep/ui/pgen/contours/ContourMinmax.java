@@ -21,7 +21,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 import java.awt.Color;
 import java.util.Iterator;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class for a ContourMinmax element - simple DECollection with one Symbol, and

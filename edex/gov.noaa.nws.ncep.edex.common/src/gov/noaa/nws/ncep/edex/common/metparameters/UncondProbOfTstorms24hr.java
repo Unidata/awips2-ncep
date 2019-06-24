@@ -11,7 +11,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the parameter TS24
@@ -20,8 +21,8 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class UncondProbOfTstorms24hr extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+ public class UncondProbOfTstorms24hr extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
 	 /**
 	 * 
@@ -29,7 +30,7 @@ import com.raytheon.uf.common.units.UnitAdapter;
 	private static final long serialVersionUID = -941540151994722478L;
 
 	public UncondProbOfTstorms24hr() throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
+		 super(AbstractUnit.ONE);
 	}
 	 
  }

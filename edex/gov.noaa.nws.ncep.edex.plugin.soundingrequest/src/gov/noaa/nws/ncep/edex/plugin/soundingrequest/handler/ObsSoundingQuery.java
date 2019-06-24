@@ -1,22 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
 
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairMaxWind;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairObsLevels;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.dao.NcUairToRecord;
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.SndQueryKeyType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,9 +7,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
+
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.edex.plugin.bufrua.dao.BufrUADao;
 import com.raytheon.uf.common.dataplugin.bufrua.UAObs;
@@ -44,7 +27,25 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 import com.raytheon.uf.edex.pointdata.PointDataQuery;
-import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairMaxWind;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairObsLevels;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.dao.NcUairToRecord;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.SndQueryKeyType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * 
@@ -86,15 +87,15 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  07/19/2016   5736    bsteffen   Handle prSigW data.
  *  09/29/2016   RM15953 R.Reynolds  Added capability for wind interpolation
  *  03/05/2017   18784   wkwock     Handle not integer stationID.
+ *  04/15/2019   7596    lsingh     Updated units framework to JSR-363.
  *  
  *  @author Chin Chen
- * @version 1.0
  */
 
 public class ObsSoundingQuery {
 
-    private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static final UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     private static final UnitConverter kelvinToCelsius = SI.KELVIN
             .getConverterTo(SI.CELSIUS);

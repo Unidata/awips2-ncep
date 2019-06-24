@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.unit.SI;
+import si.uom.SI;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;

@@ -30,8 +30,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import javax.measure.unit.SI;
-
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -43,6 +41,20 @@ import org.geotools.referencing.crs.DefaultProjectedCRS;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
 import org.geotools.referencing.operation.projection.MapProjection;
 import org.geotools.referencing.operation.projection.MapProjection.AbstractProvider;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateArrays;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.impl.PackedCoordinateSequence;
+import org.locationtech.jts.linearref.LinearLocation;
+import org.locationtech.jts.linearref.LocationIndexedLine;
 import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.FactoryException;
@@ -95,20 +107,6 @@ import com.raytheon.viz.core.contours.util.StreamLineContainer.StreamLinePoint;
 import com.raytheon.viz.core.contours.util.StrmPak;
 import com.raytheon.viz.core.contours.util.StrmPakConfig;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateArrays;
-import com.vividsolutions.jts.geom.CoordinateList;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineSegment;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.gempak.parameters.colorbar.CLRBAR;
@@ -123,6 +121,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.NcGridDataProxy;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import si.uom.SI;
+import tec.uom.se.AbstractUnit;
 
 /**
  * ContourSupport
@@ -1226,7 +1226,7 @@ public class ContourSupport {
             contourGroup.colorImage = true;
 
             GeneralGridData ggd = GeneralGridData
-                    .createScalarData(imageGridGeometry, cntrData, SI.METER);
+                    .createScalarData(imageGridGeometry, cntrData, SI.METRE);
 
             contourGroup.colorFillImage = createRenderableImage(target, ggd);
         }
@@ -1364,7 +1364,7 @@ public class ContourSupport {
             displays[i] = contourGroup.fvalues.get(i - 1);
         }
 
-        params.setColorMapUnit(new ContourUnit<>(SI.METER, pixels, displays));
+        params.setColorMapUnit(new ContourUnit<>((AbstractUnit<?>)SI.METRE, pixels, displays));
         params.setColorMapMin((float) displays[0]);
         params.setColorMapMax((float) displays[displays.length - 1]);
 
@@ -1690,7 +1690,7 @@ public class ContourSupport {
             // build a line
             float[] pointArray = contours.xyContourPoints.get(i);
             CoordinateSequence coords = new PackedCoordinateSequence.Double(
-                    pointArray, 2);
+                    pointArray, 2, 0);
             if (coords.size() < 2) {
                 continue;
             }

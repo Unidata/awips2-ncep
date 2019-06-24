@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,25 +8,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
-import gov.noaa.nws.ncep.edex.common.metparameters.EquivPotentialTemp;
-import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-//import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
  
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class AirParcelTemp extends AbstractMetParameter implements javax.measure.quantity.Temperature, ISerializableObject {
+public class AirParcelTemp extends AbstractMetParameter<Temperature> 
+        implements ISerializableObject {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -8870456977205187179L;
 
 	public AirParcelTemp() {
-		 super( UNIT );
+		 super( SI.KELVIN );
 	}
 
 	@DeriveMethod		

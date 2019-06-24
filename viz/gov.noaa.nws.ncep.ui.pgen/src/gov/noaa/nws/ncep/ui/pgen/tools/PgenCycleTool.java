@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Implements a modal map tool for PGEN cycle.

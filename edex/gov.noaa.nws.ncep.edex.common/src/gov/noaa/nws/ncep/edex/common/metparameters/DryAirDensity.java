@@ -10,6 +10,9 @@ import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMet
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 //import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
+import si.uom.quantity.Density;
+import tec.uom.se.unit.ProductUnit;
 
 /**
  * Maps to the GEMPAK parameter DDEN
@@ -36,15 +39,15 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
  * @version 1.0
  */
 
-public class DryAirDensity extends AbstractMetParameter
-        implements javax.measure.quantity.VolumetricDensity {
+public class DryAirDensity extends AbstractMetParameter<Density> {
 
     public DryAirDensity() {
-        super(UNIT);
+        super(new ProductUnit<Density>(
+                SI.KILOGRAM.divide(SI.METRE.pow(3))));
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(PressureLevel p, AirTemperature t)
+    AbstractMetParameter<Density> derive(PressureLevel p, AirTemperature t)
             throws InvalidValueException, NullPointerException {
         Amount val = PRLibrary.prDden(p, t);
         setValue(val);
@@ -52,7 +55,7 @@ public class DryAirDensity extends AbstractMetParameter
     }
 
     @DeriveMethod
-    AbstractMetParameter derive(SurfacePressure p, AirTemperature t)
+    AbstractMetParameter<Density> derive(SurfacePressure p, AirTemperature t)
             throws InvalidValueException, NullPointerException {
         Amount val = PRLibrary.prDden(p, t);
         setValue(val);

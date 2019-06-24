@@ -1,5 +1,27 @@
 package gov.noaa.nws.ncep.viz.rsc.ffg.rsc;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
+
+import javax.measure.Unit;
+
+import org.eclipse.swt.graphics.RGB;
+
+import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.viz.core.IExtent;
+import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
+import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
+import com.raytheon.uf.viz.core.PixelExtent;
+import com.raytheon.uf.viz.core.drawables.IFont;
+import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.drawables.ResourcePair;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.ResourceProperties;
+
 import gov.noaa.nws.ncep.common.dataplugin.ffg.FfgPrecip;
 import gov.noaa.nws.ncep.common.dataplugin.ffg.FfgRecord;
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
@@ -15,29 +37,7 @@ import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.rsc.ffg.rsc.FFGResourceData.FfgParam;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
-
-import org.eclipse.swt.graphics.RGB;
-
-import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.IExtent;
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.PixelExtent;
-import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
-import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.uf.viz.core.rsc.ResourceProperties;
-import com.raytheon.uf.viz.core.drawables.IFont;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.map.MapDescriptor;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
+import systems.uom.common.USCustomary;
 
 
 /**
@@ -72,7 +72,7 @@ public class FFGResource extends AbstractNatlCntrsResource<FFGResourceData, NCMa
 
 	private FFGResourceData ffgRscData;
 
-	private Unit<?> ffgUnits = NonSI.INCH;
+	private Unit<?> ffgUnits = USCustomary.INCH;
 
     private StationTable stationTable;
 

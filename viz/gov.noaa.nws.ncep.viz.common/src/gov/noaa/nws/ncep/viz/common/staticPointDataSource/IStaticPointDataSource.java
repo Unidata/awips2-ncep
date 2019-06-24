@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * 

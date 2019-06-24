@@ -26,7 +26,7 @@ import com.raytheon.uf.common.dataquery.db.QueryResult;
 import com.raytheon.uf.common.dataquery.db.QueryResultRow;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.index.strtree.STRtree;
+import org.locationtech.jts.index.strtree.STRtree;
 
 
 // this is for the ncep stns tables but we could/should either combine or replace this with 

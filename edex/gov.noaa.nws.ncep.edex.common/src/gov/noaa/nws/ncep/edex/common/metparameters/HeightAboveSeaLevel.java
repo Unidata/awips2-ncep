@@ -1,14 +1,14 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import javax.measure.quantity.Length;
-import javax.measure.unit.SI;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import si.uom.SI;
 
 /**
  * <pre>
@@ -32,7 +32,8 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class HeightAboveSeaLevel extends AbstractMetParameter implements Length {
+public class HeightAboveSeaLevel
+        extends AbstractMetParameter<Length> {
 
     @DynamicSerializeElement
     private static final long serialVersionUID = -3831219033024527337L;
@@ -62,7 +63,7 @@ public class HeightAboveSeaLevel extends AbstractMetParameter implements Length 
             return super.getFormattedString(formatStr);
         }
 
-        int height = super.getValueAs(SI.METER).intValue();
+        int height = super.getValueAs(SI.METRE).intValue();
 
         if (pressureLevel == null) {
 
@@ -117,7 +118,7 @@ public class HeightAboveSeaLevel extends AbstractMetParameter implements Length 
     }
 
     public HeightAboveSeaLevel() throws Exception {
-        super(new UnitAdapter().marshal(UNIT));
+        super(SI.METRE);
     }
 
 }

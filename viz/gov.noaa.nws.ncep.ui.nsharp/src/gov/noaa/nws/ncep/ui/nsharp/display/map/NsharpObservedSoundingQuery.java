@@ -39,7 +39,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NsharpObservedSoundingQuery extends Job {
     private List<NsharpStationInfo> stnPtDataLineLst;

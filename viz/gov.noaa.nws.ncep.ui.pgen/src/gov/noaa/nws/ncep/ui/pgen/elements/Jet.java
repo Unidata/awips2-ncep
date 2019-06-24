@@ -18,7 +18,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class for Jet element.

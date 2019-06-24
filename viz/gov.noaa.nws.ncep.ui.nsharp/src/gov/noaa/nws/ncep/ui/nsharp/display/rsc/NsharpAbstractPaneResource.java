@@ -3,12 +3,11 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -24,7 +23,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
 import com.raytheon.viz.core.ColorUtil;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
@@ -32,6 +30,8 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  *
@@ -41,22 +41,22 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
  * <pre>
  * SOFTWARE HISTORY
  *
- * Date         Ticket#        Engineer    Description
- * -------        -------     --------     -----------
- * 04/23/2012    229         Chin Chen    Initial coding
- * 07/05/2016   RM#15923     Chin Chen    NSHARP - Native Code replacement
- * 07/10/2017   RM#34796     Chin Chen    NSHARP - Updates for March 2017 bigSharp version
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------
+ * Apr 23, 2012   229      Chin Chen    Initial coding
+ * Jul 05, 2016   RM#15923 Chin Chen    NSHARP - Native Code replacement
+ * Jul 10, 2017   RM#34796 Chin Chen    NSHARP - Updates for March 2017 bigSharp version
  *                                        - Reformat the lower left data page
- * 11/29/2017   5863         bsteffen     Change dataTimes to a NavigableSet
- * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070, 5863, fixed formatting
- * 11/21/2018   7574         bsteffen     Get previous layers from handler to ensure consistency.
+ * Nov 29, 2017   5863     bsteffen     Change dataTimes to a NavigableSet
+ * May, 5, 2018   49896    mgamazaychikov  Reconciled with RODO 5070, 5863, fixed formatting
+ * Nov 21, 2018   7574     bsteffen     Get previous layers from handler to ensure consistency.
  * Apr 15, 2019 7480         bhurley      Code cleanup
+ * Apr 15, 2019   7596     lsingh      Updated units framework to JSR-363.
  * 
  *
  * </pre>
  *
  * @author Chin Chen
- * @version 1.0
  */
 public class NsharpAbstractPaneResource extends
         AbstractVizResource<AbstractResourceData, NsharpAbstractPaneDescriptor> {
@@ -70,7 +70,7 @@ public class NsharpAbstractPaneResource extends
     protected PixelExtent pe;
 
     protected static final UnitConverter celciusToFahrenheit = SI.CELSIUS
-            .getConverterTo(NonSI.FAHRENHEIT);
+            .getConverterTo(USCustomary.FAHRENHEIT);
 
     protected static final UnitConverter celciusToKelvin = SI.CELSIUS
             .getConverterTo(SI.KELVIN);

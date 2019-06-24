@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +10,9 @@ import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.algorithm.CGAlgorithms;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
 
@@ -25,8 +26,8 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.util.ArraysUtil;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
 
 /**
  * Provides methods to generate a geoTiff file for a MODIS satellite resource.
@@ -67,7 +68,7 @@ public class ModisSatGeoTiffCreator {
      */
     public void create() {
 
-        com.vividsolutions.jts.geom.Envelope envelope = new com.vividsolutions.jts.geom.Envelope();
+        Envelope envelope = new Envelope();
 
         float[] lons = record.getCoverage().getLongitudes();
         float[] lats = record.getCoverage().getLatitudes();
@@ -118,7 +119,7 @@ public class ModisSatGeoTiffCreator {
                 Coordinate c2 = new Coordinate(longitudes[i2], latitudes[i2]);
                 Coordinate c3 = new Coordinate(longitudes[i3], latitudes[i3]);
 
-                com.vividsolutions.jts.geom.Envelope cellEnv = new com.vividsolutions.jts.geom.Envelope(
+                Envelope cellEnv = new Envelope(
                         c0);
                 cellEnv.expandToInclude(c1);
                 cellEnv.expandToInclude(c2);

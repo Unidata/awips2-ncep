@@ -20,7 +20,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.viz.xy.graph,
  com.raytheon.viz.core.graphing,
- com.vividsolutions.jts.geom,
+ org.locationtech.jts.geom,
  gov.noaa.nws.ncep.viz.ui.display,
  org.apache.commons.logging
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ntrans,

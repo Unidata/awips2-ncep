@@ -56,7 +56,7 @@ import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.LocatorUtil;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;

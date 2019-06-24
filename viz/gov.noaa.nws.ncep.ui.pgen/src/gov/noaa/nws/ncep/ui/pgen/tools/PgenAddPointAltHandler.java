@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineSegment;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineSegment;
 
 /**
  * Implements input handler for mouse events for the adding point action.

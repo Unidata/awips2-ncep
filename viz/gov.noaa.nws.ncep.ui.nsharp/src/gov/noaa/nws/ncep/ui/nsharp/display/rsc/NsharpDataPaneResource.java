@@ -24,7 +24,7 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.graphing.LineStroke;
 import com.raytheon.viz.core.graphing.WindBarbFactory;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
@@ -65,7 +65,8 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
  * 05/05/2018   DCS20492    mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting.
- * Oct 16, 2018  6845       bsteffen    Remove unnecessary jna code.
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
+ * Oct 16, 2018  6845       bsteffen  Remove unnecessary jna code.
  * 10/26/2018   DR20904     mgamazaychikov  Changed how parcel indices are set in drawPanel4.
  * Nov 21, 2018  7574       bsteffen    Remove unused override
  * Dec 20, 2018  7575       bsteffen    Remove some NsharpNativeConstants.

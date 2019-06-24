@@ -21,10 +21,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateArrays;
-import com.vividsolutions.jts.geom.CoordinateList;
+import org.locationtech.jts.algorithm.CGAlgorithms;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateArrays;
+import org.locationtech.jts.geom.CoordinateList;
 
 /**
  * This class contains a public static method to generate new Drawable Elements between two given

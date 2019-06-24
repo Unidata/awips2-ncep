@@ -15,7 +15,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.IAvnText;
 
 import java.awt.Color;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * 

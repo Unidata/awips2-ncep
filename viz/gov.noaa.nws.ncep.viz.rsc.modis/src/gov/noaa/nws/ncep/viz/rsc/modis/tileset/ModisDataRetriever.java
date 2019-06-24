@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.modis.tileset;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-
 import java.awt.Rectangle;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -9,7 +7,8 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.Map;
 
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.quantity.Dimensionless;
 
 import com.raytheon.uf.common.colormap.image.ColorMapData;
 import com.raytheon.uf.common.colormap.image.ColorMapData.ColorMapDataType;
@@ -26,6 +25,9 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.data.IColorMapDataRetrievalCallback;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
+
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
+import tec.uom.se.AbstractUnit;
 
 /**
  * {@link IColorMapDataRetrievalCallback} for MODIS satellite imagery data.
@@ -73,7 +75,7 @@ public class ModisDataRetriever implements IColorMapDataRetrievalCallback {
     @Override
     public ColorMapData getColorMapData() {
         Buffer data = null;
-        Unit<?> dataUnit = Unit.ONE;
+        Unit<?> dataUnit = AbstractUnit.ONE;
         boolean signed = false;
         Request req = Request.buildSlab(new int[] { this.datasetBounds.x,
                 this.datasetBounds.y }, new int[] {
@@ -93,7 +95,7 @@ public class ModisDataRetriever implements IColorMapDataRetrievalCallback {
                 } else if (rawData instanceof FloatDataRecord) {
                     data = FloatBuffer.wrap((float[]) rawData.getDataObject());
                 }
-                Unit<?> recordUnit = getRecordUnit(this.record);
+                Unit<Dimensionless> recordUnit = getRecordUnit(this.record);
                 signed = recordUnit instanceof GenericPixel;
                 dataUnit = getDataUnit(recordUnit, rawData);
             }
@@ -125,8 +127,8 @@ public class ModisDataRetriever implements IColorMapDataRetrievalCallback {
      * @param record2
      * @return
      */
-    public static Unit<?> getRecordUnit(ModisRecord record) {
-        Unit<?> recordUnit = new GenericPixel();
+    public static Unit<Dimensionless> getRecordUnit(ModisRecord record) {
+        Unit<Dimensionless> recordUnit = (Unit<Dimensionless>) new GenericPixel();
 
         return recordUnit;
     }
@@ -140,7 +142,7 @@ public class ModisDataRetriever implements IColorMapDataRetrievalCallback {
      */
     private static Unit<?> getDataUnit(Unit<?> recordUnit,
             IDataRecord dataRecord) {
-        Unit<?> units = recordUnit != null ? recordUnit : Unit.ONE;
+        Unit<?> units = recordUnit != null ? recordUnit : AbstractUnit.ONE;
         Map<String, Object> attrs = dataRecord.getDataAttributes();
         if (attrs != null) {
             Number offset = (Number) attrs.get(ModisRecord.OFFSET_ID);
@@ -149,13 +151,13 @@ public class ModisDataRetriever implements IColorMapDataRetrievalCallback {
             if (offset != null) {
                 double offsetVal = offset.doubleValue();
                 if (offsetVal != 0.0) {
-                    units = units.plus(offsetVal);
+                    units = units.shift(offsetVal);
                 }
             }
             if (scale != null) {
                 double scaleVal = scale.doubleValue();
                 if (scaleVal != 0.0 && scaleVal != 1.0) {
-                    units = units.times(scaleVal);
+                    units = units.multiply(scaleVal);
                 }
             }
         }

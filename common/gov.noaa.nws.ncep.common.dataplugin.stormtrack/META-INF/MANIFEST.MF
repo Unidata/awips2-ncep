@@ -13,4 +13,4 @@ Require-Bundle: javax.persistence;bundle-version="1.0.0",
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common;bundle-version="1.0.0",
  javax.xml.bind
-Import-Package: com.vividsolutions.jts.geom
+Import-Package: org.locationtech.jts.geom

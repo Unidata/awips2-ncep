@@ -3,15 +3,17 @@
  */
 package gov.noaa.nws.ncep.viz.overlays;
 
+import javax.measure.Unit;
 import javax.measure.quantity.Length;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IFont.Style;
+
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * <pre>
@@ -68,9 +70,9 @@ public interface IScaleOverlayResourceData {
     /** Units of distance for the scale */
     
     public enum ScaleUnit {
-    	SM         ( NonSI.MILE ),
-    	NM         ( NonSI.NAUTICAL_MILE ),
-    	KM         ( SI.KILOMETER );
+    	SM         ( USCustomary.MILE ),
+    	NM         ( USCustomary.NAUTICAL_MILE ),
+    	KM         ( MetricPrefix.KILO(SI.METRE) );
     	private Unit<Length> unit;
     	// Constructor
     	ScaleUnit (Unit<Length> unit) {

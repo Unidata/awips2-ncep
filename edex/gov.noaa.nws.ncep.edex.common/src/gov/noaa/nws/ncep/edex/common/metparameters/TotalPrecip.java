@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import java.io.Serializable;
-
+import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -9,13 +8,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class TotalPrecip extends AbstractMetParameter implements
- javax.measure.quantity.Length, ISerializableObject{
+ public class TotalPrecip extends AbstractMetParameter<Length>
+        implements ISerializableObject{
 
 		/**
 	 * 
@@ -23,7 +24,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 5122003873558060930L;
 
 		public TotalPrecip ( ){
-     		 super( UNIT );
+     		 super( SI.METRE );
           }
 
   }

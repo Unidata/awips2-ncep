@@ -1,11 +1,14 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Pressure;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to "pressChange3Hour" field of the HDF5 table/decoder, This used to be
@@ -15,14 +18,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class PressChange3HrAbsVal extends AbstractMetParameter implements javax.measure.quantity.Pressure, ISerializableObject {
-    /**
-         * 
-         */
+public class PressChange3HrAbsVal
+        extends AbstractMetParameter<Pressure>
+        implements ISerializableObject {
+
     private static final long serialVersionUID = 4636092028758506639L;
 
     public PressChange3HrAbsVal() {
-        super(UNIT);
+        super(SI.PASCAL);
     }
 
 }

@@ -11,7 +11,7 @@ import gov.noaa.nws.ncep.ui.pgen.PGenRuntimeException;
 
 import java.util.Calendar;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * The Track point class is used to storm the lat/lon location of a storm with its

@@ -1,18 +1,13 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.quantity.AmountOfPrecipitation;
-
-import java.io.Serializable;
-
-import javax.measure.quantity.AmountOfSubstance;
-import javax.measure.quantity.Dimensionless;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.quantity.AmountOfPrecipitation;
 
 /**
  * 
@@ -22,13 +17,13 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class AmountOfCondPrecipIn12Hrs extends AbstractMetParameter implements
-		AmountOfPrecipitation, ISerializableObject {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7386803479446558071L;
-public AmountOfCondPrecipIn12Hrs() throws Exception {
-	super( new UnitAdapter().marshal(UNIT) );
-	}	
+public class AmountOfCondPrecipIn12Hrs
+        extends AbstractMetParameter<AmountOfPrecipitation>
+        implements ISerializableObject {
+
+    private static final long serialVersionUID = -7386803479446558071L;
+
+    public AmountOfCondPrecipIn12Hrs() throws Exception {
+        super(AmountOfPrecipitation.UNIT);
+    }
 }

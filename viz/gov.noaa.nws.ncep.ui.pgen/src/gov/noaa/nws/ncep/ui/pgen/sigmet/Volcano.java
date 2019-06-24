@@ -16,7 +16,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.*;
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 
 /**

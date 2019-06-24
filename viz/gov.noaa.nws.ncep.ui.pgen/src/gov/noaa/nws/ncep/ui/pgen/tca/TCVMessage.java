@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * This class is used to create a Tropical Cyclone VTEC (TCV) message.

@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlType;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 
 /**

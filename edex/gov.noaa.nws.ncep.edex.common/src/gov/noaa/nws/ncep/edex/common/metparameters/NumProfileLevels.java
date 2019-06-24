@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * 
  * Maps to the modelsounding parameter numProfLevels
@@ -17,13 +19,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class NumProfileLevels extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+public class NumProfileLevels
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	private static final long serialVersionUID = -5087367989856117007L;
+    private static final long serialVersionUID = -5087367989856117007L;
 
-	public NumProfileLevels() {
-		super( UNIT );
-	}	
+    public NumProfileLevels() {
+        super(AbstractUnit.ONE);
+    }
 }
-

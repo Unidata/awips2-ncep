@@ -15,24 +15,17 @@
 package gov.noaa.nws.ncep.viz.common.staticPointDataSource;
 
 
-import gov.noaa.nws.ncep.viz.common.area.AreaName;
-import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
-import gov.noaa.nws.ncep.viz.common.staticPointDataSource.IStaticPointDataSource.StaticPointDataSourceType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.dataquery.db.QueryResult;
-import com.raytheon.uf.common.dataquery.db.QueryResultRow;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
+
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
-import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.index.strtree.STRtree;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
 
 // point data from common_obs_spatial
 

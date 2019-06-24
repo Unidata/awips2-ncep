@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKTReader;
 
 public class McidasSpatialFactory {
 

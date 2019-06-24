@@ -13,7 +13,7 @@ import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.panes.VizDisplayPane;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Default input handler for modis sampling

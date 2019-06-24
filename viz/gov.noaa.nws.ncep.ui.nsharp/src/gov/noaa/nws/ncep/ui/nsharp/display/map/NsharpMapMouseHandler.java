@@ -46,7 +46,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
     private static final IUFStatusHandler statusHandler = UFStatus

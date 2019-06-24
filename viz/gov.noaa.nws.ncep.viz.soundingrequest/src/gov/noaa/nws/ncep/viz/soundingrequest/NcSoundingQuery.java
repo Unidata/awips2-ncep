@@ -43,7 +43,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NcSoundingQuery {
     public static int counter = 1;

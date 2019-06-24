@@ -10,15 +10,14 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import gov.noaa.nws.ncep.ui.pgen.PGenException;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateArrays;
-import com.vividsolutions.jts.geom.CoordinateList;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateArrays;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 
 /**
  * Generates a mapping of points on one polygon to corresponding points on a second polygon.

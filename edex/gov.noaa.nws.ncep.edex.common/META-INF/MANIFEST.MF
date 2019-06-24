@@ -19,11 +19,9 @@ Require-Bundle: com.raytheon.uf.edex.decodertools;bundle-version="1.11.16",
  org.slf4j;bundle-version="1.7.5",
  com.raytheon.uf.edex.pointdata;bundle-version="1.12.1174",
  com.raytheon.uf.common.status;bundle-version="1.12.1174",
- javax.xml.bind
+ javax.xml.bind,
+ javax.measure
 Import-Package: com.raytheon.uf.common.units,
  gov.noaa.nws.ncep.common.tools,
- javax.measure.converter,
- javax.measure.quantity,
- javax.measure.unit,
  org.apache.commons.logging
 Bundle-RequiredExecutionEnvironment: JavaSE-11

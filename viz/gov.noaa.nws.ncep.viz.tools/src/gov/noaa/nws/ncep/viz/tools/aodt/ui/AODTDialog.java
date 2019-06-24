@@ -6,8 +6,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
@@ -34,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -45,7 +45,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.dialogs.ICloseCallback;
 import com.raytheon.viz.ui.dialogs.ICloseCallbackDialog;
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource;
@@ -54,6 +53,7 @@ import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+import si.uom.SI;
 
 /**
  * AODT History file management Dialog.
@@ -380,7 +380,7 @@ public class AODTDialog extends Dialog implements ICloseCallbackDialog {
                     // otherwise will crash CAVE
 
                 } else if (tempUnitsConverter != null) {
-                    temps[indx] = (float) tempUnitsConverter.convert(tmpC);
+                    temps[indx] = tempUnitsConverter.convert(tmpC).floatValue();
                 } else {
                     temps[indx] = tmpC.floatValue();
                 }

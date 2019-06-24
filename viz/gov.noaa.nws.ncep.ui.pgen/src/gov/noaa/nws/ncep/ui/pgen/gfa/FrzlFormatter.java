@@ -8,11 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.gfa;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.display.CurveFitter;
-import gov.noaa.nws.ncep.viz.common.SnapUtil;
-import gov.noaa.nws.ncep.viz.common.graphicUtil.ReducePoints;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,19 +16,23 @@ import java.util.List;
 
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
+import org.locationtech.jts.algorithm.CGAlgorithms;
+import org.locationtech.jts.algorithm.PointLocation;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.operation.distance.DistanceOp;
 
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.algorithm.SimplePointInRing;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateList;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineSegment;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.display.CurveFitter;
+import gov.noaa.nws.ncep.viz.common.SnapUtil;
+import gov.noaa.nws.ncep.viz.common.graphicUtil.ReducePoints;
 
 /**
  * Class to format freezing levels.
@@ -45,6 +44,8 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 05/2011		#?			B. Yin		Initial Creation.
  * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo.
  * 08/12		#?			B. Yin		Added a cll to build vortest for fzlvl
+ * Apr 15, 2019  7596       lsingh      Replace PointInRing.isInside() with PointLocation.isInRing().
+ *                                      
  * 
  * </pre>
  * 
@@ -870,12 +871,15 @@ public class FrzlFormatter {
 		
 		newPts.add( newPtArray[0]);
 		GeometryFactory gf = new GeometryFactory();
-		SimplePointInRing spir = new SimplePointInRing( gf.createLinearRing( (Coordinate[]) newPts.toArray( new Coordinate[newPts.size()]) ));
+		
 		
 		int beforeThePt = (( rmIdx - 1 ) + newPtArray.length ) / newPtArray.length;
 		int afterThePt = rmIdx / newPtArray.length;
 		
-		if ( spir.isInside( inPts.get(rmIdx) ) ) {
+		LinearRing ring = gf.createLinearRing( (Coordinate[]) newPts.toArray( new Coordinate[newPts.size()]) );
+		boolean isPointInRing = PointLocation.isInRing(inPts.get(rmIdx), ring.getCoordinates() );
+		
+		if ( isPointInRing ) {
 		}
 		else if ( reduceFlg.get((( rmIdx - 1 ) + inPts.size() ) / inPts.size()) && 
 				  reduceFlg.get( rmIdx / inPts.size() ) 				//if the neighbor points are remove-able 

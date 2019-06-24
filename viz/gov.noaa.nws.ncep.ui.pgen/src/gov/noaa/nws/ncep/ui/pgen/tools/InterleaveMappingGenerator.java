@@ -11,10 +11,10 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 
 /**
  * Generates a mapping of points on one line to corresponding points on a second line.

@@ -28,7 +28,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpTimeStnPaneResource;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpShowTextDialog;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NsharpTimeStnPaneMouseHandler extends NsharpAbstractMouseHandler{
 

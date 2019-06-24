@@ -8,7 +8,7 @@
 
 package gov.noaa.nws.ncep.common.staticdata;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Class to hold RFC information

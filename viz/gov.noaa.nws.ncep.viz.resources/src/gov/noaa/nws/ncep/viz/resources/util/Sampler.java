@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.util;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
-import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
-
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
@@ -11,11 +8,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.Measure;
-import javax.measure.unit.Unit;
+import javax.measure.Quantity;
+import javax.measure.Unit;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridGeometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -40,9 +40,10 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource.ResourceStatus;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
+import tec.uom.se.AbstractUnit;
 
 /**
  * Provides sampling capability for a resource, draws sampled text to the
@@ -52,17 +53,15 @@ import com.vividsolutions.jts.geom.Point;
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket# Engineer        Description
- * ------------ ------- -----------     --------------------------
- * 11/13/2015   R13133  kbugenhagen     Initial creation
- * 06/20/2016   R18511  kbugenhagen     Updated to use AbstractNatlCntrsResource2.
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Nov 13, 2015  R13133    kbugenhagen Initial creation
+ * Jun 20, 2016  R18511    kbugenhagen Updated to use AbstractNatlCntrsResource2.
  * 
  * 
  * </pre>
  * 
  * @author kbugenhagen
- * 
- * @version 1.0
  */
 
 public enum Sampler {
@@ -189,8 +188,8 @@ public enum Sampler {
             ReferencedCoordinate coord) throws VizException {
         Map<String, Object> interMap = interrogate(rsc, coord);
         double value = Double.NaN;
-        Unit<?> unit = Unit.ONE;
-        Measure<?, ?> dataVal = (Measure<?, ?>) interMap
+        Unit<?> unit = AbstractUnit.ONE;
+        Quantity<?> dataVal = (Quantity<?>) interMap
                 .get(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID);
         if (dataVal != null) {
             value = (Double) dataVal.getValue();
@@ -200,7 +199,7 @@ public enum Sampler {
             return "NO DATA";
         } else {
             String inspectStr = Sampler.NUMBER_FORMAT.format(value);
-            if (unit != null && unit != Unit.ONE) {
+            if (unit != null && unit != AbstractUnit.ONE) {
                 inspectStr += " " + unit.toString();
             }
             return inspectStr;

@@ -22,16 +22,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
-
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.index.strtree.STRtree;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.index.strtree.STRtree;
 
 
 public abstract class AbstractPointDataSource implements IStaticPointDataSource {

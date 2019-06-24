@@ -14,9 +14,10 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * This class displays the Locator .

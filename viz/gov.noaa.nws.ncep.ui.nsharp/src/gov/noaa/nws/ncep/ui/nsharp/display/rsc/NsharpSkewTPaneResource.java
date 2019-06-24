@@ -7,12 +7,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -35,9 +36,6 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSkparams;
@@ -69,6 +67,8 @@ import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  *
@@ -1119,7 +1119,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         curStrFormat1 = "%s(%s) %4.1f/%4.1f%cF(%4.1f/%4.1f%cC)\n";
         temp = NsharpLibBasics.i_temp(soundingLys, (float) p_mb);
         UnitConverter celciusToFahrenheit = SI.CELSIUS
-                .getConverterTo(NonSI.FAHRENHEIT);
+                .getConverterTo(USCustomary.FAHRENHEIT);
         double tempF = celciusToFahrenheit.convert(temp);
         double dp = NsharpLibBasics.i_dwpt(soundingLys, (float) p_mb);
         double dpF = celciusToFahrenheit.convert(dp);

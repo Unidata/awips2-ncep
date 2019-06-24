@@ -10,7 +10,7 @@ package gov.noaa.nws.ncep.ui.pgen.display;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * This class is a JAXB XmlAdapter, which converts a Coordinate[] to/from a string

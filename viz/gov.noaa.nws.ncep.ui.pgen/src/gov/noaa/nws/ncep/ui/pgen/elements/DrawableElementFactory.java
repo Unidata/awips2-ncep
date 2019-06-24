@@ -33,7 +33,7 @@ import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * This factory class is used to create DrawableElement elements from its

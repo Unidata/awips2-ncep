@@ -12,13 +12,11 @@ import gov.noaa.nws.ncep.edex.common.metparameters.quantity.HeatFlux;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class Avg1HrSubSurfaceHeatFlux extends AbstractMetParameter implements HeatFlux, ISerializableObject {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7325430999910159140L;
+public class Avg1HrSubSurfaceHeatFlux extends AbstractMetParameter<HeatFlux>
+        implements ISerializableObject {
+    private static final long serialVersionUID = -7325430999910159140L;
 
-	public Avg1HrSubSurfaceHeatFlux(){ 
-	     super( UNIT );
-	}
+    public Avg1HrSubSurfaceHeatFlux() {
+        super(HeatFlux.UNIT);
+    }
 }

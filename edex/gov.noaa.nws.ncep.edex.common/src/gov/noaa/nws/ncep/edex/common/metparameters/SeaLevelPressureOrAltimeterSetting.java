@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import javax.measure.unit.SI;
+import javax.measure.quantity.Pressure;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -10,6 +10,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * Used for PANY,RANY,or SANY. Return appropriately formatted PMSL value if
@@ -39,13 +41,13 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class SeaLevelPressureOrAltimeterSetting extends AbstractMetParameter
-        implements javax.measure.quantity.Pressure {
+public class SeaLevelPressureOrAltimeterSetting
+        extends AbstractMetParameter<Pressure> {
 
     private final static String MILLIBARS = "mb";
 
     public SeaLevelPressureOrAltimeterSetting() {
-        super(UNIT);
+        super(SI.PASCAL);
 
         // Allow the derive() below to be called even if one of the arguments
         // has a missing value.
@@ -78,10 +80,12 @@ public class SeaLevelPressureOrAltimeterSetting extends AbstractMetParameter
          * Since all three pressures are suppose to be in millibars we convert
          * value to millibars first if it comes in as something else.
          */
-        if ((!this.getUnit().toString().equals(SI.HECTO(SI.PASCAL).toString())
+        if ((!this.getUnit().toString()
+                .equals(MetricPrefix.HECTO(SI.PASCAL).toString())
                 && !this.getUnit().toString().equals(MILLIBARS))) {
-            presValInMb = this.getUnit().getConverterTo(NcUnits.MILLIBAR)
-                    .convert(presValInMb);
+            presValInMb = this.getUnit()
+                    .asType(javax.measure.quantity.Pressure.class)
+                    .getConverterTo(NcUnits.MILLIBAR).convert(presValInMb);
         }
 
         // Format the resulting pressure value

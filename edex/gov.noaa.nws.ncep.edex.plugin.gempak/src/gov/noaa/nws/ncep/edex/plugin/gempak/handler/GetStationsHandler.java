@@ -11,7 +11,7 @@ import com.raytheon.uf.common.serialization.comm.IRequestHandler;
 import com.raytheon.uf.edex.database.plugin.PluginFactory;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 public class GetStationsHandler implements IRequestHandler<GetStationsRequest> {
 

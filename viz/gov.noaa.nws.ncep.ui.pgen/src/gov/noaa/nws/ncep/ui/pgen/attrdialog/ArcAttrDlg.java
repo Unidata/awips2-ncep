@@ -26,7 +26,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Label;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;

@@ -12,11 +12,13 @@ import java.util.Set;
 import javax.measure.quantity.Angle;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Pressure;
+import javax.measure.quantity.Speed;
 import javax.measure.quantity.Temperature;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+
+import javax.measure.Unit;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
@@ -46,7 +48,7 @@ import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * PirepRecord is the Data Access component for pirep observation data.
@@ -103,9 +105,9 @@ public class PirepRecord extends PersistablePluginDataObject implements
 
     public static final Unit<Temperature> TEMPERATURE_UNIT = SI.CELSIUS;
 
-    public static final Unit<Length> ALTITUDE_UNIT = NonSI.FOOT;
+    public static final Unit<Length> ALTITUDE_UNIT = USCustomary.FOOT;
 
-    public static final Unit<Velocity> WIND_SPEED_UNIT = NonSI.KNOT;
+    public static final Unit<Speed> WIND_SPEED_UNIT = USCustomary.KNOT;
 
     public static final Unit<Angle> WIND_DIR_UNIT = NonSI.DEGREE_ANGLE;
 

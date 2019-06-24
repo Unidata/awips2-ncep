@@ -8,10 +8,6 @@ package gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc;
 import java.util.ArrayList;
 import java.util.List;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -20,26 +16,21 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.eclipse.swt.graphics.RGB;
 
+import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.time.DataTime;
 
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.attributes.RGBColorAdapter;
 import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.EditElement;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscResourceAttr;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscRscAttrs;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
-
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * <pre>
@@ -73,7 +64,7 @@ INatlCntrsResourceData{
 		windSpeedColorBar.addColorBarInterval( 48.0f, 64.0f, new RGB( 0,0,0 ) );
 		windSpeedColorBar.addColorBarInterval( 64.0f, 200.0f, new RGB( 0,0,0 ) );
 		// units currently not supported by the ColorBar but set this anyway 
-		windSpeedColorBar.setDataUnits( NonSI.KNOT );
+		windSpeedColorBar.setDataUnits( USCustomary.KNOT );
 		windSpeedColorBar.setNumDecimals(1);
 	}	
 	

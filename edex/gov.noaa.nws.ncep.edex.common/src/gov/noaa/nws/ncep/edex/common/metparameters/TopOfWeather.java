@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter WTOP or HTWX depending on whether the 
  * top of weather was measured in feet or meters
@@ -17,8 +19,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-  public class TopOfWeather extends AbstractMetParameter
-		implements Length, ISerializableObject {
+  public class TopOfWeather extends AbstractMetParameter<Length>
+		implements ISerializableObject {
 
 	/**
 	 * 
@@ -26,7 +28,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 8803348466729052652L;
 
 	public TopOfWeather() {
-		super( UNIT );
+		super( SI.METRE );
 	}
 	
   }

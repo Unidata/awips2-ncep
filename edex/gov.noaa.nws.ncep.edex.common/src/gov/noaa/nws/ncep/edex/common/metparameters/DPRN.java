@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,9 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MaxPrecipPR6X;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.Precip24Hr;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter DPRN
@@ -18,26 +18,22 @@ import gov.noaa.nws.ncep.edex.common.metparameters.Precip24Hr;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class DPRN  extends AbstractMetParameter implements javax.measure.quantity.Length,
-ISerializableObject{
+public class DPRN extends AbstractMetParameter<Length>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4784319145861079670L;
+    private static final long serialVersionUID = 4784319145861079670L;
 
-	public DPRN() {
-		super( UNIT );
-	}
+    public DPRN() {
+        super(SI.METRE);
+    }
 
-	@DeriveMethod
-	AbstractMetParameter derive( Precip24Hr pt, MaxPrecipPR6X mp){
-		if ( pt.hasValidValue() && mp.hasValidValue() ){
-		  setValue( pt.doubleValue() > mp.doubleValue() ? 
-				  pt  :  mp );
-		}else
-			setValueToMissing();
-		
-		return this;
-	}
+    @DeriveMethod
+    AbstractMetParameter derive(Precip24Hr pt, MaxPrecipPR6X mp) {
+        if (pt.hasValidValue() && mp.hasValidValue()) {
+            setValue(pt.doubleValue() > mp.doubleValue() ? pt : mp);
+        } else
+            setValueToMissing();
+
+        return this;
+    }
 }

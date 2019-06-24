@@ -15,9 +15,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.measure.Measure;
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -26,6 +25,10 @@ import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.algorithm.CGAlgorithms;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -87,9 +90,6 @@ import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
@@ -110,6 +110,8 @@ import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.quantity.Quantities;
 
 /**
  *
@@ -131,6 +133,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 04/12/2016   R15945  RCReynolds   Added code to build input to customizable getLegendString
  * 06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
  * 06/11/2018   7310    mapeters     Remove unused import
+ * 04/15/2019   7596    lsingh       Updated units framework to JSR-363.
  * </pre>
  *
  * @author kbugenhagen
@@ -649,9 +652,9 @@ public class ModisResource
             ImagePreferences preferences, ColorMapParameters colorMapParameters)
             throws VizException {
 
-        colorMapParameters.setColorMapUnit(Unit.ONE);
+        colorMapParameters.setColorMapUnit(AbstractUnit.ONE);
 
-        Unit<?> displayUnit = Unit.ONE;
+        Unit<?> displayUnit = AbstractUnit.ONE;
         if (preferences != null) {
             if (preferences.getDisplayUnits() != null) {
                 displayUnit = preferences.getDisplayUnits();
@@ -666,12 +669,12 @@ public class ModisResource
                 UnitConverter displayToColorMap = colorMapParameters
                         .getDisplayToColorMapConverter();
                 if (scale.getMinValue() != null) {
-                    colorMapParameters.setColorMapMin((float) displayToColorMap
-                            .convert(scale.getMinValue()));
+                    colorMapParameters.setColorMapMin(displayToColorMap
+                            .convert(scale.getMinValue()).floatValue());
                 }
                 if (scale.getMaxValue() != null) {
-                    colorMapParameters.setColorMapMax((float) displayToColorMap
-                            .convert(scale.getMaxValue()));
+                    colorMapParameters.setColorMapMax(displayToColorMap
+                            .convert(scale.getMaxValue()).floatValue());
                 }
             }
         }
@@ -863,7 +866,7 @@ public class ModisResource
     }
 
     protected void createGeoTiff(ModisRecord record) {
-        com.vividsolutions.jts.geom.Envelope envelope = new com.vividsolutions.jts.geom.Envelope();
+        Envelope envelope = new Envelope();
 
         float[] lons = record.getCoverage().getLongitudes();
         float[] lats = record.getCoverage().getLatitudes();
@@ -914,7 +917,7 @@ public class ModisResource
                 Coordinate c2 = new Coordinate(longitudes[i2], latitudes[i2]);
                 Coordinate c3 = new Coordinate(longitudes[i3], latitudes[i3]);
 
-                com.vividsolutions.jts.geom.Envelope cellEnv = new com.vividsolutions.jts.geom.Envelope(
+                Envelope cellEnv = new Envelope(
                         c0);
                 cellEnv.expandToInclude(c1);
                 cellEnv.expandToInclude(c2);
@@ -1248,7 +1251,7 @@ public class ModisResource
             interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
         }
         interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
-                Measure.valueOf(ciValue, colorMapParameters.getDisplayUnit()));
+                Quantities.getQuantity(ciValue, colorMapParameters.getDisplayUnit()));
 
         return interMap;
     }

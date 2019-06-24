@@ -15,4 +15,4 @@ Require-Bundle: javax.persistence;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common;bundle-version="1.0.0",
  javax.xml.bind
 Import-Package: com.raytheon.uf.common.serialization.comm,
- com.vividsolutions.jts.geom
+ org.locationtech.jts.geom

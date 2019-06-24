@@ -1,15 +1,16 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter SELV
@@ -18,16 +19,17 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class StationElevation extends AbstractMetParameter
-        implements javax.measure.quantity.Length {
+public class StationElevation
+        extends AbstractMetParameter<Length> {
 
     public StationElevation() throws Exception {
-        super(new UnitAdapter().marshal(UNIT));
+        super(SI.METRE);
     }
 
     // TODO : check that this is stationPressure is correct here
     @DeriveMethod
-    AbstractMetParameter derive(SeaLevelPressure alti, SurfacePressure pres)
+    AbstractMetParameter<Length> derive(
+            SeaLevelPressure alti, SurfacePressure pres)
             throws InvalidValueException, NullPointerException {
         if (alti.hasValidValue() && pres.hasValidValue()) {
             Amount val = PRLibrary.prZalt(alti, pres);

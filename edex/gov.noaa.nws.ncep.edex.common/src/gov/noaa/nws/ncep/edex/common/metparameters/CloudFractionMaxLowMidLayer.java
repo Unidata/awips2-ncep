@@ -12,31 +12,31 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the GEMPAK parameter CFRL
  * 
  * SOFTWARE HISTORY
+ *
+ * <pre>
  * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 11/17/2016   R26156      J. Huber    Initial creation
+ * Date       Ticket# Engineer Description
+ * -------    ------- -------- -----------
+ * 11/17/2016 R26156  J. Huber Initial creation
+ * 
  * </pre>
  * 
  * @author Joshua Huber
- * @version 1.0
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CloudFractionMaxLowMidLayer extends AbstractMetParameter
-        implements Dimensionless {
-    /**
-     * 
-     */
+public class CloudFractionMaxLowMidLayer
+        extends AbstractMetParameter<Dimensionless> {
 
     public CloudFractionMaxLowMidLayer() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     // Low: 0 < h <= 6300 (ft)

@@ -3,10 +3,6 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -14,6 +10,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * The Ceiling as measured from the station or surface (AKA CEIL).
@@ -35,7 +36,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CeilingFromSurface extends AbstractMetParameter implements Length,
+public class CeilingFromSurface extends AbstractMetParameter<Length> implements 
         ISerializableObject {
 
     /**
@@ -44,7 +45,7 @@ public class CeilingFromSurface extends AbstractMetParameter implements Length,
     private static final long serialVersionUID = -6058298343743033424L;
 
     public CeilingFromSurface() {
-        super(UNIT);
+        super(SI.METRE);
     }
 
     @Override

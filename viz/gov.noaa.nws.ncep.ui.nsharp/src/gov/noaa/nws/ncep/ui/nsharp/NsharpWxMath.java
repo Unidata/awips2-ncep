@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.ui.nsharp;
 import org.eclipse.swt.graphics.Rectangle;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * 

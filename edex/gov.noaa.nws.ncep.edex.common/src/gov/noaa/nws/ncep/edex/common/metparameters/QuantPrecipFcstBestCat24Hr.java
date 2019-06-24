@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the Bufrmos parameter QPF24hr_bestCat
  */
@@ -15,38 +17,12 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class QuantPrecipFcstBestCat24Hr extends AbstractMetParameter implements
- Dimensionless, ISerializableObject {
+public class QuantPrecipFcstBestCat24Hr
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-     /**
-	 * 
-	 */
-	
+    public QuantPrecipFcstBestCat24Hr() {
+        super(AbstractUnit.ONE);
+    }
 
-	public QuantPrecipFcstBestCat24Hr() {
-		 super( UNIT );
-		 //setValueIsString();
-     }	
-
-	
- }
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+}

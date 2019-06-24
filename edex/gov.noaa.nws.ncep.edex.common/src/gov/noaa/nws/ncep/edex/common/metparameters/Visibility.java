@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,6 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 import gov.noaa.nws.ncep.edex.util.UtilN;
+import si.uom.SI;
 
 /**
  * Maps to any of the GEMPAK parameters VSBC,VSBK,VSBY or VSBN depending on the
@@ -40,11 +42,10 @@ import gov.noaa.nws.ncep.edex.util.UtilN;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class Visibility extends AbstractMetParameter
-        implements javax.measure.quantity.Length {
+public class Visibility extends AbstractMetParameter<Length> {
 
     public Visibility() {
-        super(UNIT);
+        super(SI.METRE);
     }
 
     @Override

@@ -3,7 +3,6 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
 import javax.measure.quantity.Angle;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -12,6 +11,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter IDIR
  */
@@ -19,15 +20,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class InterWindDir
+        extends AbstractMetParameter<Angle>
+        implements ISerializableObject {
 
- public class InterWindDir extends AbstractMetParameter implements
- Angle, ISerializableObject {
-          /**
-	 * 
-	 */
-	private static final long serialVersionUID = 4178367873528504404L;
+    private static final long serialVersionUID = 4178367873528504404L;
 
-		public InterWindDir ( ){
-        	  super ( UNIT );
-          }
+    public InterWindDir() {
+        super(SI.RADIAN);
+    }
 }

@@ -1,13 +1,19 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.units;
 
 
-import javax.measure.converter.UnitConverter;
+import java.util.Map;
+
+import javax.measure.Dimension;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.measure.quantity.Dimensionless;
-import javax.measure.unit.Unit;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.generic.GenericFromPixelConverter;
+
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.quantity.QuantityDimension;
 
 /**
  * Used to represent the McIdas BRIT Calibration type.  Its the same unit as 
@@ -16,12 +22,22 @@ import com.raytheon.uf.common.dataplugin.satellite.units.generic.GenericFromPixe
  * recognized as 0 - 255.  GenericPixel values are treated as signed values that range from
  * -128 to 127 by the com.raytheon.viz.satellite.rsc.SatFileBasedTileSet.
  * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ *                         sgilbert    Initial creation
+ * Apr 15, 2019 7596       lsingh      Updated units framework to JSR-363.
+ * 
+ * </pre>
+ * 
  *
  * @author sgilbert
- * @version 1.0	
  */
 
-public class McidasBritPixel extends Unit<Dimensionless> {
+public class McidasBritPixel extends AbstractUnit<Dimensionless> {
 	private static final long serialVersionUID = 1L;
 
 	@Override
@@ -30,8 +46,8 @@ public class McidasBritPixel extends Unit<Dimensionless> {
 	}
 
 	@Override
-	public Unit<Dimensionless> getStandardUnit() {
-		return Unit.ONE;
+	public Unit<Dimensionless> toSystemUnit() {
+		return AbstractUnit.ONE;
 	}
 
 	@Override
@@ -40,7 +56,17 @@ public class McidasBritPixel extends Unit<Dimensionless> {
 	}
 
 	@Override
-	public UnitConverter toStandardUnit() {
+	public UnitConverter getSystemConverter() {
 		return new GenericFromPixelConverter();
 	}
+
+    @Override
+    public Map<? extends Unit<?>, Integer> getBaseUnits() {
+        return null;
+    }
+
+    @Override
+    public Dimension getDimension() {
+        return QuantityDimension.NONE;
+    }
 }

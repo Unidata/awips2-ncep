@@ -8,23 +8,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
 
+import tec.uom.se.AbstractUnit;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class SpecificHumidity extends AbstractMetParameter implements Dimensionless, ISerializableObject {
+public class SpecificHumidity
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	@DynamicSerializeElement
-	private static final long serialVersionUID = -4072992714364345396L;
+    /**
+     * 
+     */
+    @DynamicSerializeElement
+    private static final long serialVersionUID = -4072992714364345396L;
 
-	public SpecificHumidity() throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-	}
+    public SpecificHumidity() throws Exception {
+        super(AbstractUnit.ONE);
+    }
 
 }

@@ -19,9 +19,9 @@
  **/
 package com.raytheon.uf.viz.gempak.cave.data.retriever;
 
-import java.text.ParseException;
-
-import javax.measure.converter.ConversionException;
+import javax.measure.IncommensurableException;
+import javax.measure.UnconvertibleException;
+import javax.measure.format.ParserException;
 
 import com.raytheon.uf.common.dataplugin.grid.datastorage.GridDataRetriever;
 import com.raytheon.uf.common.datastorage.StorageException;
@@ -162,7 +162,7 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
                         .setUnit(UnitConv.deserializer(GempakGridParmInfoLookup
                                 .getInstance().getParmUnit(gempakParm)));
             }
-        } catch (ConversionException | ParseException e) {
+        } catch (IncommensurableException | UnconvertibleException | ParserException e) {
             statusHandler
                     .info("Problem with dataRetriever setUnit for gempakParm: "
                             + gempakParm, e);

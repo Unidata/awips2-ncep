@@ -12,7 +12,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Line;
 import java.util.ArrayList;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class PgenSpenesDrawingTool extends AbstractPgenDrawingTool {
 

@@ -23,17 +23,18 @@
  * 08/10/2015  RM#9396   Chin Chen  implement new OPC pane configuration
  * 07/05/2016  RM#15923  Chin Chen  NSHARP - Native Code replacement
  * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
- * 10/02/2018  7475      bsteffen   Fix casting error when D2D resources are present.
- * 10/05/2018  7480      bsteffen   Handle remove from d2d.
+ * 10/02/2018   7475     bsteffen   Fix casting error when D2D resources are present.
+ * 10/05/2018   7480     bsteffen   Handle remove from d2d.
  * 10/16/2018  6835      bsteffen   Extract printing logic.
+ * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
  * 11/05/2018   6800     bsteffen   Extract click indexing to time/station resource.
  * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
- * 01/20/2019  17377     wkwock     Auto-update new arrival NSHARP display.
- * 04/15/2019  7480      bhurley    Improved auto-update and added check to prevent potential NPE.
  * 11/13/2018  7576      bsteffen   Unify activation dialogs.
  * 11/21/2018  7574      bsteffen   Fix comparison and overlay coloring.
  * 12/14/2018  6872      bsteffen   Track time more accurately.
  * 12/20/2018  7575      bsteffen   Do not reuse parcel dialog
+ * 01/20/2019  17377     wkwock     Auto-update new arrival NSHARP display.
+ * 04/15/2019  7480      bhurley    Improved auto-update and added check to prevent potential NPE.
  *
  * </pre>
  * 

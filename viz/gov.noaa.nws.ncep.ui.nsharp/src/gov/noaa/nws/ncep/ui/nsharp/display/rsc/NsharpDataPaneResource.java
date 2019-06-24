@@ -65,7 +65,8 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
  * 05/05/2018   DCS20492    mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting.
- * Oct 16, 2018  6845       bsteffen    Remove unnecessary jna code.
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
+ * Oct 16, 2018  6845       bsteffen  Remove unnecessary jna code.
  * 10/26/2018   DR20904     mgamazaychikov  Changed how parcel indices are set in drawPanel4.
  * Nov 21, 2018  7574       bsteffen    Remove unused override
  * Dec 20, 2018  7575       bsteffen    Remove some NsharpNativeConstants.

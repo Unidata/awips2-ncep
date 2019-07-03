@@ -16,6 +16,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityCollection;
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityElement;
@@ -49,6 +50,7 @@ import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
  * Feb 17, 2016  13554    dgilling  Implement IStaticDataNatlCntrsResource.
  * Feb 28, 2019  7752     tjensen   Add capability to load product from
  *                                  database.
+ * Jul 03, 2019  65673    tjensen   Fix ColorableCapability
  *
  * </pre>
  *
@@ -157,6 +159,11 @@ public class PgenStaticOverlayResource extends
             PaintProperties paintProps) throws VizException {
 
         if (paintProps != null && prds != null) {
+            if (pgenOverlayRscData.monoColorEnable) {
+                RGB rgb = getCapability(ColorableCapability.class).getColor();
+                dprops.setLayerColor(new Color(rgb.red, rgb.green, rgb.blue));
+            }
+
             // Loop through all products in the PGEN drawing layer,
             // drawing the display elements
             for (Product prod : prds) {
@@ -189,16 +196,5 @@ public class PgenStaticOverlayResource extends
     @Override
     public void resourceAttrsModified() {
         dprops.setLayerMonoColor(pgenOverlayRscData.monoColorEnable);
-        RGB rgb = pgenOverlayRscData.getColor();
-        dprops.setLayerColor(new Color(rgb.red, rgb.green, rgb.blue));
-        // dprops.setLayerFilled( pgenOverlayRscData.isFillEnable() );
-
-        // if monoColorEnable is turned off then set the legend color to the
-        // color of the first layer in the product
-        if (!pgenOverlayRscData.monoColorEnable) {
-            Color legendCol = prds.get(0).getLayer(0).getColor();
-            pgenOverlayRscData.setLegendColor(new RGB(legendCol.getRed(),
-                    legendCol.getGreen(), legendCol.getBlue()));
-        }
     }
 }

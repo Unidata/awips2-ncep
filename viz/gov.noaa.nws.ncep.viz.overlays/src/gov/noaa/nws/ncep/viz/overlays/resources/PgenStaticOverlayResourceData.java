@@ -15,6 +15,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 
 import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
@@ -29,10 +30,11 @@ import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * ??/??/??                            Initial creation
- * Feb 28, 2019 7752       tjensen     Added dataURI
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- ------------------------
+ * ??/??/??                         Initial creation
+ * Feb 28, 2019  7752     tjensen   Added dataURI
+ * Jul 03, 2019  65673    tjensen   Fix ColorableCapability
  *
  * </pre>
  *
@@ -69,12 +71,16 @@ public class PgenStaticOverlayResourceData extends AbstractNatlCntrsResourceData
         };
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public PgenStaticOverlayResource constructResource(
             LoadProperties loadProperties, IDescriptor descriptor)
             throws VizException {
-        return new PgenStaticOverlayResource(this, loadProperties);
+        PgenStaticOverlayResource pgenResource = new PgenStaticOverlayResource(
+                this, loadProperties);
+        ColorableCapability cap = new ColorableCapability();
+        cap.setColor(color);
+        pgenResource.getCapabilities().addCapability(cap);
+        return pgenResource;
     }
 
     public String getPgenStaticProductLocation() {

@@ -77,33 +77,49 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *
  * <pre>
  * SOFTWARE HISTORY
- *
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 04/23/2012   229         Chin Chen   Initial coding
- * May 08, 2013 1847        bsteffen    Allow painting with no Wind Data.
- * 02/03/2014   1106        Chin Chen   Need to be able to use clicking on the Src,Time, or StnId to select display
- * 08/04/2014               Chin Chen   fixed effective level line drawing, height marker drawing
- * 01/27/2015   DR#17006,
- *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products
- *                                      in Volume Browser
- * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites
- * 02/05/2015   DR16888     Chin Chen   fixed issue that "Comp(Src) button not functioning properly in NSHARP display"
- *                                      merged 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 01/06/2017   RM#21993    Chin Chen   fixed "Text attached to the mouse covers up edit points in Edit Graph mode"
- * 06/13/2017   RM#34793    Chin Chen   Add max lapse rate bar on skewT pane
- * 09/1/2017    RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
- *                                      - Update the dendritic growth layer calculations and other skewT
- *                                      updates.
- * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
- * Apr 18, 2018   17341 mgamazaychikov  Fix the cursor plotting for station with negative surface elevation,
- *                                      add scaling for pressure surface height labels
- * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070
- * 11/21/2018   7574        bsteffen    Fix comparison coloring.
- * 01/13/2019   21039       smoorthy    make fonts the same as on 18.1.2
- * 01/15/2019   7697        bsteffen    Display aircraft info for ACARS
- * 02/11/2019   7574        bhurley     Added checks to prevent NPEs
+ * 
+ * Date          Ticket#    Engineer        Description
+ * ------------- ---------- --------------- ------------------------------------
+ * Apr 23, 2012  229        Chin Chen       Initial coding
+ * May 08, 2013  1847       bsteffen        Allow painting with no Wind Data.
+ * Feb 03, 2014  1106       Chin Chen       Need to be able to use clicking on
+ *                                          the Src,Time, or StnId to select
+ *                                          display
+ * Aug 04, 2014             Chin Chen       fixed effective level line drawing,
+ *                                          height marker drawing
+ * Jan 27, 2015  DR#17006,                  
+ *               Task#5929  Chin Chen       NSHARP freezes when loading a
+ *                                          sounding from MDCRS products in
+ *                                          Volume Browser
+ * Feb 03, 2015  17084      Chin Chen       Model soundings being interpolated
+ *                                          below the surface for elevated sites
+ * Feb 05, 2015  16888      Chin Chen       fixed issue that "Comp(Src) button
+ *                                          not functioning properly in NSHARP
+ *                                          display" merged 12/11/2014 fixes at
+ *                                          version 14.2.2 and check in again to
+ *                                          14.3.1
+ * Jul 05, 2016  15923      Chin Chen       NSHARP - Native Code replacement
+ * Jan 06, 2017  21993      Chin Chen       fixed "Text attached to the mouse
+ *                                          covers up edit points in Edit Graph
+ *                                          mode"
+ * Jun 13, 2017  34793      Chin Chen       Add max lapse rate bar on skewT pane
+ * Sep 01, 2017  34794      Chin Chen       NSHARP - Updates for March 2017
+ *                                          bigSharp version - Update the
+ *                                          dendritic growth layer calculations
+ *                                          and other skewT updates.
+ * Nov 29, 2017  5863       bsteffen        Change dataTimes to a NavigableSet
+ * Apr 18, 2018  17341      mgamazaychikov  Fix the cursor plotting for station
+ *                                          with negative surface elevation, add
+ *                                          scaling for pressure surface height
+ *                                          labels
+ * May, 5, 2018  49896      mgamazaychikov  Reconciled with RODO 5070
+ * Nov 21, 2018  7574       bsteffen        Fix comparison coloring.
+ * Jan 13, 2019  21039      smoorthy        make fonts the same as on 18.1.2
+ * Jan 15, 2019  7697       bsteffen        Display aircraft info for ACARS
+ * Feb 11, 2019  7574       bhurley         Added checks to prevent NPEs
+ * Aug 02, 2019  7893       bhurley         Allow wind barbs to be fully
+ *                                          displayed at the top and bottom
+ *                                          pressure levels.
  * 
  * </pre>
  *
@@ -1064,6 +1080,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     paintProps);
             elements.addAll(subelements);
         }
+
         for (IDisplayable each : elements) {
             try {
                 each.draw(target, paintProps);
@@ -1148,7 +1165,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     private void paintIcing(double zoomLevel, IGraphicsTarget target)
             throws VizException {
         NsharpWGraphics plotWorld = icingBackground.getWorld();
-        target.setupClippingPlane(icingBackground.getPe());
+        target.clearClippingPlane();
         if ((graphConfigProperty != null && graphConfigProperty.isWindBarb())
                 || graphConfigProperty == null) {
             plotWorld.setWorldCoordinates(
@@ -1168,6 +1185,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         // icing display is to be shown
         // However, Skewt wireframeshapes are created when new sounding is
         // loaded.
+        target.setupClippingPlane(icingBackground.getPe());
         if (icingRHShape == null) {
             // current WorldCoordinates for RH already loaded
             plotWorld.setWorldCoordinates(
@@ -1226,7 +1244,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     private void paintTurbulence(double zoomLevel, IGraphicsTarget target)
             throws VizException {
         NsharpWGraphics plotWorld = turbBackground.getWorld();
-        target.setupClippingPlane(turbBackground.getPe());
+        target.clearClippingPlane();
         // Chin NOTE: turbulence wireframeshapes are created dynamically ONLY
         // when turbulence display is to be shown
         // However, Skewt wireframeshapes are created when new sounding is
@@ -1251,6 +1269,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     graphConfigProperty.getWindBarbColor(), this.soundingLys,
                     xPos/* 7 */, NsharpConstants.TURBULENCE_PRESSURE_LEVEL_TOP);
         }
+        target.setupClippingPlane(turbBackground.getPe());
         if (turbLnShape == null || turbWindShearShape == null) {
             createTurbulenceShapes(plotWorld);
         }
@@ -1277,7 +1296,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         IExtent displayExtent = getDescriptor().getRenderableDisplay()
                 .getExtent();
         double dispX = displayExtent.getMinX() + 20 * zoomLevel * xRatio;
-        double dispY = displayExtent.getMinY() + 35 * zoomLevel * yRatio;
+        double dispY = displayExtent.getMinY() + 60 * zoomLevel * yRatio;
         IExtent viewExtent = paintProps.getView().getExtent();
         Rectangle canvasBounds = paintProps.getCanvasBounds();
         double hRatio = viewExtent.getWidth() / canvasBounds.width;

@@ -1,31 +1,4 @@
-/**
- * 
- * gov.noaa.nws.ncep.ui.nsharp.background.NsharpSkewTPaneBackground
- * 
- * This java class performs the NSHARP NsharpSkewTPaneBackground functions.
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date        Ticket#    Engineer   Description
- * ----------- ---------- ---------- -----------
- * 05/02/2012   229       Chin Chen  Initial coding for multiple display panes implementation
- * 09/01/2017   RM#34794  Chin Chen  NSHARP - Updates for March 2017 bigSharp version
- *                                      -     Update the dendritic growth layer calculations and other skewT
- *                                            updates.
- * 09/28/2018   7479      bsteffen   Fix temperature lines and labels.
- * 10/16/2018   6835      bsteffen   Extract printing logic.
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
 package gov.noaa.nws.ncep.ui.nsharp.background;
-
-import static java.lang.Math.pow;
-import static java.lang.Math.signum;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -58,6 +31,34 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
 
+/**
+ * 
+ * gov.noaa.nws.ncep.ui.nsharp.background.NsharpSkewTPaneBackground
+ * 
+ * This java class performs the NSHARP NsharpSkewTPaneBackground functions. This
+ * code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * May 02, 2012  229      Chin Chen  Initial coding for multiple display panes
+ *                                   implementation
+ * Sep 01, 2017  34794    Chin Chen  NSHARP - Updates for March 2017 bigSharp
+ *                                   version 
+ *                                          - Update the dendritic growth layer
+ *                                   calculations and other skewT updates.
+ * Sep 28, 2018  7479     bsteffen   Fix temperature lines and labels.
+ * Oct 16, 2018  6835     bsteffen   Extract printing logic.
+ * Aug 02, 2019  7893     bhurley    Adjusted position/margin of labels to
+ *                                   support fully displaying wind barbs at the
+ *                                   top and bottom pressure levels.
+ * 
+ * </pre>
+ * 
+ * @author Chin Chen
+ */
 public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
     private static final float[] MIXING_RATIOS = { .5f, 1, 1.5f, 2, 3, 4, 5, 6,
@@ -99,8 +100,6 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
     private NsharpGraphProperty graphConfigProperty;
 
-    private int tempOffset = 0;
-
     public NsharpSkewTPaneBackground(NsharpSkewTPaneDescriptor desc) {
         super();
 
@@ -121,7 +120,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
     private static double poisson(double startPressure, double stopPressure,
             double temperature) {
-        return temperature * pow((startPressure / stopPressure), Rd);
+        return temperature * Math.pow((startPressure / stopPressure), Rd);
     }
 
     public static List<List<UAPoint>> getDryAdiabats(double increment,
@@ -142,7 +141,8 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
             if (increment > 0) {
                 adiabats = new ArrayList<>();
 
-                double delta = signum(stopPressure - startPressure) * increment;
+                double delta = Math.signum(stopPressure - startPressure)
+                        * increment;
 
                 double basePressure = startPressure;
                 for (; startPressure >= stopPressure; startPressure += delta) {
@@ -230,10 +230,12 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
         double xend;
         IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmin = ext.getMinX(); // Extent's viewable envelope min x and y
+        // Extent's viewable envelope min x
+        double xmin = ext.getMinX();
         double xDefault = world.mapX(NsharpConstants.left);
-        if (xmin < xDefault)
+        if (xmin < xDefault) {
             xmin = xDefault;
+        }
         double dispX = xmin + 25 * currentZoomLevel * xRatio;
         // draw pressure line, pressure mark and pressure number label all at
         // once
@@ -341,20 +343,24 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         mixRatioShape.allocate(MIXING_RATIOS.length * 2);
 
         IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmin = ext.getMinX(); // Extent's viewable envelope min x and y
+        // Extent's viewable envelope min x and max y
+        double xmin = ext.getMinX();
         double ymax = ext.getMaxY();
-        double dispY = ymax - 30 * currentZoomLevel;
+        double dispY = ymax - 45 * currentZoomLevel;
         // We are getting Y (pressure) level for plotting mix ratio number,
         // therefore dispX here is not important for the
         // reverseSkewTXY() input.
         Coordinate c = NsharpWxMath.reverseSkewTXY(world.unMap(xmin, dispY));
         double dispPressure = c.y - 10 * currentZoomLevel;
-        if ((NsharpConstants.MAX_PRESSURE - dispPressure) < 30)
+        if ((NsharpConstants.MAX_PRESSURE - dispPressure) < 30) {
             dispPressure = NsharpConstants.MAX_PRESSURE - 30 * currentZoomLevel;
-        if (dispPressure < 405)
+        }
+        if (dispPressure < 405) {
             dispPressure = 405;
-        if (dispPressure > 1000)
+        }
+        if (dispPressure > 1000) {
             dispPressure = 1000;
+        }
         Coordinate coorStart = NsharpWxMath.getSkewTXY(dispPressure, -50);
         Coordinate coorEnd = NsharpWxMath.getSkewTXY(dispPressure, 50);
 
@@ -406,7 +412,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
             return;
         }
         if (graphConfigProperty != null) {
-            tempOffset = graphConfigProperty.getTempOffset();
+            int tempOffset = graphConfigProperty.getTempOffset();
             NsharpWxMath.setTempOffset(tempOffset);
         }
 
@@ -435,7 +441,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         double maxY = viewableExtent.getMaxY();
         double minY = viewableExtent.getMinY();
         /* Add a small margin above/below the label. */
-        maxY -= 20 * currentZoomLevel;
+        maxY -= 35 * currentZoomLevel;
         minY += 10 * currentZoomLevel;
 
         Coordinate top = world.unMap(maxX, maxY);
@@ -539,17 +545,17 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         this.smallFont.setSmoothing(false);
         this.smallFont.setScaleFont(false);
         if (graphConfigProperty != null) {
-            if (graphConfigProperty.isMixratio() == true) {
+            if (graphConfigProperty.isMixratio()) {
                 target.drawWireframeShape(mixRatioShape,
                         NsharpConstants.mixingRatioColor, 1, LineStyle.DASHED,
                         smallFont);
             }
-            if (graphConfigProperty.isDryAdiabat() == true) {
+            if (graphConfigProperty.isDryAdiabat()) {
                 target.drawWireframeShape(dryAdiabatsShape,
                         NsharpConstants.dryAdiabatColor, 1, LineStyle.SOLID,
                         smallFont);
             }
-            if (graphConfigProperty.isMoistAdiabat() == true) {
+            if (graphConfigProperty.isMoistAdiabat()) {
                 target.drawWireframeShape(moistAdiabatsShape,
                         NsharpConstants.moistAdiabatColor, 1, LineStyle.DOTTED,
                         smallFont);
@@ -568,7 +574,6 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         target.clearClippingPlane();
 
     }
-
 
     @Override
     protected NsharpWGraphics computeWorld() {
@@ -717,7 +722,8 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
 
     public double getWindBarbXPosition() {
         IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmax = ext.getMaxX(); // Extent's viewable envelope min x and y
+        // Extent's viewable envelope max x and max y
+        double xmax = ext.getMaxX();
         double ymax = ext.getMaxY();
         double pX = world.mapX(NsharpConstants.right);
         if (pX < xmax) {

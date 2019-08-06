@@ -1,28 +1,12 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.JetAttrDlg
- * 
+ *
  * 07 July 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
-
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IText;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-import gov.noaa.nws.ncep.ui.pgen.tools.IJetBarb;
-import gov.noaa.nws.ncep.ui.pgen.tools.PgenJetDrawingTool;
-import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectingTool;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 import java.awt.Color;
 import java.util.Iterator;
@@ -49,24 +33,42 @@ import org.eclipse.ui.PlatformUI;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IText;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+import gov.noaa.nws.ncep.ui.pgen.tools.IJetBarb;
+import gov.noaa.nws.ncep.ui.pgen.tools.PgenJetDrawingTool;
+import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectingTool;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+
 /**
  * Singleton attribute dialog for Jet.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 07/09		#135		B. Yin   	Initial Creation.
- * 03/10        #231        Archana     Altered the Jet attribute dialog
- *                                      to display only a button showing the 
- *                                      selected color instead of displaying 
- *                                      the complete color matrix .
- * 12/10		#366		B. Yin		Added "AddHash" and "DelHash" buttons
- * 03/03/2016   #13557      J. Beck     Some field names have changed due to re-factored 
- *                                      VectorAttrDlg.java
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * 07/09         135      B. Yin    Initial Creation.
+ * 03/10         231      Archana   Altered the Jet attribute dialog to display
+ *                                  only a button showing the selected color
+ *                                  instead of displaying the complete color
+ *                                  matrix .
+ * 12/10         366      B. Yin    Added "AddHash" and "DelHash" buttons
+ * Mar 03, 2016  13557    J. Beck   Some field names have changed due to
+ *                                  re-factored VectorAttrDlg.java
+ * Jul 26, 2019  66393    mapeters  Handle {@link AttrSettings#getSettings} change
+ *
  * </pre>
- * 
+ *
  * @author B. Yin
  */
 
@@ -156,7 +158,7 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Private constructor
-     * 
+     *
      * @param parShell
      * @throws VizException
      */
@@ -168,9 +170,9 @@ public class JetAttrDlg extends LineAttrDlg {
     }
 
     /**
-     * Creates a volcano attribute dialog if the dialog does not exist and returns the instance. If the dialog exists,
-     * return the instance.
-     * 
+     * Creates a volcano attribute dialog if the dialog does not exist and
+     * returns the instance. If the dialog exists, return the instance.
+     *
      * @param parShell
      * @return
      */
@@ -231,8 +233,8 @@ public class JetAttrDlg extends LineAttrDlg {
         Group widthGrp = new Group(pane1, SWT.NONE);
         widthGrp.setLayout(gl);
 
-        widthSpinnerSlider = new gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.SpinnerSlider(widthGrp, SWT.HORIZONTAL,
-                1);
+        widthSpinnerSlider = new gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.SpinnerSlider(
+                widthGrp, SWT.HORIZONTAL, 1);
         widthSpinnerSlider.setLayoutData(new GridData(180, 30));
         widthSpinnerSlider.setMinimum(1);
         widthSpinnerSlider.setMaximum(20);
@@ -248,8 +250,8 @@ public class JetAttrDlg extends LineAttrDlg {
         Group psGrp = new Group(pane1, SWT.NONE);
         psGrp.setLayout(gl);
 
-        patternSizeSpinnerSlider = new gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.SpinnerSlider(psGrp,
-                SWT.HORIZONTAL, 1);
+        patternSizeSpinnerSlider = new gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.SpinnerSlider(
+                psGrp, SWT.HORIZONTAL, 1);
         patternSizeSpinnerSlider.setLayoutData(new GridData(180, 30));
         patternSizeSpinnerSlider.setMinimum(1);
         patternSizeSpinnerSlider.setMaximum(100);
@@ -382,7 +384,8 @@ public class JetAttrDlg extends LineAttrDlg {
 
                 try {
                     if (barbAttrDlg == null) {
-                        barbAttrDlg = new BarbAttrDlg(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+                        barbAttrDlg = new BarbAttrDlg(PlatformUI.getWorkbench()
+                                .getActiveWorkbenchWindow().getShell());
                     }
                     openAttrDlg(barbAttrDlg);
                     barbAttrDlg.initDlg();
@@ -390,12 +393,13 @@ public class JetAttrDlg extends LineAttrDlg {
 
                     // get stored attributes
                     if (barbTemplate != null) {
-                        barbAttrDlg.setAttrForDlg((IAttribute) barbTemplate);
+                        barbAttrDlg.setAttrForDlg(barbTemplate);
                     } else {
                         // set default from settings table
                         IAttribute barbAttr = getBarbAttrFromSettings();
-                        if (barbAttr != null)
+                        if (barbAttr != null) {
                             barbAttrDlg.setAttrForDlg(barbAttr);
+                        }
                     }
                     // disable some un-used widgets
                     barbAttrDlg.disableWidgets();
@@ -415,7 +419,8 @@ public class JetAttrDlg extends LineAttrDlg {
             public void handleEvent(Event event) {
                 try {
                     if (hashAttrDlg == null) {
-                        hashAttrDlg = new HashAttrDlg(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+                        hashAttrDlg = new HashAttrDlg(PlatformUI.getWorkbench()
+                                .getActiveWorkbenchWindow().getShell());
                     }
                     openAttrDlg(hashAttrDlg);
                     hashAttrDlg.initDlg();
@@ -423,12 +428,13 @@ public class JetAttrDlg extends LineAttrDlg {
 
                     // get stored attributes
                     if (hashTemplate != null) {
-                        hashAttrDlg.setAttrForDlg((IAttribute) hashTemplate);
+                        hashAttrDlg.setAttrForDlg(hashTemplate);
                     } else {
                         // set default from settings table
                         IAttribute hashAttr = getHashAttrFromSettings();
-                        if (hashAttr != null)
+                        if (hashAttr != null) {
                             hashAttrDlg.setAttrForDlg(hashAttr);
+                        }
                     }
 
                     // disable some un-used widgets
@@ -448,19 +454,21 @@ public class JetAttrDlg extends LineAttrDlg {
             public void handleEvent(Event event) {
                 try {
                     if (flAttrDlg == null) {
-                        flAttrDlg = new FLAttrDlg(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+                        flAttrDlg = new FLAttrDlg(PlatformUI.getWorkbench()
+                                .getActiveWorkbenchWindow().getShell());
                     }
                     openAttrDlg(flAttrDlg);
                     flAttrDlg.initDlg();
 
                     // get stored attributes
                     if (flTemplate != null) {
-                        flAttrDlg.setAttrForDlg((IAttribute) flTemplate);
+                        flAttrDlg.setAttrForDlg(flTemplate);
                     } else {
                         // set default from settings table
                         IAttribute flAttr = getFlAttrFromSettings();
-                        if (flAttr != null)
+                        if (flAttr != null) {
                             flAttrDlg.setAttrForDlg(flAttr);
+                        }
                     }
 
                     // disable un-used attributes
@@ -476,7 +484,7 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * initialize and open the dialog
-     * 
+     *
      * @param dlg
      */
     private void openAttrDlg(AttrDlg dlg) {
@@ -512,12 +520,15 @@ public class JetAttrDlg extends LineAttrDlg {
     @Override
     public boolean close() {
 
-        if (barbAttrDlg != null)
+        if (barbAttrDlg != null) {
             barbAttrDlg.close();
-        if (hashAttrDlg != null)
+        }
+        if (hashAttrDlg != null) {
             hashAttrDlg.close();
-        if (flAttrDlg != null)
+        }
+        if (flAttrDlg != null) {
             flAttrDlg.close();
+        }
         jetTool = null; // prevent reseting mouse handler
         barbDlg.close();
         return super.close();
@@ -555,7 +566,7 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * get barb speed
-     * 
+     *
      * @return
      */
     public int getBarbSpeed() {
@@ -583,7 +594,7 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * get the flight level
-     * 
+     *
      * @return
      */
     public int getFlightLevel() {
@@ -611,7 +622,7 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * get top/bottom of the flight level
-     * 
+     *
      * @return
      */
     public String getFLDepth() {
@@ -641,9 +652,11 @@ public class JetAttrDlg extends LineAttrDlg {
             barbDlg.btmTxt.setText(String.valueOf(bottom));
         }
 
-        String flDepth = barbDlg.topTxt.getText().trim() + "/" + barbDlg.btmTxt.getText().trim();
-        if (flDepth.length() == 1)
+        String flDepth = barbDlg.topTxt.getText().trim() + "/"
+                + barbDlg.btmTxt.getText().trim();
+        if (flDepth.length() == 1) {
             flDepth = null;
+        }
         return flDepth;
     }
 
@@ -656,55 +669,58 @@ public class JetAttrDlg extends LineAttrDlg {
     }
 
     /**
-     * get barb attributes. If the dialog is open, get attributes from the dialog, otherwise, get them from the stored
-     * attributes.
-     * 
+     * get barb attributes. If the dialog is open, get attributes from the
+     * dialog, otherwise, get them from the stored attributes.
+     *
      * @return
      */
     public IAttribute getBarbAttr() {
-        if (barbAttrDlg != null && barbAttrDlg.getShell() != null)
+        if (barbAttrDlg != null && barbAttrDlg.getShell() != null) {
             return barbAttrDlg;
-        else if (barbTemplate != null)
+        } else if (barbTemplate != null) {
             return barbTemplate;
-        else
+        } else {
             return getBarbAttrFromSettings();
+        }
     }
 
     /**
-     * get hash attributes. If the dialog is open, get attributes from the dialog, otherwise, get them from the stored
-     * attributes.
-     * 
+     * get hash attributes. If the dialog is open, get attributes from the
+     * dialog, otherwise, get them from the stored attributes.
+     *
      * @return
      */
     public IAttribute getHashAttr() {
-        if (hashAttrDlg != null && hashAttrDlg.getShell() != null)
+        if (hashAttrDlg != null && hashAttrDlg.getShell() != null) {
             return hashAttrDlg;
-        else if (hashTemplate != null)
+        } else if (hashTemplate != null) {
             return hashTemplate;
-        else
+        } else {
             return getHashAttrFromSettings();
+        }
     }
 
     /**
-     * get fl text attributes. If the dialog is open, get attributes from the dialog, otherwise, get them from the
-     * stored attributes.
-     * 
+     * get fl text attributes. If the dialog is open, get attributes from the
+     * dialog, otherwise, get them from the stored attributes.
+     *
      * @return
      */
     public IAttribute getFLAttr() {
-        if (flAttrDlg != null && flAttrDlg.getShell() != null)
+        if (flAttrDlg != null && flAttrDlg.getShell() != null) {
             return flAttrDlg;
-        else if (flTemplate != null)
+        } else if (flTemplate != null) {
             return flTemplate;
-        else
+        } else {
             return getFlAttrFromSettings();
+        }
     }
 
     /**
      * Dialog class for barb info input
-     * 
+     *
      * @author bingfan
-     * 
+     *
      */
     private class BarbDlg extends Window {
 
@@ -720,6 +736,7 @@ public class JetAttrDlg extends LineAttrDlg {
             super(parentShell);
         }
 
+        @Override
         protected Control createContents(Composite parent) {
 
             this.getShell().setText("Barb Info");
@@ -793,7 +810,8 @@ public class JetAttrDlg extends LineAttrDlg {
             setBlockOnOpen(false);
 
             Point loc = INSTANCE.getShell().getLocation();
-            getShell().setLocation(loc.x, loc.y + INSTANCE.getShell().getSize().y);
+            getShell().setLocation(loc.x,
+                    loc.y + INSTANCE.getShell().getSize().y);
 
             return super.open();
 
@@ -802,17 +820,18 @@ public class JetAttrDlg extends LineAttrDlg {
         @Override
         public boolean close() {
 
-            if (jetTool != null)
+            if (jetTool != null) {
                 jetTool.resetMouseHandler(); // de-activate addBarbTool
+            }
             return super.close();
         }
     }
 
     /**
      * Barb attribute dialog.
-     * 
+     *
      * @author bingfan
-     * 
+     *
      */
     private class BarbAttrDlg extends VectorAttrDlg {
 
@@ -824,7 +843,8 @@ public class JetAttrDlg extends LineAttrDlg {
 
         @Override
         public void okPressed() {
-            barbTemplate = (Vector) new DrawableElementFactory().create(DrawableType.VECTOR, this, "Vector", "Barb",
+            barbTemplate = (Vector) new DrawableElementFactory().create(
+                    DrawableType.VECTOR, this, "Vector", "Barb",
                     (Coordinate) null, null);
 
             // apply to all barbs
@@ -839,8 +859,10 @@ public class JetAttrDlg extends LineAttrDlg {
          * disable un-used widgets
          */
         protected void disableWidgets() {
-            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, false);
-            setAttributeComponentsEnabled(directionLabel, directionText, directionSlider, false);
+            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider,
+                    false);
+            setAttributeComponentsEnabled(directionLabel, directionText,
+                    directionSlider, false);
         }
 
         /**
@@ -859,9 +881,9 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Hash attribute dialog.
-     * 
+     *
      * @author bingfan
-     * 
+     *
      */
     private class HashAttrDlg extends BarbAttrDlg {
 
@@ -873,7 +895,8 @@ public class JetAttrDlg extends LineAttrDlg {
 
         @Override
         public void okPressed() {
-            hashTemplate = (Vector) new DrawableElementFactory().create(DrawableType.VECTOR, this, "Vector", "Hash",
+            hashTemplate = (Vector) new DrawableElementFactory().create(
+                    DrawableType.VECTOR, this, "Vector", "Hash",
                     (Coordinate) null, null);
 
             // apply to all barbs
@@ -887,9 +910,9 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Flght level text dialog class
-     * 
+     *
      * @author bingfan
-     * 
+     *
      */
     private class FLAttrDlg extends TextAttrDlg {
 
@@ -901,8 +924,9 @@ public class JetAttrDlg extends LineAttrDlg {
 
         @Override
         public void okPressed() {
-            flTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Text) new DrawableElementFactory().create(
-                    DrawableType.TEXT, this, "Text", "General Text", (Coordinate) null, null);
+            flTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Text) new DrawableElementFactory()
+                    .create(DrawableType.TEXT, this, "Text", "General Text",
+                            (Coordinate) null, null);
 
             // apply to all flight level texts
             if (jetTool instanceof PgenSelectingTool) {
@@ -939,6 +963,7 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Return false because jet cannot be closed line.
      */
+    @Override
     public Boolean isClosedLine() {
         return false;
     }
@@ -946,6 +971,7 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Return false because jet cannot be filled.
      */
+    @Override
     public Boolean isFilled() {
         return false;
     }
@@ -953,12 +979,14 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Return color selection from the attribute dialog
      */
+    @Override
     public Color[] getColors() {
         // IAttribute requires to return an array of colors
         // Only the first color is used at this time.
         Color[] colors = new Color[2];
 
-        colors[0] = new java.awt.Color(cs.getColorValue().red, cs.getColorValue().green, cs.getColorValue().blue);
+        colors[0] = new java.awt.Color(cs.getColorValue().red,
+                cs.getColorValue().green, cs.getColorValue().blue);
 
         colors[1] = Color.green;
 
@@ -967,19 +995,21 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Sets the color of the color picker of the dialog.
-     * 
+     *
      * @param clr
      */
     @Override
     public void setColor(Color clr[]) {
 
-        cs.setColorValue(new RGB(clr[0].getRed(), clr[0].getGreen(), clr[0].getBlue()));
+        cs.setColorValue(
+                new RGB(clr[0].getRed(), clr[0].getGreen(), clr[0].getBlue()));
 
     }
 
     /**
      * Return line with from the attribute dialog
      */
+    @Override
     public float getLineWidth() {
         return widthSpinnerSlider.getSelection();
     }
@@ -987,6 +1017,7 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Return smooth level from the attribute dialog
      */
+    @Override
     public int getSmoothFactor() {
         return smoothLvlCbo.getSelectionIndex();
     }
@@ -994,26 +1025,29 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Set dialog attributes using values of adc
      */
+    @Override
     public void setAttr(AbstractDrawableComponent adc) {
         if (adc instanceof Jet) {
-            super.setAttrForDlg((IAttribute) ((Jet) adc).getJetLine());
+            super.setAttrForDlg(((Jet) adc).getJetLine());
         }
     }
 
     /**
      * Get default hash attributes from the settings table.
-     * 
+     *
      * @return
      */
     private IAttribute getHashAttrFromSettings() {
 
-        AbstractDrawableComponent adc = AttrSettings.getInstance().getSettings().get("JET");
+        AbstractDrawableComponent adc = AttrSettings.getInstance()
+                .getSettings("JET");
         if (adc != null && adc instanceof Jet) {
             Iterator<DrawableElement> it = ((Jet) adc).createDEIterator();
             while (it.hasNext()) {
                 DrawableElement de = it.next();
-                if (de instanceof Vector && ((Vector) de).getVectorType() == VectorType.HASH_MARK) {
-                    return (IAttribute) de;
+                if (de instanceof Vector && ((Vector) de)
+                        .getVectorType() == VectorType.HASH_MARK) {
+                    return de;
                 }
             }
         }
@@ -1023,18 +1057,20 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Get default jet barb attributes from the settings table.
-     * 
+     *
      * @return
      */
     private IAttribute getBarbAttrFromSettings() {
 
-        AbstractDrawableComponent adc = AttrSettings.getInstance().getSettings().get("JET");
+        AbstractDrawableComponent adc = AttrSettings.getInstance()
+                .getSettings("JET");
         if (adc != null && adc instanceof Jet) {
             Iterator<DrawableElement> it = ((Jet) adc).createDEIterator();
             while (it.hasNext()) {
                 DrawableElement de = it.next();
-                if (de instanceof Vector && ((Vector) de).getVectorType() == VectorType.WIND_BARB) {
-                    return (IAttribute) de;
+                if (de instanceof Vector && ((Vector) de)
+                        .getVectorType() == VectorType.WIND_BARB) {
+                    return de;
                 }
             }
         }
@@ -1044,18 +1080,19 @@ public class JetAttrDlg extends LineAttrDlg {
 
     /**
      * Get default flight level text attributes from the settings table.
-     * 
+     *
      * @return
      */
     private IAttribute getFlAttrFromSettings() {
 
-        AbstractDrawableComponent adc = AttrSettings.getInstance().getSettings().get("JET");
+        AbstractDrawableComponent adc = AttrSettings.getInstance()
+                .getSettings("JET");
         if (adc != null && adc instanceof Jet) {
             Iterator<DrawableElement> it = ((Jet) adc).createDEIterator();
             while (it.hasNext()) {
                 DrawableElement de = it.next();
                 if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
-                    return (IAttribute) de;
+                    return de;
                 }
             }
         }
@@ -1066,30 +1103,34 @@ public class JetAttrDlg extends LineAttrDlg {
     /**
      * Get the size scale.
      */
+    @Override
     public double getSizeScale() {
         return patternSizeSpinnerSlider.getSelection() / 10.0;
     }
 
     /**
-     * Update the pane that indicates how many hashes are needed for each section of the jet.
-     * 
+     * Update the pane that indicates how many hashes are needed for each
+     * section of the jet.
+     *
      */
     public void updateSegmentPane() {
 
         clearSegPane();
         if (jetTool != null && jetTool.getJet().getSnapTool() != null) {
 
-            java.util.Vector<Integer> seg = jetTool.getJet().getSnapTool().checkHashOnJet(jetTool.getJet());
+            java.util.Vector<Integer> seg = jetTool.getJet().getSnapTool()
+                    .checkHashOnJet(jetTool.getJet());
 
             for (int ii : seg) {
                 Label lbl = new Label(segPane, SWT.NONE);
                 lbl.setText(String.valueOf(ii));
                 if (ii == 0) {
-                    lbl.setBackground(new org.eclipse.swt.graphics.Color(this.getShell().getDisplay(), new RGB(0, 255,
-                            0)));
-                } else
-                    lbl.setBackground(new org.eclipse.swt.graphics.Color(this.getShell().getDisplay(), new RGB(255, 0,
-                            0)));
+                    lbl.setBackground(new org.eclipse.swt.graphics.Color(
+                            this.getShell().getDisplay(), new RGB(0, 255, 0)));
+                } else {
+                    lbl.setBackground(new org.eclipse.swt.graphics.Color(
+                            this.getShell().getDisplay(), new RGB(255, 0, 0)));
+                }
             }
 
             segPane.pack(true);
@@ -1119,7 +1160,8 @@ public class JetAttrDlg extends LineAttrDlg {
 
     public void updateBarbTemplate(IVector barb) {
         if (barbTemplate == null) {
-            barbTemplate = (Vector) new DrawableElementFactory().create(DrawableType.VECTOR, this, "Vector", "Barb",
+            barbTemplate = (Vector) new DrawableElementFactory().create(
+                    DrawableType.VECTOR, this, "Vector", "Barb",
                     (Coordinate) null, null);
         }
         this.barbTemplate.update(barb);
@@ -1131,8 +1173,9 @@ public class JetAttrDlg extends LineAttrDlg {
 
     public void updateFlTemplate(IText txt) {
         if (flTemplate == null) {
-            flTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Text) new DrawableElementFactory().create(
-                    DrawableType.TEXT, this, "Text", "General Text", (Coordinate) null, null);
+            flTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Text) new DrawableElementFactory()
+                    .create(DrawableType.TEXT, this, "Text", "General Text",
+                            (Coordinate) null, null);
         }
         this.flTemplate.update(txt);
 
@@ -1143,7 +1186,8 @@ public class JetAttrDlg extends LineAttrDlg {
 
     public void updateHashTemplate(IVector hash) {
         if (hashTemplate == null) {
-            hashTemplate = (Vector) new DrawableElementFactory().create(DrawableType.VECTOR, this, "Vector", "Hash",
+            hashTemplate = (Vector) new DrawableElementFactory().create(
+                    DrawableType.VECTOR, this, "Vector", "Hash",
                     (Coordinate) null, null);
         }
         this.hashTemplate.update(hash);

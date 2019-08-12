@@ -16,6 +16,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.dataplugin.grid.GridConstants;
 import com.raytheon.uf.common.dataplugin.grid.GridInfoRecord;
@@ -47,41 +48,53 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
  * <pre>
  * SOFTWARE HISTORY
  *
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 04/04/2011   301         Chin Chen   Initial coding
- * 02/28/2012               Chin Chen   modify several sounding query algorithms for better performance
- * 03/28/2012               Chin Chen   Add new API to support query multiple Points at one shoot and using
- *                                      dataStore.retrieveGroups()
- * Oct 15, 2012 2473        bsteffen    Remove ncgrib
- * 03/2014      1116        T. Lee      Added DpD
- * 01/2015      DR#16959    Chin Chen   Added DpT support to fix DR 16959 NSHARP freezes when loading a sounding from
- *                                      HiRes-ARW/NMM models
- * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites
- * 02/27/2015   RM#6641     Chin Chen   Retrieving model 2m FHAG Dew Point
- * 03/16/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option
- * 04/29/2015   RM#7782     Chin Chen   NSHARP - Gridded wind direction correction
- * 05/06/2015   RM#7783     Chin Chen   NSHARP - Some models are not returning dew point
- * 05/15/2015   Rm#8160     Chin Chen   NSHARP - Add vertical velocity from model grids
- * 05/26/2015   RM#8306     Chin Chen   eliminate NSHARP dependence on uEngine.
- *                                      Copy whole file mdlSoundingQuery.java from uEngine project to this serverRequestService project.
- *                                      "refactor" and clean up unused code for this ticket.
- * 04/10/2017   DR#30518    nabowle     Load surface data for multiple points simultaneously to speed up requests.
- * 04/18/2018   17341       mgamazaychikov  If surface elevation is missing and topo query returns NaN
- *                                          set surface elevation to 0.0; cleaned up code.
- * 05/07/2018   7283        mapeters    Fully eliminate uEngine dependence
- * 06/22/2018   17341       mgamazaychikov  Reconcile differences with 30518.
+ * Date          Ticket#  Engineer        Description
+ * ------------- -------- --------------- --------------------------------------
+ * Apr 04, 2011  301      Chin Chen       Initial coding
+ * Feb 28, 2012           Chin Chen       modify several sounding query
+ *                                        algorithms for better performance
+ * Mar 28, 2012           Chin Chen       Add new API to support query multiple
+ *                                        Points at one shoot and using
+ *                                        dataStore.retrieveGroups()
+ * Oct 15, 2012  2473     bsteffen        Remove ncgrib
+ * 03/2014       1116     T. Lee          Added DpD
+ * 01/2015       16959    Chin Chen       Added DpT support to fix DR 16959
+ *                                        NSHARP freezes when loading a sounding
+ *                                        from HiRes-ARW/NMM models
+ * Feb 03, 2015  17084    Chin Chen       Model soundings being interpolated
+ *                                        below the surface for elevated sites
+ * Feb 27, 2015  6641     Chin Chen       Retrieving model 2m FHAG Dew Point
+ * Mar 16, 2015  6674     Chin Chen       support model sounding query data
+ *                                        interpolation and nearest point option
+ * Apr 29, 2015  7782     Chin Chen       NSHARP - Gridded wind direction
+ *                                        correction
+ * May 06, 2015  7783     Chin Chen       NSHARP - Some models are not returning
+ *                                        dew point
+ * May 15, 2015  Rm#8160  Chin Chen       NSHARP - Add vertical velocity from
+ *                                        model grids
+ * May 26, 2015  8306     Chin Chen       eliminate NSHARP dependence on
+ *                                        uEngine. Copy whole file
+ *                                        mdlSoundingQuery.java from uEngine
+ *                                        project to this serverRequestService
+ *                                        project. "refactor" and clean up
+ *                                        unused code for this ticket.
+ * Apr 10, 2017  30518    nabowle         Load surface data for multiple points
+ *                                        simultaneously to speed up requests.
+ * Apr 18, 2018  17341    mgamazaychikov  If surface elevation is missing and
+ *                                        topo query returns NaN set surface
+ *                                        elevation to 0.0; cleaned up code.
+ * May 07, 2018  7283     mapeters        Fully eliminate uEngine dependence
+ * Jun 22, 2018  17341    mgamazaychikov  Reconcile differences with 30518.
+ * Jul 12, 2019           tjensen         Updated to support multiple H5s per
+ *                                        model
  *
  * </pre>
  *
  * @author Chin Chen
- * @version 1.0
  */
 public class ModelsSoundingQuery {
     private static final Logger logger = LoggerFactory
             .getLogger(ModelsSoundingQuery.class);
-
-    private static final String GRID_TBL_NAME = "grid";
 
     // Change specific humidity from SPFH to SH as defined in "parameter" table
     // Also remove DWPK and OMEG as they are not defined in "parameter" table
@@ -89,7 +102,7 @@ public class ModelsSoundingQuery {
 
     private enum GridParmNames {
         GH, uW, vW, T, SH, RH, DpD, DpT, PVV
-    };
+    }
 
     private static UnitConverter kelvinToCelsius = SI.KELVIN
             .getConverterTo(SI.CELSIUS);
@@ -117,11 +130,12 @@ public class ModelsSoundingQuery {
     public static NcSoundingTimeLines getMdlSndRangeTimeLine(String mdlType,
             String refTimeStr) {
         NcSoundingTimeLines tl = new NcSoundingTimeLines();
-        // Chin: modified for Unified Grid DB
-        // make sure data in DB is not just nHour data, as those data are not
-        // used by Nsharp. And when query to it, the returned will be
-        // null. We do not want to show such sounding time line to user.
-        // use this SQL query string for gfs as example.
+        /*
+         * Chin: modified for Unified Grid DB make sure data in DB is not just
+         * nHour data, as those data are not used by Nsharp. And when query to
+         * it, the returned will be null. We do not want to show such sounding
+         * time line to user. use this SQL query string for gfs as example.
+         */
         /*
          * Select Distinct rangestart FROM grid FULL JOIN grid_info ON
          * grid.info_id=grid_info.id where grid.reftime = '2012-01-26 00:00:00'
@@ -140,7 +154,7 @@ public class ModelsSoundingQuery {
 
         CoreDao dao = new CoreDao(DaoConfig.forClass(GridRecord.class));
         soundingTimeAry = dao.executeSQLQuery(queryStr);
-        for (int i = 0; i < soundingTimeAry.length; i++) {
+        for (Object timeLine : soundingTimeAry) {
             /*
              * Chin: make sure the time line has more than 5 T(temp) values at
              * pressure (levelone) greater/equal than/to 100 hPa (mbar) use this
@@ -154,7 +168,7 @@ public class ModelsSoundingQuery {
              */
             String queryStr1 = new String(
                     "Select count(rangestart) FROM (select   rangestart FROM grid FULL JOIN grid_info ON grid.info_id=grid_info.id FULL JOIN level ON grid_info.level_id= level.id where grid.rangestart = '"
-                            + soundingTimeAry[i]
+                            + timeLine
                             + "' AND grid.rangestart = grid.rangeend AND grid_info.datasetid='"
                             + mdlType
                             + "' AND grid_info.parameter_abbreviation='T' AND level.levelonevalue > 99) X HAVING count(X.rangestart) >2");
@@ -165,7 +179,6 @@ public class ModelsSoundingQuery {
                 count = (java.math.BigInteger) countAry[0];
             }
             if (count.intValue() > 2) {
-                Object timeLine = soundingTimeAry[i];
                 reSoundingTimeAry.add(timeLine);
             }
         }
@@ -196,7 +209,7 @@ public class ModelsSoundingQuery {
             String mdlName) {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<>();
         List<?> levels = getModelLevels(refTime, validTime, mdlName);
-        if (levels.size() == 0) {
+        if (levels.isEmpty()) {
             logger.info("getModelLevels return 0;  file=" + refTime + " stime="
                     + validTime + " modeltype=" + mdlName);
             return soundingProfileList;
@@ -225,7 +238,7 @@ public class ModelsSoundingQuery {
             String mdlName) {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<>();
         List<?> levels = getModelLevels(refTime, validTime, mdlName);
-        if (levels.size() == 0) {
+        if (levels.isEmpty()) {
             logger.info("getModelLevels return 0;  file=" + refTime + " stime="
                     + validTime + " modeltype=" + mdlName);
             return soundingProfileList;
@@ -289,8 +302,10 @@ public class ModelsSoundingQuery {
             query.addQueryParam(GridConstants.LEVEL_ONE, "0.0");
             query.addQueryParam(GridConstants.LEVEL_TWO, "-999999.0");
             query.addQueryParam(GridConstants.MASTER_LEVEL_NAME, "SFC");
-            // 7783, we intend to get P and GH for most models, but model
-            // ECMWF-HiRes saves its T, DpT, vW, uW at SFC data set
+            /*
+             * 7783, we intend to get P and GH for most models, but model
+             * ECMWF-HiRes saves its T, DpT, vW, uW at SFC data set
+             */
             query.addQueryParam(GridConstants.PARAMETER_ABBREVIATION,
                     "P, GH,  T, DpT, vW, uW", "in");
             query.addQueryParam(GridConstants.DATASET_ID, modelName);
@@ -311,8 +326,10 @@ public class ModelsSoundingQuery {
             query.addQueryParam("dataTime.refTime", refTime);
             query.addQueryParam("dataTime.validPeriod.start", validTime);
             recList = (List<GridRecord>) dao.queryByCriteria(query);
-            // combine the two lists of FHAG records to read from the datastore
-            // only once
+            /*
+             * combine the two lists of FHAG records to read from the datastore
+             * only once
+             */
             List<GridRecord> fhagRecList = new ArrayList<>();
             if (recList != null) {
                 fhagRecList.addAll(recList);
@@ -334,11 +351,13 @@ public class ModelsSoundingQuery {
             updateLayers(points, layers, presAvailable, heightAvailable,
                     fhagRecList);
 
-            // Validate that each surface level has a pressure level or
-            // geoheight
+            /*
+             * Validate that each surface level has a pressure level or
+             * geoheight
+             */
             for (int i = 0; i < points.size(); i++) {
                 NcSoundingLayer soundingLy = layers.get(i);
-                if (presAvailable[i] == false || heightAvailable[i] == false) {
+                if (!presAvailable[i] || !heightAvailable[i]) {
                     float surfaceElevation = NcSoundingProfile.MISSING;
                     TopoQuery topoQuery = TopoQuery.getInstance();
                     if (topoQuery != null) {
@@ -359,11 +378,11 @@ public class ModelsSoundingQuery {
                         surfaceElevation = (float) topoQuery.getHeight(coord);
                         if (surfaceElevation >= 0) {
                             soundingLy.setGeoHeight(surfaceElevation);
-                        } else if (presAvailable[i] == false) {
+                        } else if (!presAvailable[i]) {
                             // no pressure and no height, no hope to continue
                             layers.set(i, null);
                         }
-                    } else if (presAvailable[i] == false) {
+                    } else if (!presAvailable[i]) {
                         // no pressure and no height, no hope to continue
                         layers.set(i, null);
                     }
@@ -402,35 +421,35 @@ public class ModelsSoundingQuery {
             boolean[] heightAvailable, List<GridRecord> recList)
             throws PluginException {
         if (recList != null && !recList.isEmpty()) {
-            PointIn pointIn = new PointIn(GRID_TBL_NAME, recList.get(0));
-            List<float[]> values = pointIn
-                    .getHDF5GroupDataPoints(recList.toArray(), surroundPoints);
+            List<PluginDataObject> newOrderedRecs = new ArrayList<>();
+            List<float[]> values = PointIn.getHDF5GroupDataPoints(
+                    recList.toArray(), surroundPoints, newOrderedRecs);
             for (int i = 0; i < surroundPoints.size(); i++) {
                 float[] fdata = values.get(i);
                 NcSoundingLayer soundingLy = layers.get(i);
                 layers.set(i, soundingLy);
-                for (int j = 0; j < recList.size(); j++) {
-                    GridRecord rec = recList.get(j);
+                for (int j = 0; j < newOrderedRecs.size(); j++) {
+                    GridRecord rec = (GridRecord) newOrderedRecs.get(j);
                     String parm = rec.getParameter().getAbbreviation();
-                    if (parm.equals("P")) {
+                    if ("P".equals(parm)) {
                         soundingLy.setPressure(fdata[j] / 100);
                         presAvailable[i] = true;
-                    } else if (parm.equals("GH")) {
+                    } else if ("GH".equals(parm)) {
                         soundingLy.setGeoHeight(fdata[j]);
                         heightAvailable[i] = true;
-                    } else if (parm.equals("T")) {
+                    } else if ("T".equals(parm)) {
                         soundingLy.setTemperature(
                                 (float) kelvinToCelsius.convert(fdata[j]));
-                    } else if (parm.equals("DpT")) {
+                    } else if ("DpT".equals(parm)) {
                         soundingLy.setDewpoint(
                                 (float) kelvinToCelsius.convert(fdata[j]));
-                    } else if (parm.equals("vW")) {
+                    } else if ("vW".equals(parm)) {
                         soundingLy.setWindV((float) metersPerSecondToKnots
                                 .convert(fdata[j]));
-                    } else if (parm.equals("uW")) {
+                    } else if ("uW".equals(parm)) {
                         soundingLy.setWindU((float) metersPerSecondToKnots
                                 .convert(fdata[j]));
-                    } else if (parm.equals("RH")) {
+                    } else if ("RH".equals(parm)) {
                         soundingLy.setRelativeHumidity(fdata[j]);
                     }
                 }
@@ -461,6 +480,7 @@ public class ModelsSoundingQuery {
         List<float[]> fdataArrayList = new ArrayList<>();
 
         List<GridRecord> recList = new ArrayList<>();
+        List<PluginDataObject> newOrderedRecs = new ArrayList<>();
         ISpatialObject spatialArea = null;
         CoreDao dao = new CoreDao(DaoConfig.forClass(GridRecord.class));
         DatabaseQuery query = new DatabaseQuery(GridRecord.class.getName());
@@ -473,14 +493,14 @@ public class ModelsSoundingQuery {
             query.addQueryParam("dataTime.validPeriod.start", validTime);
             query.addOrder(GridConstants.LEVEL_ONE, false);
             recList = (List<GridRecord>) dao.queryByCriteria(query);
-            if (recList.size() > 0) {
+            if (!recList.isEmpty()) {
                 // use any one GridRecord for all points
                 GridRecord gridRec = recList.get(0);
                 spatialArea = gridRec.getSpatialObject();
                 double lat, lon;
-                for (int k = 0; k < latLonArray.length; k++) {
-                    lat = latLonArray[k].y;
-                    lon = latLonArray[k].x;
+                for (Coordinate latLon : latLonArray) {
+                    lat = latLon.y;
+                    lon = latLon.x;
                     Point pt = getNearestPt(lat, lon, spatialArea);
                     if (pt == null) {
                         logger.info("getLatLonNearestPt return 0; lat=" + lat
@@ -490,9 +510,8 @@ public class ModelsSoundingQuery {
                         points.add(pt);
                     }
                 }
-                PointIn pointIn = new PointIn(GRID_TBL_NAME, gridRec);
-                fdataArrayList = pointIn
-                        .getHDF5GroupDataPoints(recList.toArray(), points);
+                fdataArrayList = PointIn.getHDF5GroupDataPoints(
+                        recList.toArray(), points, newOrderedRecs);
                 logger.info("Number of record=" + recList.size());
                 logger.info(
                         "Number of fdataArrayList=" + fdataArrayList.size());
@@ -514,7 +533,7 @@ public class ModelsSoundingQuery {
             NcSoundingProfile pf = new NcSoundingProfile();
             List<NcSoundingLayer> soundLyList = new ArrayList<>();
             Point pnt = points.get(index);
-            Object[] recArray = recList.toArray();
+            Object[] recArray = newOrderedRecs.toArray();
             for (Object level : levels) {
                 NcSoundingLayer soundingLy = new NcSoundingLayer();
                 double pressure = (Double) level;
@@ -578,10 +597,11 @@ public class ModelsSoundingQuery {
             if (sfcLayer != null) {
                 if (sfcLayer.getPressure() == NcSoundingLayer.MISSING
                         && sfcLayer.getGeoHeight() != NcSoundingLayer.MISSING) {
-                    // surface layer does not have pressure, but surface height
-                    // is available
-                    // see if we can interpolate surface pressure from upper and
-                    // lower layer pressure
+                    /*
+                     * surface layer does not have pressure, but surface height
+                     * is available see if we can interpolate surface pressure
+                     * from upper and lower layer pressure
+                     */
                     for (int i = 0; i < soundLyList.size(); i++) {
                         if (soundLyList.get(i).getGeoHeight() > sfcLayer
                                 .getGeoHeight()) {
@@ -640,10 +660,11 @@ public class ModelsSoundingQuery {
     private static NcSoundingProfile performInterpolation(
             List<NcSoundingProfile> soundingProfileList, float xfrac,
             float yfrac) {
-        // the soundingProfileList now contains 1, 2, or 4 profiles depending on
-        // the size of
-        // surroundPoints of the requested location
-        // do interpolation to interpolate those profiles to one profile
+        /*
+         * the soundingProfileList now contains 1, 2, or 4 profiles depending on
+         * the size of surroundPoints of the requested location do interpolation
+         * to interpolate those profiles to one profile
+         */
         if (soundingProfileList.size() == 1) {
             // interpolation is not necessary
             return soundingProfileList.get(0);
@@ -751,12 +772,8 @@ public class ModelsSoundingQuery {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<>();
         List<NcSoundingProfile> returnProfileList = new ArrayList<>();
         List<float[]> fdataArrayList = new ArrayList<>();
-        List<List<Point>> pntLstLst = new ArrayList<>(); // one point
-                                                         // list
-                                                         // represent
-                                                         // for one
-                                                         // request
-                                                         // location(lat/lon)
+        // one point list represent for one request location(lat/lon)
+        List<List<Point>> pntLstLst = new ArrayList<>();
         List<GridRecord> recList = new ArrayList<>();
         ISpatialObject spatialArea = null;
         CoreDao dao = new CoreDao(DaoConfig.forClass(GridRecord.class));
@@ -770,36 +787,38 @@ public class ModelsSoundingQuery {
             query.addQueryParam("dataTime.validPeriod.start", validTime);
             query.addOrder(GridConstants.LEVEL_ONE, false);
             recList = (List<GridRecord>) dao.queryByCriteria(query);
-            if (recList.size() > 0) {
+            if (!recList.isEmpty()) {
                 // use any one GridRecord for all points
                 GridRecord gridRec = recList.get(0);
                 spatialArea = gridRec.getSpatialObject();
                 double lat, lon;
                 float[] xyfrac = { 0f, 0f };
-                for (int k = 0; k < latLonArray.length; k++) {
+                for (Coordinate latLon : latLonArray) {
                     // FOR each request location
-                    lat = latLonArray[k].y;
-                    lon = latLonArray[k].x;
+                    lat = latLon.y;
+                    lon = latLon.x;
                     List<Point> surroundPoints = getSurroundingPoints(lat, lon,
                             spatialArea, xyfrac);
                     if (surroundPoints != null) {
-                        // the returned "surroundPoints" should contain 1, 2, or
-                        // 4 points surrounding the request point,
-                        // and they are used for interpolation to the one
-                        // requested location (lat/lon) later
+                        /*
+                         * the returned "surroundPoints" should contain 1, 2, or
+                         * 4 points surrounding the request point, and they are
+                         * used for interpolation to the one requested location
+                         * (lat/lon) later
+                         */
                         pntLstLst.add(surroundPoints);
-                        PointIn pointIn = new PointIn(GRID_TBL_NAME, gridRec);
-                        fdataArrayList = pointIn.getHDF5GroupDataPoints(
-                                recList.toArray(), surroundPoints);
+                        List<PluginDataObject> newOrderedRecs = new ArrayList<>();
+                        fdataArrayList = PointIn.getHDF5GroupDataPoints(
+                                recList.toArray(), surroundPoints,
+                                newOrderedRecs);
                         List<NcSoundingLayer> sfcLayers = getModelSfcLayers(
                                 surroundPoints, refTime, validTime, modelName,
                                 spatialArea);
                         int index = 0;
-                        Object[] recArray = recList.toArray();
+                        Object[] recArray = newOrderedRecs.toArray();
                         for (float[] fdataArray : fdataArrayList) {
                             NcSoundingProfile pf = new NcSoundingProfile();
                             List<NcSoundingLayer> soundLyList = new ArrayList<>();
-                            Point pnt = surroundPoints.get(index);
                             for (Object level : levels) {
                                 NcSoundingLayer soundingLy = new NcSoundingLayer();
                                 double pressure = (Double) level;
@@ -866,12 +885,12 @@ public class ModelsSoundingQuery {
                                         .getPressure() == NcSoundingLayer.MISSING
                                         && sfcLayer
                                                 .getGeoHeight() != NcSoundingLayer.MISSING) {
-                                    // surface layer does not have pressure, but
-                                    // surface
-                                    // height is available
-                                    // see if we can interpolate surface
-                                    // pressure from upper
-                                    // and lower layer pressure
+                                    /*
+                                     * surface layer does not have pressure, but
+                                     * surface height is available see if we can
+                                     * interpolate surface pressure from upper
+                                     * and lower layer pressure
+                                     */
                                     for (int i = 0; i < soundLyList
                                             .size(); i++) {
                                         if (soundLyList.get(i)
@@ -913,16 +932,19 @@ public class ModelsSoundingQuery {
                             index++;
                         }
 
-                        // the soundingProfileList noew contains 1, 2, or 4
-                        // profiles depending on the size of
-                        // surroundPoints of the requested location.
-                        // do interpolation to interpolate those profiles to one
-                        // profile
+                        /*
+                         * the soundingProfileList noew contains 1, 2, or 4
+                         * profiles depending on the size of surroundPoints of
+                         * the requested location. do interpolation to
+                         * interpolate those profiles to one profile
+                         */
                         NcSoundingProfile intpedPf = performInterpolation(
                                 soundingProfileList, xyfrac[0], xyfrac[1]);
-                        // cut sounding layer under ground, i.e. removed layers
-                        // below surface layer,
-                        // note that surface layer was added at layer 0
+                        /*
+                         * cut sounding layer under ground, i.e. removed layers
+                         * below surface layer, note that surface layer was
+                         * added at layer 0
+                         */
                         List<NcSoundingLayer> intpedSoundLyList = intpedPf
                                 .getSoundingLyLst();
                         NcSoundingLayer intpedSfcLyr = intpedSoundLyList.get(0);
@@ -1041,28 +1063,36 @@ public class ModelsSoundingQuery {
 
             if (xfloor == xceil) {
                 if (yfloor == yceil) {
-                    // the request location is a "point" itself, just return 1
-                    // point
+                    /*
+                     * the request location is a "point" itself, just return 1
+                     * point
+                     */
                     points.add(new Point(xfloor, yfloor));
                     xfrac = FRAC_ERROR;
                     yfrac = FRAC_ERROR;
                 } else {
-                    // the request location is located at s00-s10 line, return 2
-                    // points
+                    /*
+                     * the request location is located at s00-s10 line, return 2
+                     * points
+                     */
                     points.add(new Point(xfloor, yfloor)); // s00
                     points.add(new Point(xfloor, yceil)); // s10
                     xfrac = FRAC_ERROR;
                 }
             } else {
                 if (yfloor == yceil) {
-                    // the request location is located at s00-s01 line, return 2
-                    // points
+                    /*
+                     * the request location is located at s00-s01 line, return 2
+                     * points
+                     */
                     points.add(new Point(xfloor, yfloor)); // s00
                     points.add(new Point(xceil, yfloor)); // s01
                     yfrac = FRAC_ERROR;
                 } else {
-                    // the request point is inside the 4 points "area", return 4
-                    // points
+                    /*
+                     * the request point is inside the 4 points "area", return 4
+                     * points
+                     */
                     points.add(new Point(xfloor, yfloor)); // s00
                     points.add(new Point(xceil, yfloor)); // s01
                     points.add(new Point(xfloor, yceil)); // s10
@@ -1131,9 +1161,11 @@ public class ModelsSoundingQuery {
             double lon, ISpatialObject so, NcSoundingProfile pf) {
         Coordinate coord = new Coordinate(lon, lat);
         double angle = MapUtil.rotation(coord, so);
-        // if angle is positive X degree, then UP (grid's North) direction is
-        // 360-X degrees and X degrees to the right of
-        // UP is earth north (or 360 degrees)
+        /*
+         * if angle is positive X degree, then UP (grid's North) direction is
+         * 360-X degrees and X degrees to the right of UP is earth north (or 360
+         * degrees)
+         */
         List<NcSoundingLayer> soundLyList = pf.getSoundingLyLst();
         for (NcSoundingLayer ly : soundLyList) {
             float correctedWindDir = ly.getWindDirection() + (float) angle;
@@ -1166,7 +1198,7 @@ public class ModelsSoundingQuery {
             List<NcSoundingProfile> finalSoundingProfileList = new ArrayList<>();
             String refTime = refTimeStrArr[0];
             for (String validTimeStartStr : rangeTimeStrArr) {
-                if (request.isInterpolation() == true) {
+                if (request.isInterpolation()) {
                     // get interpolation point
                     soundingProfileList = getMdlSndInterpolatedDataProfileList(
                             request.getLatLonAry(), refTime, validTimeStartStr,
@@ -1179,14 +1211,13 @@ public class ModelsSoundingQuery {
                 }
                 finalSoundingProfileList.addAll(soundingProfileList);
             }
-            if (finalSoundingProfileList.size() > 0) {
+            if (!finalSoundingProfileList.isEmpty()) {
                 // as long as one query successful, set it to OK
                 cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
             }
             cube.setSoundingProfileList(finalSoundingProfileList);
             return cube;
-        } else {
-            return null;
         }
+        return null;
     }
 }

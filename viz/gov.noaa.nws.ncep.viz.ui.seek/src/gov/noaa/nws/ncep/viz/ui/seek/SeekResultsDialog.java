@@ -81,6 +81,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  *                                  perspective
  * May 08, 2019  63530    tjensen   Fix Take Control button to resolve editable
  *                                  conflicts
+ * Aug 14, 2019  65755    tjensen   Update open to not block as this doesn't
+ *                                  listen for events
  *
  * </pre>
  *
@@ -250,12 +252,6 @@ public class SeekResultsDialog extends Dialog {
         shell.pack();
 
         shell.open();
-
-        while (!shell.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
-            }
-        }
 
         font.dispose();
         crossCursor.dispose();

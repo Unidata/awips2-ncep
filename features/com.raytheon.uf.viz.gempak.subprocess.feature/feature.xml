@@ -91,11 +91,36 @@
          download-size="0"
          install-size="0"
          version="0.0.0"/>
+         
    <plugin
          id="javax.media.jai"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
+   <plugin
+         id="com.fasterxml.jackson"
+         download-size="0"
+         install-size="0"
+         version="2.9.8"/>
+
+   <plugin
+         id="com.sun.xml.bind"
+         download-size="0"
+         install-size="0"
+         version="2.3.2"/>
+         
+   <plugin
+         id="org.apache.xml.resolver"
+         download-size="0"
+         install-size="0"
+         version="1.2.0"/>
+         
+   <plugin
+         id="org.jdom2"
+         download-size="0"
+         install-size="0"
+         version="2.0.6"/>
+
    <plugin
          id="com.raytheon.uf.common.status"
          download-size="0"
@@ -240,6 +265,24 @@
          download-size="0"
          install-size="0"
          version="0.0.0"/>
+         
+	<plugin
+         id="com.beust.jcommander"
+         download-size="0"
+         install-size="0"
+         version="1.35.0"/>
+         
+ 	<plugin
+         id="com.google.protobuf"
+         download-size="0"
+         install-size="0"
+         version="2.5.0"/>
+         
+	<plugin
+         id="org.joda.time"
+         download-size="0"
+         install-size="0"
+         version="2.8.1"/>
 
    <plugin
          id="org.apache.commons.io"
@@ -324,6 +367,18 @@
          download-size="0"
          install-size="0"
          version="0.0.0"/>
+         
+      <plugin
+         id="net.sf.ehcache"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="com.mchange"
+         download-size="0"
+         install-size="0"
+         version="0.9.5.3"/>
 
    <plugin
          id="org.javassist"

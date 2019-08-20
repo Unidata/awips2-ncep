@@ -96,13 +96,13 @@
          id="com.fasterxml.jackson"
          download-size="0"
          install-size="0"
-         version="2.9.8"/>
+         version="0.0.0"/>
 
    <plugin
          id="com.sun.xml.bind"
          download-size="0"
          install-size="0"
-         version="2.3.2"/>
+         version="0.0.0"/>
          
    <plugin
          id="org.apache.xml.resolver"

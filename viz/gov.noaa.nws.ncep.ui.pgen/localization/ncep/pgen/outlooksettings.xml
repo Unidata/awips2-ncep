@@ -2251,7 +2251,7 @@
                             <Text pgenCategory="Text" pgenType="General Text" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="false" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
                                 <Color red="255" green="0" blue="0" alpha="255"/>
                                 <Point Lat="16.34133107300621" Lon="-68.56126322504414"/>
-                                <textLine>MOD</textLine>
+                                <textLine>MDT</textLine>
                             </Text>
                         </DrawableElement>
                     </DECollection>

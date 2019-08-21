@@ -11,7 +11,6 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -158,6 +157,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 07/01/2016   R17377      J. Wu       Add "shiftDownInContourDialog" flag.
  * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 07/26/2019   66393       mapeters    Handle parm-specific contours settings
+ * 08/07/2019   66393       mapeters    Only get available symbol/line types for the current parm
  *
  * </pre>
  *
@@ -275,10 +275,6 @@ public class ContoursAttrDlg extends AttrDlg
 
     private LinkedHashMap<String, IConfigurationElement> symbolItemMap = null;
 
-    private LinkedHashMap<String, Boolean> contourSymbolType = null;
-
-    private LinkedHashMap<String, Boolean> contourLineType = null;
-
     private LineTypeSelectionDlg lineTypePanel = null;
 
     private SymbolTypeSelectionDlg symbolTypePanel = null;
@@ -374,16 +370,8 @@ public class ContoursAttrDlg extends AttrDlg
 
         retrieveIconType();
 
-        if (contourLineType == null) {
-            contourLineType = getContourLineSymbols();
-        }
-
         if (contourLineBtns == null) {
             contourLineBtns = new ArrayList<>();
-        }
-
-        if (contourSymbolType == null) {
-            contourSymbolType = getContourSymbols();
         }
 
         if (contourSymbolBtns == null) {
@@ -515,9 +503,9 @@ public class ContoursAttrDlg extends AttrDlg
         contourLineComp.setLayout(contourLineCompGl);
 
         int ii = 0;
-        for (String str : contourLineType.keySet()) {
+        for (String str : getContourLineSymbols()) {
 
-            if (contourLineType.get(str) && ii < MAX_QUICK_LINES) {
+            if (ii < MAX_QUICK_LINES) {
 
                 ii++;
 
@@ -643,9 +631,9 @@ public class ContoursAttrDlg extends AttrDlg
         contoursComp.setLayout(contoursCompGl);
 
         ii = 0;
-        for (String str : contourSymbolType.keySet()) {
+        for (String str : getContourSymbols()) {
 
-            if (contourSymbolType.get(str) && ii < MAX_QUICK_SYMBOLS) {
+            if (ii < MAX_QUICK_SYMBOLS) {
 
                 ii++;
 
@@ -3615,42 +3603,36 @@ public class ContoursAttrDlg extends AttrDlg
      * @param
      * @return
      */
-    private LinkedHashMap<String, Boolean> getContourSymbols() {
+    private List<String> getContourSymbols() {
 
-        LinkedHashMap<String, Boolean> lbls = new LinkedHashMap<>();
+        List<String> lbls = new ArrayList<>();
 
         int selected = 0;
 
         HashMap<String, ContoursInfo> cntinfo = ContoursInfoDlg.readInfoTbl();
 
-        Collection<ContoursInfo> cntInfoValues = cntinfo.values();
+        ContoursInfo coninf = cntinfo.get(getParm());
+        if (coninf != null) {
+            ContourButtons btns = coninf.getButtons();
 
-        if (null != cntInfoValues) {
+            List<ContourObject> objects = btns.getObjects();
+            for (ContourObject obj : objects) {
+                String className = obj.getClassName();
+                String name = obj.getName();
 
-            for (ContoursInfo coninf : cntInfoValues) {
-                ContourButtons btns = coninf.getButtons();
-
-                List<ContourObject> objects = btns.getObjects();
-                for (ContourObject obj : objects) {
-                    String className = obj.getClassName();
-                    String name = obj.getName();
-
-                    if ("Symbol".equals(className)) {
-                        lbls.put(name, true);
-                        selected++;
-                    }
-
+                if ("Symbol".equals(className)) {
+                    lbls.add(name);
+                    selected++;
                 }
 
             }
-
-        } // if cntinfo
+        }
 
         numOfButtons = selected;
 
         if (selected == 0) {
-            lbls.put("FILLED_HIGH_PRESSURE_H", true);
-            lbls.put("FILLED_LOW_PRESSURE_L", true);
+            lbls.add("FILLED_HIGH_PRESSURE_H");
+            lbls.add("FILLED_LOW_PRESSURE_L");
             numOfButtons = 2;
         }
 
@@ -3897,19 +3879,18 @@ public class ContoursAttrDlg extends AttrDlg
      * @param
      * @return
      */
-    private LinkedHashMap<String, Boolean> getContourLineSymbols() {
+    private List<String> getContourLineSymbols() {
 
-        LinkedHashMap<String, Boolean> lbls = new LinkedHashMap<>();
+        List<String> lbls = new ArrayList<>();
 
         int selected = 0;
 
         // Read information in the contours info xml files
         HashMap<String, ContoursInfo> cntinfo = ContoursInfoDlg.readInfoTbl();
 
-        Collection<ContoursInfo> cntInfoValues = cntinfo.values();
-
-        // make a list of contour line objects from contours info xml files
-        for (ContoursInfo coninf : cntInfoValues) {
+        // make a list of contour line objects from contours info xml file
+        ContoursInfo coninf = cntinfo.get(getParm());
+        if (coninf != null) {
             ContourLines lines = coninf.getLines();
 
             List<ContourObject> objects = lines.getObjects();
@@ -3919,7 +3900,7 @@ public class ContoursAttrDlg extends AttrDlg
                 String name = obj.getName();
 
                 if (null == className || className.isEmpty()) {
-                    lbls.put(name, true);
+                    lbls.add(name);
                 }
 
                 selected++;
@@ -3928,8 +3909,8 @@ public class ContoursAttrDlg extends AttrDlg
         }
 
         if (selected == 0) {
-            lbls.put("LINE_SOLID", true);
-            lbls.put("LINE_DASHED_2", true);
+            lbls.add("LINE_SOLID");
+            lbls.add("LINE_DASHED_2");
         }
 
         return lbls;

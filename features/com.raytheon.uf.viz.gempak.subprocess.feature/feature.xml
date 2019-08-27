@@ -101,13 +101,13 @@
          id="com.fasterxml.jackson"
          download-size="0"
          install-size="0"
-         version="2.9.8"/>
+         version="0.0.0"/>
 
    <plugin
          id="com.sun.xml.bind"
          download-size="0"
          install-size="0"
-         version="2.3.2"/>
+         version="0.0.0"/>
          
    <plugin
          id="org.apache.xml.resolver"
@@ -119,7 +119,7 @@
          id="org.jdom2"
          download-size="0"
          install-size="0"
-         version="2.0.6"/>
+         version="0.0.0"/>
 
    <plugin
          id="com.raytheon.uf.common.status"
@@ -270,19 +270,19 @@
          id="com.beust.jcommander"
          download-size="0"
          install-size="0"
-         version="1.35.0"/>
+         version="0.0.0"/>
          
  	<plugin
          id="com.google.protobuf"
          download-size="0"
          install-size="0"
-         version="2.5.0"/>
+         version="0.0.0"/>
          
 	<plugin
          id="org.joda.time"
          download-size="0"
          install-size="0"
-         version="2.8.1"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.apache.commons.io"

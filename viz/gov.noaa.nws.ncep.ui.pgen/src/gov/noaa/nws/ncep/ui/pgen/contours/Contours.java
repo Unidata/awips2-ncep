@@ -8,13 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.contours;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
-import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -22,9 +15,16 @@ import java.util.Iterator;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
+import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
+
 /**
  * Class for Contours element.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer     Description
@@ -39,9 +39,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/30/2016   R16622      J. Wu        Use current date/time as default.
  * 07/21/2016   R16077      J. Wu        Add copyWithExclusion().
  * 08/10/2016   R18805      J. Wu        Pad single-digit month/day with 0
- * 
+ * 8/25/2019    67220       ksunil       added compareLevelParmForecastHour
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 @ElementOperations({ Operation.COPY_MOVE })
@@ -263,8 +264,8 @@ public class Contours extends DECollection implements IContours {
             AbstractDrawableComponent newAdc = oldAdc.copy();
 
             if (oldAdc.equals(cline)) {
-                ArrayList<ContourLine> newLines = ((ContourLine) newAdc).split(
-                        start, end);
+                ArrayList<ContourLine> newLines = ((ContourLine) newAdc)
+                        .split(start, end);
                 for (ContourLine cln : newLines) {
                     cln.setParent(newContours);
                     newContours.add(cln);
@@ -464,8 +465,8 @@ public class Contours extends DECollection implements IContours {
             AbstractDrawableComponent newAdc = oldAdc.copy();
 
             if (oldAdc.equals(cline)) {
-                ArrayList<ContourLine> newLines = ((ContourLine) newAdc).split(
-                        start, end);
+                ArrayList<ContourLine> newLines = ((ContourLine) newAdc)
+                        .split(start, end);
                 for (ContourLine cln : newLines) {
                     cln.setParent(newContours);
                     newContours.add(cln);
@@ -512,10 +513,41 @@ public class Contours extends DECollection implements IContours {
         String day = String.format("%02d", ctrTime.get(Calendar.DAY_OF_MONTH));
 
         String key = ctr.getParm() + "," + ctr.getLevel() + ","
-                + ctr.getForecastHour() + "|" + ctrTime.get(Calendar.YEAR)
-                + "-" + month + "-" + day + "," + hr + mt + "Z";
+                + ctr.getForecastHour() + "|" + ctrTime.get(Calendar.YEAR) + "-"
+                + month + "-" + day + "," + hr + mt + "Z";
 
         return key;
+    }
+
+    /*
+     * A light version of equals. means two Contours have same
+     * "parm, level, forecasthour"
+     */
+
+    public boolean compareLevelParmForecastHour(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Contours other = (Contours) obj;
+        if (forecastHour == null) {
+            if (other.forecastHour != null)
+                return false;
+        } else if (!forecastHour.equals(other.forecastHour))
+            return false;
+        if (level == null) {
+            if (other.level != null)
+                return false;
+        } else if (!level.equals(other.level))
+            return false;
+        if (parm == null) {
+            if (other.parm != null)
+                return false;
+        } else if (!parm.equals(other.parm))
+            return false;
+        return true;
     }
 
 }

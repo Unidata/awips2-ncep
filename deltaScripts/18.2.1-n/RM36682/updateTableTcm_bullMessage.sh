@@ -7,7 +7,8 @@
 #   
 #   Date            Ticket#       Engineer       Description
 #   ------------    ----------    -----------    ------------
-#   01/25/2019      7717          K. Sunil       Update bullmessage column to remove 8000 char limitation
+#   Jan 25, 2019    7717          K. Sunil       Update bullmessage column to remove 8000 char limitation
+#   Jun 13, 2019    7869          tjensen        Remove -h option from psql command
 
 #  Purpose:  Run SQL script to change bullmessage column data type in table tcm
 #  Database: metadata 
@@ -15,7 +16,7 @@
 #  Table:    tcm
 #  SQL:      alter table tcm alter column bullmessage set data type varchar;
 #
-#  Note:     This should affect one column in the table
+#  Note:     Run on dx1. This should affect one column in the table
 #
 
 #  Expected output:  "SUCCESS!   UPDATE 1" 
@@ -44,7 +45,7 @@ if [ ! -x $PSQL ]
 
 fi 
 
-PSQL_RUN_COMMAND="${PSQL} -h dx1f -X -U $USER --set ON_ERROR_STOP=on --set AUTOCOMMIT=on $DB "
+PSQL_RUN_COMMAND="${PSQL} -X -U $USER --set ON_ERROR_STOP=on --set AUTOCOMMIT=on $DB "
 
 RESULT=$($PSQL_RUN_COMMAND <<ENDSQL
 

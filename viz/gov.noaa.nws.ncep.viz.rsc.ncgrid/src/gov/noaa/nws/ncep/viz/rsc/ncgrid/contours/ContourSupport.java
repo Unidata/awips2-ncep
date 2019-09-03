@@ -79,6 +79,7 @@ import com.raytheon.uf.viz.core.drawables.IFont.Style;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.grid.rsc.data.GeneralGridData;
+import com.raytheon.uf.viz.core.grid.rsc.data.ScalarGridData;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
@@ -133,55 +134,80 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *
  *    SOFTWARE HISTORY
  *
- *    Date       Ticket# Engineer      Description
- *    ---------- ------- -----------   --------------------------
- *    10/22/2007         chammack      Initial Creation.
- *    05/26/2009 #2172   chammack      Use zoomLevel to calculate label spacing
- *    03/10/2010 #164    M. Li         Control increments on zoom
- *    05/18/2011         M. Li         Add contour label frequency capability
- *    05/26/2011         M. Li         Add a new method createContourLabel
- *    08/18/2011         M. li         fixed reproject problems for streamline
- *    11/08/2011         X. Guo        Checked centeral_meridian and
- *                                        added vertices twice after subtract 360
- *    02/15/2012         X. Guo        Used cached contour information to re-create
- *                                        wired frame
- *    03/01/2012         X. Guo        Handle five zoom levels
- *    03/13/2012         X. Guo        Handle multi-threads
- *    03/15/2012         X. Guo        Refactor
- *    03/27/2012         X. Guo        Used contour lock instead of "synchronized"
- *    05/23/2012         X. Guo        Loaded ncgrib logger
- *    04/26/2013         B. Yin        Fixed the world wrap problem for centeral line 0/180.
- *    06/06/2013         B. Yin        fixed the half-degree grid porblem.
- *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil
- *    08/19/2013 #743    S. Gurung     Added clrbar and corresponding getter/setter method (from Archana's branch) and
- *                                        fix for editing clrbar related attribute changess not being applied from right click legend.
- *    09/17/2013 #1036   S. Gurung     Added TEXT attribute related changes to create labels with various parameters
- *    10/30/2013 #1045   S. Gurung     Fix for FINT/FLINE parsing issues
- *    08/27/2013 2262    bsteffen      Convert to use new StrmPak.
- *    04/23/2014 #856    pswamy        Missing color fill in grid diagnostics.
- *    04/30/2014 862     pswamy        Grid Precipitable Water Contour Labels needs two decimal points
- *    06/26/2014         sgilbert      Change world wrap processing.
- *    05/08/2015 R7296   J. Wu         use JTSComplier for clipping against view area.
- *    07/17/2015 R6916   B. Yin/rkean  Changes for Contour fill images
- *    11/05/2015 R13016  bsteffen/rkean - handle non-linear FINTs
- *    03/08/2016 R16221  jhuber        make Fill color "0" transparent
- *    04/21/2016 R17741  sgilbert      Changes to reduce memory usage
- *    05/06/2016 R17323  kbugenhagen   In createColorFills, only subgrid if
- *                                     ncgrid proxy is not null.
- *    07/21/2016 R20574  njensen       Switch contour algorithm from CNFNative to FortConBuf
- *    10/31/2016 R16586  RCReynolds    Fix grid color fill when number of colors does not match number of increments
- *                                     In general fix/verify that map/scalebar are correct when number of colors
- *                                     are less than, equal too or greater than number of increments
- *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
- *                                     be limiting the number of rendered contours, not the number or intervals between the
- *                                     min and the max
- *    03/27/2017 R19634  bsteffen      Support subgrids.
- *    10/25/2018 54483   mapeters      Handle {@link NcgribLogger} refactor
- *    11/13/2018 54500   mrichardson   Added SubGridGeometryCalculator to createStreamLines to fix projection exception
- *                                      and prevent rendering unnecessary projection data
- *    11/13/2018 54502   mrichardson   Add additional error handling to contouring code in NCP
- *    01/31/2019 7726    mrichardson   Downgrade out of bounds coordinate message from warn to info; minor code clean-up
- *    02/01/2019 7720    mrichardson   Incorporated changes for subgrids.
+ * Date          Ticket#  Engineer        Description
+ * ------------- -------- --------------- --------------------------------------
+ * Oct 22, 2007           chammack        Initial Creation.
+ * May 26, 2009  2172     chammack        Use zoomLevel to calculate label
+ *                                        spacing
+ * Mar 10, 2010  164      M. Li           Control increments on zoom
+ * May 18, 2011           M. Li           Add contour label frequency capability
+ * May 26, 2011           M. Li           Add a new method createContourLabel
+ * Aug 18, 2011           M. li           fixed reproject problems for
+ *                                        streamline
+ * Nov 08, 2011           X. Guo          Checked centeral_meridian and added
+ *                                        vertices twice after subtract 360
+ * Feb 15, 2012           X. Guo          Used cached contour information to
+ *                                        re-create wired frame
+ * Mar 01, 2012           X. Guo          Handle five zoom levels
+ * Mar 13, 2012           X. Guo          Handle multi-threads
+ * Mar 15, 2012           X. Guo          Refactor
+ * Mar 27, 2012           X. Guo          Used contour lock instead of
+ *                                        "synchronized"
+ * May 23, 2012           X. Guo          Loaded ncgrib logger
+ * Apr 26, 2013           B. Yin          Fixed the world wrap problem for
+ *                                        centeral line 0/180.
+ * Jun 06, 2013           B. Yin          fixed the half-degree grid porblem.
+ * Jul 19, 2013           B. Hebbard      Merge in RTS change of
+ *                                        Util-->ArraysUtil
+ * Aug 19, 2013  743      S. Gurung       Added clrbar and corresponding
+ *                                        getter/setter method (from Archana's
+ *                                        branch) and fix for editing clrbar
+ *                                        related attribute changess not being
+ *                                        applied from right click legend.
+ * Sep 17, 2013  1036     S. Gurung       Added TEXT attribute related changes
+ *                                        to create labels with various
+ *                                        parameters
+ * Oct 30, 2013  1045     S. Gurung       Fix for FINT/FLINE parsing issues
+ * Aug 27, 2013  2262     bsteffen        Convert to use new StrmPak.
+ * Apr 23, 2014  856      pswamy          Missing color fill in grid
+ *                                        diagnostics.
+ * Apr 30, 2014  862      pswamy          Grid Precipitable Water Contour Labels
+ *                                        needs two decimal points
+ * Jun 26, 2014           sgilbert        Change world wrap processing.
+ * May 08, 2015  7296     J. Wu           use JTSComplier for clipping against
+ *                                        view area.
+ * Jul 17, 2015  6916     B. Yin/rkean    Changes for Contour fill images
+ * Nov 05, 2015  13016    bsteffen/rkean  - handle non-linear FINTs
+ * Mar 08, 2016  16221    jhuber          make Fill color "0" transparent
+ * Apr 21, 2016  17741    sgilbert        Changes to reduce memory usage
+ * May 06, 2016  17323    kbugenhagen     In createColorFills, only subgrid if
+ *                                        ncgrid proxy is not null.
+ * Jul 21, 2016  20574    njensen         Switch contour algorithm from
+ *                                        CNFNative to FortConBuf
+ * Oct 31, 2016  16586    RCReynolds      Fix grid color fill when number of
+ *                                        colors does not match number of
+ *                                        increments In general fix/verify that
+ *                                        map/scalebar are correct when number
+ *                                        of colors are less than, equal too or
+ *                                        greater than number of increments
+ * Jan 17, 2017  19643    Edwin Brown     Moved the check of MAX_CONTOUR_LEVELS
+ *                                        from CINT.java to here because it
+ *                                        should be limiting the number of
+ *                                        rendered contours, not the number or
+ *                                        intervals between the min and the max
+ * Mar 27, 2017  19634    bsteffen        Support subgrids.
+ * Oct 25, 2018  54483    mapeters        Handle {@link NcgribLogger} refactor
+ * Nov 13, 2018  54500    mrichardson     Added SubGridGeometryCalculator to
+ *                                        createStreamLines to fix projection
+ *                                        exception and prevent rendering
+ *                                        unnecessary projection data
+ * Nov 13, 2018  54502    mrichardson     Add additional error handling to
+ *                                        contouring code in NCP
+ * Jan 31, 2019  7726     mrichardson     Downgrade out of bounds coordinate
+ *                                        message from warn to info; minor code
+ *                                        clean-up
+ * Feb 01, 2019  7720     mrichardson     Incorporated changes for subgrids.
+ * Aug 29, 2019  67955    tjensen         Update for GeneralGridData refactor
  *
  * </pre>
  *
@@ -259,7 +285,7 @@ public class ContourSupport {
 
     private GeneralGridGeometry imageGridGeometry;
 
-    private NcgridResource resource;
+    private final NcgridResource resource;
 
     private IGraphicsTarget target;
 
@@ -371,11 +397,11 @@ public class ContourSupport {
 
         private float maxValue;
 
-        private FloatGridData dataRecord;
+        private final FloatGridData dataRecord;
 
-        private int szX;
+        private final int szX;
 
-        private int szY;
+        private final int szY;
 
         public ContourGridData(FloatGridData record) {
             maxValue = Float.MIN_VALUE;
@@ -672,8 +698,8 @@ public class ContourSupport {
             try {
                 rastPosLatLonToWorldGrid.transform(in, 0, out, 0, 1);
             } catch (TransformException e) {
-                statusHandler.info("The coordinate [" + in[0] + ", " + in[1] + 
-                        "] could not be transformed. Continuing with remaining coordinates.");
+                statusHandler.info("The coordinate [" + in[0] + ", " + in[1]
+                        + "] could not be transformed. Continuing with remaining coordinates.");
                 continue;
             }
             if (out[0] > minx && out[0] < maxx && out[1] > miny
@@ -1069,8 +1095,7 @@ public class ContourSupport {
                             jtsCompiler.handle(gn);
                         }
                     } catch (VizException e) {
-                        statusHandler.error(
-                                "JTS Compiler error while creating "
+                        statusHandler.error("JTS Compiler error while creating "
                                 + "contour lines in ContourSupport", e);
                     }
 
@@ -1141,21 +1166,21 @@ public class ContourSupport {
 
                 // Equidistant_Cylindrical image requires special handling
                 // (subgridding)
-            if ("Equidistant_Cylindrical".equals(
-                    getProjectionName(
-                            imageGridGeometry.getCoordinateReferenceSystem()))
-                    && !"MCIDAS_AREA_NAV".equals(
-                            getProjectionName(descriptor.getCRS()))) {
-        
+                if ("Equidistant_Cylindrical"
+                        .equals(getProjectionName(imageGridGeometry
+                                .getCoordinateReferenceSystem()))
+                        && !"MCIDAS_AREA_NAV".equals(
+                                getProjectionName(descriptor.getCRS()))) {
+
                     /*
                      * Geotools does not "roll the longitude" for map
                      * projections with a central meridian of 0. See
                      * MapProjection.transform() for an explanation.
-                     * 
+                     *
                      * Grids larger than the world always have a central
                      * meridian of 0 because rolling the edges would cause the
                      * grid to collapse down to the width of a single grid cell.
-                     * 
+                     *
                      * For the display we need to ensure that the longitude is
                      * rolled so that the image is centered on the display
                      * instead of rendering off the edge of the display.
@@ -1175,7 +1200,7 @@ public class ContourSupport {
                         envelope = envelope
                                 .transform(DefaultGeographicCRS.WGS84, true);
                         double center = envelope.getMedian(0);
-        
+
                         /*
                          * Copy all the parameters from the existing projection
                          * except the central meridian
@@ -1190,7 +1215,7 @@ public class ContourSupport {
                         String name = "ContourSupportGenerated: CM=" + center;
                         DefaultProjectedCRS projCrs = MapUtil
                                 .constructProjection(name, group);
-        
+
                         envelope = envelope.transform(projCrs, true);
                         imageGridGeometry = new GridGeometry2D(gridRange,
                                 envelope);
@@ -1198,14 +1223,15 @@ public class ContourSupport {
                         statusHandler.error("Failed to project grid properly",
                                 e);
                     }
-        
+
                     /*
                      * The imageGridGeometry passed into this method
-                     * (newSpatialObject, which is 360 degrees) causes problems in
-                     * display when it gets subgridded. Ignore the subgridding if
-                     * the proxy is null. If the proxy is not null, the
-                     * imageGridGeometry associated with it (spatialObject, which is
-                     * 359 degrees) is correct and so you can do the subgridding.
+                     * (newSpatialObject, which is 360 degrees) causes problems
+                     * in display when it gets subgridded. Ignore the
+                     * subgridding if the proxy is null. If the proxy is not
+                     * null, the imageGridGeometry associated with it
+                     * (spatialObject, which is 359 degrees) is correct and so
+                     * you can do the subgridding.
                      */
                     try {
 
@@ -1225,7 +1251,7 @@ public class ContourSupport {
 
             contourGroup.colorImage = true;
 
-            GeneralGridData ggd = GeneralGridData
+            GeneralGridData ggd = ScalarGridData
                     .createScalarData(imageGridGeometry, cntrData, SI.METER);
 
             contourGroup.colorFillImage = createRenderableImage(target, ggd);
@@ -1306,8 +1332,8 @@ public class ContourSupport {
         }
 
         TileImageCreator creator = new DataSourceTileImageCreator(
-                data.getScalarData(), data.getDataUnit(),
-                ColorMapDataType.FLOAT, colorMapCap);
+                data.getData(), data.getDataUnit(), ColorMapDataType.FLOAT,
+                colorMapCap);
 
         TileSetRenderable renderable = new TileSetRenderable(imagingCap,
                 (GridGeometry2D) imageGridGeometry, creator, 1,
@@ -1390,13 +1416,13 @@ public class ContourSupport {
                         descriptor.getGridGeometry().getEnvelope(),
                         imageGridGeometry);
                 if (!subGridGeometry.isEmpty()) {
-                    imageGridGeometry = subGridGeometry
-                            .getSubGridGeometry2D();
+                    imageGridGeometry = subGridGeometry.getSubGridGeometry2D();
                     rangeHigh = subGridGeometry.getGridRangeHigh(false);
                     rangeLow = subGridGeometry.getGridRangeLow(true);
                 }
             } catch (Exception ex) {
-                statusHandler.error("Error Creating subGrid for streamlines: ", ex);
+                statusHandler.error("Error Creating subGrid for streamlines: ",
+                        ex);
             }
         }
 
@@ -1515,15 +1541,17 @@ public class ContourSupport {
                     double[] out = new double[2];
 
                     try {
-                        rastPosToWorldGrid.transform(
-                                new double[] { point.getX() + minX, point.getY() + minY },
-                                0, out, 0, 1);
+                        rastPosToWorldGrid
+                                .transform(
+                                        new double[] { point.getX() + minX,
+                                                point.getY() + minY },
+                                        0, out, 0, 1);
                     } catch (TransformException e) {
-                        statusHandler
-                                .error("Error trying to transform point: "
-                                        + "[" + point.getX() + minX + ", " + point.getY() + minY + "]. "
-                                        + "Displayed data may be incomplete or "
-                                        + "not entirely correct.", e);
+                        statusHandler.error("Error trying to transform point: "
+                                + "[" + point.getX() + minX + ", "
+                                + point.getY() + minY + "]. "
+                                + "Displayed data may be incomplete or "
+                                + "not entirely correct.", e);
                     }
                     pts.add(new Coordinate(point.getX(), point.getY()));
                     vals.add(out);
@@ -2053,8 +2081,9 @@ public class ContourSupport {
         try {
             jtsCompiler.handle(correctedLnst);
         } catch (VizException e) {
-            statusHandler.error("Error occurred while trying to add a stream line"
-                    + " to the JTSCompiler to handle:", e);
+            statusHandler
+                    .error("Error occurred while trying to add a stream line"
+                            + " to the JTSCompiler to handle:", e);
         }
     }
 }

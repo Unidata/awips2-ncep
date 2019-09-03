@@ -13,12 +13,14 @@ import java.util.Date;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Mar 1, 2019  7752       tjensen     Extracted from RetrieveActivityDialog class
+ * Aug 26,2019  67216      ksunil      added toString()
  *
  * </pre>
  *
  * @author tjensen
  */
 public class ActivityElement implements Comparable {
+
     private final String site;
 
     private final String desk;
@@ -164,6 +166,14 @@ public class ActivityElement implements Comparable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ActivityElement [site=" + site + ", desk=" + desk + ", dataURI="
+                + dataURI + ", activityType=" + activityType
+                + ", activitySubtype=" + activitySubtype + ", activityLabel="
+                + activityLabel + ", refTime=" + refTime + "]";
     }
 
 }

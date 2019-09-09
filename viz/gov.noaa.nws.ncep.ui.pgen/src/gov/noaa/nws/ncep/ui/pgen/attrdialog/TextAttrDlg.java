@@ -750,6 +750,13 @@ public class TextAttrDlg extends AttrDlg implements IText {
                     text.setSelection(0);
                 }
             }
+
+            @Override
+            public void mouseDoubleClick(MouseEvent e) {
+                if ("\n".equals(text.getText())) {
+                    text.setSelection(0);
+                }
+            }
         });
 
     }

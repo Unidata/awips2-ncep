@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen
- * 
+ *
  * November 2013
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -11,30 +11,43 @@ package gov.noaa.nws.ncep.ui.pgen;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import org.locationtech.jts.geom.Coordinate;
+
+import com.raytheon.uf.common.geospatial.adapter.CoordAdapter;
 
 /**
  * Class used to hold the range record for a PGEN element.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 11/13                    J. Wu       Initial Creation.
- * 
+ * Sep 9, 2019  7596        tgurney     Add XML annotations
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
- * @version 0.1
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public class PgenRangeRecord {
 
     public static final double RANGE_OFFSET = 10;
 
+    @XmlElement
+    @XmlJavaTypeAdapter(value = CoordAdapter.class)
     private List<Coordinate> points;
 
+    @XmlElement
+    @XmlJavaTypeAdapter(value = CoordAdapter.class)
     private List<Coordinate> extent;
 
+    @XmlElement
     private boolean closed;
 
     /**
@@ -43,8 +56,8 @@ public class PgenRangeRecord {
      */
     public PgenRangeRecord() {
         super();
-        this.extent = new ArrayList<Coordinate>();
-        this.points = new ArrayList<Coordinate>();
+        this.extent = new ArrayList<>();
+        this.points = new ArrayList<>();
         this.closed = false;
     }
 
@@ -54,8 +67,8 @@ public class PgenRangeRecord {
      */
     public PgenRangeRecord(List<Coordinate> points, boolean closed) {
         super();
-        this.points = new ArrayList<Coordinate>();
-        this.extent = new ArrayList<Coordinate>();
+        this.points = new ArrayList<>();
+        this.extent = new ArrayList<>();
         if (points != null && points.size() > 0) {
             for (Coordinate cc : points) {
                 this.points.add(new Coordinate(cc.x, cc.y));
@@ -73,8 +86,8 @@ public class PgenRangeRecord {
      */
     public PgenRangeRecord(Coordinate[] points, boolean closed) {
         super();
-        this.points = new ArrayList<Coordinate>();
-        this.extent = new ArrayList<Coordinate>();
+        this.points = new ArrayList<>();
+        this.extent = new ArrayList<>();
         if (points != null && points.length > 0) {
             for (Coordinate cc : points) {
                 this.points.add(new Coordinate(cc.x, cc.y));
@@ -109,7 +122,7 @@ public class PgenRangeRecord {
      */
     public List<Coordinate> getExtentWithoutBuffer() {
 
-        List<Coordinate> rngBox = new ArrayList<Coordinate>();
+        List<Coordinate> rngBox = new ArrayList<>();
         rngBox.add(new Coordinate(this.extent.get(0).x + RANGE_OFFSET,
                 this.extent.get(0).y - PgenRangeRecord.RANGE_OFFSET));
         rngBox.add(new Coordinate(this.extent.get(1).x - RANGE_OFFSET,
@@ -197,7 +210,7 @@ public class PgenRangeRecord {
     public static List<Coordinate> buildRangeBox(List<Coordinate> points,
             double buffer) {
 
-        List<Coordinate> rangeBox = new ArrayList<Coordinate>();
+        List<Coordinate> rangeBox = new ArrayList<>();
 
         // Find the extent in x, y direction.
         double max_x = points.get(0).x;
@@ -275,9 +288,9 @@ public class PgenRangeRecord {
      */
     public boolean within(PgenRangeRecord rr) {
 
-        return (this.getMaxx() < rr.getMaxx() && this.getMinx() > rr.getMinx()
-                && this.getMaxy() < rr.getMaxy() && this.getMiny() > rr
-                .getMiny());
+        return this.getMaxx() < rr.getMaxx() && this.getMinx() > rr.getMinx()
+                && this.getMaxy() < rr.getMaxy()
+                && this.getMiny() > rr.getMiny();
     }
 
     /**
@@ -286,11 +299,9 @@ public class PgenRangeRecord {
     public double maxExtention(PgenRangeRecord rr) {
         double maxd = Double.MIN_VALUE;
         for (int ii = 0; ii < extent.size(); ii++) {
-            maxd = Math.max(
-                    maxd,
-                    (extent.get(ii).x - rr.getExtent().get(ii).x)
-                            * (extent.get(ii).x - rr.getExtent().get(ii).x)
-                            + (extent.get(ii).y - rr.getExtent().get(ii).y)
+            maxd = Math.max(maxd, (extent.get(ii).x - rr.getExtent().get(ii).x)
+                    * (extent.get(ii).x - rr.getExtent().get(ii).x)
+                    + (extent.get(ii).y - rr.getExtent().get(ii).y)
                             * (extent.get(ii).y - rr.getExtent().get(ii).y));
         }
 

@@ -1,6 +1,6 @@
 /*
  * MidCloudText
- * 
+ *
  * Date created: 14 JANUARY 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -8,19 +8,19 @@
 
 package gov.noaa.nws.ncep.ui.pgen.elements;
 
+import java.awt.Color;
+
+import org.locationtech.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.IMidCloudText;
 
-import java.awt.Color;
-
-import org.locationtech.jts.geom.Coordinate;
-
 /**
- * 
+ *
  * @author sgilbert
- * 
+ *
  */
 @ElementOperations({ Operation.COPY_MOVE, Operation.EXTRAPOLATE })
 public class MidCloudText extends Text implements IMidCloudText {
@@ -71,6 +71,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the cloudTypes
      */
+    @Override
     public String getCloudTypes() {
         return cloudTypes;
     }
@@ -86,6 +87,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the cloudAmounts
      */
+    @Override
     public String getCloudAmounts() {
         return null;
         // return cloudAmounts;
@@ -102,6 +104,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the turbulencePattern
      */
+    @Override
     public String getTurbulencePattern() {
         return turbulencePattern;
     }
@@ -117,6 +120,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the turbulenceLevels
      */
+    @Override
     public String getTurbulenceLevels() {
         return turbulenceLevels;
     }
@@ -132,6 +136,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the icingPattern
      */
+    @Override
     public String getIcingPattern() {
         return icingPattern;
     }
@@ -147,6 +152,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the icingLevels
      */
+    @Override
     public String getIcingLevels() {
         return icingLevels;
     }
@@ -162,6 +168,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the tstormTypes
      */
+    @Override
     public String getTstormTypes() {
         return tstormTypes;
     }
@@ -177,6 +184,7 @@ public class MidCloudText extends Text implements IMidCloudText {
     /**
      * @return the tstormLevels
      */
+    @Override
     public String getTstormLevels() {
         return tstormLevels;
     }
@@ -198,28 +206,36 @@ public class MidCloudText extends Text implements IMidCloudText {
 
         if (attr instanceof IMidCloudText) {
             IMidCloudText mid = (IMidCloudText) attr;
-            if (mid.getCloudTypes() != null)
+            if (mid.getCloudTypes() != null) {
                 this.setCloudTypes(mid.getCloudTypes());
+            }
             // if (mid.getCloudAmounts()!=null)
             // this.setCloudAmounts(mid.getCloudAmounts());
-            if (mid.getTurbulencePattern() != null)
+            if (mid.getTurbulencePattern() != null) {
                 this.setTurbulencePattern(mid.getTurbulencePattern());
-            if (mid.getTurbulenceLevels() != null)
+            }
+            if (mid.getTurbulenceLevels() != null) {
                 this.setTurbulenceLevels(mid.getTurbulenceLevels());
-            if (mid.getIcingPattern() != null)
+            }
+            if (mid.getIcingPattern() != null) {
                 this.setIcingPattern(mid.getIcingPattern());
-            if (mid.getIcingLevels() != null)
+            }
+            if (mid.getIcingLevels() != null) {
                 this.setIcingLevels(mid.getIcingLevels());
-            if (mid.getTstormTypes() != null)
+            }
+            if (mid.getTstormTypes() != null) {
                 this.setTstormTypes(mid.getTstormTypes());
-            if (mid.getTstormLevels() != null)
+            }
+            if (mid.getTstormLevels() != null) {
                 this.setTstormLevels(mid.getTstormLevels());
+            }
         }
     }
 
     /**
      * @return the string
      */
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder(getClass().getSimpleName());
 
@@ -233,13 +249,14 @@ public class MidCloudText extends Text implements IMidCloudText {
         result.append("Icing Levels:\t" + icingLevels + "\n");
         result.append("Tstorm Types:\t" + tstormTypes + "\n");
         result.append("Tstorm Levels:\t" + tstormLevels + "\n");
-        result.append("Color:\t" + colors[0] + "\n");
+        result.append("Color:\t" + getColors()[0] + "\n");
         result.append("FontName:\t" + getFontName() + "\n");
         result.append("FontSize:\t" + getFontSize() + "\n");
         result.append("Justification:\t" + getJustification() + "\n");
         result.append("Style:\t" + getStyle() + "\n");
 
-        result.append("Position:\t" + location.y + "\t" + location.x + "\n");
+        result.append("Position:\t" + getLocation().y + "\t" + getLocation().x
+                + "\n");
 
         return result.toString();
     }
@@ -263,7 +280,8 @@ public class MidCloudText extends Text implements IMidCloudText {
          * references to this object's attributes.
          */
         newText.setColors(new Color[] { new Color(this.getColors()[0].getRed(),
-                this.getColors()[0].getGreen(), this.getColors()[0].getBlue()) });
+                this.getColors()[0].getGreen(),
+                this.getColors()[0].getBlue()) });
         newText.setLocation(new Coordinate(this.getLocation()));
         newText.setFontName(new String(this.getFontName()));
 
@@ -289,32 +307,36 @@ public class MidCloudText extends Text implements IMidCloudText {
 
     @Override
     public boolean hasIcing() {
-        if (icingLevels == null || icingLevels.isEmpty())
+        if (icingLevels == null || icingLevels.isEmpty()) {
             return false;
-        else
+        } else {
             return true;
+        }
     }
 
     @Override
     public boolean hasTstorm() {
-        if (tstormTypes == null || tstormTypes.isEmpty())
+        if (tstormTypes == null || tstormTypes.isEmpty()) {
             return false;
-        else
+        } else {
             return true;
+        }
     }
 
     @Override
     public boolean hasTurbulence() {
-        if (turbulenceLevels == null || turbulenceLevels.isEmpty())
+        if (turbulenceLevels == null || turbulenceLevels.isEmpty()) {
             return false;
-        else
+        } else {
             return true;
+        }
     }
 
     public void setTwoColumns(boolean twoColumns) {
         this.twoColumns = twoColumns;
     }
 
+    @Override
     public boolean isTwoColumns() {
         return twoColumns;
     }

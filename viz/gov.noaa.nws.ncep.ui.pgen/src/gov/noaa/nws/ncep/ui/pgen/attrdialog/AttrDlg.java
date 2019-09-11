@@ -75,7 +75,8 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
  * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
  * 01/23/2019   7716        K. Sunil    return true in createButtonBar call in case of PgenInterpDlg.
  * 07/26/2019   66393       mapeters    Handle {@link AttrSettings#getSettings} change
- *
+ * 09/06/2019   64150       ksunil      add button bar if working with various ContourAttr dialogs while "ANY" 
+ *                                           classes on UI is selected.
  *
  *
  * </pre>
@@ -167,13 +168,24 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
         String currentAction = PgenSession.getInstance().getPgenPalette()
                 .getCurrentAction();
+
         if (currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
                 || currentAction
                         .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)
                 || PgenSession.getInstance().getPgenPalette()
                         .getCurrentCategory()
                         .equalsIgnoreCase(PgenConstant.CATEGORY_MET)
-                || this instanceof CycleDlg || this instanceof PgenInterpDlg) {
+                || this instanceof CycleDlg || this instanceof PgenInterpDlg
+                // When ANY is pressed AND trying to edit ANY one of the
+                // following 4, allow
+                || ((PgenSession.getInstance().getPgenPalette()
+                        .getCurrentCategory()
+                        .equalsIgnoreCase(PgenConstant.CATEGORY_ANY))
+                        && (this instanceof ContoursAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourLineAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourCircleAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourMinmaxAttrDlg
+                                || this instanceof ContoursAttrDlg.LabelAttrDlg))) {
 
             Control bar = super.createButtonBar(parent);
             GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);

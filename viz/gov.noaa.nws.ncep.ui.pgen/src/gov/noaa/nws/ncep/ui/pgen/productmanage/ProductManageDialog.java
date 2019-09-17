@@ -1,20 +1,5 @@
 package gov.noaa.nws.ncep.ui.pgen.productmanage;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.GfaAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.OutlookAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.controls.StoreActivityDialog;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.elements.ProductInfo;
-import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
-
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
@@ -45,24 +30,39 @@ import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.GfaAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.OutlookAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.controls.StoreActivityDialog;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.elements.ProductInfo;
+import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
+
 /**
  * gov.noaa.nws.ncep.ui.pgen.productManage.ProductManageDialog his code has been
  * developed by the NCEP/SIB for use in the AWIPS2 system.
- * 
+ *
  * This class provides a dialog to manage PGEN products in National Centers
  * perspective.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- -----------  --------------------------
- * 09/09        #151        J. Wu       Initial creation. 
- * 09/10        #151        J. Wu       Updated with the layer configuration. 
- * 01/11        #151        J. Wu       Simplified output for post-processing 
- * 09/11        #335        J. Wu       Added file auto storage/acccess 
- * 09/11        #335        J. Wu       made cascading menu for activity type/subtype. 
- * 06/12        TTR253      J. Wu       made layer check boxes to stay de-selected 
- *                                      unless the user selects them. 
+ * 09/09        #151        J. Wu       Initial creation.
+ * 09/10        #151        J. Wu       Updated with the layer configuration.
+ * 01/11        #151        J. Wu       Simplified output for post-processing
+ * 09/11        #335        J. Wu       Added file auto storage/acccess
+ * 09/11        #335        J. Wu       made cascading menu for activity type/subtype.
+ * 06/12        TTR253      J. Wu       made layer check boxes to stay de-selected
+ *                                      unless the user selects them.
  * 06/12        TTR559      B. Yin      Link the layer name to Outlook type
  * 12/12        #937        J. Wu       Update G_Airmet layers/hazard - "C&V"
  * 09/13        ?           J. Wu       Use new "StoreActivityDialog" at exit.
@@ -76,11 +76,12 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 06/29/2016   R18611      S. Russell  Updated exitPgenActivityManagement() to
  *                                      add code to set the needsSaving flag
  *                                      to false after all products are removed
+ * 09/06/2019   #64146      K. sunil    Display all activities and not just the one in use..
  * </pre>
- * 
+ *
  * @author jwu
  * @version 1.0
- * 
+ *
  */
 
 public class ProductManageDialog extends ProductDialog {
@@ -436,8 +437,8 @@ public class ProductManageDialog extends ProductDialog {
             nameBtn.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
 
-                    int iprd = Integer.parseInt(event.widget.getData()
-                            .toString());
+                    int iprd = Integer
+                            .parseInt(event.widget.getData().toString());
 
                     if (prdInUse == iprd) {
 
@@ -450,8 +451,8 @@ public class ProductManageDialog extends ProductDialog {
                         editProductAttr();
 
                     } else {
-                        switchProduct(Integer.parseInt(event.widget.getData()
-                                .toString()));
+                        switchProduct(Integer
+                                .parseInt(event.widget.getData().toString()));
                     }
 
                 }
@@ -464,8 +465,9 @@ public class ProductManageDialog extends ProductDialog {
             dispBtn.setData(ii);
             dispBtn.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
-                    turnOnProduct(Integer.parseInt(event.widget.getData()
-                            .toString()));
+                    turnOnProduct(Integer
+                            .parseInt(event.widget.getData().toString()));
+
                 }
             });
 
@@ -495,8 +497,8 @@ public class ProductManageDialog extends ProductDialog {
                 mi1.setData("Default");
                 mi1.addSelectionListener(new SelectionAdapter() {
                     public void widgetSelected(SelectionEvent e) {
-                        typeText.setText(((MenuItem) e.widget).getData()
-                                .toString());
+                        typeText.setText(
+                                ((MenuItem) e.widget).getData().toString());
                         typeText.pack();
                         shell.pack();
                         switchProductType(typeText);
@@ -511,8 +513,8 @@ public class ProductManageDialog extends ProductDialog {
                     LinkedHashMap<String, String> subtypesNalias = getSubtypes(
                             prdType.getType(), true);
 
-                    if ((ptypName.equals(prdType.getName()) && !prdType
-                            .getType().equals(prdType.getName()))
+                    if ((ptypName.equals(prdType.getName())
+                            && !prdType.getType().equals(prdType.getName()))
                             || !hasSubtypes(subtypesNalias.values())) {
 
                         MenuItem typeItem = new MenuItem(mu, SWT.PUSH, ntyp);
@@ -552,8 +554,8 @@ public class ProductManageDialog extends ProductDialog {
 
                             subtypeItem.setData(styp);
 
-                            subtypeItem
-                                    .addSelectionListener(new SelectionAdapter() {
+                            subtypeItem.addSelectionListener(
+                                    new SelectionAdapter() {
                                         public void widgetSelected(
                                                 SelectionEvent e) {
                                             String typeName = ((MenuItem) e.widget)
@@ -573,8 +575,8 @@ public class ProductManageDialog extends ProductDialog {
                 ti.addListener(SWT.Selection, new Listener() {
                     public void handleEvent(Event event) {
                         Rectangle bounds = ti.getBounds();
-                        Point point = tb.toDisplay(bounds.x, bounds.y
-                                + bounds.height);
+                        Point point = tb.toDisplay(bounds.x,
+                                bounds.y + bounds.height);
                         mu.setLocation(point);
                         mu.setVisible(true);
                     }
@@ -633,7 +635,7 @@ public class ProductManageDialog extends ProductDialog {
         allOnOffBtn.setText("All On");
         allOnOffBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                updateDisplayChecks();
+                updateLayeringDisplayChecks();
             }
         });
 
@@ -690,8 +692,8 @@ public class ProductManageDialog extends ProductDialog {
             nameBtn.setData(ii);
             nameBtn.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
-                    int ilayer = Integer.parseInt(event.widget.getData()
-                            .toString());
+                    int ilayer = Integer
+                            .parseInt(event.widget.getData().toString());
                     if (layerInUse == ilayer) {
 
                         openPrdNameDialog = false;
@@ -715,8 +717,8 @@ public class ProductManageDialog extends ProductDialog {
             dispBtn.setData(ii);
             dispBtn.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
-                    turnOnLayer(Integer.parseInt(event.widget.getData()
-                            .toString()));
+                    turnOnLayer(Integer
+                            .parseInt(event.widget.getData().toString()));
                 }
             });
 
@@ -724,15 +726,15 @@ public class ProductManageDialog extends ProductDialog {
 
             if (!compact) {
                 Button clrBtn = new Button(layersComp, SWT.PUSH);
-                clrBtn.setText(getDisplayString(lyr.isMonoColor(),
-                        lyr.isFilled()));
+                clrBtn.setText(
+                        getDisplayString(lyr.isMonoColor(), lyr.isFilled()));
                 setButtonColor(clrBtn, lyr.getColor());
                 clrBtn.setData(ii);
 
                 clrBtn.addSelectionListener(new SelectionAdapter() {
                     public void widgetSelected(SelectionEvent event) {
-                        colorModeBtnInUse = Integer.parseInt(event.widget
-                                .getData().toString());
+                        colorModeBtnInUse = Integer
+                                .parseInt(event.widget.getData().toString());
                         editDisplayAttr();
                     }
 
@@ -829,8 +831,8 @@ public class ProductManageDialog extends ProductDialog {
     protected void updateDisplayAttr(boolean mono, Color clr, boolean fill) {
 
         if (colorModeBtnInUse >= 0) {
-            colorModeBtns.get(colorModeBtnInUse).setText(
-                    getDisplayString(mono, fill));
+            colorModeBtns.get(colorModeBtnInUse)
+                    .setText(getDisplayString(mono, fill));
 
             layerList.get(colorModeBtnInUse).setMonoColor(mono);
             layerList.get(colorModeBtnInUse).setColor(clr);
@@ -1003,18 +1005,17 @@ public class ProductManageDialog extends ProductDialog {
             if (drawingLayer.getSelectedDE() != null) {
                 GfaAttrDlg.getInstance(this.getParent()).close();
             } else {
-                GfaAttrDlg.getInstance(this.getParent()).switchHazard(
-                        currentLayer.getName());
+                GfaAttrDlg.getInstance(this.getParent())
+                        .switchHazard(currentLayer.getName());
             }
-        } else if (OutlookAttrDlg.getInstance(this.getParent()).getShell() != null) {
+        } else if (OutlookAttrDlg.getInstance(this.getParent())
+                .getShell() != null) {
             if (drawingLayer.getSelectedDE() != null) {
                 OutlookAttrDlg.getInstance(this.getParent()).close();
             } else {
-                OutlookAttrDlg
-                        .getInstance(this.getParent())
-                        .setOtlkType(
-                                currentLayer
-                                        .getMetaInfoFromKey(OutlookAttrDlg.OTLK_TYPE_IN_LAYER_META));
+                OutlookAttrDlg.getInstance(this.getParent())
+                        .setOtlkType(currentLayer.getMetaInfoFromKey(
+                                OutlookAttrDlg.OTLK_TYPE_IN_LAYER_META));
             }
         } else {
             PgenUtil.setSelectingMode();
@@ -1038,8 +1039,8 @@ public class ProductManageDialog extends ProductDialog {
     private void turnOnLayer(int which) {
 
         if (which != layerInUse) {
-            layerList.get(which).setOnOff(
-                    displayOnOffBtns.get(which).getSelection());
+            layerList.get(which)
+                    .setOnOff(displayOnOffBtns.get(which).getSelection());
         }
 
         PgenUtil.refresh();
@@ -1048,7 +1049,7 @@ public class ProductManageDialog extends ProductDialog {
     /**
      * Toggle the display on/off for all check buttons.
      */
-    private void updateDisplayChecks() {
+    private void updateLayeringDisplayChecks() {
 
         if (allOnOff) {
             allOnOff = false;
@@ -1188,8 +1189,8 @@ public class ProductManageDialog extends ProductDialog {
     private void turnOnProduct(int which) {
 
         if (which != prdInUse) {
-            prdList.get(which).setOnOff(
-                    prdDispOnOffBtns.get(which).getSelection());
+            prdList.get(which)
+                    .setOnOff(prdDispOnOffBtns.get(which).getSelection());
         }
 
         PgenUtil.refresh();
@@ -1210,8 +1211,9 @@ public class ProductManageDialog extends ProductDialog {
 
             // Launch a dialog box asking the user if they want to save their
             // work
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
+            MessageDialog confirmDlg = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
                     "Confirm Exit from Activity Management", null,
                     "Do you want to save the changes?", MessageDialog.QUESTION,
                     new String[] { "Yes", "No", "Cancel" }, 0);
@@ -1434,9 +1436,21 @@ public class ProductManageDialog extends ProductDialog {
 
         // Switch the color for the active layers
         setButtonColor(prdNameBtns.get(prdInUse), defaultButtonColor);
-        prdDispOnOffBtns.get(prdInUse).setSelection(false);
-        prdList.get(prdInUse).setOnOff(false);
+
         prdList.get(prdInUse).setInUse(false);
+
+        /*
+         * As per ticket 64146, while switching products, we need to display all
+         * activities from the (previously) selected products
+         */
+        for (int i = 0; i < prdList.size(); i++) {
+            if (i == which || i == prdInUse) {
+                prdDispOnOffBtns.get(i).setSelection(true);
+                prdList.get(i).setOnOff(true);
+                continue;
+            }
+            prdList.get(i).setOnOff(prdDispOnOffBtns.get(i).getSelection());
+        }
 
         prdInUse = which;
 
@@ -1707,9 +1721,9 @@ public class ProductManageDialog extends ProductDialog {
                             olyr.setOutputFile(null);
 
                             Color clr = new Color(plyr.getColor().getRed(),
-                                    plyr.getColor().getGreen(), plyr.getColor()
-                                            .getBlue(), plyr.getColor()
-                                            .getAlpha());
+                                    plyr.getColor().getGreen(),
+                                    plyr.getColor().getBlue(),
+                                    plyr.getColor().getAlpha());
                             olyr.setColor(clr);
                             updated = true;
                             break;
@@ -1727,9 +1741,10 @@ public class ProductManageDialog extends ProductDialog {
                         lyr.setInputFile(null);
                         lyr.setOutputFile(null);
 
-                        Color clr = new Color(plyr.getColor().getRed(), plyr
-                                .getColor().getGreen(), plyr.getColor()
-                                .getBlue(), plyr.getColor().getAlpha());
+                        Color clr = new Color(plyr.getColor().getRed(),
+                                plyr.getColor().getGreen(),
+                                plyr.getColor().getBlue(),
+                                plyr.getColor().getAlpha());
                         lyr.setColor(clr);
 
                         prd.addLayer(lyr);
@@ -1799,8 +1814,9 @@ public class ProductManageDialog extends ProductDialog {
 
         if (!(txt.getText().equals(prevType))) {
 
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
+            MessageDialog confirmDlg = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
                     "Confirm changing product types", null,
                     "Are you sure you want to change from type " + prevType
                             + " to type " + txt.getText() + "?",
@@ -1893,8 +1909,8 @@ public class ProductManageDialog extends ProductDialog {
 
         String sfile = PgenUtil.buildPrdFileName(prd, prdTypesMap);
 
-        String filename = new String(buildFilePath(prd) + File.separator
-                + sfile);
+        String filename = new String(
+                buildFilePath(prd) + File.separator + sfile);
 
         return filename;
     }

@@ -158,6 +158,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 07/26/2019   66393       mapeters    Handle parm-specific contours settings
  * 08/07/2019   66393       mapeters    Only get available symbol/line types for the current parm
+ * 09/06/2019   64150       ksunil      Change private class visibility to protected
  *
  * </pre>
  *
@@ -1926,7 +1927,7 @@ public class ContoursAttrDlg extends AttrDlg
      * @author jwu
      *
      */
-    private class LabelAttrDlg extends TextAttrDlg {
+    protected class LabelAttrDlg extends TextAttrDlg {
 
         private LabelAttrDlg(Shell parShell) throws VizException {
 
@@ -2178,7 +2179,7 @@ public class ContoursAttrDlg extends AttrDlg
      * @author jwu
      *
      */
-    private class ContourLineAttrDlg extends LineAttrDlg {
+    protected class ContourLineAttrDlg extends LineAttrDlg {
 
         private ContourLineAttrDlg(Shell parShell) throws VizException {
 
@@ -2361,7 +2362,7 @@ public class ContoursAttrDlg extends AttrDlg
      * @author jwu
      *
      */
-    private class ContourCircleAttrDlg extends ArcAttrDlg {
+    protected class ContourCircleAttrDlg extends ArcAttrDlg {
 
         private ContourCircleAttrDlg(Shell parShell) throws VizException {
 
@@ -3166,7 +3167,7 @@ public class ContoursAttrDlg extends AttrDlg
      * @author jwu
      *
      */
-    private class ContourMinmaxAttrDlg extends LabeledSymbolAttrDlg {
+    protected class ContourMinmaxAttrDlg extends LabeledSymbolAttrDlg {
 
         private PgenContoursTool tool = null;
 

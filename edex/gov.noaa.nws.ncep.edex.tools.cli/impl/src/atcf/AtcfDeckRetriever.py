@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 from ufpy import ThriftClient
 from dynamicserialize.dstypes.com.raytheon.uf.common.datastorage.records import StringDataRecord

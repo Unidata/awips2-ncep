@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/awips2/python/bin/python3
 #
 ##
 # This script is used to extract PGEN products from EDEX.

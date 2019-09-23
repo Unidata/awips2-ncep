@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 ##
 # This script is a collection of utility function to be used for extracting PGEN 
 # products from EDEX and to store PGEN activities to EDEX.

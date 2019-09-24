@@ -54,7 +54,7 @@
    
    <extension
        point="org.eclipse.ui.menus">
-        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette">
+        <menuContribution locationURI="menu:tools?after=tools.Pg">
             <command
                 commandId="gov.noaa.nws.ncep.viz.overlays.staticOverlay"
                 label="PGEN Static Overlay">

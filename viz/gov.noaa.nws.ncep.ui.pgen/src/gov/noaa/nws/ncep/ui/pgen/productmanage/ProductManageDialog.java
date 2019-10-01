@@ -77,6 +77,8 @@ import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
  *                                      add code to set the needsSaving flag
  *                                      to false after all products are removed
  * 09/06/2019   #64146      K. sunil    Display all activities and not just the one in use..
+ * 09/20/2019   #69091      K. sunil    When new activity is created through "New" button, keep
+ *                                       existing activities checked.
  * </pre>
  *
  * @author jwu
@@ -1398,7 +1400,6 @@ public class ProductManageDialog extends ProductDialog {
         // Create a new product and set as the new active product.
         if (currentProduct != null) {
             currentProduct.setInUse(false);
-            currentProduct.setOnOff(false);
         }
 
         currentProduct = new Product();

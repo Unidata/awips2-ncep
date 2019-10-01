@@ -159,6 +159,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 07/26/2019   66393       mapeters    Handle parm-specific contours settings
  * 08/07/2019   66393       mapeters    Only get available symbol/line types for the current parm
  * 09/06/2019   64150       ksunil      Change private class visibility to protected
+ * 09/06/2019   64970       ksunil      Call changeMinmaxType when label/symbol only checkbox is pressed.
  *
  * </pre>
  *
@@ -736,6 +737,7 @@ public class ContoursAttrDlg extends AttrDlg
         symbolOnlyBtn.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
+
                 if (((Button) e.widget).getSelection()) {
                     labelOnlyBtn.setSelection(false);
                     hideSymbolLabelBtn.setSelection(false);
@@ -745,7 +747,7 @@ public class ContoursAttrDlg extends AttrDlg
                         hideSymbolLabelBtn.setEnabled(true);
                     }
                 }
-
+                changeMinmaxType();
                 saveBtnLastStatus(symbolOnlyBtn);
                 saveBtnLastStatus(labelOnlyBtn);
                 saveBtnLastStatus(hideSymbolLabelBtn);
@@ -763,7 +765,9 @@ public class ContoursAttrDlg extends AttrDlg
         labelOnlyBtn.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
+
                 if (((Button) e.widget).getSelection()) {
+
                     symbolOnlyBtn.setSelection(false);
                     hideSymbolLabelBtn.setSelection(false);
                     hideSymbolLabelBtn.setEnabled(false);
@@ -772,7 +776,7 @@ public class ContoursAttrDlg extends AttrDlg
                         hideSymbolLabelBtn.setEnabled(true);
                     }
                 }
-
+                changeMinmaxType();
                 saveBtnLastStatus(symbolOnlyBtn);
                 saveBtnLastStatus(labelOnlyBtn);
                 saveBtnLastStatus(hideSymbolLabelBtn);

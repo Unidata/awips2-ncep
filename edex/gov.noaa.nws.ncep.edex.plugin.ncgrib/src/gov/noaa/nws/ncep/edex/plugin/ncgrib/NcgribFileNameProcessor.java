@@ -12,11 +12,11 @@ import org.apache.camel.Processor;
  * Processor for ncep grib files, this processor has lots of hard coded
  * assumptions about file naming that need to be more generic based off ncep
  * file names.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 03/01/2012              bsteffen    Initial creation
@@ -29,9 +29,10 @@ import org.apache.camel.Processor;
  *                                     HURRICANE_PATTERN and method process() 
  *                                     for new hurricane file name nomenclature.
  * 08/22/2017    7718      K. Sunil    Updated for new HWRF and HMON file names.
- * 
+ * 10/08/2019    69705     K. Sunil    Do not track datasetid as a member variable.
+ *
  * </pre>
- * 
+ *
  * @author bsteffen
  * @version 1.0
  */
@@ -96,12 +97,6 @@ public class NcgribFileNameProcessor implements Processor {
 
     private static NcgribModelNameMap modelMap = null;
 
-    private String datasetid;
-
-    private String secondaryid;
-
-    private String ensembleid;
-
     /**
      * Extract the datasetid and secondarid or the ensembleid from the name of
      * the input file
@@ -110,6 +105,12 @@ public class NcgribFileNameProcessor implements Processor {
      */
     @Override
     public void process(Exchange exchange) throws Exception {
+
+        String datasetid = null;
+
+        String secondaryid = null;
+
+        String ensembleid = null;
 
         String flName = (String) exchange.getIn()
                 .getHeader("CamelFileNameOnly");
@@ -244,30 +245,6 @@ public class NcgribFileNameProcessor implements Processor {
             exchange.getIn().setHeader("ensembleid", ensembleid);
         }
 
-    }
-
-    public String getDatasetid() {
-        return datasetid;
-    }
-
-    public void setDatasetid(String datasetid) {
-        this.datasetid = datasetid;
-    }
-
-    public String getSecondaryid() {
-        return secondaryid;
-    }
-
-    public void setSecondaryid(String secondaryid) {
-        this.secondaryid = secondaryid;
-    }
-
-    public String getEnsembleid() {
-        return ensembleid;
-    }
-
-    public void setEnsembleid(String ensembleid) {
-        this.ensembleid = ensembleid;
     }
 
 }

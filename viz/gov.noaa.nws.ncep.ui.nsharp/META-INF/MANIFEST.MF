@@ -4,7 +4,7 @@ Bundle-Name: Nsharp Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.ui.nsharp;singleton:=true
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: SIB
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.core.runtime,
@@ -19,6 +19,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.sounding,
  com.raytheon.viz.core.graphing,
  org.apache.commons.lang3;bundle-version="3.4.0",
+ javax.xml.bind,
  javax.measure
 Import-Package: com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.common.sounding,

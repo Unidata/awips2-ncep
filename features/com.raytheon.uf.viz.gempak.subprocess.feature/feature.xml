@@ -93,13 +93,13 @@
          version="0.0.0"/>
 
    <plugin
-         id="com.fasterxml.jackson"
+         id="javax.media.jai"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
 
    <plugin
-         id="com.sun.xml.bind"
+         id="com.fasterxml.jackson"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
@@ -578,6 +578,12 @@
          install-size="0"
          version="0.0.0"
          fragment="true"/>
+
+      <plugin
+         id="javax.xml.bind"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
    <plugin
          id="com.raytheon.uf.common.json"

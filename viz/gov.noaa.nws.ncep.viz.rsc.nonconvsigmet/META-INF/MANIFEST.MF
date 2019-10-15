@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: NonConvective Sigmet Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.nonconvsigmet;singleton:=true
-Bundle-Version: 1.18.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.nonconvsigmet.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -17,13 +17,14 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  com.raytheon.uf.common.message;bundle-version="1.11.7",
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
- com.raytheon.uf.edex.decodertools
+ com.raytheon.uf.edex.decodertools,
+ javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.locationtech.jts.geom,
  gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet,
  gov.noaa.nws.ncep.viz.ui.display
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.nonconvsigmet,
  gov.noaa.nws.ncep.viz.rsc.nonconvsigmet.rsc
 

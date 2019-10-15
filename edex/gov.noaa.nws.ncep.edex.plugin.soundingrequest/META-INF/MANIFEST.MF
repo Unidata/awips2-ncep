@@ -41,4 +41,5 @@ Require-Bundle: com.raytheon.uf.edex.database,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.status;bundle-version="1.15.0",
  org.slf4j;bundle-version="1.7.21",
+ javax.media.jai,
  javax.measure

@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Data Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.common;singleton:=true
-Bundle-Version: 1.19.1.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.common.Activator
 Eclipse-BuddyPolicy: registered
 Require-Bundle: org.eclipse.ui,
@@ -15,7 +14,8 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
  gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+ org.slf4j;bundle-version="1.7.25",
+ javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.common.area,
@@ -33,4 +33,4 @@ Import-Package: com.raytheon.uf.common.comm,
  javax.measure,
  org.locationtech.jts.geom,
  org.locationtech.jts.io
-
+Bundle-RequiredExecutionEnvironment: JavaSE-11

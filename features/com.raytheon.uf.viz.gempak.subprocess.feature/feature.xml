@@ -579,7 +579,7 @@
          version="0.0.0"
          fragment="true"/>
 
-      <plugin
+   <plugin
          id="javax.xml.bind"
          download-size="0"
          install-size="0"
@@ -617,5 +617,23 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="javax.activation"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="javax.jws"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.jep"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>

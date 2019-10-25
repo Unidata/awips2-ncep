@@ -8,7 +8,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 /**
- * 
+ *
  * Processor for ncep grib files, this processor has lots of hard coded
  * assumptions about file naming that need to be more generic based off ncep
  * file names.
@@ -17,24 +17,26 @@ import org.apache.camel.Processor;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 03/01/2012              bsteffen    Initial creation
- * 05/28/2013    995       B. Yin      Get model name from NcgribModelNameMap
- * June  2013              T. Lee      Added NFCENS
- * 10/15/2012    2473      bsteffen    Move to ncgrib plugin
- * 5/2014                  S. Gilbert  Removed absolute path from fileName
- * 5/2014                  T. Lee      Added HYSPLIT
- * 07/11/2016    R8514     S. Russell  Updated member variable 
- *                                     HURRICANE_PATTERN and method process() 
- *                                     for new hurricane file name nomenclature.
- * 08/22/2017    7718      K. Sunil    Updated for new HWRF and HMON file names.
- * 10/08/2019    69705     K. Sunil    Do not track datasetid as a member variable.
+ * Date          Ticket#  Engineer    Description
+ * ------------- -------- ----------- ------------------------------------------
+ * Mar 01, 2012           bsteffen    Initial creation
+ * May 28, 2013  995      B. Yin      Get model name from NcgribModelNameMap
+ * June  2013             T. Lee      Added NFCENS
+ * Oct 15, 2012  2473     bsteffen    Move to ncgrib plugin
+ * May 2014               S. Gilbert  Removed absolute path from fileName
+ * May 2014               T. Lee      Added HYSPLIT
+ * Jul 11, 2016  8514     S. Russell  Updated member variable HURRICANE_PATTERN
+ *                                    and method process() for new hurricane
+ *                                    file name nomenclature.
+ * Aug 22, 2017  7718     K. Sunil    Updated for new HWRF and HMON file names.
+ * Oct 08, 2019  69705    K. Sunil    Do not track datasetid as a member
+ *                                    variable.
+ * Oct 25, 2019  7959     tjensen     Only set secondary ids for appropriate
+ *                                    patterns
  *
  * </pre>
  *
  * @author bsteffen
- * @version 1.0
  */
 public class NcgribFileNameProcessor implements Processor {
 
@@ -100,7 +102,7 @@ public class NcgribFileNameProcessor implements Processor {
     /**
      * Extract the datasetid and secondarid or the ensembleid from the name of
      * the input file
-     * 
+     *
      * @see org.apache.camel.Processor#process(org.apache.camel.Exchange)
      */
     @Override
@@ -156,86 +158,93 @@ public class NcgribFileNameProcessor implements Processor {
 
                 // HWRF hurricanes
 
-            } else if (HURRICANE_HWRF_PATTERN.matcher(token).find()) {
-                Matcher matcher = HURRICANE_HWRF_PATTERN.matcher(token);
-                matcher.find();
+            } else if (HURRICANE_HWRF_PATTERN.matcher(token).find()
+                    || nameTokens[0]
+                            .equalsIgnoreCase(HURRICANE_FILE_HEAD_HMON)) {
+                if (HURRICANE_HWRF_PATTERN.matcher(token).find()) {
+                    // If HWRF
+                    if (nameTokens[0]
+                            .equalsIgnoreCase(HURRICANE_FILE_HEAD_HWRF)) {
 
-                // If HWRF
-                if (nameTokens[0].equalsIgnoreCase(HURRICANE_FILE_HEAD_HWRF)) {
+                        // domain can be (synoptic|global|storm|core)
+                        String domain = nameTokens[4];
+                        resolution = nameTokens[5].toLowerCase();
 
-                    // domain can be (synoptic|global|storm|core)
-                    String domain = nameTokens[4];
+                        /*
+                         * domain "core" and domain "storm" each have a
+                         * resolution of 0p02. Differentiate them by adding the
+                         * domain to the datasetid when the domain is "storm"
+                         */
+                        if ("global".equalsIgnoreCase(domain)) {
+                            datasetid = HURRICANE_MODEL_HWRF_GLOBAL;
+                        } else if (resolution
+                                .equalsIgnoreCase(HURRICANE_MODEL_RES_P125)) {
+                            // synoptic
+                            datasetid = HURRICANE_MODEL_HWRF;
+                        } else if ("storm".equalsIgnoreCase(domain)
+                                && resolution.equalsIgnoreCase(
+                                        HURRICANE_MODEL_RES_P02)) {
+                            datasetid = HURRICANE_MODEL_HWRF_OUTER_CORE;
+                        } else if ("core".equalsIgnoreCase(domain) && resolution
+                                .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
+                            datasetid = HURRICANE_MODEL_HWRF_INNER_CORE;
+                        } else {
+                            datasetid = HURRICANE_MODEL_HWRF + resolution;
+                        }
+
+                    }
+                    // Else GHM
+                    else if (nameTokens[0]
+                            .equalsIgnoreCase(HURRICANE_FILE_HEAD_GHM)) {
+                        if (nameTokens[4]
+                                .equalsIgnoreCase(HURRICANE_MODEL_RES_1P0)) {
+                            datasetid = HURRICANE_MODEL_GHM;
+                        } else {
+                            // resource ID + resolution
+                            resolution = nameTokens[4].toLowerCase();
+                            datasetid = HURRICANE_MODEL_GHM + resolution;
+                        }
+                    }
+
+                }
+
+                // Else HMON (else if the first token parsed from the filename
+                // is "hmon")
+                else if (nameTokens[0]
+                        .equalsIgnoreCase(HURRICANE_FILE_HEAD_HMON)) {
+                    // Based on the 5th token (the resolution) set the datasetid
                     resolution = nameTokens[5].toLowerCase();
 
-                    // domain "core" and domain "storm" each have a resolution
-                    // of 0p02. Differentiate them by adding the domain
-                    // to the datasetid when the domain is "storm"
-                    if ("global".equalsIgnoreCase(domain)) {
-                        datasetid = HURRICANE_MODEL_HWRF_GLOBAL;
-                    } else if (resolution
-                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P125)) {
-                        // synoptic
-                        datasetid = HURRICANE_MODEL_HWRF;
-                    } else if ("storm".equalsIgnoreCase(domain) && resolution
+                    if (nameTokens[5]
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P20)) {
+                        datasetid = HURRICANE_MODEL_HMON;
+                    } else if (nameTokens[5]
+                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P06)) {
+                        datasetid = HURRICANE_MODEL_HMON + resolution;
+                    } else if (nameTokens[5]
                             .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
-                        datasetid = HURRICANE_MODEL_HWRF_OUTER_CORE;
-                    } else if ("core".equalsIgnoreCase(domain) && resolution
-                            .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
-                        datasetid = HURRICANE_MODEL_HWRF_INNER_CORE;
-                    } else {
-                        datasetid = HURRICANE_MODEL_HWRF + resolution;
-                    }
-
-                }
-                // Else GHM
-                else if (nameTokens[0]
-                        .equalsIgnoreCase(HURRICANE_FILE_HEAD_GHM)) {
-                    if (nameTokens[4]
-                            .equalsIgnoreCase(HURRICANE_MODEL_RES_1P0)) {
-                        datasetid = HURRICANE_MODEL_GHM;
-                    } else {
-                        // resource ID + resolution
-                        resolution = nameTokens[4].toLowerCase();
-                        datasetid = HURRICANE_MODEL_GHM + resolution;
+                        datasetid = HURRICANE_MODEL_HMON + resolution;
                     }
                 }
 
+                /*
+                 * The secondaryid is the storm name embedded in the file name
+                 * Example:
+                 * hur_hur.2016060806_one01e.2016060806.grib.1p00.f96.grib2
+                 * one01e is the name of the storm, the secondaryid
+                 */
+                String[] underscoreSplitTokens = nameTokens[1].split("_");
+                secondaryid = underscoreSplitTokens[1];
             }
-
-            // Else HMON (else if the first token parsed from the filename
-            // is "hmon")
-            else if (nameTokens[0].equalsIgnoreCase(HURRICANE_FILE_HEAD_HMON)) {
-                // Based on the 5th token (the resolution) set the datasetid
-                resolution = nameTokens[5].toLowerCase();
-
-                if (nameTokens[5].equalsIgnoreCase(HURRICANE_MODEL_RES_P20)) {
-                    datasetid = HURRICANE_MODEL_HMON;
-                } else if (nameTokens[5]
-                        .equalsIgnoreCase(HURRICANE_MODEL_RES_P06)) {
-                    datasetid = HURRICANE_MODEL_HMON + resolution;
-                } else if (nameTokens[5]
-                        .equalsIgnoreCase(HURRICANE_MODEL_RES_P02)) {
-                    datasetid = HURRICANE_MODEL_HMON + resolution;
-                }
-            }
-
-            /*
-             * The secondaryid is the storm name embedded in the file name
-             * Example: hur_hur.2016060806_one01e.2016060806.grib.1p00.f96.grib2
-             * one01e is the name of the storm, the secondaryid
-             */
-            String[] underscoreSplitTokens = nameTokens[1].split("_");
-            secondaryid = underscoreSplitTokens[1];
 
         }
 
         if (datasetid == null) {
-            if (modelMap == null) {
-                modelMap = NcgribModelNameMap.load();
-            }
             // Get model name from grib file template
-            datasetid = modelMap.getModelName(flName);
-        } else {
+            datasetid = getModelMap().getModelName(flName);
+        }
+
+        if (datasetid != null) {
             exchange.getIn().setHeader("datasetid", datasetid);
         }
         if (secondaryid != null) {
@@ -245,6 +254,15 @@ public class NcgribFileNameProcessor implements Processor {
             exchange.getIn().setHeader("ensembleid", ensembleid);
         }
 
+    }
+
+    private static synchronized NcgribModelNameMap getModelMap()
+            throws Exception {
+        if (modelMap == null) {
+            modelMap = NcgribModelNameMap.load();
+        }
+
+        return modelMap;
     }
 
 }

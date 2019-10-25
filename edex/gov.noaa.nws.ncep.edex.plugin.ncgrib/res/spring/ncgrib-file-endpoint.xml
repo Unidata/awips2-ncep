@@ -45,7 +45,7 @@
                 </pipeline>
                 <doCatch>
                     <exception>java.lang.Throwable</exception>
-                    <to uri="log:ncgrib?level=ERROR"/>
+                    <to uri="direct-vm:logFailedData" />
                 </doCatch>
             </doTry>
         </route>

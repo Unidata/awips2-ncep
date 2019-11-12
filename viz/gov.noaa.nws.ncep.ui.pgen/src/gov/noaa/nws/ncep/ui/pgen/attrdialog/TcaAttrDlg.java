@@ -60,15 +60,17 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 06/09					S. Gilbert   	Initial Creation.
- * 05/12		769			B. Yin			Move the creation of UTC time and 
- * 										isTimeValid, getInitialTime to PgenUtil
- * 										so that Watch can also use them.
- * 03/13        #928        B. Yin      Made the button bar smaller.
- * 04/29        #977        S. Gilbert  PGEN Database support
- * 12/13		TTR800		B. Yin		USe UTC time class
+ * Date         Ticket#     Engineer     Description
+ * ------------ ----------  ----------- --------------------------
+ * 06/09                    S. Gilbert   Initial Creation.
+ * 05/12        769         B. Yin       Move the creation of UTC time and 
+ *                                       isTimeValid, getInitialTime to PgenUtil
+ *                                       so that Watch can also use them.
+ * 03/13        #928        B. Yin       Made the button bar smaller.
+ * 04/29        #977        S. Gilbert   PGEN Database support
+ * 12/13        TTR800      B. Yin       USe UTC time class
+ * 11/08/2019   70909       smanoj       Fix to populate TCA Island breakpoint
+ *                                       correctly.
  * </pre>
  * 
  * @author S. Gilbert
@@ -844,11 +846,14 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         specialGeogTypes.setText(tca.getGeographyType());
         specialGeogTypes.setEnabled(false);
 
-        if (tca.getSegment() instanceof BreakpointPair) {
-            bkpt1Field.setText(tca.getSegment().getBreakpoints().get(0)
-                    .getName());
-            bkpt2Field.setText(tca.getSegment().getBreakpoints().get(1)
-                    .getName());
+        if (tca.getSegment() != null
+                && !tca.getSegment().getBreakpoints().isEmpty()) {
+            bkpt1Field.setText(
+                    tca.getSegment().getBreakpoints().get(0).getName());
+            if (tca.getSegment() instanceof BreakpointPair) {
+                bkpt2Field.setText(
+                        tca.getSegment().getBreakpoints().get(1).getName());
+            }
         } else {
             bkpt1Field.setText("");
             bkpt2Field.setText("");

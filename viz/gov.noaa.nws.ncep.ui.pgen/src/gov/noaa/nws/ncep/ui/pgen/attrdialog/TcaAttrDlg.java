@@ -75,6 +75,8 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenTcaTool;
  * Dec 2013      TTR800    B. Yin       Use UTC time class
  * Mar 20, 2019  #7572     dgilling     Code cleanup.
  *
+ * 11/08/2019   70909       smanoj       Fix to populate TCA Island breakpoint
+ *                                       correctly.
  * </pre>
  *
  * @author S. Gilbert
@@ -821,11 +823,14 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         specialGeogTypes.setText(tca.getGeographyType());
         specialGeogTypes.setEnabled(false);
 
-        if (tca.getSegment() instanceof BreakpointPair) {
-            bkpt1Field.setText(tca.getSegment().getBreakpoints().get(0)
-                    .getName());
-            bkpt2Field.setText(tca.getSegment().getBreakpoints().get(1)
-                    .getName());
+        if (tca.getSegment() != null
+                && !tca.getSegment().getBreakpoints().isEmpty()) {
+            bkpt1Field.setText(
+                    tca.getSegment().getBreakpoints().get(0).getName());
+            if (tca.getSegment() instanceof BreakpointPair) {
+                bkpt2Field.setText(
+                        tca.getSegment().getBreakpoints().get(1).getName());
+            }
         } else {
             bkpt1Field.setText("");
             bkpt2Field.setText("");

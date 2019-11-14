@@ -95,6 +95,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 01/15        #5801       A. Su       Made tag ID part of the activity label.
  * 12/12/2016   17469       W. Kwock    Added CWA Formatter
  * 03/20/2019   #7572       dgilling    Code cleanup.
+ * 11/04/2019   70576       smanoj      Update to allow forecaster change/update alphanumeric labels.
+ *
  * </pre>
  *
  * @author gzhang
@@ -328,6 +330,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         mainLayout.marginHeight = 3;
         mainLayout.marginWidth = 3;
         top.setLayout(mainLayout);
+        this.setShellStyle(SWT.RESIZE | SWT.MAX | SWT.CLOSE);
 
         if ("CONV_SIGMET".equals(this.pgenType)) {
             this.getShell().setText("Convective SIGMET Edit");
@@ -1000,9 +1003,17 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             drawingLayer.replaceElements(oldList, newList);
         }
 
-        drawingLayer.removeSelected();
-        for (AbstractDrawableComponent adc : newList) {
-            drawingLayer.addSelected(adc);
+        AbstractDrawableComponent newCmp = null;
+
+        for ( AbstractDrawableComponent adc : newList) {
+            newCmp = adc;
+            drawingLayer.removeElement(adc);
+        }
+
+        if(newCmp != null){
+            drawingLayer.addElement(newCmp);
+            drawingLayer.addSelected(newCmp);
+            drawingLayer.issueRefresh();
         }
 
         if (mapEditor != null) {
@@ -1015,6 +1026,11 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         this.setEditableAttrArea(this.comboMWO.getText());
         this.setEditableAttrId(this.comboID.getText());
         this.setEditableAttrSequence(this.spiSeq.getText());
+
+        this.asig.setEditableAttrArea(this.comboMWO.getText());
+        this.asig.setEditableAttrId(this.comboID.getText());
+        this.asig.setEditableAttrSeqNum(this.spiSeq.getText());
+
     }
 
     static Color getDefaultColor(String pType) {

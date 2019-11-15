@@ -3452,4 +3452,30 @@
          point="com.raytheon.uf.viz.kml.export.disable">
          <kmlDisable class="gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource"/>
    </extension>
+
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:tools?after=tools.Pg">
+           <command
+              label="Configure PGEN Acitivity"
+              commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
+           </command>
+       </menuContribution>
+   </extension>
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:gfe?after=gov.noaa.nws.ncep.ui.pgen.palette">
+           <command
+              label="Configure PGEN Acitivity"
+              commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
+              <visibleWhen>
+                 <reference
+                     definitionId="com.raytheon.viz.gfe.inGFEActionSet">
+                 </reference>                        
+              </visibleWhen>
+           </command>
+       </menuContribution>
+   </extension>
 </plugin>

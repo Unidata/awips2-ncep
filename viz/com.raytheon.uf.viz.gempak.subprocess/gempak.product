@@ -41,14 +41,13 @@
    <windowImages/>
 
    <launcher name="gempak">
-      <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
 
    <vm>
-      <linux include="true">jdk1.7.0</linux>
+      <linux include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</linux>
    </vm>
 
    <plugins>

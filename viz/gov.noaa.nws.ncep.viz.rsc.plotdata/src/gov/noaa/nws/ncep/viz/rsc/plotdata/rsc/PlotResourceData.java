@@ -1,12 +1,6 @@
 
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilterMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -16,16 +10,24 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.viz.pointdata.def.AbstractConditionalFilterManager;
+import com.raytheon.viz.pointdata.def.ConditionalFilter;
 import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
+
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
 
 /**
  * Resource data for plots
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
@@ -54,68 +56,60 @@ import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
  * 04/15/2013    #864      ghull       rm isForecastResource()
  * Sep 05, 2013  2316      bsteffen    Unify pirep and ncpirep.
  * 06/09/2015	#8585	   jhuber	   Remove ncscd plugins.
- * 
+ * 12/10/2019   72281      K Sunil     Slightly different getDefaultConditionalFilter call. 
+ *                                       Removed old commented out code.
+ *
  * </pre>
- * 
+ *
  * @author njensen
- * @version 1.0
  */
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name="NC-PlotResourceData")
-public class PlotResourceData extends AbstractNatlCntrsRequestableResourceData implements
-INatlCntrsResourceData {
+@XmlType(name = "NC-PlotResourceData")
+public class PlotResourceData extends AbstractNatlCntrsRequestableResourceData
+        implements INatlCntrsResourceData {
 
-	protected int pixelSizeHint = 80;
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(PlotResourceData.class);
 
-	// used in metadata query. For bufrmos this is the bufrmos type.
-//	@XmlElement
-//	protected String reportType = null;
+    protected int pixelSizeHint = 80;
 
-	@XmlElement
-	protected String legendString = null;
-	
-	@XmlElement
-	protected String spiFile = null;
+    @XmlElement
+    protected String legendString = null;
 
-	// if the plotModel has not been edited then these values will be from the 
-	// plotModelName. Otherwise this will contain the edited plotModel values.
-	@XmlElement
-	protected PlotModel plotModel = null;
+    @XmlElement
+    protected String spiFile = null;
 
-	// For upper air plots, levelKey is an attribute, 
-	// for non-upper air plots this will be set to 'Surface'
-	@XmlElement
+    /*
+     * if the plotModel has not been edited then these values will be from the
+     * plotModelName. Otherwise this will contain the edited plotModel values.
+     */
+    @XmlElement
+    protected PlotModel plotModel = null;
+
+    /*
+     * For upper air plots, levelKey is an attribute, for non-upper air plots
+     * this will be set to 'Surface'
+     */
+    @XmlElement
     protected String levelKey = null;
 
-	@XmlElement
-    protected Integer plotDensity = 10;	
-	
-// This is for the 'range' plotMode which we currently aren't. We'll need similar 
-// functionality in the future but this will need to be on a per parameter basis and
-// not set by the resource.
-//	@XmlElement
-//    protected double lowerLimit = -9999.0;
-//
-//	@XmlElement
-//    protected double upperLimit = 10000000.0;
+    @XmlElement
+    protected Integer plotDensity = 10;
 
-	@XmlElement
+    @XmlElement
     protected boolean plotMissingData = false;
 
     @XmlElement
     protected AbstractDbPlotInfoRetriever plotInfoRetriever;
-    
-    //@XmlElement
-	//protected String conditionalFilterName = null;
-	
+
     @XmlElement
-	protected ConditionalFilter conditionalFilter = null;
+    protected ConditionalFilter conditionalFilter = null;
 
     private static HashSet<String> pluginNames = new HashSet<String>();
-    
+
     private static ArrayList<String> sfcPlugins = new ArrayList<String>();
-    
+
     static {
         pluginNames.add("obs");
         pluginNames.add("sfcobs");
@@ -132,13 +126,11 @@ INatlCntrsResourceData {
         pluginNames.add("bufrmosNAM");
         pluginNames.add("bufrmosHPC");
         pluginNames.add("bufrmosMRF");
-        
-        // for the ModelGridPlotResource 
-        // TODO : is this ncgrib, or a new plugin just for the Model Plot Data?
-//        pluginNames.add("ncgrib");
-        
-        // We could key off of levelKey.equals("Surface") but for airep and pirep 
-        // levelKey won't be surface.
+
+        /*
+         * We could key off of levelKey.equals("Surface") but for airep and
+         * pirep levelKey won't be surface
+         */
         sfcPlugins.add("obs");
         sfcPlugins.add("sfcobs");
         sfcPlugins.add("airep");
@@ -151,103 +143,69 @@ INatlCntrsResourceData {
         sfcPlugins.add("bufrmosGFS");
         sfcPlugins.add("bufrmosNAM");
         sfcPlugins.add("bufrmosHPC");
-        sfcPlugins.add("bufrmosMRF");    
+        sfcPlugins.add("bufrmosMRF");
     }
 
-//    // taf is an exception to the rule that forecast resources have cycle times.
-//    //
-//    @Override
-//	public boolean isForecastResource() {
-//		if( getPluginName().equals("nctaf") ) {
-//			return true;
-//		}
-//		else { // or could base off of fcstPlugins...same result
-//			return super.isForecastResource();
-//		}
-//	}
+    public PlotResourceData() {
+        super();
+        this.nameGenerator = new AbstractNameGenerator() {
+            @Override
+            public String getName(AbstractVizResource<?, ?> resource) {
+                if (isSurfaceOnly()) {
+                    return (legendString != null ? legendString : "Plot Data");
+                } else {
+                    return (legendString != null
+                            ? legendString + " " + getLevelKey() + " mb"
+                            : "Plot Data");
+                }
+            }
+        };
+    }
 
-	public PlotResourceData( ) {
-		super();
-		this.nameGenerator = new AbstractNameGenerator() {
-			@Override
-			public String getName(AbstractVizResource<?, ?> resource) {
-				if( isSurfaceOnly() ) {
-					return ( legendString != null ? legendString : "Plot Data" );					
-				}
-				else {
-					return ( legendString != null ? legendString + " " + getLevelKey() + " mb" : "Plot Data" );
-				}
-			}
-		};
-	}
+    @Override
+    protected AbstractVizResource<?, ?> constructResource(
+            LoadProperties loadProperties, PluginDataObject[] objects) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @seecom.raytheon.uf.viz.core.rsc.AbstractRequestableResourceData#
-	 * constructResource(com.raytheon.uf.viz.core.comm.LoadProperties,
-	 * com.raytheon.edex.db.objects.PluginDataObject[])
-	 */
-	@Override
-	protected AbstractVizResource<?, ?> constructResource(
-			LoadProperties loadProperties, PluginDataObject[] objects) {
-		
-		String pluginName = this.metadataMap.get("pluginName").getConstraintValue();
-		
+        String pluginName = this.metadataMap.get("pluginName")
+                .getConstraintValue();
+
         if (pluginNames.contains(pluginName)) {
-	       	return new NcPlotResource2(this, loadProperties);
-		}
-		else {
-			System.out.println("Plugin "+ pluginName + " not supported by PlotResource2");
-			return null; //new PlotResource( this, loadProperties );
-		}
-	}
-		
-	public String getLegendString() {
-		return legendString;
-	}
+            return new NcPlotResource2(this, loadProperties);
+        } else {
+            statusHandler.warn(
+                    "Plugin " + pluginName + " not supported by PlotResource2");
+            return null;
+        }
+    }
 
-	public void setLegendString(String legendString) {
-		this.legendString = legendString;
-	}
+    public String getLegendString() {
+        return legendString;
+    }
 
-	public int getPixelSizeHint() {
-		return pixelSizeHint;
-	}
+    public void setLegendString(String legendString) {
+        this.legendString = legendString;
+    }
 
-	public String getSpiFile() {
-		return spiFile;
-	}
+    public int getPixelSizeHint() {
+        return pixelSizeHint;
+    }
 
-	public void setSpiFile(String spiFile) {
-		this.spiFile = spiFile;
-	}
+    public String getSpiFile() {
+        return spiFile;
+    }
 
-	public void setPlotModel( PlotModel pm ) {
-		plotModel = pm;    
-	}
+    public void setSpiFile(String spiFile) {
+        this.spiFile = spiFile;
+    }
 
-	public PlotModel getPlotModel( ) {
-		// if the plotModel has not been set yet (either from xml in the bundle file
-		// or from the plotModelName attribute) then get it from the manager
-		//
-// The plotmodel is now set directly from the referenced plotModel file or from
-// the RBD.		
-//		if( plotModel == null ) {			
-//			plotModel = PlotModelMngr.getInstance().getPlotModel( getPluginName(), 
-//					getPlotModelName() );
-//			
-//			if( plotModel == null ) {
-//				System.out.println("Unable to find plotModel for plugin '"+getPluginName()+
-//						            "' for '"+ getPlotModelName() +"'.");
-//				plotModel = PlotModelMngr.getInstance().getDefaultPlotModel();
-//				plotModel.setName( getPlotModelName() );
-//				plotModel.setPlugin( getPluginName() );
-//				return plotModel;
-//			}
-//		}
-		return new PlotModel( plotModel );
-	}
+    public void setPlotModel(PlotModel pm) {
+        plotModel = pm;
+    }
+
+    public PlotModel getPlotModel() {
+
+        return new PlotModel(plotModel);
+    }
 
     public boolean isPlotMissingData() {
         return plotMissingData;
@@ -261,7 +219,8 @@ INatlCntrsResourceData {
         return plotInfoRetriever;
     }
 
-    public void setPlotInfoRetriever(AbstractDbPlotInfoRetriever plotInfoRetriever) {
+    public void setPlotInfoRetriever(
+            AbstractDbPlotInfoRetriever plotInfoRetriever) {
         this.plotInfoRetriever = plotInfoRetriever;
     }
 
@@ -272,35 +231,38 @@ INatlCntrsResourceData {
     public void setLevelKey(String levelKey) {
         this.levelKey = levelKey;
     }
-    
-	public Integer getPlotDensity() {
-		return plotDensity;
-	}
 
-	public void setPlotDensity(Integer plotDensity) {
-		this.plotDensity = plotDensity;
-	}
+    public Integer getPlotDensity() {
+        return plotDensity;
+    }
+
+    public void setPlotDensity(Integer plotDensity) {
+        this.plotDensity = plotDensity;
+    }
 
     public boolean isSurfaceOnly() {
-		return sfcPlugins.contains( getPluginName() );
-	}    
-    
-    public ConditionalFilter getConditionalFilter( ) {
-// Note that now the conditionalFilter is set directly from either the refd xml file or from 
-// the xml in the RBD.
-    	// if the conditionalFilter has not been set yet (from xml file
-		// or from the conditionalFilterName attribute) then get it from the manager
-		if( conditionalFilter == null ) {			
-				conditionalFilter = ConditionalFilterMngr.getInstance().getDefaultConditionalFilter( getPluginName() );
-				return conditionalFilter;
-		}
-		return new ConditionalFilter( conditionalFilter );
-	}
-    
-	public void setConditionalFilter(ConditionalFilter conds) {
-		this.conditionalFilter = conds;	
-	}    
-	
+        return sfcPlugins.contains(getPluginName());
+    }
+
+    public ConditionalFilter getConditionalFilter() {
+        /*
+         * Note that now the conditionalFilter is set directly from either the
+         * refd xml file or from the xml in the RBD. if the conditionalFilter
+         * has not been set yet (from xml file or from the conditionalFilterName
+         * attribute) then get it from the manager
+         */
+        if (conditionalFilter == null) {
+            conditionalFilter = AbstractConditionalFilterManager
+                    .getDefaultConditionalFilter(getPluginName());
+            return conditionalFilter;
+        }
+        return new ConditionalFilter(conditionalFilter);
+    }
+
+    public void setConditionalFilter(ConditionalFilter conds) {
+        this.conditionalFilter = conds;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj)) {
@@ -345,12 +307,11 @@ INatlCntrsResourceData {
         } else if (this.plotInfoRetriever == null
                 && other.plotInfoRetriever != null) {
             return false;
-        } else if (this.plotInfoRetriever != null
-                && this.plotInfoRetriever.equals(other.plotInfoRetriever) == false) {
+        } else if (this.plotInfoRetriever != null && this.plotInfoRetriever
+                .equals(other.plotInfoRetriever) == false) {
             return false;
         }
 
-        return (this.pixelSizeHint == other.pixelSizeHint );
-//                && this.lowerLimit == other.lowerLimit && this.upperLimit == other.upperLimit);
+        return (this.pixelSizeHint == other.pixelSizeHint);
     }
 }

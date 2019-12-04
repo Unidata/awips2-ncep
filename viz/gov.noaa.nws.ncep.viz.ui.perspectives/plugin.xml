@@ -396,6 +396,10 @@
                     mnemonic="P"
                     style="push"
                     tooltip="Plot Model Manager">
+                    <parameter
+                        name="perspective"
+                        value="NCP">
+                    </parameter>
               </command>
               <command
                     commandId="gov.noaa.nws.ncep.viz.conditionalFilterMngr"
@@ -403,7 +407,11 @@
                     mnemonic="F"
                     style="push"
                     tooltip="Conditional Filter Manager">
-              </command>              
+                    <parameter
+                        name="perspective"
+                        value="NCP">
+                    </parameter>
+              </command>            
               <command
                     commandId="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
                     label="Time-series X-axis Scale Manager"

@@ -6,7 +6,6 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
-
 /**
  * Popup Point data display manager dialog in National Centers perspective.
  * 
@@ -14,32 +13,32 @@ import org.eclipse.ui.PlatformUI;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * April 2012   #615        S. Gurung       Initial Creation
- * 
+ * April 2012   #615        S. Gurung   Initial Creation
+ * 12/10/2019   72281       K Sunil     Added perspective in the mix (NCP or D2D)
  * </pre>
  * 
  * @author sgurung
- * @version 1
  * 
  */
 public class ConditionalFilterMngrAction extends AbstractHandler {
 
-	private static ConditionalFilterMngrDialog conditionalFilterMngr;
-		
+    private static ConditionalFilterMngrDialog conditionalFilterMngr;
+
     public Object execute(ExecutionEvent arg0) throws ExecutionException {
-    	
-    	try {
-        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-		if( conditionalFilterMngr == null ) 
-			conditionalFilterMngr = new ConditionalFilterMngrDialog(shell);
-		
-		if( !conditionalFilterMngr.isOpen() ) 
-			conditionalFilterMngr.open();
-    	}
-    	finally {
-    		conditionalFilterMngr = null;    		
-    	}
-		
+
+        try {
+            Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                    .getShell();
+            if (conditionalFilterMngr == null)
+                conditionalFilterMngr = new ConditionalFilterMngrDialog(shell,
+                        arg0.getParameter("perspective"));
+
+            if (!conditionalFilterMngr.isOpen())
+                conditionalFilterMngr.open();
+        } finally {
+            conditionalFilterMngr = null;
+        }
+
         return null;
     }
 }

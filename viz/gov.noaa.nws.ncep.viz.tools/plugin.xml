@@ -136,10 +136,20 @@
       <command
           id="gov.noaa.nws.ncep.viz.plotModelMngr"
           name="Plot Model Manager">
+          <commandParameter
+            id="perspective"
+            name="perspective"
+            optional="false">
+         </commandParameter>
       </command>
-     <command
+      <command
           id="gov.noaa.nws.ncep.viz.conditionalFilterMngr"
           name="Conditional Filter Manager">
+          <commandParameter
+            id="perspective"
+            name="perspective"
+            optional="false">
+          </commandParameter>
       </command>
      <command
           id="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
@@ -303,7 +313,8 @@
             class="gov.noaa.nws.ncep.viz.tools.panZoom.ZoomLockAction"
             commandId="gov.noaa.nws.ncep.viz.ui.options.ZoomLockA">
       </handler>
-      -->
+             -->
+       
       <handler
             class="gov.noaa.nws.ncep.viz.tools.plotModelMngr.PlotModelMngrAction"
             commandId="gov.noaa.nws.ncep.viz.plotModelMngr">
@@ -311,7 +322,8 @@
       <handler
             class="gov.noaa.nws.ncep.viz.tools.conditionalfilter.ConditionalFilterMngrAction"
             commandId="gov.noaa.nws.ncep.viz.conditionalFilterMngr">
-      </handler>    
+            
+      </handler>
       <handler
             class="gov.noaa.nws.ncep.viz.tools.tsScaleMngr.XAxisScaleMngrAction"
             commandId="gov.noaa.nws.ncep.viz.xAxisScaleMngr">

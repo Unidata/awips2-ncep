@@ -71,6 +71,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/13        TTR800      B. Yin       USe UTC time class
  * 11/08/2019   70909       smanoj       Fix to populate TCA Island breakpoint
  *                                       correctly.
+ * 12/23/2019   72615       smanoj       Fix to automatically select new island breakpoint
+ *                                       when created.
+ *
  * </pre>
  * 
  * @author S. Gilbert
@@ -1096,6 +1099,12 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         advisories.add(advisory);
         breakpointList.add(toListString(advisory));
         getButton(SAVE_ID).setEnabled(true);
+
+        // Automatically select the new advisory
+        int idx = breakpointList.getItemCount() - 1;
+        breakpointList.setSelection(idx);
+        selectAdvisory(idx);
+
     }
 
     /*

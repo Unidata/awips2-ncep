@@ -9,6 +9,7 @@
 package gov.noaa.nws.ncep.ui.pgen.display;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenAutoPlacement;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenRangeRecord;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -46,13 +47,14 @@ import com.vividsolutions.jts.geom.Point;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 12/09     	#160        G. Zhang    Added ISigmet for Sigmet support
- * 03/10		#223		M.Laryukhin	Gfa added. 
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 09/12					B. Hebbard  Merge RTS changes from OB12.9.1
+ * Date         Ticket#     Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 12/09        #160        G. Zhang    Added ISigmet for Sigmet support
+ * 03/10        #223        M.Laryukhin Gfa added. 
+ * 04/11         #?         B. Yin      Re-factor IAttribute
+ * 09/12                    B. Hebbard  Merge RTS changes from OB12.9.1
  * 11/13        TTR 752     J. Wu       added methods to auto place CCFP text box.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  * </pre>
  * 
  * @author sgilbert
@@ -404,8 +406,9 @@ public abstract class AbstractElementContainer {
     private boolean isCCFPText(DrawableElement de) {
         return (de instanceof IText && de.getParent() != null
                 && de.getParent().getParent() != null
-                && de.getParent().getParent().getPgenType() != null && de
-                .getParent().getParent().getPgenType().equals("CCFP_SIGMET"));
+                && de.getParent().getParent().getPgenType() != null 
+                && de.getParent().getParent().getPgenType()
+                    .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET));
     }
 
     /*
@@ -428,7 +431,7 @@ public abstract class AbstractElementContainer {
                 && de.getParent().getParent() != null) {
             if (de.getParent().getParent().getPgenType() != null
                     && de.getParent().getParent().getPgenType()
-                            .equals("CCFP_SIGMET")) {
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
                 isccfparrow = true;
             }
         }

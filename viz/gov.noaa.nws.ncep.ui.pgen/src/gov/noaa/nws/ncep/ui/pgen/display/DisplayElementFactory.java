@@ -70,6 +70,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenRangeRecord;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
@@ -166,6 +167,8 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 04/05/2016   R17006      J. Wu       Correct the drawing of five-knot wind barb.
  * 11/07/2016   R23252      S. Russell  Updated createArrows() to support OPEN
  *                                      arrowheads.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
+ * 
  * </pre>
  * 
  * @author sgilbert
@@ -540,7 +543,8 @@ public class DisplayElementFactory {
 
         boolean isCCFP = false;
         AbstractDrawableComponent adc = ((Line) drawableElement).getParent();
-        isCCFP = (adc != null && ("CCFP_SIGMET".equals(adc.getPgenType())));
+        isCCFP = (adc != null && (PgenConstant.TYPE_CCFP_SIGMET
+                    .equalsIgnoreCase(adc.getPgenType())));
         DECollection ccfp = null;
         if (isCCFP) {
             ccfp = (DECollection) adc;
@@ -4955,8 +4959,8 @@ public class DisplayElementFactory {
             return createDisplayElements((Volcano) isig, paintProps);
         }
 
-        if (isig instanceof AbstractSigmet && "CCFP_SIGMET"
-                .equals(((AbstractSigmet) isig).getPgenType())) {
+        if (isig instanceof AbstractSigmet && PgenConstant.TYPE_CCFP_SIGMET
+                .equalsIgnoreCase(((AbstractSigmet) isig).getPgenType())) {
             return createDisplayElements(
                     (gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet) isig, paintProps);
         }
@@ -5030,9 +5034,9 @@ public class DisplayElementFactory {
                                                                       // closing
                                                                       // line
 
-            if (sigmet.getPgenType().equals(VaaInfo.PGEN_TYEP_CLOUD)
-                    || sigmet.getPgenType().equals("CCFP_SIGMET")) {
-                if (sigmet.getPgenType().equals(VaaInfo.PGEN_TYEP_CLOUD)) {
+            if (sigmet.getPgenType().equalsIgnoreCase(VaaInfo.PGEN_TYEP_CLOUD)
+                    || sigmet.getPgenType().equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
+                if (sigmet.getPgenType().equalsIgnoreCase(VaaInfo.PGEN_TYEP_CLOUD)) {
                     sigmet.setColors(fillClr);
                 }
                 list.add(createFill(smoothpts));

@@ -12,6 +12,8 @@ import static gov.noaa.nws.ncep.ui.pgen.sigmet.SigmetInfo.AREA_MAP;
 import static gov.noaa.nws.ncep.ui.pgen.sigmet.SigmetInfo.ID_MAP;
 import static gov.noaa.nws.ncep.ui.pgen.sigmet.SigmetInfo.SIGMET_TYPES;
 import static gov.noaa.nws.ncep.ui.pgen.sigmet.SigmetInfo.VOL_NAME_BUCKET_ARRAY;
+
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -81,29 +83,31 @@ import com.vividsolutions.jts.geom.Polygon;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 09/09		160			Gang Zhang 	Initial Creation. 
+ * Date         Ticket#      Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 09/09        160         Gang Zhang  Initial Creation. 
  * 03/10        231         Archana     Altered the dialog for sigmet 
  *                                      to display only a button showing the 
  *                                      selected color instead of displaying 
  *                                      the complete color matrix.
- * 03/10		#223		M.Laryukhin	Refactored getVOR method to be used with gfa.
- * 04/11		#?			B. Yin		Re-factor IAttribute
+ * 03/10        #223        M.Laryukhin Refactored getVOR method to be used with gfa.
+ * 04/11        #?          B. Yin      Re-factor IAttribute
  * 07/11        #450        G. Hull     NcPathManager
- * 12/11		#526		B. Yin		Close dialog after text is saved.
+ * 12/11        #526        B. Yin      Close dialog after text is saved.
  * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
  * 03/12        #612,#613   S. Gurung   Accept phenom Lat/Lon and convert them to prepended format.
- * 										Change KZOA to KZAK.
+ *                                      Change KZOA to KZAK.
  * 03/12        #611        S. Gurung   Fixed ability to change SIGMET type (from Area to Line/Isolated and back and forth)
  * 03/12        #676        Q. Zhou     Added Issue Office dropdown list.
- * 08/12        #612		S. Gurung   Fixed issue related to conversion of phenom Lat/Lon to prepended format
- * 03/13		#928		B. Yin		Made the button bar smaller.
+ * 08/12        #612        S. Gurung   Fixed issue related to conversion of phenom Lat/Lon to prepended format
+ * 03/13        #928        B. Yin      Made the button bar smaller.
  * 04/13        #977        S. Gilbert  PGEN Database support
- * 09/13        TTR656      J. Wu	  	Display for INTL_SIGMET converted from VGF.
+ * 09/13        TTR656      J. Wu       Display for INTL_SIGMET converted from VGF.
  * 09/14        TTR974      J. Wu       update "editableAttrFromLine" in "setSigmet()".
  * 10/14        TTR433      J. Wu       Set input verification/output format for Phenom Lat/Lon.
  * 10/14        TTR722      J. Wu       Display TC center/Movement/FL level for ISOLATED TC.
+ * 01/07/2020   71971       smanoj      Code fix to Store and Retrieve INTL_SIGMET.
+ * 
  * </pre>
  * 
  * @author gzhang
@@ -1287,15 +1291,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.setSideOfLine(comboLine.getText());
         this.setWidthStr(txtWidth.getText());
 
-        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)) {// ONLY
-                                                                                 // the
-                                                                                 // two
-                                                                                 // with
-                                                                                 // all
-            btnLine.setEnabled(false);
-            btnIsolated.setEnabled(false);
-            comboLine.setEnabled(false);
-            txtWidth.setEnabled(false);
+        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType) 
+             && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)) {
+                btnLine.setEnabled(false);
+                btnIsolated.setEnabled(false);
+                comboLine.setEnabled(false);
+                txtWidth.setEnabled(false);
         }
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++ selected
@@ -2086,11 +2087,36 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String forecaster = System.getProperty("user.name");
             ProductTime refTime = new ProductTime();
 
-            Product defaultProduct = new Product("Intl_SIGMET", "Intl SIGMET",
-                    forecaster, null, refTime, layerList);
-            // defaultProduct.addLayer(defaultLayer);
-            defaultProduct.setOutputFile(SigmetAttrDlg.this.drawingLayer
-                    .buildActivityLabel(defaultProduct));
+            // Use (hardcode) pgenType as the name and type of a new Product.
+            Product defaultProduct = new Product(
+                    SigmetAttrDlg.this.pgenType,
+                    SigmetAttrDlg.this.pgenType, forecaster, null, refTime,
+                    layerList);
+
+            String plabel = SigmetAttrDlg.this.drawingLayer
+                    .getActiveProduct().getOutputFile();
+            if (plabel == null) {
+                plabel = SigmetAttrDlg.this.drawingLayer
+                        .buildActivityLabel(defaultProduct);
+            }
+
+            // Construct a new label name and activity xml filename by using
+            // (1) pgenType as the prefix, and
+            // (2) its tag name inserted before the filename extension "xml"
+            // with a dot connecting each field in the filename,
+            // e.g., "INTL_SIGMET.07012020.10.KKCI_BRAVO_5.xml".
+            String prefix = SigmetAttrDlg.this.pgenType.replaceAll("\\s",
+                    "");
+            String fromFileName = getFileName();
+            String tagName = fromFileName.substring(0,
+                    fromFileName.indexOf('.'));
+            int insertionPoint = plabel.lastIndexOf('.');
+            String filename = prefix
+                    + plabel.substring(plabel.indexOf('.'), insertionPoint + 1)
+                    + tagName + plabel.substring(insertionPoint);
+
+            defaultProduct.setOutputFile(filename);
+
             defaultProduct.setCenter(PgenUtil.getCurrentOffice());
 
             try {

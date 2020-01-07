@@ -90,6 +90,7 @@ import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
  * 11/30/2016   R17954      Bugenhagen  Keep track of total number of pgen resources
  *                                      in session.  Modified cleanup method.
  *                                      Always return resource data as dirty.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  * 
  * </pre>
  * 
@@ -358,7 +359,9 @@ public class PgenResourceData extends AbstractResourceData
          */
         if (productList.size() == 0) {
 
-            activeProduct = new Product("Default", "Default", "Default",
+            activeProduct = new Product(PgenConstant.GENERAL_DEFAULT,
+                    PgenConstant.GENERAL_DEFAULT,
+                    PgenConstant.GENERAL_DEFAULT,
                     new ProductInfo(), new ProductTime(),
                     new ArrayList<Layer>());
 
@@ -502,10 +505,10 @@ public class PgenResourceData extends AbstractResourceData
 
         // remove the empty "Default" product
         if (productList.size() == 1
-                && productList.get(0).getName().equals("Default")
+                && productList.get(0).getName().equals(PgenConstant.GENERAL_DEFAULT)
                 && productList.get(0).getLayers().size() == 1
                 && productList.get(0).getLayers().get(0).getName()
-                        .equals("Default")
+                        .equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
                 && productList.get(0).getLayers().get(0).getDrawables()
                         .size() == 0) {
 
@@ -538,7 +541,7 @@ public class PgenResourceData extends AbstractResourceData
                 // Find match for active layer
                 Layer matchLayer = prds.get(0).getLayer(activeLayer.getName());
                 if (matchLayer == null) {
-                    matchLayer = prds.get(0).getLayer("Default");
+                    matchLayer = prds.get(0).getLayer(PgenConstant.GENERAL_DEFAULT);
                 }
 
                 if (matchLayer != null) {
@@ -691,7 +694,7 @@ public class PgenResourceData extends AbstractResourceData
             layeringControlDlg.close();
         }
 
-        if (!activeLayer.getName().equalsIgnoreCase("Default")
+        if (!activeLayer.getName().equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
                 || activeProduct.getLayers().size() > 1) {
 
             activateLayering();
@@ -1331,7 +1334,7 @@ public class PgenResourceData extends AbstractResourceData
             StringBuilder sdir = new StringBuilder();
 
             sdir.append(PgenUtil.getPgenOprDirectory() + File.separator
-                    + "Default.DDMMYYYY.HH.xml");
+                    + PgenConstant.DEFAULT_ACTIVITY_LABEL);
 
             sfile = new String(sdir.toString());
             sfile = PgenUtil.replaceWithDate(sfile, Calendar.getInstance());
@@ -1354,7 +1357,7 @@ public class PgenResourceData extends AbstractResourceData
             int idx = temp.lastIndexOf(File.separator);
             sfile = temp.substring(idx + 1);
         } else {
-            sfile = PgenUtil.replaceWithDate("Default.DDMMYYYY.HH.xml",
+            sfile = PgenUtil.replaceWithDate(PgenConstant.DEFAULT_ACTIVITY_LABEL,
                     Calendar.getInstance());
         }
 
@@ -1402,11 +1405,11 @@ public class PgenResourceData extends AbstractResourceData
 
         boolean remove = false;
         if (productList.size() == 1
-                && productList.get(0).getName().equals("Default")
-                && productList.get(0).getType().equals("Default")
+                && productList.get(0).getName().equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
+                && productList.get(0).getType().equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
                 && productList.get(0).getLayers().size() == 1
                 && productList.get(0).getLayers().get(0).getName()
-                        .equals("Default")
+                        .equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
                 && productList.get(0).getLayers().get(0).getDrawables()
                         .size() == 0) {
             remove = true;

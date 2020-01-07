@@ -19,11 +19,11 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 05/16/2016    R18388    J. Wu       Add more constants.
  * 05/25/2016    R17940    J. Wu       Add more constants.
  * 12/12/2016     17469    W. Kwock    Added CWA Formatter
- * 
+ * 01/06/2020    71971     smanoj      Added constants for SIGMET Types
  * </pre>
  * 
  * @author srussell
- * @version 1.0
+ *
  */
 
 public final class PgenConstant {
@@ -128,6 +128,14 @@ public final class PgenConstant {
 
     public static final String TYPE_CCFP_SIGMET = "CCFP_SIGMET";
 
+    public static final String TYPE_CONV_SIGMET = "CONV_SIGMET";
+
+    public static final String TYPE_NCON_SIGMET = "NCON_SIGMET";
+
+    public static final String TYPE_AIRM_SIGMET = "AIRM_SIGMET";
+
+    public static final String TYPE_OUTL_SIGMET = "OUTL_SIGMET";
+
     public static final String CIRCLE = "Circle";
 
     public static final String PARM = "Parm";
@@ -161,11 +169,11 @@ public final class PgenConstant {
     public static final String DESK = "DESK";
 
     public static final String G2G_BOUND_MARK = "9999";
-    
+
     public static final String SIGMET = "SIGMET";
-    
+
     public static final String CWA_SIGMET = "CWA_SIGMET";
-    
+
     public static final String CWA_FORMATTER = "CWA_FORMATTER";
 
 }

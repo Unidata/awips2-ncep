@@ -86,6 +86,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * 01/15        #5801       A. Su       Made tag ID part of the activity label.
  * 12/12/2016   17469       W. Kwock    Added CWA Formatter
  * 11/04/2019   70576       smanoj      Update to allow forecaster change/update alphanumeric labels.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  *
  * </pre>
  * 
@@ -354,19 +355,19 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         top.setLayout(mainLayout);
         this.setShellStyle(SWT.RESIZE | SWT.MAX | SWT.CLOSE);
 
-        if ("CONV_SIGMET".equals(this.pgenType)) {
+        if (PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Convective SIGMET Edit");
-        } else if ("NCON_SIGMET".equals(this.pgenType)) {
+        } else if (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Non-convective SIGMET Edit");
-        } else if ("AIRM_SIGMET".equals(this.pgenType)) {
+        } else if (PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("AIRMET Edit");
-        } else if ("OUTL_SIGMET".equals(this.pgenType)) {
+        } else if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Convective Outlook Edit");
         }
 
-        if ("NCON_SIGMET".equals(this.pgenType)
-                || "AIRM_SIGMET".equals(this.pgenType)
-                || "OUTL_SIGMET".equals(this.pgenType)) {
+        if (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(this.pgenType)
+                || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(this.pgenType)
+                || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(this.pgenType)) {
             SigmetCommAttrDlg.this.setLineType(AREA);
         }
 
@@ -449,8 +450,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));// new
                                                                                // RGB(0,255,0));
 
-        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)
-                && !PgenConstant.CWA_FORMATTER.equals(pgenType)) {
+        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType) 
+                && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)
+                && !PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pgenType)) {
             btnLine.setEnabled(false);
             btnIsolated.setEnabled(false);
             comboLine.setEnabled(false);
@@ -603,12 +605,13 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
     private String getVOR(Coordinate[] coors) {
         boolean isSnapped = false;
-        String vorConnector = ("NCON_SIGMET".equals(pgenType)
-                || "AIRM_SIGMET".equals(pgenType)) ? " TO " : "-";
+        String vorConnector = (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
+                || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pgenType)) ? " TO " : "-";
 
-        if ("OUTL_SIGMET".equals(pgenType) || "CONV_SIGMET".equals(pgenType)
-                || "NCON_SIGMET".equals(pgenType)
-                || PgenConstant.CWA_FORMATTER.equals(pgenType)) {
+        if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pgenType) 
+                || PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)
+                || PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
+                || PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pgenType)) {
             return SnapUtil.getVORText(coors, vorConnector, lineType, 6,
                     isSnapped, true, false, pgenType);
         }
@@ -621,9 +624,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         } else {
             Button[] btns = attrButtonMap.get("lineType");
             if (btns != null) {
-                if (lineType.equals(AREA) || "NCON_SIGMET".equals(pgenType)
-                        || "AIRM_SIGMET".equals(pgenType)
-                        || "OUTL_SIGMET".equals(pgenType)) {
+                if (lineType.equals(AREA) 
+                        || PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
+                        || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pgenType)
+                        || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pgenType)) {
                     btns[0].setSelection(true);
                     btns[1].setSelection(false);
                     btns[2].setSelection(false);
@@ -890,11 +894,12 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 s = "";
             }
 
-            if ("NCON_SIGMET".equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || "AIRM_SIGMET"
+            if (PgenConstant.TYPE_NCON_SIGMET
+                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
+                    || PgenConstant.TYPE_AIRM_SIGMET
                             .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || "OUTL_SIGMET".equalsIgnoreCase(
-                            SigmetCommAttrDlg.this.pgenType)) {
+                    || PgenConstant.TYPE_OUTL_SIGMET
+                            .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
                 return s.toUpperCase();
             }
 
@@ -903,10 +908,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
         private String getFileName() {
             String s = "";
-            if ("CONV_SIGMET"
+            if (PgenConstant.TYPE_CONV_SIGMET
                     .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
                 s = SigmetCommAttrDlg.this.getAbstractSigmet().getTopText();
-            } else if ("OUTL_SIGMET"
+            } else if (PgenConstant.TYPE_OUTL_SIGMET
                     .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
                 s = SigmetCommAttrDlg.this.getAbstractSigmet().getTopText()
                         + "O";// TTR#111 upper case letter o, NOT number zero
@@ -1037,24 +1042,24 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     }
 
     static Color getDefaultColor(String pType) {
-        if ("INTL_SIGMET".equalsIgnoreCase(pType)) {
+        if (PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pType)) {
             return Color.cyan;
         }
 
-        if ("CONV_SIGMET".equalsIgnoreCase(pType)
+        if (PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pType)
                 || PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pType)) {
             return Color.yellow;
         }
 
-        if ("AIRM_SIGMET".equalsIgnoreCase(pType)) {
+        if (PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pType)) {
             return Color.green;
         }
 
-        if ("NCON_SIGMET".equalsIgnoreCase(pType)) {
+        if (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pType)) {
             return Color.magenta;
         }
 
-        if ("OUTL_SIGMET".equalsIgnoreCase(pType)) {
+        if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pType)) {
             return Color.orange;
         }
 

@@ -8,6 +8,8 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import java.awt.Color;
 import java.beans.PropertyDescriptor;
 import java.io.File;
@@ -108,7 +110,9 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 09/14        TTR974      J. Wu       update "editableAttrFromLine" in "setSigmet()".
  * 10/14        TTR433      J. Wu       Set input verification/output format for Phenom Lat/Lon.
  * 10/14        TTR722      J. Wu       Display TC center/Movement/FL level for ISOLATED TC.
+ * 01/07/2020   71971       smanoj      Code fix to Store and Retrieve INTL_SIGMET.
  * 03/20/2019   #7572       dgilling    Code cleanup.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -1317,15 +1321,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.setSideOfLine(comboLine.getText());
         this.setWidthStr(txtWidth.getText());
 
-        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)) {// ONLY
-                                                                                 // the
-                                                                                 // two
-                                                                                 // with
-                                                                                 // all
-            btnLine.setEnabled(false);
-            btnIsolated.setEnabled(false);
-            comboLine.setEnabled(false);
-            txtWidth.setEnabled(false);
+        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType) 
+             && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)) {
+                btnLine.setEnabled(false);
+                btnIsolated.setEnabled(false);
+                comboLine.setEnabled(false);
+                txtWidth.setEnabled(false);
         }
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++ selected
@@ -2089,11 +2090,36 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String forecaster = System.getProperty("user.name");
             ProductTime refTime = new ProductTime();
 
-            Product defaultProduct = new Product("Intl_SIGMET", "Intl SIGMET",
-                    forecaster, null, refTime, layerList);
-            // defaultProduct.addLayer(defaultLayer);
-            defaultProduct.setOutputFile(SigmetAttrDlg.this.drawingLayer
-                    .buildActivityLabel(defaultProduct));
+            // Use (hardcode) pgenType as the name and type of a new Product.
+            Product defaultProduct = new Product(
+                    SigmetAttrDlg.this.pgenType,
+                    SigmetAttrDlg.this.pgenType, forecaster, null, refTime,
+                    layerList);
+
+            String plabel = SigmetAttrDlg.this.drawingLayer
+                    .getActiveProduct().getOutputFile();
+            if (plabel == null) {
+                plabel = SigmetAttrDlg.this.drawingLayer
+                        .buildActivityLabel(defaultProduct);
+            }
+
+            // Construct a new label name and activity xml filename by using
+            // (1) pgenType as the prefix, and
+            // (2) its tag name inserted before the filename extension "xml"
+            // with a dot connecting each field in the filename,
+            // e.g., "INTL_SIGMET.07012020.10.KKCI_BRAVO_5.xml".
+            String prefix = SigmetAttrDlg.this.pgenType.replaceAll("\\s",
+                    "");
+            String fromFileName = getFileName();
+            String tagName = fromFileName.substring(0,
+                    fromFileName.indexOf('.'));
+            int insertionPoint = plabel.lastIndexOf('.');
+            String filename = prefix
+                    + plabel.substring(plabel.indexOf('.'), insertionPoint + 1)
+                    + tagName + plabel.substring(insertionPoint);
+
+            defaultProduct.setOutputFile(filename);
+
             defaultProduct.setCenter(PgenUtil.getCurrentOffice());
 
             try {

@@ -179,6 +179,7 @@ import com.vividsolutions.jts.geom.Point;
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
  * 07/11/2016   R17943      J. Wu       Display all objects in a non-active activity if its display flag is on.
  * 07/21/2016   R16077      J. Wu       Add context menu for contour lines to remove labels.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  * 
  * </pre>
  * 
@@ -2485,7 +2486,7 @@ public class PgenResource extends
                 && de.getParent().getParent() != null) {
             if (de.getParent().getParent().getPgenType() != null
                     && de.getParent().getParent().getPgenType()
-                            .equals("CCFP_SIGMET")) {
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
                 isccfparrow = true;
             }
         }
@@ -2504,7 +2505,7 @@ public class PgenResource extends
                 && de.getParent().getParent() != null) {
             if (de.getParent().getParent().getPgenType() != null
                     && de.getParent().getParent().getPgenType()
-                            .equals("CCFP_SIGMET")) {
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
                 isccfptext = true;
             }
         }

@@ -276,7 +276,7 @@
       </command>               
        <command
           id="gov.noaa.nws.ncep.ui.pgen.activityConfigure"
-          name="Configure PGEN  Acitivities">
+          name="Configure PGEN  Activities">
       </command>  
       <command
           id="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
@@ -3458,7 +3458,7 @@
        <menuContribution
            locationURI="menu:tools?after=tools.Pg">
            <command
-              label="Configure PGEN Acitivity"
+              label="Configure PGEN Activity"
               commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
            </command>
        </menuContribution>
@@ -3468,7 +3468,7 @@
        <menuContribution
            locationURI="menu:gfe?after=gov.noaa.nws.ncep.ui.pgen.palette">
            <command
-              label="Configure PGEN Acitivity"
+              label="Configure PGEN Activity"
               commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
               <visibleWhen>
                  <reference

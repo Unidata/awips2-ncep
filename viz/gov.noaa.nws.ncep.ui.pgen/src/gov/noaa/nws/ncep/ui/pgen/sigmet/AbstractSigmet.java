@@ -15,6 +15,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.SigmetCommAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
@@ -33,6 +34,8 @@ import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
  * 03/12        #676        Q. Zhou     Added Issue Office field.
  * 11/07/2019   70910       smanoj      Convective SIGMET Regional Setting 
  *                                      remember previous selection
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
+ * 
  * </pre>
  * 
  * @author gzhang
@@ -84,7 +87,7 @@ public abstract class AbstractSigmet extends Line implements ISigmet {
 
     @Override
     public String getPatternName() {
-        if ("CCFP_SIGMET".equalsIgnoreCase(getPgenType())) {
+        if (PgenConstant.TYPE_CCFP_SIGMET.equalsIgnoreCase(getPgenType())) {
             if ("Line".equalsIgnoreCase(getType())) {
                 return "LINE_SOLID";
             } else if ("LineMed".equalsIgnoreCase(getType())) {
@@ -174,13 +177,13 @@ public abstract class AbstractSigmet extends Line implements ISigmet {
     }
 
     public boolean isWithTopText() {
-        return getPgenType().equalsIgnoreCase("CONV_SIGMET")
-                || getPgenType().equalsIgnoreCase("OUTL_SIGMET");
+        return getPgenType().equalsIgnoreCase(PgenConstant.TYPE_CONV_SIGMET)
+                || getPgenType().equalsIgnoreCase(PgenConstant.TYPE_OUTL_SIGMET);
     }
 
     public String getTopText() {
 
-        if (getPgenType().equalsIgnoreCase("CONV_SIGMET")) {
+        if (getPgenType().equalsIgnoreCase(PgenConstant.TYPE_CONV_SIGMET)) {
 
             StringBuilder sb = new StringBuilder();
             if (this.getEditableAttrSeqNum() == null
@@ -196,7 +199,7 @@ public abstract class AbstractSigmet extends Line implements ISigmet {
                 sb.append(this.getEditableAttrId().charAt(0));
             }
             return sb.toString();
-        } else if (getPgenType().equalsIgnoreCase("OUTL_SIGMET")) {
+        } else if (getPgenType().equalsIgnoreCase(PgenConstant.TYPE_OUTL_SIGMET)) {
             if (this.getEditableAttrSeqNum() == null
                     || this.getEditableAttrSeqNum().length() == 0)
                 return "0";

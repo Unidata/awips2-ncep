@@ -73,6 +73,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                       correctly.
  * 12/23/2019   72615       smanoj       Fix to automatically select new island breakpoint
  *                                       when created.
+ * 01/09/2020   71072       smanoj       Fix TCA Attributes GUI NullPointerException
  *
  * </pre>
  * 
@@ -1098,7 +1099,9 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
     public void addAdvisory(TropicalCycloneAdvisory advisory) {
         advisories.add(advisory);
         breakpointList.add(toListString(advisory));
-        getButton(SAVE_ID).setEnabled(true);
+        if (getButton(SAVE_ID) !=null) {
+            getButton(SAVE_ID).setEnabled(true);
+        }
 
         // Automatically select the new advisory
         int idx = breakpointList.getItemCount() - 1;

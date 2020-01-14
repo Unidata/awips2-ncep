@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlgFactory;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.FrontAttrDlg;
@@ -52,14 +53,16 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------ ----------  ----------- --------------------------
  * 08/09        #149        B. Yin      Initial Creation.
  * 04/10        #165        G. Zhang    add support for VAA.
- * 10/10        #289       Archana    Added logic to handle the delete key    
+ * 10/10        #289       Archana    Added logic to handle the delete key
  * 07/12        #610        B. Yin      Make the multi-select work for GFA.
- * 12/12        #908        B. Yin      Do not change to selecting mode. 
+ * 12/12        #908        B. Yin      Do not change to selecting mode.
  * 04/13        #874        B. Yin      Handle elements in contours.
  * 12/13        #1065       J. Wu       use LineAttrDlg for kink lines.
  * 09/15        R8535       J. Lopez    Made multi-select work outside of the map area
  * 06/07/2016   R17380      B. Yin      Use Ctrl key to draw polygon.
  * 06/16/2016   R17380      B. Yin      Set multi-selecting flag for attr dialog.
+ * 12/20/2019   71072       smanoj      Modifications to handle multi-select functionality.
+ * 
  * </pre>
  * 
  * @author B. Yin
@@ -71,12 +74,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
      * Get the MultiSelect mouse handler.
      */
     public IInputHandler getMouseHandler() {
-        if (this.mouseHandler == null) {
-
-            this.mouseHandler = new PgenMultiSelectHandler();
-
-        }
-
+        this.mouseHandler = new PgenMultiSelectHandler();
         return this.mouseHandler;
     }
 
@@ -161,21 +159,18 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 return true;
 
             } else if (button == 3) {
-                if (polyPoints == null || polyPoints.isEmpty()) {
-                    // Close the attribute dialog and do the cleanup.
-                    if (attrDlg != null) {
-                        attrDlg.close();
-                    }
 
-                    attrDlg = null;
-                    pgenCategory = null;
-                    pgenType = null;
-
-                    drawingLayer.removeGhostLine();
-                    drawingLayer.removeSelected();
-                    mapEditor.refresh();
-
+                Coordinate loc = mapEditor.translateClick(anX, aY);
+                if (loc == null)
+                    return false;
+                AbstractDrawableComponent adc = null;
+                adc = drawingLayer.getNearestComponent(loc,
+                        new AcceptFilter(), true);
+                if (adc != null) {
+                    pgenType = adc.getPgenType();
+                    pgenCat  = adc.getPgenCategory();
                 }
+
                 return true;
 
             } else {
@@ -297,6 +292,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     drawingLayer.addSelected(inPoly(rectangle));
 
                     drawingLayer.removeGhostLine();
+
                     selectRect = false;
                 }
 
@@ -306,8 +302,59 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     Coordinate loc = mapEditor.translateClick(anX, aY);
                     if (loc == null)
                         return false;
+                    if (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_MET)) {
+                        if (pgenObj != null
+                                && pgenObj.equalsIgnoreCase("GFA")) {
+                            // Get the nearest element and set it as the selected
+                            // element.
+                            AbstractDrawableComponent adc = drawingLayer
+                                    .getNearestComponent(loc, new AcceptFilter(),
+                                            true);
 
-                    if (!pgenCat.equalsIgnoreCase("met")) {
+                            if (adc != null
+                                    && adc.getPgenType().equalsIgnoreCase("GFA")) {
+
+                                if (pgenType == null
+                                        || pgenType.equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)) {
+                                    pgenType = adc.getPgenType();
+                                }
+
+                                if (!drawingLayer.getAllSelected().contains(adc)) {
+                                    drawingLayer.addSelected(adc);
+                                } else {
+                                    drawingLayer.removeSelected(adc);
+                                }
+
+                            }
+                        } else {
+                            noCat = false;
+
+                            AbstractDrawableComponent adc = null;
+                            AbstractDrawableComponent contour = drawingLayer
+                                    .getNearestComponent(loc, new AcceptFilter(),
+                                            false);
+
+                            if (contour instanceof Contours) {
+                                adc = drawingLayer.getNearestElement(loc,
+                                        (Contours) contour);
+
+                            } else {
+                                adc = drawingLayer.getNearestComponent(loc,
+                                        new AcceptFilter(), true);
+                            }
+
+                            if (adc != null){
+                                pgenType = adc.getPgenType();
+                                pgenCat = adc.getPgenCategory();
+                            }
+
+                            if (!drawingLayer.getAllSelected()
+                                    .contains(adc)) {
+                                drawingLayer.addSelected(adc);
+                            }
+
+                        }
+                    } else {
 
                         noCat = false;
 
@@ -318,6 +365,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                         AbstractDrawableComponent contour = drawingLayer
                                 .getNearestComponent(loc, new AcceptFilter(),
                                         false);
+
                         if (contour instanceof Contours) {
                             adc = drawingLayer.getNearestElement(loc,
                                     (Contours) contour);
@@ -327,51 +375,15 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                                     new AcceptFilter(), true);
                         }
 
-                        if (adc != null
-                                && adc.getPgenCategory().equalsIgnoreCase(
-                                        pgenCat)) {
-
-                            if (pgenType == null
-                                    || pgenType.equalsIgnoreCase("MultiSelect")) {
-                                pgenType = adc.getPgenType();
-                            }
-
-                            if (!pgenCat.equalsIgnoreCase("Text")
-                                    || (pgenCat.equalsIgnoreCase("Text") && adc
-                                            .getPgenType().equalsIgnoreCase(
-                                                    pgenType))) {
-
-                                if (!drawingLayer.getAllSelected()
-                                        .contains(adc)) {
-                                    drawingLayer.addSelected(adc);
-                                } else {
-                                    drawingLayer.removeSelected(adc);
-                                }
-                            }
+                        if (adc != null){
+                            pgenType = adc.getPgenType();
+                            pgenCat = adc.getPgenCategory();
                         }
-                    } else if (pgenObj != null
-                            && pgenObj.equalsIgnoreCase("GFA")) {
-                        // Get the nearest element and set it as the selected
-                        // element.
-                        AbstractDrawableComponent adc = drawingLayer
-                                .getNearestComponent(loc, new AcceptFilter(),
-                                        true);
-
-                        if (adc != null
-                                && adc.getPgenType().equalsIgnoreCase("GFA")) {
-
-                            if (pgenType == null
-                                    || pgenType.equalsIgnoreCase("MultiSelect")) {
-                                pgenType = adc.getPgenType();
-                            }
-
-                            if (!drawingLayer.getAllSelected().contains(adc)) {
-                                drawingLayer.addSelected(adc);
-                            } else {
-                                drawingLayer.removeSelected(adc);
-                            }
-
+                        if (!drawingLayer.getAllSelected()
+                                .contains(adc)) {
+                            drawingLayer.addSelected(adc);
                         }
+
                     }
                 }
             }
@@ -407,7 +419,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
 
             if (attrDlg == null && drawingLayer.getAllSelected() != null
                     && !drawingLayer.getAllSelected().isEmpty()) {
-                if (pgenCat.equalsIgnoreCase("MET")) {
+                if (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_MET)) {
                     pgenType = pgenObj;
                 }
 
@@ -452,11 +464,9 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                                                     Color.green, Color.green });
                                 }
                             }
-
                         }
                     }
                 }
-
             }
             mapEditor.setFocus();
             mapEditor.refresh();
@@ -545,7 +555,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
          * @return
          */
         private List<AbstractDrawableComponent> inPoly(Polygon poly) {
-
             String pgType = null;
             Iterator<AbstractDrawableComponent> it = drawingLayer
                     .getActiveLayer().getComponentIterator();
@@ -555,12 +564,29 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 AbstractDrawableComponent adc = it.next();
 
                 if (adc instanceof Contours) {
-                    adcList.addAll(contourChildrenInPoly((Contours) adc, poly));
+                    if ((adc.getPgenCategory().equalsIgnoreCase(pgenCat))
+                            || (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_ANY))){
+                        adcList.addAll(contourChildrenInPoly((Contours) adc, poly));
+                        pgType = pgenObj;
+                    }
                 }
+                // if category is "Any"
+                else if (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_ANY)){
+                    pgType = adc.getPgenType();
+                    List<Coordinate> pts = adc.getPoints();
+                    for (Coordinate pt : pts) {
+                        double pix[] = mapEditor.translateInverseClick(pt);
+                        if (poly.contains(pix[0], pix[1])) {
+                            adcList.add(adc);
+                        }
+                    }
+                }
+                // Multiple kinds of category with "Any"
                 // if category is text, all elements need to be the same pgen
                 // type
-                else if ((pgType == null && adc.getPgenCategory()
+                if ((pgType == null && adc.getPgenCategory()
                         .equalsIgnoreCase(pgenCat))
+                        || (pgType == null &&  (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_ANY)))
                         || (pgType != null && adc.getPgenType()
                                 .equalsIgnoreCase(pgType))) {
                     List<Coordinate> pts = adc.getPoints();
@@ -568,7 +594,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                         double pix[] = mapEditor.translateInverseClick(pt);
                         if (poly.contains(pix[0], pix[1])) {
                             adcList.add(adc);
-                            if (pgenCat.equalsIgnoreCase("Text")) {
+                            if (pgenCat.equalsIgnoreCase(PgenConstant.CATEGORY_TEXT)) {
                                 pgType = adc.getPgenType();
                                 PgenMultiSelectTool.this.pgenType = pgType;
                             }
@@ -577,7 +603,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     }
                 }
             }
-
             return adcList;
         }
 
@@ -598,19 +623,16 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
 
             while (it.hasNext()) {
                 DrawableElement de = it.next();
-
-                if (de.getPgenCategory().equalsIgnoreCase(pgenCat)) {
                     List<Coordinate> pts = de.getPoints();
                     for (Coordinate pt : pts) {
                         double pix[] = mapEditor.translateInverseClick(pt);
                         if (poly.contains(pix[0], pix[1])) {
                             adcList.add(de);
+                            pgenObj = de.getName();
                             break;
                         }
                     }
-                }
             }
-
             return adcList;
         }
 

@@ -34,6 +34,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/13		927			B. Yin   	Moved from the PgenDeleteElement class
  * 04/14        1117        J. Wu       Added confirmation for deleting contours
  * 07/15        R8352       J. Wu       "Delete" contours components, not whole contours.
+ * 01/13/2020   71072       smanoj      "Delete" for multi-select.
  * 
  * </pre>
  * 
@@ -207,8 +208,8 @@ public class PgenDeleteElementHandler extends InputHandlerDefaultImpl {
             }
         }
 
-        // de-select element
-        pgenrsc.removeSelected();
+        // delete selected element
+        pgenrsc.deleteSelectedElements();
         mapEditor.refresh();
     }
 

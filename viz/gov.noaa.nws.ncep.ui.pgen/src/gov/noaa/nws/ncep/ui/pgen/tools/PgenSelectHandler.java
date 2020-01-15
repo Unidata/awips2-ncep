@@ -99,6 +99,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 06/28/2016   R10233      J. Wu       Pass calling handler to PgenContoursTool.
  * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 09/23/2019   68970       KSunil      Make sure the symbol text moves with the symbol.
+ * 12/19/2019   71072       smanoj      Fixed some run time errors.
  *
  * </pre>
  *
@@ -985,7 +986,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                     } else if (el.getParent() instanceof ContourLine
                             || el.getParent() instanceof ContourCircle) {
-                        editContoursLineNCircle(el, ghostEl.getPoints());
+                        if (ghostEl !=null) {
+                            editContoursLineNCircle(el, ghostEl.getPoints());
+                        }
                     } else {
 
                         /*
@@ -1347,7 +1350,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 if (attrDlg != null) {
                     ((ContoursAttrDlg) attrDlg).setCurrentContours(newContours);
                 }
-                ((PgenContoursTool) tool).setCurrentContour(newContours);
+                if (newContours != null) {
+                    if (tool instanceof PgenContoursTool) {
+                        ((PgenContoursTool) tool).setCurrentContour(newContours);
+                    }
+                }
             }
         }
 

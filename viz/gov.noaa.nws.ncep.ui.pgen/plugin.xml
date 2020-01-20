@@ -3436,6 +3436,20 @@
 	         extensionFilter=".xml,.tbl,.png,.txt,.xsl,.xlt,.xslt">
        </path>
     </extension>
+
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:tools?after=tools.Pg">
+           <command
+                   commandId="gov.noaa.nws.ncep.ui.nctextui.palette"
+                   id="gov.noaa.nws.ncep.ui.nctextui.palette"
+                   label="NCTEXT"
+                   tooltip="nctext">
+             </command>
+       </menuContribution>
+   </extension>
+
    <extension
          point="com.raytheon.uf.viz.core.classContext">
          <classContext

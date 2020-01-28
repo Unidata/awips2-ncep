@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.viz.ui.locator.resource;
 
 import java.awt.geom.Rectangle2D;
 
+import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
 import com.raytheon.uf.viz.core.drawables.IFont;
@@ -30,7 +31,8 @@ import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
  * Dec 14, 1212  903      Greg Hull  fontSize attribute, and color
  * Apr 29, 2019  62919    K Sunil    changes to make Locator tool work on D2D.
  * Jun 11, 2019  63680    tjensen    Move registerMouseHandler call to init
- *
+ * Jan 21  2020  73596    smanoj     Fix lat/lon in side panes for locator tool
+ * 
  * </pre>
  *
  * @author ghull
@@ -221,7 +223,12 @@ public class LocatorResource
         @Override
         public boolean handleMouseMove(int x, int y) {
 
-            currCoor = editor.translateClick(x, y);
+            IDisplayPaneContainer container = getResourceContainer();
+            if (container == null) {
+                return false;
+            }
+
+            currCoor = container.translateClick(x, y);
             if (currTarget != null && currPaintProps != null) {
                 issueRefresh();
             }

@@ -75,6 +75,8 @@ import com.raytheon.uf.edex.core.EDEXUtil;
  * Dec 10, 2018  56039    tjensen      Use Canonical paths, refactor threading,
  *                                     handle retransmissions
  * Jun 07, 2019  64732    tjensen      Improve exception handling, logging
+ * Jan 28, 2020  73722    smanoj       Fix to properly handle multiple 
+ *                                     localization levels
  *
  * </pre>
  *
@@ -182,7 +184,7 @@ public class NSBNFileTransfer implements Processor {
         statusHandler.info("Initializing NSBN transfer mapping...");
         IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationLevel[] levels = new LocalizationLevel[] {
-                LocalizationLevel.BASE, LocalizationLevel.SITE };
+                LocalizationLevel.SITE, LocalizationLevel.BASE };
 
         Map<LocalizationLevel, ? extends ILocalizationFile> files = pathMgr
                 .getTieredLocalizationFile(LocalizationType.COMMON_STATIC,

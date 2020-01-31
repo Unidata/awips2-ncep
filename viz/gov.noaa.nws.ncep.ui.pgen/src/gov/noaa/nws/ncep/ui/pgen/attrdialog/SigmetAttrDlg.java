@@ -112,6 +112,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 10/14        TTR722      J. Wu       Display TC center/Movement/FL level for ISOLATED TC.
  * 01/07/2020   71971       smanoj      Code fix to Store and Retrieve INTL_SIGMET.
  * 03/20/2019   #7572       dgilling    Code cleanup.
+ * 01/31/2020   73863       smanoj      Added check to validate lat/lon values.
  * 
  * </pre>
  *
@@ -2988,14 +2989,37 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             Coordinate coor = coors[i];
 
             result.append(coor.y >= 0 ? "N" : "S");
-            long y = ((int) Math.abs(coor.y) * 100)
-                    + Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            int latDeg = ((int) Math.abs(coor.y) * 100);
+            int latMin = (int) Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            long y = 0;
+
+            // Coordinates are specified in degrees and minutes.
+            // The expected minutes range from 0 to 59.
+            if (latMin >= 60) {
+                latMin = latMin - 60;
+                latDeg = ((latDeg/100) + 1) * 100;
+                y = latDeg + latMin;
+            } else {
+                y = ((int) Math.abs(coor.y) * 100)
+                        + Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            }
             result.append(new DecimalFormat(FOUR_ZERO).format(y));
 
             result.append(coor.x >= 0 ? " E" : " W");
-            long x = ((int) Math.abs(coor.x)) * 100
-                    + Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            int lonDeg = ((int) Math.abs(coor.x)) * 100;
+            int lonMin = (int) Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            long x = 0;
 
+            // Coordinates are specified in degrees and minutes.
+            // The expected minutes range from 0 to 59.
+            if (lonMin >= 60) {
+                lonMin = lonMin - 60;
+                lonDeg = ((lonDeg/100) + 1) * 100;
+                x = lonDeg + lonMin;
+            } else {
+                x = ((int) Math.abs(coor.x)) * 100
+                        + Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            }
             result.append(new DecimalFormat(FIVE_ZERO).format(x));
 
             if (i < (coors.length - 1)) {

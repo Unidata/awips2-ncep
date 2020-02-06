@@ -75,10 +75,13 @@ import gov.noaa.nws.ncep.viz.overlays.resources.PgenStaticOverlayResourceData;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Mar 1,  2019  7752      tjensen    Initial creation
- * Aug 26, 2019  67216     ksunil     Widget changes to implement the ticket. Code-refactored
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Mar 01, 2019  7752     tjensen   Initial creation
+ * Aug 26, 2019  67216    ksunil    Widget changes to implement the ticket.
+ *                                  Code-refactored
+ * Feb 06, 2020  57972    tjensen   Add option to display in map layer. Used for
+ *                                  GFE
  *
  * </pre>
  *
@@ -90,7 +93,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
     private PgenRetrieveCommonDialogArea commonDialogArea = null;
 
-    private final transient IUFStatusHandler statusHandler = UFStatus
+    private final IUFStatusHandler statusHandler = UFStatus
             .getHandler(this.getClass());
 
     private Text locationText;
@@ -101,14 +104,16 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
     private Button monoColorBtn;
 
-    private Button okBtn;
+    private final boolean displayAsMap;
 
     private final Map<String, ActivityElement> dbEntries;
 
-    public PgenStaticOverlayDialog(Shell parentShell) {
+    public PgenStaticOverlayDialog(Shell parentShell, boolean displayAsMap) {
         super(parentShell, SWT.DIALOG_TRIM | SWT.MIN,
                 CAVE.PERSPECTIVE_INDEPENDENT | CAVE.DO_NOT_BLOCK);
         setText("Load PGEN Static Overlay");
+
+        this.displayAsMap = displayAsMap;
 
         dbEntries = new HashMap<>();
         ActivityCollection ac = new ActivityCollection();
@@ -157,7 +162,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
         // Create the OK button
         gd = new GridData(GridData.FILL_HORIZONTAL);
-        okBtn = new Button(bottonBtnComposite, SWT.PUSH);
+        Button okBtn = new Button(bottonBtnComposite, SWT.PUSH);
         okBtn.setText("OK");
         okBtn.setLayoutData(gd);
         okBtn.setEnabled(true);
@@ -249,6 +254,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         ResourceProperties properties = new ResourceProperties();
         properties.setVisible(true);
         properties.setRenderingOrderId("MAP_OUTLINE");
+        properties.setMapLayer(displayAsMap);
         resourcePair.setProperties(properties);
         IMapDescriptor mapDescriptor;
 

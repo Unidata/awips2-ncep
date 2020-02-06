@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.PlatformUI;
 import org.opengis.coverage.grid.GridEnvelope;
@@ -42,7 +43,6 @@ import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.vividsolutions.jts.geom.Coordinate;
 
-//import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
 
 /**
  * Implements PGEN palette MultiSelect functions.
@@ -62,6 +62,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/07/2016   R17380      B. Yin      Use Ctrl key to draw polygon.
  * 06/16/2016   R17380      B. Yin      Set multi-selecting flag for attr dialog.
  * 12/20/2019   71072       smanoj      Modifications to handle multi-select functionality.
+ * 02/05/2020   74136       smanoj      Set AttrDialog with attributes of the
+ *                                      nearest component when multi-select.
  * 
  * </pre>
  * 
@@ -427,12 +429,16 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 if (pgenType != null
                         && (pgenType.equals("KINK_LINE_1") || pgenType
                                 .equals("KINK_LINE_2"))) {
-                    pgenType = null;
+                    attrDlg = AttrDlgFactory.createAttrDlg(pgenCat, null,
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                                 .getShell());
                 }
 
-                attrDlg = AttrDlgFactory.createAttrDlg(pgenCat, pgenType,
-                        PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                if (!(PgenConstant.ACTION_MULTISELECT.equalsIgnoreCase(pgenType))) {
+                    attrDlg = AttrDlgFactory.createAttrDlg(pgenCat, pgenType,
+                           PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                                 .getShell());
+                }
 
                 // NO Volcano attributes editing from multiple selecting
                 if (attrDlg instanceof VolcanoVaaAttrDlg)
@@ -441,7 +447,9 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 if (attrDlg != null) {
                     attrDlg.setMultiSelectMode(true);
                     attrDlg.setBlockOnOpen(false);
-                    attrDlg.open();
+                    if (attrDlg.open() != Window.OK) {
+                        return false;
+                    }
                     attrDlg.enableButtons();
                     attrDlg.setPgenCategory(pgenCat);
                     attrDlg.setPgenType(null);
@@ -463,6 +471,25 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                                             .setColor(new Color[] {
                                                     Color.green, Color.green });
                                 }
+                            }
+                        }
+                    }
+
+                    // Set AttrDlg dialog with the attributes of
+                    // the nearest component.
+                    Coordinate loc = mapEditor.translateClick(anX, aY);
+                    if (loc != null) {
+                        AbstractDrawableComponent component = drawingLayer
+                            .getNearestComponent(loc, new AcceptFilter(),
+                                    false);
+                        if (component instanceof Contours) {
+                            AbstractDrawableComponent adc = drawingLayer
+                                    .getNearestElement(loc,
+                                            (Contours) component);
+                            attrDlg.setAttrForDlg(adc.getPrimaryDE());
+                        } else {
+                            if (component != null) {
+                                attrDlg.setAttrForDlg(component.getPrimaryDE());
                             }
                         }
                     }

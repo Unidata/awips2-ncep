@@ -160,6 +160,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 08/07/2019   66393       mapeters    Only get available symbol/line types for the current parm
  * 09/06/2019   64150       ksunil      Change private class visibility to protected
  * 09/06/2019   64970       ksunil      Call changeMinmaxType when label/symbol only checkbox is pressed.
+ * 02/10/2020   74136       smanoj      Fixed NullPointerException when drawingLayer is null
  *
  * </pre>
  *
@@ -4064,6 +4065,10 @@ public class ContoursAttrDlg extends AttrDlg
 
     @Override
     public int open() {
+        if (drawingLayer == null ) {
+            return CANCEL;
+        }
+
         /*
          * Use defaults defined for this layer. Otherwise, use the default from
          * settings table.

@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * Implements PGEN "Clipping" function.

@@ -22,7 +22,7 @@ package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 @DynamicSerialize
 public class SoundingServiceRequest implements IServerRequest {

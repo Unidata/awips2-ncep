@@ -11,14 +11,12 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import javax.measure.converter.UnitConverter;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.measure.quantity.Angle;
 import javax.measure.quantity.Length;
+import javax.measure.quantity.Speed;
 import javax.measure.quantity.Temperature;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
@@ -35,6 +33,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.hibernate.annotations.Index;
+import org.locationtech.jts.geom.Geometry;
 
 import com.raytheon.uf.common.dataplugin.NullUtil;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
@@ -47,7 +46,11 @@ import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.vividsolutions.jts.geom.Geometry;
+
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  * AirepRecord is the Data Access component for pirep observation data.
@@ -106,16 +109,16 @@ public class AirepRecord extends PersistablePluginDataObject implements
 
     public static final Unit<Temperature> TEMPERATURE_UNIT = SI.CELSIUS;
 
-    public static final Unit<Velocity> WIND_SPEED_UNIT = NonSI.KNOT;
+    public static final Unit<Speed> WIND_SPEED_UNIT = USCustomary.KNOT;
 
     public static final Unit<Angle> WIND_DIR_UNIT = NonSI.DEGREE_ANGLE;
 
-    public static final Unit<Length> ALTITUDE_UNIT = NonSI.FOOT;
+    public static final Unit<Length> ALTITUDE_UNIT = USCustomary.FOOT;
 
     public static final Unit<Angle> LOCATION_UNIT = NonSI.DEGREE_ANGLE;
 
-    private static UnitConverter ftToHft = NonSI.FOOT.getConverterTo(SI
-            .HECTO(NonSI.FOOT));
+    private static UnitConverter ftToHft = USCustomary.FOOT.getConverterTo(MetricPrefix
+            .HECTO(USCustomary.FOOT));
 
     // private static final HashMap<Integer, String> WX_MAP = new
     // HashMap<Integer, String>();
@@ -671,7 +674,7 @@ public class AirepRecord extends PersistablePluginDataObject implements
         messageData.append(" F");
 
         if (validLocation && (getFlightLevel() != null)) {
-            int flightLevel = (int) ftToHft.convert(getFlightLevel());
+            int flightLevel = ftToHft.convert(getFlightLevel()).intValue();
             messageData.append(flightLevel);
         }
         messageData.append(' ');

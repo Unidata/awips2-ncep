@@ -46,7 +46,7 @@ import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.input.InputManager;
 import com.raytheon.viz.ui.panes.PaneManager;
 import com.raytheon.viz.ui.panes.VizDisplayPane;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Natl Cntrs extention of PaneManager.

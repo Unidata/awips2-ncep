@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the GEMPAK parameter STID
@@ -16,46 +17,15 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class StationID
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
+    private static final long serialVersionUID = -2649695765720117791L;
 
-public class StationID extends AbstractMetParameter implements Dimensionless, ISerializableObject {
+    public StationID() throws Exception {
+        super(AbstractUnit.ONE);
+        setValueIsString();
+    }
 
-
-     /**
-	 * 
-	 */
-	private static final long serialVersionUID = -2649695765720117791L;
-
-	public StationID()  throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-		 setValueIsString();
-	}	
-	
-// 	// NOT Implemented. Just enough to execute and return something
-//	@DeriveMethod
-//    public AbstractMetParameter getStationIdFromName( StationName stnName ) throws InvalidValueException, NullPointerException {
-//    	 this.setStringValue(stnName.getStringValue() );
-//    	 return this;
-//     }
-	
- }
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+}

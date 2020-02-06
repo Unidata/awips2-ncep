@@ -38,7 +38,7 @@ import java.util.TimeZone;
 
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Singleton for the default attribute settings of PGEN DrawableElements.

@@ -37,7 +37,7 @@ import org.opengis.coverage.grid.GridGeometry;
 
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.grid.display.GridCellLocationCache;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * 

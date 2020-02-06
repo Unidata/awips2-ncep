@@ -41,14 +41,13 @@
    <windowImages/>
 
    <launcher name="gempak">
-      <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
 
    <vm>
-      <linux include="true">jdk1.7.0</linux>
+      <linux include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</linux>
    </vm>
 
    <plugins>
@@ -60,9 +59,9 @@
 
    <configurations>
       <plugin id="com.raytheon.uf.viz.spring.dm" autoStart="true" startLevel="4" />
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="4" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
    </configurations>
 
    <preferencesInfo>

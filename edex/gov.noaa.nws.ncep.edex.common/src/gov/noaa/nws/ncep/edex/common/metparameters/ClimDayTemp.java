@@ -3,41 +3,18 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
-
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
-import gov.noaa.nws.ncep.edex.common.dao.NcepPointDataPluginDao;
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 import javax.measure.quantity.Temperature;
 import javax.persistence.Embeddable;
-
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.dataquery.db.QueryResult;
-import com.raytheon.uf.common.dataquery.db.QueryResultRow;
-import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.edex.core.dataplugin.PluginRegistry;
-import com.raytheon.uf.edex.database.dao.CoreDao;
-import com.raytheon.uf.edex.database.dao.DaoConfig;
-import com.raytheon.uf.edex.database.query.DatabaseQuery;
-//import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
-//import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
-//import com.raytheon.uf.viz.core.exception.VizException;
-//import com.raytheon.uf.viz.core.requests.ThriftClient;
 
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter TDCF
@@ -45,29 +22,31 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-@Embeddable 
- public class ClimDayTemp extends AbstractMetParameter implements
-		Temperature, ISerializableObject {
+@Embeddable
+public class ClimDayTemp extends AbstractMetParameter<Temperature>
+        implements ISerializableObject {
 
-	 /**
-	 * 
-	 */
-	private static final long serialVersionUID = -1430506563363890796L;
+    /**
+    * 
+    */
+    private static final long serialVersionUID = -1430506563363890796L;
 
-	public ClimDayTemp() {
-	      super( UNIT );
-	}	 
-	 
-	 @Override
-	 public String getParameterDescription( ) {
-		 return "Climatological Day-time temperature.";
-	 }
+    public ClimDayTemp() {
+        super(SI.KELVIN);
+    }
 
-		@DeriveMethod
-		public ClimDayTemp derive (StationID stid ) throws InvalidValueException, NullPointerException{
-			/*
-			 * Commented out the code to refrain from accessing 'viz core ' code from 'edex common'. 
-			 */
+    @Override
+    public String getParameterDescription() {
+        return "Climatological Day-time temperature.";
+    }
+
+    @DeriveMethod
+    public ClimDayTemp derive(StationID stid)
+            throws InvalidValueException, NullPointerException {
+        /*
+         * Commented out the code to refrain from accessing 'viz core ' code
+         * from 'edex common'.
+         */
 //			String stidStr = stid.getStringValue();
 //			if (stidStr != null ){
 //				if ( stidStr.length() == 4 && stidStr.charAt(0) == 'K'){
@@ -100,7 +79,6 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
 //
 //
 //		}
-			return this;
-		}	 
- }
-
+        return this;
+    }
+}

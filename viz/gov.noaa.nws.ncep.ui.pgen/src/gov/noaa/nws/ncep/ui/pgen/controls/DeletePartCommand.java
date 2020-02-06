@@ -10,12 +10,12 @@ package gov.noaa.nws.ncep.ui.pgen.controls;
 
 import java.util.List;
 import java.util.ArrayList;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateList;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.linearref.LinearLocation;
+import org.locationtech.jts.linearref.LocationIndexedLine;
 
 import gov.noaa.nws.ncep.ui.pgen.PGenException;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;

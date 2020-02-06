@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
+import javax.measure.UnitConverter;
 import javax.media.jai.InterpolationBilinear;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.geometry.DirectPosition2D;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
@@ -37,6 +35,9 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingModel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
+import tec.uom.se.unit.Units;
 
 /**
  *
@@ -85,6 +86,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
  *                                        elevation to 0.0; cleaned up code.
  * May 07, 2018  7283     mapeters        Fully eliminate uEngine dependence
  * Jun 22, 2018  17341    mgamazaychikov  Reconcile differences with 30518.
+ * Apr 15, 2019  7596     lsingh          Updated units framework to JSR-363.
  * Jul 12, 2019           tjensen         Updated to support multiple H5s per
  *                                        model
  *
@@ -104,11 +106,11 @@ public class ModelsSoundingQuery {
         GH, uW, vW, T, SH, RH, DpD, DpT, PVV
     }
 
-    private static UnitConverter kelvinToCelsius = SI.KELVIN
+    private static UnitConverter kelvinToCelsius = Units.KELVIN
             .getConverterTo(SI.CELSIUS);
 
-    private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
-            .getConverterTo(NonSI.KNOT);
+    private static final UnitConverter metersPerSecondToKnots = SI.METRE_PER_SECOND
+            .getConverterTo(USCustomary.KNOT);
 
     private static float FRAC_ERROR = -9999;
 

@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.converter.ConversionException;
-
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -1075,9 +1073,7 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         } catch (NumberFormatException ex) {
             statusHandler.error(
                     "Cannot parse new colormap range value: " + userEntry, ex);
-        } catch (ConversionException ex) {
-            statusHandler.error("Unit converter error.", ex);
-        }
+        } 
         return Float.NaN;
     }
 

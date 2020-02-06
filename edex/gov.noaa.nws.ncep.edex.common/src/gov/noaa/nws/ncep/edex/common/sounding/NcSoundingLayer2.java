@@ -19,10 +19,7 @@ import gov.noaa.nws.ncep.edex.common.metparameters.WindDirection;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirectionUComp;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirectionVComp;
-//import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer.DataType;
 
-//import java.io.Serializable;
-//import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +30,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-//import com.vividsolutions.jts.geom.Coordinate;
-
 
 /**
  * 

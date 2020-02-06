@@ -13,22 +13,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-//import java.awt.Color;
 import java.io.File;
 
 import org.dom4j.Document;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
-//import com.vividsolutions.jts.geom.Coordinate;
-
-//import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
-
-//import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-//import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-//import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 

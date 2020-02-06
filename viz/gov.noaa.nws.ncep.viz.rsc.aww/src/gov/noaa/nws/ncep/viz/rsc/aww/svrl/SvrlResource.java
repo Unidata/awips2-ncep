@@ -1,21 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.svrl;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
-import gov.noaa.nws.ncep.edex.common.stationTables.Station;
-import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 /**
  * Svrl resourceResource - Display SVRL from aww data.
  * 
@@ -47,6 +31,14 @@ import java.util.logging.Logger;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
@@ -71,11 +63,22 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
+import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * SVRL resource - Display severe local storm watch data from aww data.
@@ -746,9 +749,9 @@ public class SvrlResource extends
                             for (Object[] result : counties) {
                                 int k = 0;
                                 byte[] wkb1 = (byte[]) result[k];
-                                com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
+                                MultiPolygon countyGeo = null;
                                 try {
-                                    countyGeo = (com.vividsolutions.jts.geom.MultiPolygon) wkbReader
+                                    countyGeo = (MultiPolygon) wkbReader
                                             .read(wkb1);
                                     if (countyGeo != null
                                             && countyGeo.isValid()
@@ -785,7 +788,7 @@ public class SvrlResource extends
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
 
-            com.vividsolutions.jts.geom.GeometryCollection gColl = (com.vividsolutions.jts.geom.GeometryCollection) new com.vividsolutions.jts.geom.GeometryFactory()
+            GeometryCollection gColl = (GeometryCollection) new GeometryFactory()
                     .buildGeometry(gw);
 
             try {

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Common Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.common
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Export-Package: gov.noaa.nws.ncep.edex.common.dao,
  gov.noaa.nws.ncep.edex.common.metparameters,
  gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion,
@@ -18,10 +18,10 @@ Require-Bundle: com.raytheon.uf.edex.decodertools;bundle-version="1.11.16",
  com.raytheon.edex.common;bundle-version="1.11.16",
  org.slf4j;bundle-version="1.7.5",
  com.raytheon.uf.edex.pointdata;bundle-version="1.12.1174",
- com.raytheon.uf.common.status;bundle-version="1.12.1174"
+ com.raytheon.uf.common.status;bundle-version="1.12.1174",
+ javax.xml.bind,
+ javax.measure
 Import-Package: com.raytheon.uf.common.units,
  gov.noaa.nws.ncep.common.tools,
- javax.measure.converter,
- javax.measure.quantity,
- javax.measure.unit,
  org.apache.commons.logging
+Bundle-RequiredExecutionEnvironment: JavaSE-11

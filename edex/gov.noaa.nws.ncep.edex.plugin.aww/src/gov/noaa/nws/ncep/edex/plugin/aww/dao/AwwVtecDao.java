@@ -1,11 +1,9 @@
 package gov.noaa.nws.ncep.edex.plugin.aww.dao;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-
 import java.util.Calendar;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -14,22 +12,25 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+
 /**
  * Dao for AwwVtec.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * ????         ????       ????        Initial creation.
- * Jun 19, 2015 4500       rjpeter     Removed SQL Injection Concern.
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * ????          ????     ????      Initial creation.
+ * Jun 19, 2015  4500     rjpeter   Removed SQL Injection Concern.
+ * Sep 17, 2019  7928     randerso  Changed to use non-deprecated hibernate
+ *                                  query methods.
+ *
  * </pre>
- * 
+ *
  * @author rjpeter
- * @version 1.0
  */
 public class AwwVtecDao extends CoreDao {
 
@@ -48,6 +49,8 @@ public class AwwVtecDao extends CoreDao {
      * Returns QueryResult object containing AwwVtec iformation in the database.
      * The detail information depends on individual SQL query
      * 
+     * @param nativeSQLQuery
+     *
      * @return the list of subscriptions
      */
     public synchronized QueryResult getQueryResultByNativeSQLQuery(
@@ -56,10 +59,16 @@ public class AwwVtecDao extends CoreDao {
         try {
             queryResult = executeSelectNativeSqlQuery(nativeSQLQuery);
         } catch (ClassCastException cce) {
-            // do nothing now, if a logger is configured, we will add log message here
-            // If the ClassCastException is thrown, it means there are no results returned
+            /*
+             * do nothing now, if a logger is configured, we will add log
+             * message here If the ClassCastException is thrown, it means there
+             * are no results returned
+             */
         } catch (DataAccessLayerException dalc) {
-            // do nothing now, if a logger is configured, we will add log message here
+            /*
+             * do nothing now, if a logger is configured, we will add log
+             * message here
+             */
         }
         return queryResult;
     }
@@ -67,7 +76,7 @@ public class AwwVtecDao extends CoreDao {
     /**
      * Executes a native SQL statement. This method completely bypasses
      * Hibernate and uses JDBC directly
-     * 
+     *
      * @param sql
      *            The sql string
      * @return A QueryResult Object
@@ -88,24 +97,24 @@ public class AwwVtecDao extends CoreDao {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 StringBuilder queryString = new StringBuilder(160);
-                queryString
-                        .append("update AwwVtec set eventStartTime = :eventStartTime where");
+                queryString.append(
+                        "update AwwVtec set eventStartTime = :eventStartTime where");
                 queryString.append(" eventStartTime is null");
-                queryString
-                        .append(" and eventTrackingNumber = :eventTrackingNumber");
+                queryString.append(
+                        " and eventTrackingNumber = :eventTrackingNumber");
                 queryString.append(" and officeID = :officeID");
                 queryString.append(" and phenomena = :phenomena");
                 queryString.append(" and productClass = :productClass");
                 queryString.append(" and significance = :significance");
 
                 Session sess = getCurrentSession();
-                Query query = sess.createQuery(queryString.toString());
-                query.setCalendar("eventStartTime", validEventStartTime);
-                query.setString("eventTrackingNumber", eventTrackingNumber);
-                query.setString("officeID", officeId);
-                query.setString("phenomena", phenomena);
-                query.setString("productClass", productClass);
-                query.setString("significance", significance);
+                Query<?> query = sess.createQuery(queryString.toString());
+                query.setParameter("eventStartTime", validEventStartTime);
+                query.setParameter("eventTrackingNumber", eventTrackingNumber);
+                query.setParameter("officeID", officeId);
+                query.setParameter("phenomena", phenomena);
+                query.setParameter("productClass", productClass);
+                query.setParameter("significance", significance);
 
                 return query.executeUpdate();
             }

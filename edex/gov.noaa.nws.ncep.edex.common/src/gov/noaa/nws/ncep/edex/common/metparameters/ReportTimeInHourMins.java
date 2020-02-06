@@ -1,11 +1,14 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Time;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to GEMPAK parameters STIM
@@ -14,17 +17,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class ReportTimeInHourMins
+        extends AbstractMetParameter<Time>
+        implements ISerializableObject {
 
-public class ReportTimeInHourMins extends AbstractMetParameter implements
-							javax.measure.quantity.Length, ISerializableObject {
+    private static final long serialVersionUID = -838483615539473683L;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -838483615539473683L;
-
-	public ReportTimeInHourMins() {
-		super( UNIT );
-	}
+    public ReportTimeInHourMins() {
+        super(SI.SECOND);
+    }
 
 }

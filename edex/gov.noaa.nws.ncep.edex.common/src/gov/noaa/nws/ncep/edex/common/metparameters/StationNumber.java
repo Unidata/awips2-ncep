@@ -4,24 +4,24 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import javax.measure.quantity.Dimensionless;
+
 import com.raytheon.uf.common.serialization.ISerializableObject;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * @author archana
  *
  */
-public class StationNumber extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
+public class StationNumber
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2038229143862266928L;
+    private static final long serialVersionUID = 2038229143862266928L;
 
-	public StationNumber()  throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-		 setValueIsString();
-	}	
-	
+    public StationNumber() throws Exception {
+        super(AbstractUnit.ONE);
+        setValueIsString();
+    }
+
 }

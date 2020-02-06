@@ -1,13 +1,8 @@
 package gov.noaa.nws.ncep.viz.common;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
-import com.vividsolutions.jts.geom.Coordinate;
-
+import si.uom.NonSI;
+import si.uom.SI;
+import tec.uom.se.unit.MetricPrefix;
 
 public class LocatorUtil {
 		
@@ -80,7 +75,7 @@ public class LocatorUtil {
 		else if (unit.equalsIgnoreCase( "SM" ) ) {
 			factor = METERS_PER_SM;
 		}
-		else if (unit.equalsIgnoreCase( SI.KILOMETER.toString() ) ) {
+		else if (unit.equalsIgnoreCase( MetricPrefix.KILO(SI.METRE).toString() ) ) {
 			factor = METERS_PER_KM;
 		}
 		else {

@@ -1,18 +1,19 @@
 package gov.noaa.nws.ncep.edex.plugin.mosaic.uengine;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import javax.measure.converter.MultiplyConverter;
-import javax.measure.converter.UnitConverter;
+import javax.measure.UnitConverter;
 
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.geometry.GeneralEnvelope;
 import org.opengis.referencing.crs.ProjectedCRS;
+
+import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import tec.uom.se.AbstractConverter;
+import tec.uom.se.function.MultiplyConverter;
 
 /**
  * A tiler class that will allow the user to take a radial container and create
@@ -100,7 +101,7 @@ public class MosaicTiler {
         }
 
         if (dataToImage == null) {
-            this.dataToImage = UnitConverter.IDENTITY;
+            this.dataToImage = AbstractConverter.IDENTITY;
             if (data.getNumLevels() <= 16) {
                 this.dataToImage = new MultiplyConverter(16);
             }

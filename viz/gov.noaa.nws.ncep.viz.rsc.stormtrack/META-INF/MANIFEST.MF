@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Stormtrack
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.stormtrack;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.stormtrack.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -15,12 +15,13 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.geospatial;bundle-version="1.12.1174",
  gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common.dataplugin.stormtrack;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0"
+ gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0",
+ javax.xml.bind,
+ javax.measure
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.stormtrack,
  gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc
 Import-Package: gov.noaa.nws.ncep.gempak.parameters,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,
- gov.noaa.nws.ncep.viz.common.ui,
- javax.measure.unit
+ gov.noaa.nws.ncep.viz.common.ui

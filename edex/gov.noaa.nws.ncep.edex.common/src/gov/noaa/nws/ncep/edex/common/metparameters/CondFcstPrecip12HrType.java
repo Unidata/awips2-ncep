@@ -8,22 +8,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter ??
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CondFcstPrecip12HrType extends AbstractMetParameter implements
-Dimensionless, ISerializableObject {
+public class CondFcstPrecip12HrType
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	 /**
-	 * 
-	 */
-	private static final long serialVersionUID = -7746863199784977880L;
+    private static final long serialVersionUID = -7746863199784977880L;
 
-	public CondFcstPrecip12HrType() {
-		  super( UNIT );
-	}
-	 
+    public CondFcstPrecip12HrType() {
+        super(AbstractUnit.ONE);
+    }
+
 }

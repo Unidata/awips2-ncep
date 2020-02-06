@@ -11,13 +11,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * Maps to the GEMPAK parameter PTND
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class PressureTendencySymbol extends AbstractMetParameter implements Dimensionless, ISerializableObject {
+public class PressureTendencySymbol
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
     /**
      * The parameter values are indexes into the press_change_char_lookup.txt
@@ -26,8 +30,8 @@ public class PressureTendencySymbol extends AbstractMetParameter implements Dime
     private static final long serialVersionUID = -4616340047592131749L;
 
     public PressureTendencySymbol() {
-        super(UNIT);
-        // TTR 922-923,  This is needed to display PTSY
+        super(AbstractUnit.ONE);
+        // TTR 922-923, This is needed to display PTSY
         setValueIsString();
     }
 }

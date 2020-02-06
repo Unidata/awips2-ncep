@@ -6,8 +6,9 @@ package gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import si.uom.SI;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.unit.MetricPrefix;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
@@ -19,8 +20,7 @@ import gov.noaa.nws.ncep.edex.common.metparameters.SpecificHumidity;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirection;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirectionUComp;
 import gov.noaa.nws.ncep.edex.common.metparameters.WindDirectionVComp;
-import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
-////import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
+import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 
@@ -30,11 +30,11 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
  * SOFTWARE HISTORY
  *     Date            Ticket#    Engineer        Description
  * ------------------ ---------- --------------- --------------------------
- * 18-Feb-2011        398       Archana       Initial creation.
+ * Feb 18, 2011        398       Archana          Initial creation.
+ * Apr 15, 2019        7596      lsingh           Updated units framework to JSR-363.
  * 
  *</pre> 
  * @author Archana
- * @version 1.0
  */
 public final class PCLibrary {
       
@@ -141,7 +141,7 @@ public final class PCLibrary {
             || !PRLibrary.checkNullOrInvalidValue( pb )
             || !PRLibrary.checkNullOrInvalidValue( pt )
             || !PRLibrary.checkNullOrInvalidValue( hb ) )		
-    	         return new Amount ( SI.METER );
+    	         return new Amount ( SI.METRE );
        
              if (  pt.getValue().floatValue() != 0 ){
             Amount tvb = PRLibrary.prTvrk ( tb, tdb, pb );
@@ -187,7 +187,7 @@ public final class PCLibrary {
 					    pcpwtr = new Amount ( 100 * rmav 
 					    		* ( pb.getValue().floatValue() - pt.getValue().floatValue() ) 
 					    		/  (GempakConstants.GRAVTY + pwb.getValue().floatValue() ), 
-					    		SI.MILLIMETER );				
+					    		MetricPrefix.MILLI(SI.METRE) );				
 			}
 			else{
 				       pcpwtr = pwb; 
@@ -226,7 +226,7 @@ public final class PCLibrary {
 				          float g = GempakConstants.GRAVTY/100;
 				         pcpsym = ( cp * ( tt.getValue().floatValue() - tb.getValue().floatValue() ) + g * delh.getValue().floatValue() );
 //			}
-			return new Amount ( pcpsym, Unit.ONE);
+			return new Amount ( pcpsym, AbstractUnit.ONE);
 		}
 		
 		/**

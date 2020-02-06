@@ -10,13 +10,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.Index;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
@@ -27,11 +26,11 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * WcpRecord is the Data Access component for WCP Watch Corner Point data. This
  * contains getters and setters for the main parent table wcp. This code has
  * been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 12Dec2008    37         F. J. Yen   Initial Coding.
@@ -49,21 +48,24 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Feb 11, 2014 2784       rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061       bsteffen    Remove IDecoderGettable
- * 
+ * Mar 09, 2019 6140       tgurney     Hibernate 5 @Index fix
+ *
  * </pre>
- * 
+ *
  * @author F. J. Yen, SIB
- * @version 1.0
  */
+
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "wcpseq")
-@Table(name = "wcp", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN,
+        sequenceName = "wcpseq")
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
  */
-@org.hibernate.annotations.Table(appliesTo = "wcp", indexes = { @Index(name = "wcp_refTimeIndex", columnNames = {
-        "refTime", "forecastTime" }) })
+@Table(name = "wcp",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) },
+        indexes = { @Index(name = "wcp_refTimeIndex",
+                columnList = "refTime, forecastTime") })
 @DynamicSerialize
 public class WcpRecord extends PluginDataObject {
 
@@ -92,8 +94,7 @@ public class WcpRecord extends PluginDataObject {
     @DynamicSerializeElement
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parentID", nullable = false)
-    @Index(name = "wcpSevrLn_parentid_idex")
-    private Set<WcpSevrln> wcpSevrLn = new HashSet<WcpSevrln>();
+    private Set<WcpSevrln> wcpSevrLn = new HashSet<>();
 
     /**
      * Default Constructor
@@ -103,7 +104,7 @@ public class WcpRecord extends PluginDataObject {
 
     /**
      * Constructs a wcp record from a dataURI
-     * 
+     *
      * @param uri
      *            The dataURI
      */
@@ -143,27 +144,19 @@ public class WcpRecord extends PluginDataObject {
         this.bullMessage = bullMessage;
     }
 
-    /**
-     * return the set of wcpSevrLn
-     */
     public Set<WcpSevrln> getWcpSevrLn() {
         return wcpSevrLn;
     }
 
-    /**
-     * @param wcpSevrln
-     *            the wcpSevrln to set
-     */
     public void setWcpSevrLn(Set<WcpSevrln> wcpSevrlin) {
         this.wcpSevrLn = wcpSevrlin;
     }
 
-    /*
+    /**
      * Add wcpSevrln to set
      */
     public void addWcpSevrLn(WcpSevrln psevrln) {
         wcpSevrLn.add(psevrln);
-
     }
 
     @Override

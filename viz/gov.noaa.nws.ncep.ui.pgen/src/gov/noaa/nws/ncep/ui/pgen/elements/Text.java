@@ -1,36 +1,36 @@
 /*
  * Text
- * 
+ *
  * Date created: 06 APRIL 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 package gov.noaa.nws.ncep.ui.pgen.elements;
 
+import java.awt.Color;
+
+import org.locationtech.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.IText;
 
-import java.awt.Color;
-
-import com.vividsolutions.jts.geom.Coordinate;
-
 /**
  * Class used to represent a Text drawable element.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 05/09        #42         S. Gilbert  Added pgenType and pgenCategory to constructors and copy()                    J. Wu       Initial Creation.
- * 03/10        #           M.Laryukhin Operation.ROTATE is added. 
- * 04/11        #?          B.Yin       Re-factor IAttribute 
+ * 03/10        #           M.Laryukhin Operation.ROTATE is added.
+ * 04/11        #?          B.Yin       Re-factor IAttribute
  * 02/15        R6158       J. Wu       Add iwdth/ithw to preserve them for legacy Text.
+ * Sep 9, 2019  7596        tgurney     Change SinglePointElement field access
  * </pre>
- * 
+ *
  * @author sgilbert
- * @version 0.0.1
  */
 @ElementOperations({ Operation.COPY_MOVE, Operation.EXTRAPOLATE,
         Operation.ROTATE })
@@ -119,7 +119,7 @@ public class Text extends SinglePointElement implements IText {
 
     /**
      * Constructor to set all attributes of the Text element
-     * 
+     *
      * @param fontName
      *            Name of the font to display
      * @param fontSize
@@ -252,7 +252,7 @@ public class Text extends SinglePointElement implements IText {
      */
     @Override
     public Color getTextColor() {
-        return colors[0];
+        return getColors()[0];
     }
 
     /**
@@ -302,7 +302,7 @@ public class Text extends SinglePointElement implements IText {
      *            the fontSize to set
      */
     public void setFontSize(float fontSize) {
-        if (!(new Float(fontSize).isNaN())) {
+        if (!new Float(fontSize).isNaN()) {
             this.fontSize = fontSize;
         }
     }
@@ -320,6 +320,7 @@ public class Text extends SinglePointElement implements IText {
     /**
      * @return the ithw
      */
+    @Override
     public int getIthw() {
         return ithw;
     }
@@ -335,6 +336,7 @@ public class Text extends SinglePointElement implements IText {
     /**
      * @return the iwidth
      */
+    @Override
     public int getIwidth() {
         return iwidth;
     }
@@ -352,7 +354,7 @@ public class Text extends SinglePointElement implements IText {
      *            the rotation to set
      */
     public void setRotation(double rotation) {
-        if (!(new Double(rotation).isNaN())) {
+        if (!new Double(rotation).isNaN()) {
             this.rotation = rotation;
         }
     }
@@ -424,6 +426,7 @@ public class Text extends SinglePointElement implements IText {
     /**
      * @return the hide
      */
+    @Override
     public Boolean getHide() {
         return hide;
     }
@@ -439,6 +442,7 @@ public class Text extends SinglePointElement implements IText {
     /**
      * @return the auto
      */
+    @Override
     public Boolean getAuto() {
         return auto;
     }
@@ -503,7 +507,8 @@ public class Text extends SinglePointElement implements IText {
          * references to this object's attributes.
          */
         newText.setColors(new Color[] { new Color(this.getColors()[0].getRed(),
-                this.getColors()[0].getGreen(), this.getColors()[0].getBlue()) });
+                this.getColors()[0].getGreen(),
+                this.getColors()[0].getBlue()) });
         newText.setLocation(new Coordinate(this.getLocation()));
         newText.setFontName(new String(this.getFontName()));
 
@@ -533,6 +538,7 @@ public class Text extends SinglePointElement implements IText {
     /**
      * @return the string
      */
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder(getClass().getSimpleName());
 
@@ -543,7 +549,7 @@ public class Text extends SinglePointElement implements IText {
                 result.append(st + "\n");
             }
         }
-        result.append("Color:\t" + colors[0] + "\n");
+        result.append("Color:\t" + getColors()[0] + "\n");
         result.append("FontName:\t" + fontName + "\n");
         result.append("FontSize:\t" + fontSize + "\n");
         result.append("Justification:\t" + justification + "\n");
@@ -557,8 +563,9 @@ public class Text extends SinglePointElement implements IText {
         result.append("Hide:\t" + hide + "\n");
         result.append("Auto:\t" + hide + "\n");
 
-        if (location != null) {
-            result.append("Position:\t" + location.y + "\t" + location.x + "\n");
+        if (getLocation() != null) {
+            result.append("Position:\t" + getLocation().y + "\t"
+                    + getLocation().x + "\n");
         } else {
             result.append("Position:\t not defined \n");
         }

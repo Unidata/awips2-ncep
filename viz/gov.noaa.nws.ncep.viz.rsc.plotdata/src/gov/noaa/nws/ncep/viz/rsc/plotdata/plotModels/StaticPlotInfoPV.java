@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 /**
  * copy from com.raytheon.viz.pointdata.StaticPlotInfoPV and changed to look up NC file
  * TODO : merge back with ratheons baseline

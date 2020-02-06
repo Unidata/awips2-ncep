@@ -1,5 +1,32 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.internal.misc.StringMatcher;
+
+import com.raytheon.uf.viz.core.exception.VizException;
+
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup.RscAndGroupName;
@@ -9,42 +36,9 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.internal.misc.StringMatcher;
-
-import com.raytheon.uf.viz.core.exception.VizException;
-
 /**
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -55,9 +49,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 06/07/12       #816      Greg Hull    Add ability to apply to other resources
  * 09/16/2015     R8824     A. Su        Modified to preserve display aliases
  *                                       after the Manage Resources dialog changes attribute list.
- * 
+ * Jun 4, 2019    ????      tgurney      Remove use of no longer existent Eclipse API
+ *
  * </pre>
- * 
+ *
  * @author
  * @version 1
  */
@@ -122,7 +117,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         }
 
         @Override
-        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+        public void inputChanged(Viewer viewer, Object oldInput,
+                Object newInput) {
         }
     };
 
@@ -134,11 +130,9 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         public boolean select(Viewer viewer, Object parentElement,
                 Object element) {
 
-            // We could use the match() method but I think the find() will
-            // be more user-friendly
             String elemStr = (String) element;
-            return (filterMatcher == null ? true : filterMatcher.find(elemStr,
-                    0, elemStr.length()) != null);
+            return filterMatcher == null
+                    || filterMatcher.match(elemStr, 0, elemStr.length());
         }
 
         public void setFilterMatcher(StringMatcher sm) {
@@ -183,8 +177,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         fd.left = new FormAttachment(attrSetGroupNameTxt, 0, SWT.LEFT);
         attrSetGroupNameLbl.setLayoutData(fd);
 
-        resourceTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER
-                | SWT.READ_ONLY);
+        resourceTxt = new Text(top_form,
+                SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         resourceTxt.setText("");
         resourceTxt.setBackground(getParent().getBackground()); // indicate
                                                                 // readonly
@@ -203,8 +197,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         fd.left = new FormAttachment(resourceTxt, 0, SWT.LEFT);
         applyToLbl.setLayoutData(fd);
 
-        applyForRscsLViewer = new ListViewer(top_form, SWT.MULTI | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
+        applyForRscsLViewer = new ListViewer(top_form,
+                SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData(120, 300);
         fd.width = 120;
         fd.top = new FormAttachment(attrSetGroupNameTxt, 35, SWT.BOTTOM);
@@ -231,8 +225,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         filterLbl.setLayoutData(fd);
 
         filterTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER);
-        filterTxt
-                .setToolTipText("Enter a regular expression using '*' and '?'.");
+        filterTxt.setToolTipText(
+                "Enter a regular expression using '*' and '?'.");
 
         fd = new FormData();
         fd.width = 115;
@@ -248,8 +242,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         filterBtn.setLayoutData(fd);
         filterBtn.setVisible(false);
 
-        availAttrSetsLViewer = new ListViewer(top_form, SWT.MULTI | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
+        availAttrSetsLViewer = new ListViewer(top_form,
+                SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();
         fd.top = new FormAttachment(filterTxt, 35, SWT.BOTTOM);
         fd.left = new FormAttachment(26, 0);
@@ -268,8 +262,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
                 SWT.LEFT);
         addAttrSetsLbl.setLayoutData(fd);
 
-        seldAttrSetsLViewer = new ListViewer(top_form, SWT.MULTI | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
+        seldAttrSetsLViewer = new ListViewer(top_form,
+                SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();
         fd.top = new FormAttachment(availAttrSetsLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(63, 0);
@@ -283,7 +277,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         fd = new FormData();
         fd.bottom = new FormAttachment(seldAttrSetsLViewer.getList(), -3,
                 SWT.TOP);
-        fd.left = new FormAttachment(seldAttrSetsLViewer.getList(), 0, SWT.LEFT);
+        fd.left = new FormAttachment(seldAttrSetsLViewer.getList(), 0,
+                SWT.LEFT);
         seldAttrSetsLbl.setLayoutData(fd);
 
         addAttrSetBtn = new Button(top_form, SWT.PUSH);
@@ -342,9 +337,9 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         applyForRscsLViewer.setComparator(new ViewerComparator() {
             @Override
             public int compare(Viewer viewer, Object e1, Object e2) {
-                if (seldRscName.getRscType().equals((String) e1)) {
+                if (seldRscName.getRscType().equals(e1)) {
                     return -1;
-                } else if (seldRscName.getRscType().equals((String) e2)) {
+                } else if (seldRscName.getRscType().equals(e2)) {
                     return 1;
                 } else {
                     return ((String) e1).compareTo((String) e2);
@@ -355,18 +350,12 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         // check to see if there is already an ASG for this resource with this
         // name
         // and prompt the user if they want to replace it
-        applyForRscsLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        // Can't remove the currently selected ASG from the
-                        // 'active' resource.
-                        // This is basically removing the ASG.
-                        applyForRscsLViewer.getList().select(0);
-                    }
-                });
+        applyForRscsLViewer.addSelectionChangedListener(
+                event -> applyForRscsLViewer.getList().select(0));
 
         availAttrSetsLViewer.setComparator(new ViewerComparator() {
 
+            @Override
             public int category(Object element) {
                 return super.category(element);
             }
@@ -381,66 +370,59 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         // implemented the category)
         seldAttrSetsLViewer.setComparator(availAttrSetsLViewer.getComparator());
 
-        attrSetGroupNameTxt.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                String newTextStr = attrSetGroupNameTxt.getText().trim();
+        attrSetGroupNameTxt.addModifyListener(e -> {
+            String newTextStr = attrSetGroupNameTxt.getText().trim();
 
-                if (newTextStr.isEmpty()) {
-                    saveAttrSetGroupBtn.setEnabled(false);
-                    saveAttrSetGroupBtn.setEnabled(false);
-                } else {
-                    if (seldRscDefn != null) {
+            if (newTextStr.isEmpty()) {
+                saveAttrSetGroupBtn.setEnabled(false);
+                saveAttrSetGroupBtn.setEnabled(false);
+            } else {
+                if (seldRscDefn != null) {
+                    saveAttrSetGroupBtn.setEnabled(true);
+
+                    // if the name has been changed, the 'save' button acts
+                    // as a 'Rename' or Save As
+                    //
+                    // disable the New button if the name hasn't been
+                    // changed.
+                    //
+                    if (seldAttrSetGroup == null) {
+                        saveAttrSetGroupBtn.setEnabled(false);
+                        newAttrSetGroupBtn.setEnabled(false);
+                    } else if (seldAttrSetGroup.getAttrSetGroupName()
+                            .equals(newTextStr)) {
                         saveAttrSetGroupBtn.setEnabled(true);
+                        saveAttrSetGroupBtn.setText("Save");
 
-                        // if the name has been changed, the 'save' button acts
-                        // as a 'Rename' or Save As
-                        //
-                        // disable the New button if the name hasn't been
-                        // changed.
-                        //
-                        if (seldAttrSetGroup == null) {
+                        newAttrSetGroupBtn.setEnabled(false);
+                    } else {
+                        saveAttrSetGroupBtn.setEnabled(true);
+                        saveAttrSetGroupBtn.setText("Save As");
+                        newAttrSetGroupBtn.setEnabled(true);
+
+                        // disable the Save button if the new name already
+                        // exists
+                        if (rscDefnMngr
+                                .getAttrSetGroupNamesForResource(
+                                        seldRscDefn.getResourceDefnName())
+                                .contains(
+                                        attrSetGroupNameTxt.getText().trim())) {
                             saveAttrSetGroupBtn.setEnabled(false);
-                            newAttrSetGroupBtn.setEnabled(false);
-                        } else if (seldAttrSetGroup.getAttrSetGroupName()
-                                .equals(newTextStr)) {
-                            saveAttrSetGroupBtn.setEnabled(true);
-                            saveAttrSetGroupBtn.setText("Save");
-
-                            newAttrSetGroupBtn.setEnabled(false);
-                        } else {
-                            saveAttrSetGroupBtn.setEnabled(true);
-                            saveAttrSetGroupBtn.setText("Save As");
-                            newAttrSetGroupBtn.setEnabled(true);
-
-                            // disable the Save button if the new name already
-                            // exists
-                            if (rscDefnMngr.getAttrSetGroupNamesForResource(
-                                    seldRscDefn.getResourceDefnName())
-                                    .contains(
-                                            attrSetGroupNameTxt.getText()
-                                                    .trim())) {
-                                saveAttrSetGroupBtn.setEnabled(false);
-                            }
                         }
                     }
                 }
             }
         });
 
-        filterTxt.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                String filterExpr = filterTxt.getText().trim();
-                try {
-                    attrSetFilter.setFilterMatcher(new StringMatcher(
-                            filterExpr, true, false));
+        filterTxt.addModifyListener(e -> {
+            String filterExpr = filterTxt.getText().trim();
+            try {
+                attrSetFilter.setFilterMatcher(
+                        new StringMatcher(filterExpr, true, false));
 
-                    availAttrSetsLViewer.refresh();
-                } catch (IllegalArgumentException iaex) {
-                    System.out.println("StringMatcherSyntaxError: "
-                            + filterExpr);
-                }
+                availAttrSetsLViewer.refresh();
+            } catch (IllegalArgumentException iaex) {
+                System.out.println("StringMatcherSyntaxError: " + filterExpr);
             }
         });
 
@@ -449,30 +431,35 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         availAttrSetsLViewer.setFilters(vFilters);
 
         applyForAllRscsBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 applyForRscsLViewer.getList().selectAll();
             }
         });
 
         saveAttrSetGroupBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveAttrSetGroup();
             }
         });
 
         newAttrSetGroupBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveAttrSetGroup();
             }
         });
 
         cancelBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 mngrControl.editActionCanceled();
             }
         });
 
         addAttrSetBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 // get the selected attr sets and move them to the seld list
                 StructuredSelection attrSetSels = (StructuredSelection) availAttrSetsLViewer
@@ -493,22 +480,21 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         });
 
         availAttrSetsLViewer.getList().addListener(SWT.MouseDoubleClick,
-                new Listener() {
-                    public void handleEvent(Event event) {
-                        StructuredSelection attrSetSels = (StructuredSelection) availAttrSetsLViewer
-                                .getSelection();
-                        String attrSet = (String) attrSetSels.getFirstElement();
-                        availAttrSets.remove(attrSet);
-                        seldAttrSets.add(attrSet);
+                event -> {
+                    StructuredSelection attrSetSels = (StructuredSelection) availAttrSetsLViewer
+                            .getSelection();
+                    String attrSet = (String) attrSetSels.getFirstElement();
+                    availAttrSets.remove(attrSet);
+                    seldAttrSets.add(attrSet);
 
-                        availAttrSetsLViewer.setInput(availAttrSets);
-                        seldAttrSetsLViewer.setInput(seldAttrSets);
-                        availAttrSetsLViewer.refresh();
-                        seldAttrSetsLViewer.refresh();
-                    }
+                    availAttrSetsLViewer.setInput(availAttrSets);
+                    seldAttrSetsLViewer.setInput(seldAttrSets);
+                    availAttrSetsLViewer.refresh();
+                    seldAttrSetsLViewer.refresh();
                 });
 
         removeAttrSetBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 // get the selected attr sets and move them to the seld list
                 StructuredSelection attrSetSels = (StructuredSelection) seldAttrSetsLViewer
@@ -529,19 +515,17 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         });
 
         seldAttrSetsLViewer.getList().addListener(SWT.MouseDoubleClick,
-                new Listener() {
-                    public void handleEvent(Event event) {
-                        StructuredSelection attrSetSels = (StructuredSelection) seldAttrSetsLViewer
-                                .getSelection();
-                        String attrSet = (String) attrSetSels.getFirstElement();
-                        seldAttrSets.remove(attrSet);
-                        availAttrSets.add(attrSet);
+                event -> {
+                    StructuredSelection attrSetSels = (StructuredSelection) seldAttrSetsLViewer
+                            .getSelection();
+                    String attrSet = (String) attrSetSels.getFirstElement();
+                    seldAttrSets.remove(attrSet);
+                    availAttrSets.add(attrSet);
 
-                        availAttrSetsLViewer.setInput(availAttrSets);
-                        seldAttrSetsLViewer.setInput(seldAttrSets);
-                        availAttrSetsLViewer.refresh();
-                        seldAttrSetsLViewer.refresh();
-                    }
+                    availAttrSetsLViewer.setInput(availAttrSets);
+                    seldAttrSetsLViewer.setInput(seldAttrSets);
+                    availAttrSetsLViewer.refresh();
+                    seldAttrSetsLViewer.refresh();
                 });
     }
 
@@ -553,20 +537,22 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         }
     }
 
+    @Override
     public void copySelectedResource(ResourceName rscName) {
         setSelectedResource(rscName);
         newAttrSetGroupBtn.setVisible(true);
         saveAttrSetGroupBtn.setVisible(false);
         attrSetGroupNameTxt.setEditable(true);
-        attrSetGroupNameTxt.setBackground(availAttrSetsLViewer.getList()
-                .getBackground());
+        attrSetGroupNameTxt
+                .setBackground(availAttrSetsLViewer.getList().getBackground());
 
         attrSetGroupNameTxt.setText("CopyOf" + attrSetGroupNameTxt.getText());
-        attrSetGroupNameTxt.setSelection(0, attrSetGroupNameTxt.getText()
-                .length());
+        attrSetGroupNameTxt.setSelection(0,
+                attrSetGroupNameTxt.getText().length());
         attrSetGroupNameTxt.setFocus();
     }
 
+    @Override
     public void editSelectedResource(ResourceName rscName) {
         setSelectedResource(rscName);
         newAttrSetGroupBtn.setVisible(false);
@@ -607,16 +593,16 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
 
         filterTxt.setText("");
 
-        availRscsForGroup = new ArrayList<String>(
-                rscDefnMngr.getRscTypesForRscImplementation(seldRscDefn
-                        .getRscImplementation()));
+        availRscsForGroup = new ArrayList<>(
+                rscDefnMngr.getRscTypesForRscImplementation(
+                        seldRscDefn.getRscImplementation()));
 
-        seldAttrSets = new ArrayList<String>();
+        seldAttrSets = new ArrayList<>();
         seldAttrSets.addAll(seldAttrSetGroup.getAttrSetNames());
 
-        availAttrSets = new ArrayList<String>();
-        availAttrSets.addAll(rscDefnMngr.getAvailAttrSetsForRscImpl(seldRscDefn
-                .getRscImplementation()));
+        availAttrSets = new ArrayList<>();
+        availAttrSets.addAll(rscDefnMngr.getAvailAttrSetsForRscImpl(
+                seldRscDefn.getRscImplementation()));
 
         for (String as : seldAttrSets) {
             availAttrSets.remove(as);
@@ -662,8 +648,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         try {
             String attrSetGroupName = attrSetGroupNameTxt.getText().trim();
 
-            List<String> applyToRscsList = Arrays.asList(applyForRscsLViewer
-                    .getList().getSelection());
+            List<String> applyToRscsList = Arrays
+                    .asList(applyForRscsLViewer.getList().getSelection());
 
             // If the user want to do this then they need to Remove the ASG
             // explicitly (if in the USER level)
@@ -675,8 +661,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
 
                 // create the new AttrSetGroup from the GUI selections.
                 AttrSetGroup newAttrSetGroup = rscDefnMngr
-                        .getAttrSetGroupForResource(new RscAndGroupName(
-                                rscName, attrSetGroupName));
+                        .getAttrSetGroupForResource(
+                                new RscAndGroupName(rscName, attrSetGroupName));
 
                 if (newAttrSetGroup == null) {
                     newAttrSetGroup = new AttrSetGroup();
@@ -690,21 +676,18 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
                     // they really want
                     // to override it.
                     if (!seldAttrSetGroup.getResource().equals(rscName)) {
-                        MessageDialog confirmDlg = new MessageDialog(
-                                getShell(),
-                                "Confirm",
-                                null,
-                                "The Attribute Set Group "
-                                        + attrSetGroupName
-                                        + " for resource "
-                                        + rscName
+                        MessageDialog confirmDlg = new MessageDialog(getShell(),
+                                "Confirm", null,
+                                "The Attribute Set Group " + attrSetGroupName
+                                        + " for resource " + rscName
                                         + " already exists.\n\n"
                                         + "Are you sure you want to override it?",
-                                MessageDialog.QUESTION, new String[] { "Yes",
-                                        "No" }, 0);
+                                MessageDialog.QUESTION,
+                                new String[] { "Yes", "No" }, 0);
                         confirmDlg.open();
 
-                        if (confirmDlg.getReturnCode() == MessageDialog.CANCEL) {
+                        if (confirmDlg
+                                .getReturnCode() == MessageDialog.CANCEL) {
                             continue;
                         }
                     }
@@ -717,7 +700,7 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
                 // attribute list.
                 AttrSetLabels labels = newAttrSetGroup.getAttrSetLabels();
                 ArrayList<AttrSetLabel> labelsList = labels.getLabelList();
-                ArrayList<String> asNameList = new ArrayList<String>();
+                ArrayList<String> asNameList = new ArrayList<>();
                 if (labelsList != null) {
                     for (AttrSetLabel label : labelsList) {
                         asNameList.add(label.getName());
@@ -752,17 +735,17 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
             String msgStr = "Saved Attribute Set Group " + attrSetGroupName
                     + ".";
 
-            MessageDialog saveMsgDlg = new MessageDialog(getShell(),
-                    DONE, null, msgStr + "\n\n",
-                    MessageDialog.INFORMATION, new String[] { OK }, 0);
+            MessageDialog saveMsgDlg = new MessageDialog(getShell(), DONE, null,
+                    msgStr + "\n\n", MessageDialog.INFORMATION,
+                    new String[] { OK }, 0);
             saveMsgDlg.open();
 
             return;
         } catch (VizException ve) {
-            MessageDialog errDlg = new MessageDialog(getShell(), ERROR,
-                    null, "Error Saving AttrSetGroup:\n" + ve.getMessage()
-                            + "\n" + ve.getCause(), MessageDialog.ERROR,
-                    new String[] { OK }, 0);
+            MessageDialog errDlg = new MessageDialog(getShell(), ERROR, null,
+                    "Error Saving AttrSetGroup:\n" + ve.getMessage() + "\n"
+                            + ve.getCause(),
+                    MessageDialog.ERROR, new String[] { OK }, 0);
             errDlg.open();
         }
     }

@@ -7,14 +7,10 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.image;
 
-import gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.RadarImageResource;
-import gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.RadarResourceData;
-
 import java.awt.Rectangle;
 
-import javax.measure.Measure;
+import javax.measure.Quantity;
 import javax.measure.quantity.Length;
-import javax.measure.unit.NonSI;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -32,6 +28,11 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.radar.VizRadarRecord;
 import com.raytheon.viz.radar.rsc.image.IRadialMeshExtension;
 import com.raytheon.viz.radar.rsc.image.IRadialMeshExtension.RadialMeshData;
+
+import gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.RadarImageResource;
+import gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.RadarResourceData;
+import systems.uom.common.USCustomary;
+import tec.uom.se.quantity.Quantities;
 
 /**
  * TODO Add Description
@@ -76,11 +77,11 @@ public class RadarRadialResource extends RadarImageResource<MapDescriptor> {
      * @see com.raytheon.viz.radar.rsc.AbstractRadarResource#getElevation()
      */
     @Override
-    public Measure<?, Length> getElevation() {
+    public Quantity<Length> getElevation() {
         RadarRecord radarRecord = getCurrentRadarRecord();
 
         if (radarRecord != null) {
-            return Measure.valueOf(radarRecord.getElevation(), NonSI.FOOT);
+            return Quantities.getQuantity(radarRecord.getElevation(), USCustomary.FOOT);
         }
         return super.getElevation();
     }

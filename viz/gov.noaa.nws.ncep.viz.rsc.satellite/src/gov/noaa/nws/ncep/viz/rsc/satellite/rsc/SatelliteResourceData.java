@@ -1,17 +1,10 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
-import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.IDataLoader;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-
 import java.io.File;
-import java.text.ParseException;
 import java.text.ParsePosition;
 
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.format.ParserException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -21,6 +14,13 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
+import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
+import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.IDataLoader;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Resource data for satellite data
@@ -137,9 +137,9 @@ public class SatelliteResourceData extends
         if (displayUnit == null) {
             if (displayUnitStr != null) {
                 try {
-                    displayUnit = UnitFormat.getUCUMInstance().parseSingleUnit(
+                    displayUnit = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseSingleUnit(
                             displayUnitStr, new ParsePosition(0));
-                } catch (ParseException e) {
+                } catch (ParserException e) {
                     statusHandler.error("Unable parse display units : "
                             + displayUnitStr, e);
                 }

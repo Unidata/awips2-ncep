@@ -1,11 +1,12 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.units;
 
+import javax.measure.Unit;
 import javax.measure.quantity.Dimensionless;
 import javax.measure.quantity.Temperature;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.SatelliteUnits;
+
+import tec.uom.se.format.SimpleUnitFormat;
 
 
 /**
@@ -37,8 +38,8 @@ public class NcSatelliteUnits {
 		
 		SatelliteUnits.register();
 		
-		UnitFormat.getUCUMInstance().label(NcSatelliteUnits.NC_IR_PIXEL, "IRPixel");
-		UnitFormat.getUCUMInstance().label(NcSatelliteUnits.MCIDAS_BRIT, "BRIT");
+		SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).label(NcSatelliteUnits.NC_IR_PIXEL, "IRPixel");
+		SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).label(NcSatelliteUnits.MCIDAS_BRIT, "BRIT");
 	}
 
 }

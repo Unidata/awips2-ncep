@@ -1,29 +1,22 @@
 package gov.noaa.nws.ncep.viz.cloudHeight.ui;
 
-import java.util.ArrayList;
-
-import javax.measure.converter.UnitConverter;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Temperature;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
-import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.ComputationalMethod;
-import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.PixelValueMethod;
-import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.SoundingDataSourceType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
@@ -31,6 +24,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+
+import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.ComputationalMethod;
+import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.PixelValueMethod;
+import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.SoundingDataSourceType;
+import si.uom.NonSI;
+import si.uom.SI;
+import systems.uom.common.USCustomary;
 
 /**
  * Cloud Height Options Dialog.
@@ -78,12 +78,12 @@ public class CloudHeightOptionsDialog extends Dialog {
     
     // Store the units from the main cloud height dialog here since these are part of the
     // defaults that may be reset.
-    static private Unit<? extends Length> sndDistUnits = null;
-    static private Unit<? extends Temperature> tempUnits = null;
-    static private Unit<? extends Length> heightUnits = null;
+    static private Unit<Length> sndDistUnits = null;
+    static private Unit<Temperature> tempUnits = null;
+    static private Unit<Length> heightUnits = null;
  
     // this is the units for maxDistance and which is set by CloudHeightProcessor
-    static private Unit<? extends Length> maxDistWorkingUnits = null;
+    static private Unit<Length> maxDistWorkingUnits = null;
     static private UnitConverter maxDistConverter = null; 
     static private UnitConverter maxDistInvConverter = null; 
     
@@ -345,9 +345,9 @@ public class CloudHeightOptionsDialog extends Dialog {
     // TODO : get the default units from the system defaults on disk somewhere
 	// and set the defaults and then reset the gui controls.
     private void setDefaults() {
-	    sndDistUnits = NonSI.NAUTICAL_MILE;
+	    sndDistUnits = USCustomary.NAUTICAL_MILE;
 	    tempUnits = SI.CELSIUS;
-	    heightUnits = NonSI.FOOT;
+	    heightUnits = USCustomary.FOOT;
 		sndDataSrc = SoundingDataSourceType.STATION_DATA;
 		maxDistance  = 540*1852.0; // 540 nm in meters
 		compMethod = ComputationalMethod.STANDARD;
@@ -472,7 +472,7 @@ public class CloudHeightOptionsDialog extends Dialog {
     }
 
     // the units which maxDistance will be stored in
-    public void setDistWorkingUnits( Unit<? extends Length> u ) {
+    public void setDistWorkingUnits( Unit<Length> u ) {
     	maxDistWorkingUnits = u;
 		maxDistConverter = maxDistWorkingUnits.getConverterTo( getSndDistUnits() );
 		maxDistInvConverter = getSndDistUnits().getConverterTo( maxDistWorkingUnits );
@@ -492,32 +492,32 @@ public class CloudHeightOptionsDialog extends Dialog {
     	return pixValMethod;
     }
     
-    public Unit<? extends Length> getSndDistUnits() {
+    public Unit<Length> getSndDistUnits() {
     	return sndDistUnits;
     }
     
-    public Unit<? extends Temperature> getTemperatureUnits() {
+    public Unit<Temperature> getTemperatureUnits() {
     	return tempUnits;
     }
     
-    public Unit<? extends Length> getCloudHeightUnits() {
+    public Unit<Length> getCloudHeightUnits() {
     	return heightUnits;
     }
     
     // set methods for the units since these are set from the main dialog
     // Since the distance units are also used as the units for entering the maxDistance
     // we need to update the converter used when setting the maxDistance.
-    public void setSndDistUnits( Unit<? extends Length> u ) {
+    public void setSndDistUnits( Unit<Length> u ) {
     	sndDistUnits = u;
 		maxDistConverter = maxDistWorkingUnits.getConverterTo( sndDistUnits );
 		maxDistInvConverter = sndDistUnits.getConverterTo( maxDistWorkingUnits );
     }
     
-    public void setTemperatureUnits( Unit<? extends Temperature> u ) {
+    public void setTemperatureUnits( Unit<Temperature> u ) {
     	tempUnits = u;
     }
 
-    public void setCloudHeightUnits( Unit<? extends Length> u ) {
+    public void setCloudHeightUnits( Unit<Length> u ) {
     	heightUnits = u;
     }
 

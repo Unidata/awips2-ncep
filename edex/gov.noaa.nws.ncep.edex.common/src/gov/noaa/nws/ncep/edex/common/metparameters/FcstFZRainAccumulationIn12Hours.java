@@ -3,13 +3,15 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
 import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 
 /**
  * Maps to the GEMPAK parameter FZ12
@@ -18,16 +20,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-public class FcstFZRainAccumulationIn12Hours extends AbstractMetParameter
-		implements Length, ISerializableObject {
+public class FcstFZRainAccumulationIn12Hours
+        extends AbstractMetParameter<Length>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8322791592026998000L;
+    private static final long serialVersionUID = 8322791592026998000L;
 
-	public FcstFZRainAccumulationIn12Hours(){
-		super( UNIT );
-	}
-	
+    public FcstFZRainAccumulationIn12Hours() {
+        super(SI.METRE);
+    }
+
 }

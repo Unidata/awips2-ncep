@@ -1,14 +1,15 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-
-import javax.measure.unit.SI;
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import si.uom.SI;
 
 /**
  * Maps to any of the GEMPAK parameters DPDC or DPDK or DPDF depending on the
@@ -27,17 +28,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class DewPointDepression extends AbstractMetParameter implements
-        javax.measure.quantity.Temperature {
-    /**
-	 * 
-	 */
+public class DewPointDepression extends AbstractMetParameter<Temperature> {
+
     private static final long serialVersionUID = -8246047973579792393L;
 
     private final double THRESHOLD_FROM_NMAP_THAT_WORKS = 30.0d;
 
     public DewPointDepression() throws Exception {
-        super(UNIT);
+        super(SI.KELVIN);
     }
 
     @DeriveMethod

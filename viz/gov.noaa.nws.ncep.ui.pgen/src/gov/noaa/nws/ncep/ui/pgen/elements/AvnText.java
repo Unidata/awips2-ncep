@@ -1,6 +1,6 @@
 /*
  * AvnText
- * 
+ *
  * Date created: 29 JULY 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -8,19 +8,19 @@
 
 package gov.noaa.nws.ncep.ui.pgen.elements;
 
+import java.awt.Color;
+
+import org.locationtech.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.IAvnText;
 
-import java.awt.Color;
-
-import com.vividsolutions.jts.geom.Coordinate;
-
 /**
- * 
+ *
  * @author sgilbert
- * 
+ *
  */
 @ElementOperations({ Operation.COPY_MOVE, Operation.EXTRAPOLATE })
 public class AvnText extends Text implements IAvnText {
@@ -54,57 +54,29 @@ public class AvnText extends Text implements IAvnText {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#getAvnTextType()
-     */
     @Override
     public AviationTextType getAvnTextType() {
         return avnTextType;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#getBottomValue()
-     */
     @Override
     public String getBottomValue() {
         return bottomValue;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#getSymbolPatternName()
-     */
     @Override
     public String getSymbolPatternName() {
         return symbolPatternName;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#getTopValue()
-     */
     @Override
     public String getTopValue() {
         return topValue;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#hasBottomValue()
-     */
     @Override
     public boolean hasBottomValue() {
-        if (bottomValue == null)
-            return false;
-        else
-            return true;
+        return bottomValue != null;
     }
 
     /**
@@ -147,17 +119,9 @@ public class AvnText extends Text implements IAvnText {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.display.IAvnText#hasSymbolPattern()
-     */
     @Override
     public boolean hasSymbolPattern() {
-        if (symbolPatternName == null)
-            return false;
-        else
-            return true;
+        return symbolPatternName != null;
     }
 
     /**
@@ -178,6 +142,7 @@ public class AvnText extends Text implements IAvnText {
     /**
      * @return the string
      */
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder(getClass().getSimpleName());
 
@@ -187,13 +152,14 @@ public class AvnText extends Text implements IAvnText {
         result.append("Top Value:\t" + topValue + "\n");
         result.append("Bottom Value:\t" + bottomValue + "\n");
         result.append("Symbol Pattern:\t" + symbolPatternName + "\n");
-        result.append("Color:\t" + colors[0] + "\n");
+        result.append("Color:\t" + getColors()[0] + "\n");
         result.append("FontName:\t" + getFontName() + "\n");
         result.append("FontSize:\t" + getFontSize() + "\n");
         result.append("Justification:\t" + getJustification() + "\n");
         result.append("Style:\t" + getStyle() + "\n");
 
-        result.append("Position:\t" + location.y + "\t" + location.x + "\n");
+        result.append("Position:\t" + getLocation().y + "\t" + getLocation().x
+                + "\n");
 
         return result.toString();
     }
@@ -217,7 +183,8 @@ public class AvnText extends Text implements IAvnText {
          * references to this object's attributes.
          */
         newText.setColors(new Color[] { new Color(this.getColors()[0].getRed(),
-                this.getColors()[0].getGreen(), this.getColors()[0].getBlue()) });
+                this.getColors()[0].getGreen(),
+                this.getColors()[0].getBlue()) });
         newText.setLocation(new Coordinate(this.getLocation()));
         newText.setFontName(new String(this.getFontName()));
 

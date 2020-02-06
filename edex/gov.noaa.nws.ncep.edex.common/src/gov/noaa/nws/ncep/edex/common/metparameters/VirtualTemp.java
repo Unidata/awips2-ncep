@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -9,6 +10,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
@@ -33,11 +35,10 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
  * @version 1.0
  */
 
-public class VirtualTemp extends AbstractMetParameter
-        implements javax.measure.quantity.Temperature {
+public class VirtualTemp extends AbstractMetParameter<Temperature> {
 
     public VirtualTemp() {
-        super(UNIT);
+        super(SI.KELVIN);
     }
 
     // TODO test this to see if the name of the derive method can be anything

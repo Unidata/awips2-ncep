@@ -1,6 +1,6 @@
 /*
  * Vector
- * 
+ *
  * Date created: May 7th, 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -11,8 +11,7 @@ import java.awt.Color;
 
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
-
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
@@ -22,25 +21,25 @@ import gov.noaa.nws.ncep.ui.pgen.display.IVector;
 
 /**
  * Class to represent a symbol element.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 01/09                    J. Wu       Initial Creation.
  * 04/11        #?          B. Yin      Re-factor IAttribute
- * 08/15        R8188       J. Lopez    Changed orientation and rotation 
+ * 08/15        R8188       J. Lopez    Changed orientation and rotation
  *                                      of "Hash" to match legacy
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
- * 11/07/2016   R23252      S. Russell  Added getArrowHeadType(), a new 
+ * 11/07/2016   R23252      S. Russell  Added getArrowHeadType(), a new
  *                                      constructor, and member variable
  *                                      arrowHeadType for Vector arrows with
  *                                      pointed (OPEN) arrowheads.
- * 
+ * Sep 9, 2019  7596        tgurney     Change SinglePointElement field access
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
- * @version 0.0.1
  */
 @ElementOperations({ Operation.COPY_MOVE, Operation.EXTRAPOLATE,
         Operation.ROTATE })
@@ -100,7 +99,7 @@ public class Vector extends SinglePointElement implements IVector {
      * A constructor that takes in ArrowHead.ArrowHeadType as an argument for
      * choosing between OPEN ( barbed, pointed ) and CLOSED ( filled, solid )
      * arrowheads
-     * 
+     *
      * @param range
      * @param colors
      * @param lineWidth
@@ -143,6 +142,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the vectorType
      */
+    @Override
     public VectorType getVectorType() {
         return vectorType;
     }
@@ -150,8 +150,9 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the first color
      */
+    @Override
     public Color getColor() {
-        return colors[0];
+        return getColors()[0];
     }
 
     /**
@@ -159,7 +160,7 @@ public class Vector extends SinglePointElement implements IVector {
      *            the speed to set
      */
     public void setSpeed(double speed) {
-        if (!(new Double(speed).isNaN())) {
+        if (!new Double(speed).isNaN()) {
             this.speed = speed;
         }
     }
@@ -167,6 +168,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the speed
      */
+    @Override
     public double getSpeed() {
         return speed;
     }
@@ -176,7 +178,7 @@ public class Vector extends SinglePointElement implements IVector {
      *            the direction to set
      */
     public void setDirection(double direction) {
-        if (!(new Double(direction).isNaN())) {
+        if (!new Double(direction).isNaN()) {
             this.direction = direction;
         }
     }
@@ -184,6 +186,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the direction
      */
+    @Override
     public double getDirection() {
         return direction;
     }
@@ -193,7 +196,7 @@ public class Vector extends SinglePointElement implements IVector {
      *            the arrowHeadSize to set
      */
     public void setArrowHeadSize(double arrowHeadSize) {
-        if (!(new Double(arrowHeadSize).isNaN())) {
+        if (!new Double(arrowHeadSize).isNaN()) {
             this.arrowHeadSize = arrowHeadSize;
         }
     }
@@ -201,6 +204,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the arrowHeadSize
      */
+    @Override
     public double getArrowHeadSize() {
         return arrowHeadSize;
     }
@@ -216,6 +220,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the directionOnly
      */
+    @Override
     public boolean hasDirectionOnly() {
         return directionOnly;
     }
@@ -223,8 +228,9 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the background mask (clear)
      */
+    @Override
     public Boolean hasBackgroundMask() {
-        return clear;
+        return isClear();
     }
 
     /**
@@ -240,7 +246,7 @@ public class Vector extends SinglePointElement implements IVector {
             // Not using setSpeed because it triggers snap when updating jet
             // barbs.
             double spd = attr.getSpeed();
-            if (!(new Double(spd).isNaN())) {
+            if (!new Double(spd).isNaN()) {
                 this.speed = spd;
             }
 
@@ -257,17 +263,19 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * @return the string
      */
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder(getClass().getSimpleName());
 
         result.append("\nCategory:\t" + pgenCategory + "\n");
         result.append("Type:\t" + pgenType + "\n");
 
-        result.append("Location:\t" + location.y + "\t" + location.x + "\n");
-        result.append("Color:\t" + colors[0] + "\n");
-        result.append("LineWidth:\t" + lineWidth + "\n");
-        result.append("SizeScale:\t" + sizeScale + "\n");
-        result.append("Clear:\t" + clear + "\n");
+        result.append("Location:\t" + getLocation().x + "\t" + getLocation().y
+                + "\n");
+        result.append("Color:\t" + getColors()[0] + "\n");
+        result.append("LineWidth:\t" + getLineWidth() + "\n");
+        result.append("SizeScale:\t" + getSizeScale() + "\n");
+        result.append("Clear:\t" + isClear() + "\n");
         result.append("VectorType:\t" + vectorType + "\n");
         result.append("Speed:\t" + speed + "\n");
         result.append("Direction:\t" + direction + "\n");
@@ -314,7 +322,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * Calculates the angle of a directional line (p1->p2) relative to the
      * North.
-     * 
+     *
      * @param point1
      *            - The starting point in Lat/Lon coordinates
      * @param point2
@@ -344,7 +352,7 @@ public class Vector extends SinglePointElement implements IVector {
     /**
      * Calculates the vector direction given an arrow from point 1 to point 2,
      * which also depends on the type of vectors.
-     * 
+     *
      * @param point1
      *            - The starting point in Lat/Lon coordinates
      * @param point2
@@ -369,7 +377,7 @@ public class Vector extends SinglePointElement implements IVector {
 
         }
 
-        double direction = ((int) (dir + 3)) / 5 * 5;
+        double direction = (int) (dir + 3) / 5 * 5;
 
         return direction;
     }
@@ -377,9 +385,10 @@ public class Vector extends SinglePointElement implements IVector {
     /*
      * Gets an enum indicating whether the arrow head should be OPEN or FILLED
      * for Vector arrows.
-     * 
+     *
      * @return enum indicating the arrow head should be OPEN or FILLED.
      */
+    @Override
     public ArrowHead.ArrowHeadType getArrowHeadType() {
         return this.arrowHeadType;
 

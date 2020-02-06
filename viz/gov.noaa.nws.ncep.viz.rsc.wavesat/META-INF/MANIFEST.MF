@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: WaveSat Resource Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.wavesat;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.wavesat.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -20,9 +20,10 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
  javax.measure;bundle-version="1.0.0",
  com.raytheon.viz.pointdata,
- com.raytheon.uf.common.pointdata
+ com.raytheon.uf.common.pointdata,
+ javax.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wavesat,
  gov.noaa.nws.ncep.viz.rsc.wavesat.rsc
 Import-Package: com.raytheon.uf.viz.core.alerts,

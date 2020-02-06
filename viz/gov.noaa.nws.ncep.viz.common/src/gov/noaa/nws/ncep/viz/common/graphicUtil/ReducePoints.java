@@ -5,7 +5,7 @@ import java.util.List;
 
 
 
-import com.vividsolutions.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.CoordinateList;
 
 /**
  * Reduce points of a polygon by examining the angle at each point.

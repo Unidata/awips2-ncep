@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-
-import javax.measure.unit.Unit;
+import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -9,10 +7,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.DewPointTemp;
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-//import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import si.uom.SI;
  
 /**
  * Maps to any of  the GEMPAK parameters THWK/THWC or THWF
@@ -24,8 +22,9 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 
  
 
-public class WetBulbPotentialTemp extends AbstractMetParameter implements 
-		javax.measure.quantity.Temperature, ISerializableObject {
+public class WetBulbPotentialTemp
+        extends AbstractMetParameter<Temperature>
+        implements ISerializableObject {
 
 	/**
 	 * 
@@ -33,11 +32,13 @@ public class WetBulbPotentialTemp extends AbstractMetParameter implements
 	private static final long serialVersionUID = 795571539832273959L;
 
 	public WetBulbPotentialTemp() {
-		 super( UNIT );
+		 super( SI.KELVIN );
 	}
 
 	@DeriveMethod
-	AbstractMetParameter derive (PressureLevel p,  AirTemperature t, DewPointTemp d ) throws InvalidValueException, NullPointerException {
+    AbstractMetParameter<Temperature> derive(
+            PressureLevel p, AirTemperature t, DewPointTemp d)
+            throws InvalidValueException, NullPointerException {
 	    if ( p.hasValidValue() && t.hasValidValue() && d.hasValidValue() ){
 		     Amount val = PRLibrary.prThwc(p, t, d );                     	
 		     setValue(val);
@@ -47,12 +48,6 @@ public class WetBulbPotentialTemp extends AbstractMetParameter implements
 	    
 		return this;
 	}
-
-//	AbstractMetParameter derive (SurfacePressure p,  AirTemperature t, DewPointTemp d ) throws InvalidValueException, NullPointerException {
-//	    Amount val = PRLibrary.prThwc(p, t, d );                     	
-//		this.setValue(val);
-//		return this;
-//	}	
 	
 }
 

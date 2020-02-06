@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Idft Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.idft; singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.idft.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -17,9 +17,10 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.idft;bundle-version="1.0.0"
+ gov.noaa.nws.ncep.common.dataplugin.idft;bundle-version="1.0.0",
+ javax.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.idft,
  gov.noaa.nws.ncep.viz.rsc.idft.rsc
 Import-Package: gov.noaa.nws.ncep.viz.ui.display

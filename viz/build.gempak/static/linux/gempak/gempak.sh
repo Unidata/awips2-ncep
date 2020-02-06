@@ -27,6 +27,7 @@
 # Aug 30, 2018  54480   mapeters    Initial creation
 # Oct 08, 2018  54483   mapeters    Refactored for separate GEMPAK RPM (instead
 #                                   of wrapping /awips2/cave/cave)
+# Jan 09, 2020  7606      randerso    Remove jre directory level from JAVA_HOME
 #
 
 
@@ -62,7 +63,7 @@ export AWIPS_INSTALL_DIR=${GEMPAK_INSTALL}
 
 export LD_LIBRARY_PATH=${JAVA_INSTALL}/lib:$LD_LIBRARY_PATH
 export PATH=${JAVA_INSTALL}/bin:$PATH
-export JAVA_HOME="${JAVA_INSTALL}/jre"
+export JAVA_HOME="${JAVA_INSTALL}"
 
 exitVal=1
 

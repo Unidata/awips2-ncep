@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter DTNM
  */
@@ -15,20 +17,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
+public class SeaIceDriftDist
+        extends AbstractMetParameter<Length>
+        implements ISerializableObject {
 
+    private static final long serialVersionUID = -6810136439885658980L;
 
-
-public class SeaIceDriftDist extends AbstractMetParameter
-		implements Length, ISerializableObject {
-
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = -6810136439885658980L;
-
-	public SeaIceDriftDist(){
-		 super( UNIT );
+    public SeaIceDriftDist() {
+        super(SI.METRE);
     }
-	
-}
 
+}

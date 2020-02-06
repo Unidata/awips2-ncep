@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import si.uom.SI;
 /**
  * Maps to the GEMPAK parameter ITOP or HTOI depending on whether the 
  * top of icing was measured in feet or meters
@@ -15,8 +17,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
-  public class TopOfIcing extends AbstractMetParameter
- implements Length, ISerializableObject {
+  public class TopOfIcing extends AbstractMetParameter<Length>
+ implements ISerializableObject {
 
 	/**
 	 * 
@@ -24,7 +26,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 	private static final long serialVersionUID = 368270798514444926L;
 
 	public TopOfIcing() {
-		 super( UNIT );
+		 super( SI.METRE );
 	}
 	
    }

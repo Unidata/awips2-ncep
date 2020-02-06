@@ -1,13 +1,15 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.units;
 
-import javax.measure.converter.ConversionException;
-import javax.measure.converter.UnitConverter;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import tec.uom.se.AbstractConverter;
+
 /**
- * Converts a temperature value in Kelvin to a pixel value from 0 to 255
- * using NMAP's equation
+ * Converts a temperature value in Kelvin to a pixel value from 0 to 255 using
+ * NMAP's equation
  * 
  * <pre>
  * SOFTWARE HISTORY
@@ -16,16 +18,17 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  * 05/25                    ghull     Initial creation
  * 06/07         #          archana   Updated the convert() method to 
  *                                    match legacy imttob.f   
+ * Apr 29, 2019  7596       lsingh    Updated units framework to JSR-363.
  * </pre>
  * 
  * @author ghull
  */
-public class NcIRTempToPixelConverter extends UnitConverter {
+public class NcIRTempToPixelConverter extends AbstractConverter {
 
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public double convert(double aTemperature) throws ConversionException {
+	public double convert(double aTemperature) {
 		double result = Double.NaN;
 
 //		if (aTemperature < 238.15) {
@@ -60,7 +63,7 @@ public class NcIRTempToPixelConverter extends UnitConverter {
 	}
 
 	@Override
-	public UnitConverter inverse() {
+	public AbstractConverter inverse() {
 		return new NcIRPixelToTempConverter();
 	}
 
@@ -68,5 +71,11 @@ public class NcIRTempToPixelConverter extends UnitConverter {
 	public boolean isLinear() {
 		return false;
 	}
+	
+    @Override
+    public BigDecimal convert(BigDecimal value, MathContext ctx)
+            throws ArithmeticException {
+        throw new UnsupportedOperationException();
+    }
 
 }

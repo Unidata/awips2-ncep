@@ -29,7 +29,7 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 import com.raytheon.uf.common.dataquery.db.QueryResult;
 import com.raytheon.uf.common.dataquery.db.QueryResultRow;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class SurfaceStationPointData {
 	//private Log logger = LogFactory.getLog(getClass());

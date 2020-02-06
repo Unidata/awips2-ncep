@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 import javax.measure.quantity.Dimensionless;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -10,6 +7,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * CEIL or lowest level if no CEIL (AKA CLDB)
@@ -30,13 +31,12 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CeilingOrLowestLayer extends AbstractMetParameter implements
-        Dimensionless, ISerializableObject {
+public class CeilingOrLowestLayer extends AbstractMetParameter<Dimensionless> implements ISerializableObject {
 
     private static final long serialVersionUID = -6058298343743033424L;
 
     public CeilingOrLowestLayer() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     @Override

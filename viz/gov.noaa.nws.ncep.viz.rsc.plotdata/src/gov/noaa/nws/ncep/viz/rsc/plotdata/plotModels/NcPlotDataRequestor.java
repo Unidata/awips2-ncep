@@ -17,9 +17,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.inventory.exception.DataCubeException;
@@ -65,6 +62,9 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.pluginplotproperties.PluginPlotPropert
 import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
+import si.uom.NonSI;
+import si.uom.SI;
+import tec.uom.se.unit.MetricPrefix;
 
 /**
  *
@@ -1132,7 +1132,7 @@ public class NcPlotDataRequestor {
                                             .getSimpleName())) {
                                 newInstance.setValue(
                                         new Amount(soundingProfile.getPw(),
-                                                SI.MILLIMETER));
+                                                MetricPrefix.MILLI(SI.METRE)));
                             } else {
                                 statusHandler.handle(Priority.PROBLEM,
                                         "Sanity check: \""

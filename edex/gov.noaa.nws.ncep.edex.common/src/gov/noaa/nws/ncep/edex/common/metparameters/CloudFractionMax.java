@@ -12,32 +12,32 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the GEMPAK parameter CFRT
  * 
  * SOFTWARE HISTORY
+ *
+ * <pre>
  * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 11/17/2016   R26156      J. Huber    Initial creation
+ * Date       Ticket# Engineer Description
+ * -------    ------- -------- -----------
+ * 11/17/2016 R26156  J. Huber Initial creation
+ * 
  * </pre>
  * 
  * @author Joshua Huber
- * @version 1.0
  */
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CloudFractionMax extends AbstractMetParameter
-        implements Dimensionless {
-    /**
-     * 
-     */
+public class CloudFractionMax
+        extends AbstractMetParameter<Dimensionless> {
 
     public CloudFractionMax() {
-        super(UNIT);
+        super(AbstractUnit.ONE);
     }
 
     private int getIndexOfCloudCover(String coverage) {

@@ -1,12 +1,14 @@
+package gov.noaa.nws.ncep.common.dataplugin.mcidas;
+
 /**
- * This class is to represent a map coverage area for McIDAS satellite images. It 
+ * This class is to represent a map coverage area for McIDAS satellite images. It
  * contains the geometry information necessary for client applications to correctly
  * geo-locate and project satellite imagery.
- * 
+ *
  * This class maps to the mcidas_spatial table in the postGres database via Hibernate.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
@@ -21,14 +23,10 @@
  * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
  * Dec 07, 2015 10436       bmabe       Moved McidasCRSBuilder back to original location
  *                                      b/c of build issues
- * 
+ * Mar 06 2019  6140        tgurney     Hibernate 5 GeometryType fix
+ *
  * </pre>
  */
-
-package gov.noaa.nws.ncep.common.dataplugin.mcidas;
-
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import java.awt.geom.Rectangle2D;
 
@@ -42,6 +40,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -50,7 +49,6 @@ import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.CRS;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Type;
 import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.geometry.Envelope;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -66,18 +64,26 @@ import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.adapter.GeometryAdapter;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
+
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 @Entity
 @Table(name = "mcidas_spatial")
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class McidasMapCoverage extends PersistableDataObject implements
-        ISpatialObject {
+public class McidasMapCoverage extends PersistableDataObject
+        implements ISpatialObject {
 
     private static final long serialVersionUID = 1;
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(McidasMapCoverage.class);
 
     // projection id for native satellite navigation
     public static final int GVAR = 7585;
@@ -203,8 +209,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
     private CoordinateReferenceSystem crsObject;
 
     /** The map coverage */
-    @Column(name = "the_geom")
-    @Type(type = "org.hibernate.spatial.GeometryType")
+    @Column(name = "the_geom", columnDefinition = "geometry")
     @XmlJavaTypeAdapter(value = GeometryAdapter.class)
     @DynamicSerializeElement
     private Polygon location;
@@ -227,7 +232,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
 
     /**
      * Constructs a new SatMapCoverage Object for remapped projection
-     * 
+     *
      * @param projection
      * @param nx
      *            The number of horizontal scan lines
@@ -284,7 +289,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
 
     /**
      * Constructs a new SatMapCoverage Object for native satellite navigation
-     * 
+     *
      * @param projection
      * @param nx
      *            The number of horizontal scan lines
@@ -353,6 +358,40 @@ public class McidasMapCoverage extends PersistableDataObject implements
     }
 
     @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other == this) {
+            return true;
+        }
+        if (other.getClass() != this.getClass()) {
+            return false;
+        }
+
+        McidasMapCoverage castOther = (McidasMapCoverage) other;
+        return new EqualsBuilder()
+                .append(this.getProjection(), castOther.getProjection())
+                .append(this.getNx(), castOther.getNx())
+                .append(this.getNy(), castOther.getNy())
+                .append(this.getDx(), castOther.getDx())
+                .append(this.getDy(), castOther.getDy())
+                .append(this.getClon(), castOther.getClon())
+                .append(this.getStdlat1(), castOther.getStdlat1())
+                .append(this.getStdlat2(), castOther.getStdlat2())
+                .append(this.getLllat(), castOther.getLllat())
+                .append(this.getUrlat(), castOther.getUrlat())
+                .append(this.getLllon(), castOther.getLllon())
+                .append(this.getUrlon(), castOther.getUrlon())
+                .append(this.getUpperLeftElement(),
+                        castOther.getUpperLeftElement())
+                .append(this.getUpperLeftLine(), castOther.getUpperLeftLine())
+                .append(this.getElementRes(), castOther.getElementRes())
+                .append(this.getLineRes(), castOther.getLineRes())
+                .append(this.getCrsWKT(), castOther.getCrsWKT()).isEquals();
+    }
+
+    @Override
     public Polygon getGeometry() {
         return location;
     }
@@ -363,6 +402,8 @@ public class McidasMapCoverage extends PersistableDataObject implements
             try {
                 crsObject = CRS.parseWKT(crsWKT);
             } catch (Exception e) {
+                statusHandler.warn("Error while Parsing a Well Known Text "
+                        + "(WKT) into a CRS object: ", e);
                 crsObject = McidasCRSBuilder.constructCRSfromWKT(crsWKT);
             }
         }
@@ -371,29 +412,28 @@ public class McidasMapCoverage extends PersistableDataObject implements
 
     /**
      * Construct grid geometry using grid and geospatial information
-     * 
+     *
      * @return the grid geometry of the record
      * @throws MismatchedDimensionException
      * @throws FactoryException
      * @throws TransformException
      */
-    public GridGeometry2D getGridGeometry()
-            throws MismatchedDimensionException, FactoryException,
-            TransformException {
+    public GridGeometry2D getGridGeometry() throws MismatchedDimensionException,
+            FactoryException, TransformException {
         GridEnvelope gridRange;
         Envelope crsRange;
 
         // for native projection
         if (projection == McidasMapCoverage.GVAR) {
             minX = getUpperLeftElement();
-            int maxX = getUpperLeftElement() + (getNx() * getElementRes());
-            minY = getUpperLeftLine() + (getNy() * getLineRes());
+            int maxX = getUpperLeftElement() + getNx() * getElementRes();
+            minY = getUpperLeftLine() + getNy() * getLineRes();
             minY = -minY;
             int maxY = -1 * getUpperLeftLine();
 
             gridRange = new GridEnvelope2D(0, 0, nx, ny);
-            crsRange = new Envelope2D(getCrs(), new Rectangle2D.Double(minX,
-                    minY, maxX, maxY));
+            crsRange = new Envelope2D(getCrs(),
+                    new Rectangle2D.Double(minX, minY, maxX, maxY));
         }
 
         else {
@@ -413,7 +453,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
 
     /**
      * Populate CRS min x value and min y value from longitudes and latitudes
-     * 
+     *
      * @throws FactoryException
      * @throws MismatchedDimensionException
      * @throws TransformException
@@ -429,7 +469,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
 
     /**
      * Transform x and y using provided math transform
-     * 
+     *
      * @param mt
      * @param x
      * @param y
@@ -620,7 +660,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
          * in WKT format this temp hack removes the extraneous characters, but
          * we may want to investigate using a specific formatter to keep this
          * consistent and in our control
-         * 
+         *
          * FIXME The above TODO appears rather old and may be OBE. The
          * McidasCRSBuilder.NAV_BLOCK_PATTERN has been updated to account for
          * newlines.

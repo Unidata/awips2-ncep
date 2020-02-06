@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.ProbableCeilingAsMeanSeaLevel;
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-
 import javax.measure.quantity.Length;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -11,14 +8,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter WCMS
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize 
-public class CeilingFromSeaLevelWorstCase extends AbstractMetParameter
-implements Length, ISerializableObject {
+public class CeilingFromSeaLevelWorstCase extends AbstractMetParameter<Length> implements ISerializableObject {
 
 	/**
 	 * 
@@ -26,7 +25,7 @@ implements Length, ISerializableObject {
 	private static final long serialVersionUID = 5379275105368701383L;
 
 	public CeilingFromSeaLevelWorstCase(){
-		 super( UNIT );
+		 super(SI.METRE );
 	}
 
 	@DeriveMethod

@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the modelsounding parameter snowFall
  */
@@ -15,16 +17,17 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class SnowFall extends AbstractMetParameter implements
- Length, ISerializableObject {
+public class SnowFall
+        extends AbstractMetParameter<Length>
+        implements ISerializableObject {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7759179226889594021L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7759179226889594021L;
 
-	public SnowFall(){
-		 super( UNIT );
-     }
- 
- }
+    public SnowFall() {
+        super(SI.METRE);
+    }
+
+}

@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import tec.uom.se.AbstractUnit;
+
 /**
  * 
  * Maps to the modelsounding parameter loCld
@@ -16,14 +18,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class AmountOfLowClouds extends AbstractMetParameter implements
-		Dimensionless, ISerializableObject {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1520128247117394192L;
+public class AmountOfLowClouds
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	public AmountOfLowClouds() {
-		super( UNIT );
-	}	
+    private static final long serialVersionUID = -1520128247117394192L;
+
+    public AmountOfLowClouds() {
+        super(AbstractUnit.ONE);
+    }
 }

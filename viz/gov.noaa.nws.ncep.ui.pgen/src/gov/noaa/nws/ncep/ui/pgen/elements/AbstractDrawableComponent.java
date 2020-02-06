@@ -15,7 +15,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Abstract super class for DrawableElement and DECollection

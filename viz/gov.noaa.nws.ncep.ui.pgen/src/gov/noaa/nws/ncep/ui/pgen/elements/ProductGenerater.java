@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Emulate the Product Generation process.

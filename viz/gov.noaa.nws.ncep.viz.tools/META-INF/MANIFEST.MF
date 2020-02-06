@@ -21,9 +21,10 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.gempak.nativelib,
  gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.common.log;bundle-version="1.0.0",
+ javax.xml.bind,
  org.slf4j;bundle-version="1.7.25"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.tools,
  gov.noaa.nws.ncep.viz.tools.aodt,
  gov.noaa.nws.ncep.viz.tools.colorMapEditor,

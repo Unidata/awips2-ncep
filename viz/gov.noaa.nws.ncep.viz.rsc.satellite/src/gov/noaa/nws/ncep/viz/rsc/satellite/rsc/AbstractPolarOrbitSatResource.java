@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.Measure;
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
@@ -40,8 +41,6 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.sampling.ISamplingResource;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
 import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
@@ -49,6 +48,8 @@ import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
 import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
 import gov.noaa.nws.ncep.viz.resources.util.Sampler;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import tec.uom.se.AbstractUnit;
+import tec.uom.se.quantity.Quantities;
 
 /**
  * Abstract class for display of polar-orbiting (MODIS/VIIRS) satellite data.
@@ -361,9 +362,9 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
     protected void setColorMapUnits(IPersistable record,
             ColorMapParameters colorMapParameters) throws StyleException {
 
-        colorMapParameters.setColorMapUnit(Unit.ONE);
+        colorMapParameters.setColorMapUnit(AbstractUnit.ONE);
 
-        Unit<?> displayUnit = Unit.ONE;
+        Unit<?> displayUnit = AbstractUnit.ONE;
         if (imagePreferences != null) {
             if (imagePreferences.getDisplayUnits() != null) {
                 displayUnit = imagePreferences.getDisplayUnits();
@@ -378,12 +379,12 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
                 UnitConverter displayToColorMap = colorMapParameters
                         .getDisplayToColorMapConverter();
                 if (scale.getMinValue() != null) {
-                    colorMapParameters.setColorMapMin((float) displayToColorMap
-                            .convert(scale.getMinValue()));
+                    colorMapParameters.setColorMapMin(displayToColorMap
+                            .convert(scale.getMinValue()).floatValue());
                 }
                 if (scale.getMaxValue() != null) {
-                    colorMapParameters.setColorMapMax((float) displayToColorMap
-                            .convert(scale.getMaxValue()));
+                    colorMapParameters.setColorMapMax(displayToColorMap
+                            .convert(scale.getMaxValue()).floatValue());
                 }
             }
         }
@@ -552,7 +553,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
             interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
         }
         interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
-                Measure.valueOf(dataValue,
+                Quantities.getQuantity(dataValue,
                         colorMapParameters.getDisplayUnit()));
 
         return interMap;
@@ -610,7 +611,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
      */
     @Override
     public Unit<?> getRecordUnit(IPersistable dataRecord) {
-        return Unit.ONE;
+        return AbstractUnit.ONE;
     }
 
 }

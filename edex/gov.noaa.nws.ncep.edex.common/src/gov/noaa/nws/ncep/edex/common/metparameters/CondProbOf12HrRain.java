@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
+import tec.uom.se.AbstractUnit;
 
 /**
  * Maps to the GEMPAK parameter ??
@@ -15,16 +16,14 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class CondProbOf12HrRain extends AbstractMetParameter implements
-	Dimensionless, ISerializableObject {
+public class CondProbOf12HrRain
+        extends AbstractMetParameter<Dimensionless>
+        implements ISerializableObject {
 
-	 /**
-	 * 
-	 */
-	private static final long serialVersionUID = 5188256528302697257L;
+    private static final long serialVersionUID = 5188256528302697257L;
 
-	public CondProbOf12HrRain()throws Exception {
-		 super( new UnitAdapter().marshal(UNIT) );
-	}
-	 
+    public CondProbOf12HrRain() throws Exception {
+        super(AbstractUnit.ONE);
+    }
+
 }

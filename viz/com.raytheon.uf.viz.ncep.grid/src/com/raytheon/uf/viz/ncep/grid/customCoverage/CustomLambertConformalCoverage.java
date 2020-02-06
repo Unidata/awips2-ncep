@@ -1,10 +1,15 @@
 package com.raytheon.uf.viz.ncep.grid.customCoverage;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import java.text.ParsePosition;
+
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.units.UnitConv;
+
+import si.uom.SI;
+import tec.uom.se.format.SimpleUnitFormat;
 
 
 public class CustomLambertConformalCoverage extends CustomCoverage {
@@ -53,10 +58,11 @@ public class CustomLambertConformalCoverage extends CustomCoverage {
         crs = MapUtil.constructLambertConformal(majorAxis, minorAxis, latin1,
                 latin2, lov, latin1);
         try {
-            Unit<?> spacingUnitObj = Unit.valueOf(spacingUnit);
+            Unit<?> spacingUnitObj = SimpleUnitFormat
+                    .getInstance().parseProductUnit(spacingUnit, new ParsePosition(0));
             if (spacingUnitObj.isCompatible(SI.METRE)) {
-                UnitConverter converter = spacingUnitObj
-                        .getConverterTo(SI.METRE);
+                UnitConverter converter = UnitConv.getConverterToUnchecked(spacingUnitObj,
+                        SI.METRE);
                 geometry = MapUtil.createGeometry(crs, la1, lo1, converter
                         .convert(dx), converter.convert(dy), nx, ny);
             } else {

@@ -3,7 +3,6 @@
  */
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-
 import javax.measure.quantity.Temperature;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -12,6 +11,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
+import si.uom.SI;
+
 /**
  * Maps to the GEMPAK parameter TDYF
  */
@@ -19,16 +20,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 
- public class DayTempFcst extends AbstractMetParameter implements
-		Temperature, ISerializableObject {
+public class DayTempFcst
+        extends AbstractMetParameter<Temperature>
+        implements ISerializableObject {
 
-	 /**
-	 * 
-	 */
-	private static final long serialVersionUID = -7822362786743684778L;
+    private static final long serialVersionUID = -7822362786743684778L;
 
-	public DayTempFcst() {
-			super( UNIT );
-	}
-	 
- }
+    public DayTempFcst() {
+        super(SI.KELVIN);
+    }
+
+}

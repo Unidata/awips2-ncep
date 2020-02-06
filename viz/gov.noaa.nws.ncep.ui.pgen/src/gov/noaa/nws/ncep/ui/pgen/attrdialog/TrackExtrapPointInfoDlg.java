@@ -8,10 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.TrackPoint;
-import gov.noaa.nws.ncep.ui.pgen.elements.Track;
-
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Calendar;
@@ -25,8 +21,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
+
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.TrackPoint;
+import gov.noaa.nws.ncep.ui.pgen.elements.Track;
 
 /**
  * Singleton attribute dialog for Track.
@@ -302,7 +303,7 @@ public class TrackExtrapPointInfoDlg extends AttrDlg {
             Text initLatTextObject) {
         if (trackPoint == null || trackPoint.getLocation() == null)
             return;
-        com.vividsolutions.jts.geom.Coordinate coordinate = trackPoint
+        Coordinate coordinate = trackPoint
                 .getLocation();
         initLatTextObject.setText(doubleValurFormater(coordinate.y, 3));
     }
@@ -311,7 +312,7 @@ public class TrackExtrapPointInfoDlg extends AttrDlg {
             Text initLonTextObject) {
         if (trackPoint == null || trackPoint.getLocation() == null)
             return;
-        com.vividsolutions.jts.geom.Coordinate coordinate = trackPoint
+        Coordinate coordinate = trackPoint
                 .getLocation();
         initLonTextObject.setText(doubleValurFormater(coordinate.x, 3));
     }
@@ -321,7 +322,7 @@ public class TrackExtrapPointInfoDlg extends AttrDlg {
     }
 
     private String getLatStringByTrackPoint(TrackPoint trackPoint) {
-        com.vividsolutions.jts.geom.Coordinate coordinate = trackPoint
+        Coordinate coordinate = trackPoint
                 .getLocation();
         if (coordinate == null)
             return "";
@@ -329,7 +330,7 @@ public class TrackExtrapPointInfoDlg extends AttrDlg {
     }
 
     private String getLonStringByTrackPoint(TrackPoint trackPoint) {
-        com.vividsolutions.jts.geom.Coordinate coordinate = trackPoint
+        Coordinate coordinate = trackPoint
                 .getLocation();
         if (coordinate == null)
             return "";

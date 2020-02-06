@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.raytheon.uf.viz.core.DrawableBasics;
 import com.raytheon.viz.pointdata.PlotInfo;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.Position;

@@ -26,7 +26,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpDataPaneResource;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NsharpDataPaneMouseHandler extends NsharpAbstractMouseHandler{
 

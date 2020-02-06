@@ -30,7 +30,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 public class NsharpLibWinds {
 

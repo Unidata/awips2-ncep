@@ -7,8 +7,8 @@
  */
 package gov.noaa.nws.ncep.ui.pgen.display;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 
 /**
  * This abstract class defines and implements some common functionality all Pattern

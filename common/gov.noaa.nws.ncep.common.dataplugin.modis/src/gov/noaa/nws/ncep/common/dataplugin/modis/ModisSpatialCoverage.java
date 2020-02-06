@@ -21,7 +21,7 @@ import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFactory;
 

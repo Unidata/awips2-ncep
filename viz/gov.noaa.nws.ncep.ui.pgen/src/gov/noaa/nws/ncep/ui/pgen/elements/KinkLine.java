@@ -17,7 +17,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.IKink;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Class to represent a line element.

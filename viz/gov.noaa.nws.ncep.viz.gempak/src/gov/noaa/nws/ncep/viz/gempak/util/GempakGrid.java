@@ -1,14 +1,15 @@
 package gov.noaa.nws.ncep.viz.gempak.util;
 
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
+import java.text.ParsePosition;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
+import javax.measure.quantity.Length;
 
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.datum.DefaultGeodeticDatum;
 import org.geotools.referencing.datum.DefaultPrimeMeridian;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
@@ -19,7 +20,10 @@ import com.raytheon.uf.common.gridcoverage.PolarStereoGridCoverage;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
-import com.vividsolutions.jts.geom.Polygon;
+
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
+import si.uom.SI;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * @author gamaz
@@ -230,9 +234,11 @@ public class GempakGrid {
             crsWKT = crs.toWKT();
             CharSequence spacingUnit = "km";
             try {
-                Unit<?> spacingUnitObj = Unit.valueOf(spacingUnit);
+                Unit<?> spacingUnitObj = SimpleUnitFormat
+                        .getInstance(SimpleUnitFormat.Flavor.Default)
+                        .parseProductUnit(spacingUnit, new ParsePosition(0));
                 if (spacingUnitObj.isCompatible(SI.METRE)) {
-                    UnitConverter converter = spacingUnitObj
+                    UnitConverter converter = spacingUnitObj.asType(Length.class)
                             .getConverterTo(SI.METRE);
                     geometry = MapUtil.createGeometry(crs, la1, lo1,
                             converter.convert(dx), converter.convert(dy), nx,
@@ -276,9 +282,11 @@ public class GempakGrid {
                     latin1, latin2, lov, latin1);
             crsWKT = crs.toWKT();
             try {
-                Unit<?> spacingUnitObj = Unit.valueOf(spacingUnit);
+                Unit<?> spacingUnitObj = SimpleUnitFormat
+                        .getInstance(SimpleUnitFormat.Flavor.Default)
+                        .parseProductUnit(spacingUnit, new ParsePosition(0));
                 if (spacingUnitObj.isCompatible(SI.METRE)) {
-                    UnitConverter converter = spacingUnitObj
+                    UnitConverter converter = spacingUnitObj.asType(Length.class)
                             .getConverterTo(SI.METRE);
                     geometry = MapUtil.createGeometry(crs, la1, lo1,
                             converter.convert(dx), converter.convert(dy), nx,

@@ -42,9 +42,10 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Oct 16, 2018 54483      mapeters    Initial creation
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------
+ * Oct 16, 2018  54483    mapeters  Initial creation
+ * Dec 09, 2019  7991     randerso  Fix NPE in earlyStartup()
  *
  * </pre>
  *
@@ -68,31 +69,33 @@ public class GempakActivationManager implements IStartup {
         // Activate/deactivate GEMPAK when activating/closing GEMPAK
         IWorkbenchWindow workbenchWindow = VizWorkbenchManager.getInstance()
                 .getCurrentWindow();
-        workbenchWindow.addPerspectiveListener(new PerspectiveAdapter() {
+        if (workbenchWindow != null) {
+            workbenchWindow.addPerspectiveListener(new PerspectiveAdapter() {
 
-            @Override
-            public void perspectiveActivated(IWorkbenchPage page,
-                    IPerspectiveDescriptor perspective) {
-                /*
-                 * Listen for activate instead of open since we may start with
-                 * NCP open but not activated (and this listener isn't triggered
-                 * on start-up)
-                 */
-                if (NmapCommon.NatlCntrsPerspectiveID
-                        .equals(perspective.getId())) {
-                    activate();
+                @Override
+                public void perspectiveActivated(IWorkbenchPage page,
+                        IPerspectiveDescriptor perspective) {
+                    /*
+                     * Listen for activate instead of open since we may start
+                     * with NCP open but not activated (and this listener isn't
+                     * triggered on start-up)
+                     */
+                    if (NmapCommon.NatlCntrsPerspectiveID
+                            .equals(perspective.getId())) {
+                        activate();
+                    }
                 }
-            }
 
-            @Override
-            public void perspectiveClosed(IWorkbenchPage page,
-                    IPerspectiveDescriptor perspective) {
-                if (NmapCommon.NatlCntrsPerspectiveID
-                        .equals(perspective.getId())) {
-                    shutdown(false);
+                @Override
+                public void perspectiveClosed(IWorkbenchPage page,
+                        IPerspectiveDescriptor perspective) {
+                    if (NmapCommon.NatlCntrsPerspectiveID
+                            .equals(perspective.getId())) {
+                        shutdown(false);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // Permanently shutdown GEMPAK on workbench shutdown
         PlatformUI.getWorkbench()

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Pgen Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.ui.pgen;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.ui.pgen.Activator
 Eclipse-RegisterBuddy: com.raytheon.viz.core
 Require-Bundle: org.eclipse.ui,
@@ -23,7 +23,8 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.common.dataplugin.pgen;bundle-version="1.0.0",
  com.raytheon.uf.common.auth;bundle-version="1.12.1174",
  org.eclipse.core.expressions;bundle-version="3.5.0",
- com.raytheon.uf.viz.vtec;bundle-version="1.0.0"
+ com.raytheon.uf.viz.vtec;bundle-version="1.0.0",
+ javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.ui.pgen.attrdialog,
@@ -52,5 +53,6 @@ Import-Package: com.raytheon.uf.common.dataplugin.text,
  com.raytheon.viz.core.gl.images,
  gov.noaa.nws.ncep.common.staticdata,
  gov.noaa.nws.ncep.viz.localization,
- javax.measure.unit
+ javax.measure
 Bundle-ClassPath: .
+Bundle-RequiredExecutionEnvironment: JavaSE-11

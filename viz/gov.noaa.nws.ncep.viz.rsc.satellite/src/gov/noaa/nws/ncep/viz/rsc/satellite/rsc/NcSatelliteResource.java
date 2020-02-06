@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
 import java.io.File;
-import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,14 +10,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.measure.converter.UnitConverter;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
+import javax.measure.format.ParserException;
 import javax.measure.quantity.Temperature;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GridGeometry2D;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -71,7 +70,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
@@ -95,6 +93,8 @@ import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import si.uom.SI;
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * Provides satellite raster rendering support through the use of
@@ -844,8 +844,8 @@ public class NcSatelliteResource extends
         UnitConverter displayToColorMap = colorMapParameters
                 .getDisplayToColorMapConverter();
         if (displayToColorMap != null) {
-            colorMapMin = (float) displayToColorMap.convert(displayMin);
-            colorMapMax = (float) displayToColorMap.convert(displayMax);
+            colorMapMin = displayToColorMap.convert(displayMin).floatValue();
+            colorMapMax = displayToColorMap.convert(displayMax).floatValue();
         }
 
         colorMapParameters.setColorMapMin(colorMapMin);
@@ -909,9 +909,9 @@ public class NcSatelliteResource extends
 
         if (record.getUnits() != null && record.getUnits().isEmpty() == false) {
             try {
-                recordUnit = UnitFormat.getUCUMInstance().parseProductUnit(
+                recordUnit = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII).parseProductUnit(
                         record.getUnits(), new ParsePosition(0));
-            } catch (ParseException e) {
+            } catch (ParserException e) {
                 statusHandler.handle(Priority.PROBLEM,
                         "Unable to parse satellite units: " + record.getUnits(),
                         e);

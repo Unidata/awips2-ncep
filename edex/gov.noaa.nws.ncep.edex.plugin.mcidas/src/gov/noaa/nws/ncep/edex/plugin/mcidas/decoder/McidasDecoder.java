@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import javax.measure.unit.SI;
+import si.uom.SI;
 
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
@@ -689,7 +689,7 @@ public class McidasDecoder extends AbstractDecoder {
                  * used with an Equidistant Cylindrical CRS.
                  */
                 DefaultEllipsoid ellipsoid = DefaultEllipsoid.createEllipsoid(
-                        "Mcidas", re, re, SI.METER);
+                        "Mcidas", re, re, SI.METRE);
                 dx = (float) ellipsoid.orthodromicDistance(clon, 0, clon + dx,
                         0);
                 dy = (float) ellipsoid.orthodromicDistance(clon, 0, clon, dy);

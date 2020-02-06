@@ -12,7 +12,7 @@ import gov.noaa.nws.ncep.ui.pgen.PGenException;
 
 import java.util.LinkedHashMap;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * Generates a mapping of points on one polygon to corresponding points on a second polygon.

@@ -1,31 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.ffa;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwHVtec;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
-import gov.noaa.nws.ncep.edex.common.stationTables.Station;
-import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.AwwImmediateCauseUtil;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.FFAConstant;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.StringUtil;
-import gov.noaa.nws.ncep.viz.rsc.aww.utils.UGCUtil;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.awt.Color;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,6 +15,13 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
@@ -66,9 +47,32 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
 import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKBReader;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwHVtec;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
+import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
+import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
+import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.AwwImmediateCauseUtil;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.FFAConstant;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.StringUtil;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.UGCUtil;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * FFA resourceResource - Display Flash Flood data from aww data.
@@ -821,7 +825,7 @@ public class FFAResource extends
             PaintProperties paintProps, double[] latLonArray, RGB color,
             float symbolLineWidth, double symbolSizeScale) {
         Color symbolColor = new Color(color.red, color.green, color.blue);
-        com.vividsolutions.jts.geom.Coordinate coordinate = new com.vividsolutions.jts.geom.Coordinate(
+        Coordinate coordinate = new Coordinate(
                 latLonArray[0], latLonArray[1]);
         Symbol symbol = new Symbol(null, new Color[] { symbolColor },
                 symbolLineWidth,// lineWidth, same as arrow's
@@ -1055,9 +1059,9 @@ public class FFAResource extends
                             for (Object[] result : zones) {
                                 int k = 0;
                                 byte[] wkb1 = (byte[]) result[k];
-                                com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
+                                MultiPolygon countyGeo = null;
                                 try {
-                                    countyGeo = (com.vividsolutions.jts.geom.MultiPolygon) wkbReader
+                                    countyGeo = (MultiPolygon) wkbReader
                                             .read(wkb1);
                                     if (countyGeo != null
                                             && !countyGeo.isEmpty()) {
@@ -1089,7 +1093,7 @@ public class FFAResource extends
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
 
-            com.vividsolutions.jts.geom.GeometryCollection gColl = (com.vividsolutions.jts.geom.GeometryCollection) new com.vividsolutions.jts.geom.GeometryFactory()
+            GeometryCollection gColl = (GeometryCollection) new GeometryFactory()
                     .buildGeometry(gw);
 
             try {

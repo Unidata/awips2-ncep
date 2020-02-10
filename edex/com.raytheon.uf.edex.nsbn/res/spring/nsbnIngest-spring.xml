@@ -5,7 +5,10 @@
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-    <bean id="nsbnFileChangedStrategy" class="com.raytheon.uf.edex.esb.camel.FileChangedExclusiveReadLockStrategy"/>
+    <bean id="nsbnFileChangedStrategy" class="com.raytheon.uf.edex.esb.camel.FileChangedExclusiveReadLockStrategy">
+        <constructor-arg value="5000" />
+     </bean>
+
     <bean id="nsbnFileTransferProcess" class="com.raytheon.uf.edex.nsbn.NSBNFileTransfer"/>
     <bean id="nsbnIdempotentRepository" class="com.raytheon.uf.edex.nsbn.NSBNIdempotentRepository"/>
     

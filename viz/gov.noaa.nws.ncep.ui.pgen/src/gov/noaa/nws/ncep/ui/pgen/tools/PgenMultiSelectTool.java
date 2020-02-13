@@ -64,6 +64,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/20/2019   71072       smanoj      Modifications to handle multi-select functionality.
  * 02/05/2020   74136       smanoj      Set AttrDialog with attributes of the
  *                                      nearest component when multi-select.
+ * 02/12/2020   74776       smanoj      ResetAllElements in the display after delete.
  * 
  * </pre>
  * 
@@ -554,6 +555,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 PgenResource pResource = PgenSession.getInstance()
                         .getPgenResource();
                 pResource.deleteSelectedElements();
+                pResource.resetAllElements();
             } else if (keyCode == SWT.CONTROL) {
                 ctrlKeyDown = true;
             }

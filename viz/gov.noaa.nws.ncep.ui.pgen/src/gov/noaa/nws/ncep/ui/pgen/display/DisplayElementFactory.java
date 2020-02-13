@@ -168,6 +168,8 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 11/07/2016   R23252      S. Russell  Updated createArrows() to support OPEN
  *                                      arrowheads.
  * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
+ * 02/12/2020   74776       smanoj      Fixed a NullPointerException when deleting MET Contour Label 
+ *                                      using keyboard delete key.
  * 
  * </pre>
  * 
@@ -5621,24 +5623,26 @@ public class DisplayElementFactory {
             double[] tps;
             double[] loc = { 0.0, 0.0, 0.0 };
             for (int kk = 0; kk < numText2Draw; kk++) {
-                Text txt = cline.getLabels().get(kk);
-                loc[0] = txtPositions.get(kk).x;
-                loc[1] = txtPositions.get(kk).y;
+                 if ((!cline.getLabels().isEmpty())
+                       && (kk < cline.getLabels().size())) {
+                    Text txt = cline.getLabels().get(kk);
+                    loc[0] = txtPositions.get(kk).x;
+                    loc[1] = txtPositions.get(kk).y;
 
-                tps = iDescriptor.pixelToWorld(loc);
-                if (txt.getAuto() != null && txt.getAuto() || forceAuto) {
-                    txt.setLocationOnly(new Coordinate(tps[0], tps[1]));
-                }
+                    tps = iDescriptor.pixelToWorld(loc);
+                    if (txt.getAuto() != null && txt.getAuto() || forceAuto) {
+                        txt.setLocationOnly(new Coordinate(tps[0], tps[1]));
+                    }
 
-                txt.setParent(null);
-                dlist.addAll(createDisplayElements((IText) txt, paintProps));
-                txt.setParent(cline);
+                    txt.setParent(null);
+                    dlist.addAll(createDisplayElements((IText) txt, paintProps));
+                    txt.setParent(cline);
 
-                if (!forceAuto) {
-                    txt.setAuto(false);
-                }
+                    if (!forceAuto) {
+                        txt.setAuto(false);
+                    }
+                 }
             }
-
         }
 
         return dlist;

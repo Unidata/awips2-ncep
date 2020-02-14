@@ -73,6 +73,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  * May 16, 2016  5647       tgurney     Remove minimize/maximize buttons
  * Dec 10, 2019  72281      K Sunil     code to handle both NCP and D2D. If D2D, just handover to D2D's plot
  *                                       model dialog.
+ * Feb 18, 2020  74965      K Sunil     Suppressed some irrelevant warnings for D2D.
  * </pre>
  *
  * @author
@@ -302,8 +303,9 @@ public class PlotModelMngrDialog extends Dialog {
                      * If plot model is being edited, do not edit it twice, but
                      * bring its dialog to front.
                      */
-                    if (manager.isPlotModelActivelyEdited(seldPlugin,
-                            plotModelName)) {
+                    if (NCP.equals(perspective)
+                            && manager.isPlotModelActivelyEdited(seldPlugin,
+                                    plotModelName)) {
 
                         editPlotModelBtn.setEnabled(false);
                         deletePlotModelBtn.setEnabled(false);
@@ -336,8 +338,8 @@ public class PlotModelMngrDialog extends Dialog {
 
                 String plotModelName = getSelectedPlotModelName();
 
-                if (manager.isPlotModelActivelyEdited(seldPlugin,
-                        plotModelName)) {
+                if (NCP.equals(perspective) && manager
+                        .isPlotModelActivelyEdited(seldPlugin, plotModelName)) {
 
                     manager.bringShellToFront(seldPlugin, plotModelName);
 

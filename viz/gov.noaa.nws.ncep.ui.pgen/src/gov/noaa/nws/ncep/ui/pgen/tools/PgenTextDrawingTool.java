@@ -31,7 +31,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Line;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 
-//import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
 
 /**
  * Implements a modal map tool for PGEN text drawing.
@@ -51,6 +50,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
  * 12/15         R12989     P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
  * 05/16/2016    R18388     J. Wu       Move some constants to PgenConstant.
  * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ * Feb 14, 2020  74902      smanoj      Remove leading empty lines from Text Attributes.
  *
  * </pre>
  * 
@@ -441,6 +441,14 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                                 loc, drawingLayer.getActiveLayer());
 
                     } else {
+
+                        // Remove the leading empty lines from text.
+                        String[] textArray =((IText) attrDlg).getString();
+                        String textStr = String.join("\n",textArray);
+                        textStr = textStr.trim();
+                        textArray= textStr.split("\n");
+                        ((TextAttrDlg) attrDlg).setText(textArray);
+
                         ghost = def.create(DrawableType.TEXT, (IText) attrDlg,
                                 pgenCategory, pgenType, loc,
                                 drawingLayer.getActiveLayer());

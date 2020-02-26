@@ -68,6 +68,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 06/30/2016   R17980      B. Yin          Fixed error dialog issue in multi-select mode.
  * 07/27/2016   R17378      J. Wu           Set cursor at end of the text string.
  * 08/20/2019   67218       ksunil          prevent the text box from starting the text on line 2
+ * 02/26/2020   75024       smanoj          Fix to have correct default Color Attributes for 
+ *                                          tropical TROF front label.
  *
  * </pre>
  *
@@ -104,8 +106,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private final int TEXT_WIDTH = 160;
 
     private final int TEXT_HEIGHT = 40;
-
-    private final Color DEFAULT_COLOR = new Color(0, 255, 0);
 
     private final float INITIAL_FONT_SIZE = 0.0f;
 
@@ -927,7 +927,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
                 // If this box type has been used before, use the color
                 // relativity for that box type.
-                setColor(DEFAULT_COLOR);
                 if (lastColorPerBoxType.containsKey(boxCombo.getText())) {
                     Color color = lastColorPerBoxType.get(boxCombo.getText());
                     if (color != null) {
@@ -1182,9 +1181,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
         colorLbl = new Label(top, SWT.LEFT);
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(top);
-        cs.setColorValue(new RGB(0, 255, 0));
 
-        setColor(DEFAULT_COLOR);
         Color color = lastColorPerBoxType.get(boxCombo.getText());
         if (color != null) {
             setColor(color);

@@ -71,6 +71,8 @@ import gov.noaa.nws.ncep.ui.pgen.tca.TropicalCycloneAdvisory;
  *                                       Contours Min/Max.
  * Jun 20, 2016  R8305       B. Yin      Remove TCA advisory.
  * Jul 26, 2019  66393       mapeters    Add parm to contours key in settings map
+ * Feb 26, 2020  75024       smanoj      Fix to have correct default Text Attributes for 
+ *                                       tropical TROF front label.
  *
  * </pre>
  *
@@ -364,6 +366,10 @@ public class AttrSettings {
                                 ((Track) de).setFirstTimeCalendar(cal1);
                                 ((Track) de).setSecondTimeCalendar(cal2);
 
+                            } else if (PgenConstant.TROP_TROF_TEXT
+                                    .equalsIgnoreCase(pgenID)) {
+                                ((Text) de).setPgenType(PgenConstant.TROP_TROF_TEXT);
+                                newSettings.put(pgenID, de);
                             }
                         }
                     }

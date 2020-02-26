@@ -31,7 +31,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Line;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 
-
 /**
  * Implements a modal map tool for PGEN text drawing.
  * 
@@ -51,7 +50,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
  * 05/16/2016    R18388     J. Wu       Move some constants to PgenConstant.
  * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * Feb 14, 2020  74902      smanoj      Remove leading empty lines from Text Attributes.
- *
+ * Feb 26, 2020  75024      smanoj      Fix to have correct default Text Attributes for 
+ *                                      tropical TROF front label.
  * </pre>
  * 
  * @author B. Yin
@@ -70,11 +70,6 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
     protected void activateTool() {
 
@@ -102,9 +97,12 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                             .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)
                             || prevElem.getPgenCategory().equalsIgnoreCase(
                                     PgenConstant.CATEGORY_FRONT)) {
-                        ((TextAttrDlg) attrDlg).setBoxText(false,
-                                DisplayType.NORMAL);
-                        ((TextAttrDlg) attrDlg).setFontSize(18);
+                        if (!(PgenConstant.TYPE_TROPICAL_TROF
+                                .equalsIgnoreCase(prevElem.getPgenType()))) {
+                            ((TextAttrDlg) attrDlg).setBoxText(false,
+                                    DisplayType.NORMAL);
+                            ((TextAttrDlg) attrDlg).setFontSize(18);
+                        }
                     }
 
                     /*
@@ -269,12 +267,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
          */
         private AbstractDrawableComponent elem = null;
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
-         * int, int)
-         */
+        
         @Override
         public boolean handleMouseDown(int anX, int aY, int button) {
             if (!isResourceEditable())
@@ -379,12 +372,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseMove(int,
-         * int)
-         */
+       
         @Override
         public boolean handleMouseMove(int x, int y) {
             if (!isResourceEditable())
@@ -472,12 +460,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                 return true;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int,
-         * int)
-         */
+       
         @Override
         public boolean handleMouseUp(int x, int y, int mouseButton) {
             if (!isResourceEditable() || shiftDown)
@@ -578,16 +561,16 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
         // Use default label for specific fronts.
         String frontLabel = "";
         String ptype = elem.getPgenType();
-        if (ptype.equalsIgnoreCase("TROF")) {
-            frontLabel = new String("TROF");
-        } else if (ptype.equals("TROPICAL_TROF")) {
-            frontLabel = new String("TROPICAL WAVE");
-        } else if (ptype.equals("DRY_LINE")) {
-            frontLabel = new String("DRYLINE");
-        } else if (ptype.equals("INSTABILITY")) {
-            frontLabel = new String("SQUALL LINE");
-        } else if (ptype.equals("SHEAR_LINE")) {
-            frontLabel = new String("SHEARLINE");
+        if (PgenConstant.TYPE_TROF.equalsIgnoreCase(ptype)) {
+            frontLabel = new String(PgenConstant.LABEL_TROF);
+        } else if (PgenConstant.TYPE_TROPICAL_TROF.equalsIgnoreCase(ptype)) {
+            frontLabel = new String(PgenConstant.LABEL_TRPCL_WAVE);
+        } else if (PgenConstant.TYPE_DRY_LINE.equalsIgnoreCase(ptype)) {
+            frontLabel = new String(PgenConstant.LABEL_DRYLINE);
+        } else if (PgenConstant.TYPE_INSTABILITY.equalsIgnoreCase(ptype)) {
+            frontLabel = new String(PgenConstant.LABEL_SQUALL_LINE);
+        } else if (PgenConstant.TYPE_SHEAR_LINE.equalsIgnoreCase(ptype)) {
+            frontLabel = new String(PgenConstant.LABEL_SHEARLINE);
         }
 
         return frontLabel;

@@ -100,6 +100,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 09/23/2019   68970       KSunil      Make sure the symbol text moves with the symbol.
  * 12/19/2019   71072       smanoj      Fixed some run time errors.
+ * 02/27/2020   75479       smanoj      Fixed an issue with moving Contour line with multiple labels.
  *
  * </pre>
  *
@@ -177,12 +178,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
         this.tool = tool;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int, int,
-     * int)
-     */
     @Override
     public boolean handleMouseDown(int anX, int aY, int button) {
 
@@ -531,12 +526,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
-     * int, int)
-     */
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
 
@@ -799,11 +788,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int, int)
-     */
     @Override
     public boolean handleMouseUp(int x, int y, int button) {
         firstDown = null;
@@ -1324,11 +1308,30 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                             ((ContourLine) newAdc).getLine().setPoints(points);
                             List<Text> texts = ((ContourLine) newAdc)
                                     .getLabels();
-                            for (int i = 0; i < texts.size(); i++) {
-                                texts.get(i).setLocation(
-                                        points.get(points.size() / 2));
-                            }
+                            int nlabels = texts.size();
                             selElem = ((ContourLine) newAdc).getLine();
+
+                            //Update labels in the contour line.
+                            ContourLine cline = (ContourLine) selElem.getParent();
+                            if (nlabels > 0) {
+                                Text oldLabel = (Text) (texts.get(0).copy());
+
+                                for (Text lbl : texts) {
+                                    cline.removeElement(lbl);
+                                }
+
+                                for (int ii = 0; ii < nlabels; ii++) {
+
+                                    Text lbl = (Text) (oldLabel.copy());
+
+                                    lbl.setAuto(true);
+                                    lbl.setParent(cline);
+                                    lbl.setHide(false);
+
+                                    cline.add(lbl);
+                                }
+                            }
+
                         } else {
                             ((ContourCircle) newAdc).getCircle()
                                     .setPoints(points);

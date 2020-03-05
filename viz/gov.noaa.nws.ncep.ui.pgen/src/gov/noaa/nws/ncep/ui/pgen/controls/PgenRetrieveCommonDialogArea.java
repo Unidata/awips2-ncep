@@ -44,9 +44,12 @@ import com.raytheon.uf.common.status.UFStatus;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- -----------------------------------
- * 8/27/2019    67216       ksunil      Initial creation. Code harvested from RetrieveActivityDialog
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Aug 27, 2019  67216    ksunil    Initial creation. Code harvested from
+ *                                  RetrieveActivityDialog
+ * Mar 04, 2020  75757    tjensen   Default to sort by Date; Clean up dead code
  *
  * </pre>
  *
@@ -67,56 +70,28 @@ public class PgenRetrieveCommonDialogArea {
 
     }
 
-    private final transient IUFStatusHandler statusHandler = UFStatus
+    private final IUFStatusHandler statusHandler = UFStatus
             .getHandler(this.getClass());
-
-    /**
-     * R7806: This flag determines if the options "All" is hidden in the
-     * pull-down menu for Type.
-     */
-    private static final boolean isToHideOptionAllInType = true;
-
-    /**
-     * R7806: This flag determines if the options "All" is hidden in the
-     * pull-down menu for Subtype.
-     */
-    private static final boolean isToHideOptionAllInSubtype = true;
-
-    /**
-     * The initial value for the width of the area that display Activity labels.
-     */
-    private static final int widthForListArea = 500;
-
-    /**
-     * The initial values for the widths of the areas that display Types and
-     * Subtypes.
-     */
-    private static final int widthForListArea2 = 240;
-
-    /**
-     * The height of the area that displays Activity labels.
-     */
-    private static final int heightForListArea = 200;
 
     /**
      * The last selected Site.
      */
-    private static String lastSelectedSite = null;
+    private String lastSelectedSite = null;
 
     /**
      * The last selected Desk.
      */
-    private static String lastSelectedDesk = null;
+    private String lastSelectedDesk = null;
 
     /**
      * The last selected Type.
      */
-    private static String lastSelectedType = null;
+    private String lastSelectedType = null;
 
     /**
      * The last selected Subtype.
      */
-    private static String lastSelectedSubtype = null;
+    private String lastSelectedSubtype = null;
 
     /**
      * This is to access auxiliary methods in the class ActivityCollection.
@@ -164,8 +139,6 @@ public class PgenRetrieveCommonDialogArea {
      */
     private final Button[] autoSaveRadioButtons = new Button[2];
 
-    private static String fullName = null;
-
     /**
      * The separator between the label and the date string.
      */
@@ -185,7 +158,7 @@ public class PgenRetrieveCommonDialogArea {
 
         /*
          * The dialog area is organized vertically as four sub-areas.
-         * 
+         *
          * The first vertical sub-area is for two pull-down menus displaying
          * Site and Desk.
          */
@@ -331,8 +304,8 @@ public class PgenRetrieveCommonDialogArea {
                 | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
         GridData typeListLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
                 true);
-        typeListLayoutData.widthHint = widthForListArea2;
-        typeListLayoutData.heightHint = heightForListArea;
+        typeListLayoutData.widthHint = 240;
+        typeListLayoutData.heightHint = 200;
         typeListWidget.setLayoutData(typeListLayoutData);
 
         /*
@@ -343,13 +316,10 @@ public class PgenRetrieveCommonDialogArea {
         String[] currentTypeList = ac.getCurrentTypeList();
 
         if (lastSelectedType == null) {
-            if (isToHideOptionAllInType) {
-                if (currentTypeList.length > 1) {
-                    ac.changeTypeIndex(1);
-                    lastSelectedType = currentTypeList[1];
-                }
-            } else {
-                lastSelectedType = currentTypeList[0];
+            // Hide the "All" option
+            if (currentTypeList.length > 1) {
+                ac.changeTypeIndex(1);
+                lastSelectedType = currentTypeList[1];
             }
         } else {
             int index = Arrays.asList(currentTypeList)
@@ -363,23 +333,16 @@ public class PgenRetrieveCommonDialogArea {
             lastSelectedType = currentTypeList[index];
         }
 
-        if (isToHideOptionAllInType) {
-            boolean isToSkip = true;
-
-            for (String type : currentTypeList) {
-                if (isToSkip) {
-                    isToSkip = false;
-                    continue;
-                }
-                typeListWidget.add(type);
+        // Hide the "All" option
+        boolean isToSkip = true;
+        for (String type : currentTypeList) {
+            if (isToSkip) {
+                isToSkip = false;
+                continue;
             }
-            typeListWidget.select(ac.getCurrentTypeIndex() - 1);
-        } else {
-            for (String type : currentTypeList) {
-                typeListWidget.add(type);
-            }
-            typeListWidget.select(ac.getCurrentTypeIndex());
+            typeListWidget.add(type);
         }
+        typeListWidget.select(ac.getCurrentTypeIndex() - 1);
 
         /*
          * A change to Type will trigger changes to Subtype and Activity labels
@@ -396,9 +359,7 @@ public class PgenRetrieveCommonDialogArea {
                  * (typeListWidget) and the internal index (ActivityCollection)
                  * are off by one.
                  */
-                if (isToHideOptionAllInType) {
-                    typeIndex += 1;
-                }
+                typeIndex += 1;
 
                 ac.changeTypeIndex(typeIndex);
                 lastSelectedType = ac.getCurrentTypeList()[typeIndex];
@@ -407,32 +368,26 @@ public class PgenRetrieveCommonDialogArea {
 
                 String[] subtypeList = ac.getCurrentSubtypeList();
 
-                if (isToHideOptionAllInSubtype) {
-                    boolean isToSkip = true;
-
-                    for (String subtype : subtypeList) {
-                        if (isToSkip) {
-                            isToSkip = false;
-                            continue;
-                        }
-                        subtypeListWidget.add(subtype);
+                // Hide the "All" option in subtypes
+                boolean isToSkip = true;
+                for (String subtype : subtypeList) {
+                    if (isToSkip) {
+                        isToSkip = false;
+                        continue;
                     }
-
-                    /*
-                     * The default selection is the first one. Since the option
-                     * "All" is not displayed (index 0 internally), index 1 is
-                     * used to change subtype.
-                     */
-                    if (subtypeList.length > 1) {
-                        ac.changeSubtypeIndex(1);
-                        lastSelectedSubtype = subtypeList[1];
-                    }
-                } else {
-                    for (String subtype : subtypeList) {
-                        subtypeListWidget.add(subtype);
-                    }
-                    lastSelectedSubtype = subtypeList[0];
+                    subtypeListWidget.add(subtype);
                 }
+
+                /*
+                 * The default selection is the first one. Since the option
+                 * "All" is not displayed (index 0 internally), index 1 is used
+                 * to change subtype.
+                 */
+                if (subtypeList.length > 1) {
+                    ac.changeSubtypeIndex(1);
+                    lastSelectedSubtype = subtypeList[1];
+                }
+
                 subtypeListWidget.select(0);
 
                 listActivities();
@@ -452,8 +407,8 @@ public class PgenRetrieveCommonDialogArea {
                 | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
         GridData subTypeLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
                 true);
-        subTypeLayoutData.widthHint = widthForListArea2;
-        subTypeLayoutData.heightHint = heightForListArea;
+        subTypeLayoutData.widthHint = 240;
+        subTypeLayoutData.heightHint = 200;
         subtypeListWidget.setLayoutData(subTypeLayoutData);
 
         /*
@@ -465,13 +420,10 @@ public class PgenRetrieveCommonDialogArea {
         String[] currentSubtypeList = ac.getCurrentSubtypeList();
 
         if (lastSelectedSubtype == null) {
-            if (isToHideOptionAllInSubtype) {
-                if (currentSubtypeList.length > 1) {
-                    ac.changeSubtypeIndex(1);
-                    lastSelectedSubtype = currentSubtypeList[1];
-                }
-            } else {
-                lastSelectedSubtype = currentSubtypeList[0];
+            // Hide the "All" option
+            if (currentSubtypeList.length > 1) {
+                ac.changeSubtypeIndex(1);
+                lastSelectedSubtype = currentSubtypeList[1];
             }
         } else {
             int index = Arrays.asList(currentSubtypeList)
@@ -486,24 +438,17 @@ public class PgenRetrieveCommonDialogArea {
             lastSelectedSubtype = currentSubtypeList[index];
         }
 
-        if (isToHideOptionAllInSubtype) {
-            boolean isToSkip = true;
-
-            for (String subtype : currentSubtypeList) {
-                if (isToSkip) {
-                    isToSkip = false;
-                    continue;
-                }
-                subtypeListWidget.add(subtype);
+        // Hide the "All" option
+        isToSkip = true;
+        for (String subtype : currentSubtypeList) {
+            if (isToSkip) {
+                isToSkip = false;
+                continue;
             }
-
-            subtypeListWidget.select(ac.getCurrentSubtypeIndex() - 1);
-        } else {
-            for (String subtype : currentSubtypeList) {
-                subtypeListWidget.add(subtype);
-            }
-            subtypeListWidget.select(ac.getCurrentSubtypeIndex());
+            subtypeListWidget.add(subtype);
         }
+
+        subtypeListWidget.select(ac.getCurrentSubtypeIndex() - 1);
 
         // A change to Subtype will trigger a change to Activity labels.
         subtypeListWidget.addListener(SWT.Selection, new Listener() {
@@ -516,9 +461,7 @@ public class PgenRetrieveCommonDialogArea {
                  * (typeListWidget) and the internal index (ActivityCollection)
                  * are off by one.
                  */
-                if (isToHideOptionAllInSubtype) {
-                    subtypeIndex += 1;
-                }
+                subtypeIndex += 1;
 
                 ac.changeSubtypeIndex(subtypeIndex);
                 lastSelectedSubtype = ac.getCurrentSubtypeList()[subtypeIndex];
@@ -581,7 +524,6 @@ public class PgenRetrieveCommonDialogArea {
 
         sortRadioButtons[0] = new Button(sortButtonsGrid, SWT.RADIO);
         sortRadioButtons[0].setText("Alphabetically");
-        sortRadioButtons[0].setSelection(true);
 
         sortRadioButtons[0].addSelectionListener(new SelectionAdapter() {
             @Override
@@ -597,6 +539,7 @@ public class PgenRetrieveCommonDialogArea {
 
         sortRadioButtons[1] = new Button(sortButtonsGrid, SWT.RADIO);
         sortRadioButtons[1].setText("By Date");
+        sortRadioButtons[1].setSelection(true);
 
         sortRadioButtons[1].addSelectionListener(new SelectionAdapter() {
             @Override
@@ -633,8 +576,8 @@ public class PgenRetrieveCommonDialogArea {
                 | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
         GridData fileListLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
                 true);
-        fileListLayoutData.widthHint = widthForListArea;
-        fileListLayoutData.heightHint = heightForListArea;
+        fileListLayoutData.widthHint = 500;
+        fileListLayoutData.heightHint = 200;
         fileListViewer.getList().setLayoutData(fileListLayoutData);
 
         fileListViewer.setContentProvider(ArrayContentProvider.getInstance());
@@ -678,8 +621,6 @@ public class PgenRetrieveCommonDialogArea {
                 });
 
         listActivities();
-        fullName = null;
-
     }
 
     private class SiteFilterAdapter extends SelectionAdapter {
@@ -700,60 +641,47 @@ public class PgenRetrieveCommonDialogArea {
             subtypeListWidget.removeAll();
 
             String[] typeList = ac.getCurrentTypeList();
-            if (isToHideOptionAllInType) {
-                boolean isToSkip = true;
-
-                for (String type : typeList) {
-                    if (isToSkip) {
-                        isToSkip = false;
-                        continue;
-                    }
-                    typeListWidget.add(type);
+            // Hide the "All" option
+            boolean isToSkip = true;
+            for (String type : typeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
                 }
-
-                /*
-                 * The default selection is the first one. Since the option
-                 * "All" is not displayed (index 0 internally), index 1 is used
-                 * to change type.
-                 */
-                if (typeList.length > 1) {
-                    ac.changeTypeIndex(1);
-                    lastSelectedType = typeList[1];
-                }
-            } else {
-                for (String type : typeList) {
-                    typeListWidget.add(type);
-                }
-                lastSelectedType = typeList[0];
+                typeListWidget.add(type);
             }
+
+            /*
+             * The default selection is the first one. Since the option "All" is
+             * not displayed (index 0 internally), index 1 is used to change
+             * type.
+             */
+            if (typeList.length > 1) {
+                ac.changeTypeIndex(1);
+                lastSelectedType = typeList[1];
+            }
+
             typeListWidget.select(0);
 
             String[] subtypeList = ac.getCurrentSubtypeList();
-            if (isToHideOptionAllInSubtype) {
-                boolean isToSkip = true;
+            // Hide the "All" option
+            isToSkip = true;
+            for (String subtype : subtypeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
+                }
+                subtypeListWidget.add(subtype);
+            }
 
-                for (String subtype : subtypeList) {
-                    if (isToSkip) {
-                        isToSkip = false;
-                        continue;
-                    }
-                    subtypeListWidget.add(subtype);
-                }
-
-                /*
-                 * The default selection is the first one. Since the option
-                 * "All" is not displayed (index 0 internally), index 1 is used
-                 * to change subtype.
-                 */
-                if (subtypeList.length > 1) {
-                    ac.changeSubtypeIndex(1);
-                    lastSelectedSubtype = subtypeList[1];
-                }
-            } else {
-                for (String subtype : subtypeList) {
-                    subtypeListWidget.add(subtype);
-                }
-                lastSelectedSubtype = subtypeList[0];
+            /*
+             * The default selection is the first one. Since the option "All" is
+             * not displayed (index 0 internally), index 1 is used to change
+             * subtype.
+             */
+            if (subtypeList.length > 1) {
+                ac.changeSubtypeIndex(1);
+                lastSelectedSubtype = subtypeList[1];
             }
             subtypeListWidget.select(0);
 
@@ -773,61 +701,47 @@ public class PgenRetrieveCommonDialogArea {
             subtypeListWidget.removeAll();
 
             String[] typeList = ac.getCurrentTypeList();
-            if (isToHideOptionAllInType) {
 
-                boolean isToSkip = true;
+            // Hide the "All" option
+            boolean isToSkip = true;
+            for (String type : typeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
+                }
+                typeListWidget.add(type);
+            }
 
-                for (String type : typeList) {
-                    if (isToSkip) {
-                        isToSkip = false;
-                        continue;
-                    }
-                    typeListWidget.add(type);
-                }
-
-                /*
-                 * The default selection is the first one. Since the option
-                 * "All" is not displayed (index 0 internally), index 1 is used
-                 * to change type.
-                 */
-                if (typeList.length > 1) {
-                    ac.changeTypeIndex(1);
-                    lastSelectedType = typeList[1];
-                }
-            } else {
-                for (String type : typeList) {
-                    typeListWidget.add(type);
-                }
-                lastSelectedType = typeList[0];
+            /*
+             * The default selection is the first one. Since the option "All" is
+             * not displayed (index 0 internally), index 1 is used to change
+             * type.
+             */
+            if (typeList.length > 1) {
+                ac.changeTypeIndex(1);
+                lastSelectedType = typeList[1];
             }
             typeListWidget.select(0);
 
             String[] subtypeList = ac.getCurrentSubtypeList();
-            if (isToHideOptionAllInSubtype) {
-                boolean isToSkip = true;
+            // Hide the "All" option
+            isToSkip = true;
+            for (String subtype : subtypeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
+                }
+                subtypeListWidget.add(subtype);
+            }
 
-                for (String subtype : subtypeList) {
-                    if (isToSkip) {
-                        isToSkip = false;
-                        continue;
-                    }
-                    subtypeListWidget.add(subtype);
-                }
-
-                /*
-                 * The default selection is the first one. Since the option
-                 * "All" is not displayed (index 0 internally), index 1 is used
-                 * to change subtype.
-                 */
-                if (subtypeList.length > 1) {
-                    ac.changeSubtypeIndex(1);
-                    lastSelectedSubtype = subtypeList[1];
-                }
-            } else {
-                for (String subtype : subtypeList) {
-                    subtypeListWidget.add(subtype);
-                }
-                lastSelectedSubtype = subtypeList[0];
+            /*
+             * The default selection is the first one. Since the option "All" is
+             * not displayed (index 0 internally), index 1 is used to change
+             * subtype.
+             */
+            if (subtypeList.length > 1) {
+                ac.changeSubtypeIndex(1);
+                lastSelectedSubtype = subtypeList[1];
             }
             subtypeListWidget.select(0);
             listActivities();
@@ -911,8 +825,6 @@ public class PgenRetrieveCommonDialogArea {
             fileListViewer.setInput(filterElms);
             fileListViewer.getList().setToolTipText(null);
             fileListViewer.refresh();
-            fullName = null;
-
         }
     }
 

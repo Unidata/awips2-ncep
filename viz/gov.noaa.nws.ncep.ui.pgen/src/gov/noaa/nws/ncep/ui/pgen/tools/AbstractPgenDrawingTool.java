@@ -8,10 +8,12 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlgFactory;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IEditorPart;
@@ -22,22 +24,22 @@ import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.EditorUtil;
 
-//import gov.noaa.nws.ncep.viz.ui.display.NCMapEditor;
-
 /**
  * The abstract super class for all PGEN drawing tools.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 05/09					B. Yin   	Initial Creation.
- * 06/09					J. Wu   	Pop up "action" dialog if existing, e.g.
- * 										"Extrap", "Interp", etc.
- * 07/09					B. Yin 		Added several handler methods for Jet
- * 03/13         #972       G. Hull     call PgenUtil.isNatlCntrsEditor()
- * 03/13		#927		B. Yin		Added setHandler method.
+ * Date         Ticket#     Engineer     Description
+ * ------------ ---------- ----------- --------------------------
+ * 05/09                    B. Yin      Initial Creation.
+ * 06/09                    J. Wu       Pop up "action" dialog if existing, e.g.
+ *                                      "Extrap", "Interp", etc.
+ * 07/09                    B. Yin      Added several handler methods for Jet
+ * 03/13        #972        G. Hull     call PgenUtil.isNatlCntrsEditor()
+ * 03/13        #927        B. Yin      Added setHandler method.
  * 11/13        #1065       J. Wu       Added Kink Lines.
+ * 02/20        #75024      smanoj      Fix to have correct default Text Attributes for 
+ *                                      tropical TROF front label.
  * 
  * </pre>
  * 
@@ -67,19 +69,12 @@ public abstract class AbstractPgenDrawingTool extends AbstractPgenTool {
      */
     protected String pgenCategory = null;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
+
     @Override
     protected void activateTool() {
         IEditorPart ep = EditorUtil.getActiveEditor();
 
         if (!PgenUtil.isNatlCntrsEditor(ep) && !(ep instanceof VizMapEditor)) {
-            // mapEditor = null;
-           // drawingLayer =  PgenUtil.findPgenResource((AbstractEditor)ep);
-           // if ( drawingLayer == null )
              return;
         }
 
@@ -167,6 +162,16 @@ public abstract class AbstractPgenDrawingTool extends AbstractPgenTool {
          * If no action dialog, bring up the attribute dialog
          */
         if (attrDlg == null) {
+            AbstractDrawableComponent triggerComponent = PgenUtil
+                    .getTriggerComponent(event);
+            if (triggerComponent !=null) {
+                if (PgenConstant.CATEGORY_FRONT
+                        .equalsIgnoreCase(triggerComponent.getPgenCategory())
+                        && PgenConstant.TYPE_TROPICAL_TROF
+                        .equalsIgnoreCase(triggerComponent.getPgenType())) {
+                    pgenType = PgenConstant.TROP_TROF_TEXT;
+                }
+            }
 
             attrDlg = AttrDlgFactory.createAttrDlg(pgenCategory, pgenType,
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow()
@@ -197,31 +202,11 @@ public abstract class AbstractPgenDrawingTool extends AbstractPgenTool {
             attrDlg.setDefaultAttr();
         }
 
-        /*
-         * register the mouse handler if ( this.mouseHandler != null &&
-         * mapEditor!=null) {
-         * 
-         * mapEditor.unregisterMouseHandler( this.mouseHandler );
-         * 
-         * }
-         * 
-         * this.mouseHandler = getMouseHandler(); if ( this.mouseHandler != null
-         * && mapEditor!=null) mapEditor.registerMouseHandler( this.mouseHandler
-         * );
-         */
-
         return;
 
     }
 
-    // abstract public IInputHandler getMouseHandler();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractModalTool#deactivateTool()
-     */
-    // @Override
     public void deactivateTool() {
 
         super.deactivateTool();

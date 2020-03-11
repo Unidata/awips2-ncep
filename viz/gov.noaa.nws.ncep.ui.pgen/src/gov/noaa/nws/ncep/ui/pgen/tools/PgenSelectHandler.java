@@ -1,12 +1,25 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler
- * 
+ *
  * 1 April 2013
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.eclipse.ui.PlatformUI;
+import org.geotools.referencing.GeodeticCalculator;
+
+import com.raytheon.viz.ui.editor.AbstractEditor;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
@@ -52,22 +65,9 @@ import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 import gov.noaa.nws.ncep.viz.common.SnapUtil;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.ui.PlatformUI;
-import org.geotools.referencing.GeodeticCalculator;
-
-import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-
 /**
  * Implements input handler for mouse events for the selecting action.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -75,11 +75,11 @@ import com.vividsolutions.jts.geom.Point;
  * 04/13        #927        B. Yin      Moved from the PgenSelectingTool class
  * 05/13        #994        J. Wu       Removed "DEL" - make it same as "Ctrl+X"
  * 07/13        ?           J. Wu       Set the "otherTextLastUsed for GFA.
- * 09/13        ?           J. Wu       Call buildVortext for GFA when mouse is 
- *                                      down since GFA converted from VGF does not 
+ * 09/13        ?           J. Wu       Call buildVortext for GFA when mouse is
+ *                                      down since GFA converted from VGF does not
  *                                      have vorText set.
  * 04/14        #1117       J. Wu       Set focus to label/update line type for Contours.
- * 04/2014      TTR867      pswamy      Select-tool-on-center-vertex of circle does not 
+ * 04/2014      TTR867      pswamy      Select-tool-on-center-vertex of circle does not
  *                                      move circle (as in NMAP)
  * 04/21/2014   TTR992      D. Sushon   Contour tool's Label >> Edit option should not close
  *                                      main Contour tool window on Cancel, changing a
@@ -92,15 +92,18 @@ import com.vividsolutions.jts.geom.Point;
  * 07/15        R8352       J. Wu       update hide flag for contour symbol.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 03/15/2016   R15959      E. Brown    Fixed issue where right click was launching the resource manager
- *                                      while a PGEN attribute dialog was open and/or selecting/editing a 
+ *                                      while a PGEN attribute dialog was open and/or selecting/editing a
  *                                      PGEN object
  * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
  * 06/15/2016   R13559      bkowal      File cleanup. No longer simulate mouse clicks.
  * 06/28/2016   R10233      J. Wu       Pass calling handler to PgenContoursTool.
  * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
- * 
+ * 09/23/2019   68970       KSunil      Make sure the symbol text moves with the symbol.
+ * 12/19/2019   71072       smanoj      Fixed some run time errors.
+ * 02/27/2020   75479       smanoj      Fixed an issue with moving Contour line with multiple labels.
+ *
  * </pre>
- * 
+ *
  * @author sgilbert
  */
 
@@ -175,12 +178,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
         this.tool = tool;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int, int,
-     * int)
-     */
     @Override
     public boolean handleMouseDown(int anX, int aY, int button) {
 
@@ -215,8 +212,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 preempt = true;
 
                 if (pgenrsc.getSelectedDE() instanceof SinglePointElement
-                        && pgenrsc.getDistance(pgenrsc.getSelectedDE(), loc) > pgenrsc
-                                .getMaxDistToSelect()) {
+                        && pgenrsc.getDistance(pgenrsc.getSelectedDE(),
+                                loc) > pgenrsc.getMaxDistToSelect()) {
                     ptSelected = false; // prevent SPE from moving when
                                         // selecting it and then click far away
                                         // and hold to move.
@@ -247,8 +244,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             if (elSelected != null && elSelected.getParent() != null
                     && !elSelected.getParent().getName().equals("Default")) {
 
-                adc = pgenrsc
-                        .getNearestComponent(loc, new AcceptFilter(), true);
+                adc = pgenrsc.getNearestComponent(loc, new AcceptFilter(),
+                        true);
             }
 
             if (elSelected == null) {
@@ -264,9 +261,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             if (elSelected instanceof TCAElement) {
                 PgenUtil.loadTCATool(elSelected);
             } else if (elSelected instanceof WatchBox) {
-                WatchBoxAttrDlg.getInstance(
-                        PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                                .getShell()).setWatchBox((WatchBox) elSelected);
+                WatchBoxAttrDlg
+                        .getInstance(PlatformUI.getWorkbench()
+                                .getActiveWorkbenchWindow().getShell())
+                        .setWatchBox((WatchBox) elSelected);
                 PgenUtil.loadWatchBoxModifyTool(elSelected);
             } else if (elSelected instanceof Tcm) {
                 PgenUtil.loadTcmTool(elSelected);
@@ -320,14 +318,13 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         pgCategory = elSelected.getPgenCategory();
                         pgenType = elSelected.getPgenType();
                         if (((Jet) adc).getSnapTool() == null) {
-                            ((Jet) adc).setSnapTool(new PgenSnapJet(pgenrsc
-                                    .getDescriptor(), mapEditor, null));
+                            ((Jet) adc).setSnapTool(new PgenSnapJet(
+                                    pgenrsc.getDescriptor(), mapEditor, null));
                         }
                     }
-                } else if (adc != null
-                        && adc instanceof LabeledLine
-                        && (elSelected.getParent() == adc || elSelected
-                                .getParent().getParent() == adc)) {
+                } else if (adc != null && adc instanceof LabeledLine
+                        && (elSelected.getParent() == adc
+                                || elSelected.getParent().getParent() == adc)) {
                     PgenUtil.loadLabeledLineModifyTool((LabeledLine) adc);
                     pgenrsc.removeSelected();
 
@@ -371,16 +368,16 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
             if (pgCategory != null) {
 
-                if (attrDlg != null
-                        && !(attrDlg instanceof ContoursAttrDlg && tool instanceof PgenContoursTool)) {
+                if (attrDlg != null && !(attrDlg instanceof ContoursAttrDlg
+                        && tool instanceof PgenContoursTool)) {
                     closeAttrDlg(attrDlg, elSelected.getPgenType());
                     attrDlg = null;
                 }
 
                 if (attrDlg == null) {
-                    attrDlg = AttrDlgFactory.createAttrDlg(pgCategory,
-                            pgenType, PlatformUI.getWorkbench()
-                                    .getActiveWorkbenchWindow().getShell());
+                    attrDlg = AttrDlgFactory.createAttrDlg(pgCategory, pgenType,
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                                    .getShell());
                 }
 
                 if (attrDlg == null) {
@@ -409,8 +406,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         updateContoursAttrDlg(elSelected);
                         ((ContoursAttrDlg) attrDlg).setSelectMode();
                         // Update the settings.
-                        ((ContoursAttrDlg) attrDlg).setSettings(elSelected
-                                .copy());
+                        ((ContoursAttrDlg) attrDlg)
+                                .setSettings(elSelected.copy());
 
                         if (elSelected instanceof Arc) {
                             ((ContoursAttrDlg) attrDlg).openCircleAttrDlg();
@@ -473,14 +470,16 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((JetAttrDlg) attrDlg)
                             .setJetDrawingTool((PgenSelectingTool) tool);
                     ((JetAttrDlg) attrDlg).updateSegmentPane();
-                    if (((PgenSelectingTool) tool).getJet().getSnapTool() == null) {
-                        ((PgenSelectingTool) tool).getJet().setSnapTool(
-                                new PgenSnapJet(pgenrsc.getDescriptor(),
-                                        mapEditor, (JetAttrDlg) attrDlg));
+                    if (((PgenSelectingTool) tool).getJet()
+                            .getSnapTool() == null) {
+                        ((PgenSelectingTool) tool).getJet()
+                                .setSnapTool(new PgenSnapJet(
+                                        pgenrsc.getDescriptor(), mapEditor,
+                                        (JetAttrDlg) attrDlg));
                     }
                 } else if (adc != null && attrDlg instanceof OutlookAttrDlg) {
-                    ((OutlookAttrDlg) attrDlg).setOtlkType(((Outlook) adc)
-                            .getOutlookType());
+                    ((OutlookAttrDlg) attrDlg)
+                            .setOtlkType(((Outlook) adc).getOutlookType());
                     String lbl = null;
                     Iterator<DrawableElement> it = elSelected.getParent()
                             .createDEIterator();
@@ -499,13 +498,14 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((OutlookAttrDlg) attrDlg).setAttrForDlg(((Outlook) adc));
 
                 } else if (attrDlg instanceof GfaAttrDlg) {
-                    ((GfaAttrDlg) attrDlg).setOtherTextLastUsed(elSelected
-                            .getForecastHours());
+                    ((GfaAttrDlg) attrDlg).setOtherTextLastUsed(
+                            elSelected.getForecastHours());
                     ((GfaAttrDlg) attrDlg).redrawHazardSpecificPanel();
                     if (((Gfa) elSelected).getGfaVorText() == null
-                            || ((Gfa) elSelected).getGfaVorText().length() < 1) {
-                        ((Gfa) elSelected).setGfaVorText(Gfa
-                                .buildVorText((Gfa) elSelected));
+                            || ((Gfa) elSelected).getGfaVorText()
+                                    .length() < 1) {
+                        ((Gfa) elSelected).setGfaVorText(
+                                Gfa.buildVorText((Gfa) elSelected));
                     }
                     attrDlg.setAttrForDlg(elSelected);
                     ((GfaAttrDlg) attrDlg).enableMoveTextBtn(true);
@@ -526,12 +526,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
-     * int, int)
-     */
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
 
@@ -634,6 +628,25 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((SinglePointElement) tmpEl).setLocationOnly(loc);
                     ContoursAttrDlg cdlg = (ContoursAttrDlg) attrDlg;
 
+                    /*
+                     * We need the following (While "moving" a Symbol), to get
+                     * the label to move along with the Symbol.
+                     */
+
+                    if (tmpEl.getParent() instanceof ContourMinmax) {
+
+                        ContourMinmax cntrMinMax = (ContourMinmax) tmpEl
+                                .getParent();
+                        if (cntrMinMax.getLabel() != null) {
+                            Coordinate symbolPos = ((SinglePointElement) tmpEl)
+                                    .getLocation();
+                            Coordinate labelTextpos = new Coordinate(
+                                    symbolPos.x, symbolPos.y
+                                            + ContourMinmax.LABEL_TEXT_YOFFSET);
+                            cntrMinMax.getLabel().setLocation(labelTextpos);
+                        }
+                    }
+
                     if (tmpEl instanceof Text) {
                         ((Text) tmpEl)
                                 .setText(new String[] { cdlg.getLabel() });
@@ -668,11 +681,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                 if (PgenTextDrawingTool.rightOfLine(mapEditor,
                                         loc, (Line) tmpEl.getParent()
                                                 .getPrimaryDE()) >= 0) {
-                                    ((TextAttrDlg) attrDlg)
-                                            .setText(new String[] { lbl + "]" });
+                                    ((TextAttrDlg) attrDlg).setText(
+                                            new String[] { lbl + "]" });
                                 } else {
-                                    ((TextAttrDlg) attrDlg)
-                                            .setText(new String[] { "[" + lbl });
+                                    ((TextAttrDlg) attrDlg).setText(
+                                            new String[] { "[" + lbl });
                                 }
                             } catch (NumberFormatException e) {
                                 /* do nothing */}
@@ -696,16 +709,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                     if ((ghostEl instanceof Arc) && (ptIndex == 0)) {
 
-                        double[] centerOldLoc = mapEditor
-                                .translateInverseClick(ghostEl.getPoints().get(
-                                        0));
+                        double[] centerOldLoc = mapEditor.translateInverseClick(
+                                ghostEl.getPoints().get(0));
 
                         double deltaX = (x - centerOldLoc[0]);
                         double deltaY = (y - centerOldLoc[1]);
 
                         double[] circferOldLoc = mapEditor
-                                .translateInverseClick(ghostEl.getPoints().get(
-                                        1));
+                                .translateInverseClick(
+                                        ghostEl.getPoints().get(1));
 
                         Coordinate newLoc = mapEditor.translateClick(
                                 (circferOldLoc[0] + deltaX),
@@ -719,7 +731,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         ghostEl.getPoints().set(ptIndex, loc);
                     }
 
-                    if (ghostEl instanceof Gfa && !((Gfa) ghostEl).isSnapshot()) {
+                    if (ghostEl instanceof Gfa
+                            && !((Gfa) ghostEl).isSnapshot()) {
                         ((GfaAttrDlg) attrDlg).setEnableStatesButton(true);
                     }
                     pgenrsc.setGhostLine(ghostEl);
@@ -747,8 +760,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         // mapEditor
                         double[] locScreen = mapEditor
                                 .translateInverseClick(loc);
-                        double[] pt = mapEditor.translateInverseClick((ghostEl
-                                .getPoints().get(ptIndex)));
+                        double[] pt = mapEditor.translateInverseClick(
+                                (ghostEl.getPoints().get(ptIndex)));
 
                         Point ptScreen = new GeometryFactory()
                                 .createPoint(new Coordinate(pt[0], pt[1]));
@@ -775,11 +788,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int, int)
-     */
     @Override
     public boolean handleMouseUp(int x, int y, int button) {
         firstDown = null;
@@ -822,14 +830,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                         if (el instanceof Jet.JetBarb) {
                             DECollection dec = (DECollection) el.getParent();
-                            if (dec != null
-                                    && dec.getCollectionName()
-                                            .equalsIgnoreCase("WindInfo")) {
+                            if (dec != null && dec.getCollectionName()
+                                    .equalsIgnoreCase("WindInfo")) {
                                 DECollection parent = (DECollection) dec
                                         .getParent();
-                                if (parent != null
-                                        && parent.getCollectionName()
-                                                .equalsIgnoreCase("jet")) {
+                                if (parent != null && parent.getCollectionName()
+                                        .equalsIgnoreCase("jet")) {
                                     Jet oldJet = (Jet) parent;
                                     Jet newJet = oldJet.copy();
 
@@ -837,13 +843,17 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                     // and replace the barb in the collection
                                     DECollection newWind = dec.copy();
                                     newJet.replace(
-                                            newJet.getNearestComponent(((SinglePointElement) el)
-                                                    .getLocation()), newWind);
+                                            newJet.getNearestComponent(
+                                                    ((SinglePointElement) el)
+                                                            .getLocation()),
+                                            newWind);
                                     pgenrsc.replaceElement(oldJet, newJet);
 
                                     newWind.replace(
-                                            newWind.getNearestComponent(((SinglePointElement) el)
-                                                    .getLocation()), newEl);
+                                            newWind.getNearestComponent(
+                                                    ((SinglePointElement) el)
+                                                            .getLocation()),
+                                            newEl);
 
                                     // set the old windinfo to the original
                                     // location
@@ -860,8 +870,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                 }
                             }
                         } else if (el.getParent() != null
-                                && el.getParent().getParent() instanceof Contours
-                                && !(el.getParent().getParent() instanceof Outlook)) {
+                                && el.getParent()
+                                        .getParent() instanceof Contours
+                                && !(el.getParent()
+                                        .getParent() instanceof Outlook)) {
 
                             pgenrsc.resetADC(el.getParent());
 
@@ -875,24 +887,24 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                 AbstractDrawableComponent newAdc = oldAdc
                                         .copy();
 
-                                newContours
-                                        .replace(
-                                                newContours
-                                                        .getNearestComponent(((SinglePointElement) el)
+                                newContours.replace(
+                                        newContours.getNearestComponent(
+                                                ((SinglePointElement) el)
+                                                        .getLocation()),
+                                        newAdc);
+                                ((DECollection) newAdc).replace(
+                                        ((DECollection) newAdc)
+                                                .getNearestComponent(
+                                                        ((SinglePointElement) el)
                                                                 .getLocation()),
-                                                newAdc);
-                                ((DECollection) newAdc)
-                                        .replace(
-                                                ((DECollection) newAdc)
-                                                        .getNearestComponent(((SinglePointElement) el)
-                                                                .getLocation()),
-                                                newEl);
+                                        newEl);
 
                                 if (newEl instanceof Text) {
                                     ((Text) newEl).setAuto(false);
                                 }
 
-                                pgenrsc.replaceElement(oldContours, newContours);
+                                pgenrsc.replaceElement(oldContours,
+                                        newContours);
 
                                 if (tool instanceof PgenContoursTool) {
                                     ((PgenContoursTool) tool)
@@ -922,11 +934,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                             if (attrDlg instanceof SymbolAttrDlg) {
 
-                                ((SymbolAttrDlg) attrDlg)
-                                        .setLatitude(((SinglePointElement) newEl)
+                                ((SymbolAttrDlg) attrDlg).setLatitude(
+                                        ((SinglePointElement) newEl)
                                                 .getLocation().y);
-                                ((SymbolAttrDlg) attrDlg)
-                                        .setLongitude(((SinglePointElement) newEl)
+                                ((SymbolAttrDlg) attrDlg).setLongitude(
+                                        ((SinglePointElement) newEl)
                                                 .getLocation().x);
 
                             }
@@ -958,7 +970,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                     } else if (el.getParent() instanceof ContourLine
                             || el.getParent() instanceof ContourCircle) {
-                        editContoursLineNCircle(el, ghostEl.getPoints());
+                        if (ghostEl !=null) {
+                            editContoursLineNCircle(el, ghostEl.getPoints());
+                        }
                     } else {
 
                         /*
@@ -966,27 +980,25 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                          * Note: for GFA, check if the new point will make the
                          * GFA polygon invalid - J. Wu.
                          */
-                        if (!(newEl instanceof Gfa)
-                                || (newEl instanceof Gfa && ((Gfa) ghostEl)
-                                        .isValid())) {
+                        if (!(newEl instanceof Gfa) || (newEl instanceof Gfa
+                                && ((Gfa) ghostEl).isValid())) {
 
                             pgenrsc.replaceElement(el, newEl);
 
                             // Update the new Element with the new points
                             if ("GFA".equalsIgnoreCase(newEl.getPgenType())
-                                    && ((IGfa) attrDlg).getGfaFcstHr().indexOf(
-                                            "-") > -1) {
+                                    && ((IGfa) attrDlg).getGfaFcstHr()
+                                            .indexOf("-") > -1) {
                                 ArrayList<Coordinate> points = ghostEl
                                         .getPoints();
                                 int nearest = getNearestPtIndex(ghostEl,
                                         mapEditor.translateClick(x, y));
-                                Coordinate toSnap = ghostEl.getPoints().get(
-                                        nearest);
+                                Coordinate toSnap = ghostEl.getPoints()
+                                        .get(nearest);
                                 List<Coordinate> tempList = new ArrayList<Coordinate>();
                                 tempList.add(toSnap);
-                                tempList = SnapUtil.getSnapWithStation(
-                                        tempList, SnapUtil.VOR_STATION_LIST,
-                                        10, 16);
+                                tempList = SnapUtil.getSnapWithStation(tempList,
+                                        SnapUtil.VOR_STATION_LIST, 10, 16);
                                 Coordinate snapped = tempList.get(0);
                                 // update the coordinate
                                 points.get(nearest).setCoordinate(snapped);
@@ -999,12 +1011,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                             if (newEl instanceof Gfa) {
                                 GfaReducePoint
                                         .WarningForOverThreeLines((Gfa) newEl);
-                                ((Gfa) newEl).setGfaVorText(Gfa
-                                        .buildVorText((Gfa) newEl));
+                                ((Gfa) newEl).setGfaVorText(
+                                        Gfa.buildVorText((Gfa) newEl));
                                 if (attrDlg instanceof GfaAttrDlg) {
-                                    ((GfaAttrDlg) attrDlg)
-                                            .setVorText(((Gfa) newEl)
-                                                    .getGfaVorText());
+                                    ((GfaAttrDlg) attrDlg).setVorText(
+                                            ((Gfa) newEl).getGfaVorText());
                                 }
 
                             }
@@ -1015,7 +1026,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                             // Set this new element as the currently selected
                             // element Collections do not need to reset.
-                            if (!(pgenrsc.getSelectedComp() instanceof DECollection)) {
+                            if (!(pgenrsc
+                                    .getSelectedComp() instanceof DECollection)) {
                                 pgenrsc.setSelected(newEl);
                             }
 
@@ -1091,7 +1103,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
         /*
          * If multiPointElement is not a type of Track, do nothing
          */
-        if (multiPointElement == null || !(multiPointElement instanceof Track)) {
+        if (multiPointElement == null
+                || !(multiPointElement instanceof Track)) {
             return;
         }
 
@@ -1195,9 +1208,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             extrapPointInfoDlg.close();
         } else {
             extrapPointInfoDlg = (TrackExtrapPointInfoDlg) AttrDlgFactory
-                    .createAttrDlg(Track.TRACK_INFO_DLG_CATEGORY_NAME,
-                            pgenType, PlatformUI.getWorkbench()
-                                    .getActiveWorkbenchWindow().getShell());
+                    .createAttrDlg(Track.TRACK_INFO_DLG_CATEGORY_NAME, pgenType,
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                                    .getShell());
             attrDlgObject.setTrackExtrapPointInfoDlg(extrapPointInfoDlg);
             trackExtrapPointInfoDlg = extrapPointInfoDlg;
         }
@@ -1247,7 +1260,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
         return attrDlgObject.close();
     }
 
-    private void closeTrackExtrapPointInfoDlg(TrackExtrapPointInfoDlg dlgObject) {
+    private void closeTrackExtrapPointInfoDlg(
+            TrackExtrapPointInfoDlg dlgObject) {
         if (dlgObject != null) {
             dlgObject.close();
         }
@@ -1255,7 +1269,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     /**
      * Edit lines/circle in a Contours.
-     * 
+     *
      * @param el
      *            : the selected DE.
      * @param points
@@ -1292,10 +1306,39 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                         if (el.getParent() instanceof ContourLine) {
                             ((ContourLine) newAdc).getLine().setPoints(points);
+                            List<Text> texts = ((ContourLine) newAdc)
+                                    .getLabels();
+                            int nlabels = texts.size();
                             selElem = ((ContourLine) newAdc).getLine();
+
+                            //Update labels in the contour line.
+                            ContourLine cline = (ContourLine) selElem.getParent();
+                            if (nlabels > 0) {
+                                Text oldLabel = (Text) (texts.get(0).copy());
+
+                                for (Text lbl : texts) {
+                                    cline.removeElement(lbl);
+                                }
+
+                                for (int ii = 0; ii < nlabels; ii++) {
+
+                                    Text lbl = (Text) (oldLabel.copy());
+
+                                    lbl.setAuto(true);
+                                    lbl.setParent(cline);
+                                    lbl.setHide(false);
+
+                                    cline.add(lbl);
+                                }
+                            }
+
                         } else {
-                            ((ContourCircle) newAdc).getCircle().setPoints(
-                                    points);
+                            ((ContourCircle) newAdc).getCircle()
+                                    .setPoints(points);
+                            // For circles, the circumference text point can be
+                            // any of the points except 0
+                            ((Text) ((ContourCircle) newAdc).getLabel())
+                                    .setLocation(points.get(1));
                             selElem = ((ContourCircle) newAdc).getCircle();
                         }
                     }
@@ -1310,7 +1353,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 if (attrDlg != null) {
                     ((ContoursAttrDlg) attrDlg).setCurrentContours(newContours);
                 }
-                ((PgenContoursTool) tool).setCurrentContour(newContours);
+                if (newContours != null) {
+                    if (tool instanceof PgenContoursTool) {
+                        ((PgenContoursTool) tool).setCurrentContour(newContours);
+                    }
+                }
             }
         }
 
@@ -1365,15 +1412,16 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                 if (pele instanceof ContourLine) {
                     cdlg.setNumOfLabels(((ContourLine) pele).getNumOfLabels());
-                    cdlg.setClosed(((ContourLine) pele).getLine()
-                            .isClosedLine());
+                    cdlg.setClosed(
+                            ((ContourLine) pele).getLine().isClosedLine());
                     cdlg.setActiveLine(((ContourLine) pele).getLine());
                 } else if (pele instanceof ContourMinmax) {
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideSymbolLabel(((Text) elSelected).getHide());
                     cdlg.setMinmaxSymbolOnly(false);
                     if (((ContourMinmax) pele).getSymbol() != null) {
-                        cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
+                        cdlg.setActiveSymbol(
+                                ((ContourMinmax) pele).getSymbol());
                         cdlg.setMinmaxLabelOnly(false);
                     } else {
                         cdlg.setMinmaxLabelOnly(true);

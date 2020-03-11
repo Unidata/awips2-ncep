@@ -15,7 +15,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
+import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityCollection;
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityElement;
@@ -49,6 +51,8 @@ import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
  * Feb 17, 2016  13554    dgilling  Implement IStaticDataNatlCntrsResource.
  * Feb 28, 2019  7752     tjensen   Add capability to load product from
  *                                  database.
+ * Jul 03, 2019  65673    tjensen   Fix ColorableCapability
+ * Aug 29, 2019  65679    ksunil    added resourceDataChanged
  *
  * </pre>
  *
@@ -91,10 +95,11 @@ public class PgenStaticOverlayResource extends
                 productFile = NcPathManager.getInstance()
                         .getStaticFile(lFileName);
             } else {
-                // TODO : this should be considered temporary since soon the
-                // PGEN
-                // Files will be stored on the server and
-                // this option will not work.
+                /*
+                 * TODO : this should be considered temporary since soon the
+                 * PGEN Files will be stored on the server and this option will
+                 * not work.
+                 */
                 productFile = new File(lFileName);
             }
 
@@ -157,8 +162,15 @@ public class PgenStaticOverlayResource extends
             PaintProperties paintProps) throws VizException {
 
         if (paintProps != null && prds != null) {
-            // Loop through all products in the PGEN drawing layer,
-            // drawing the display elements
+            if (pgenOverlayRscData.monoColorEnable) {
+                RGB rgb = getCapability(ColorableCapability.class).getColor();
+                dprops.setLayerColor(new Color(rgb.red, rgb.green, rgb.blue));
+            }
+
+            /*
+             * Loop through all products in the PGEN drawing layer, drawing the
+             * display elements
+             */
             for (Product prod : prds) {
                 if (prod.isOnOff()) {
                     for (Layer layer : prod.getLayers()) {
@@ -189,16 +201,13 @@ public class PgenStaticOverlayResource extends
     @Override
     public void resourceAttrsModified() {
         dprops.setLayerMonoColor(pgenOverlayRscData.monoColorEnable);
-        RGB rgb = pgenOverlayRscData.getColor();
-        dprops.setLayerColor(new Color(rgb.red, rgb.green, rgb.blue));
-        // dprops.setLayerFilled( pgenOverlayRscData.isFillEnable() );
+    }
 
-        // if monoColorEnable is turned off then set the legend color to the
-        // color of the first layer in the product
-        if (!pgenOverlayRscData.monoColorEnable) {
-            Color legendCol = prds.get(0).getLayer(0).getColor();
-            pgenOverlayRscData.setLegendColor(new RGB(legendCol.getRed(),
-                    legendCol.getGreen(), legendCol.getBlue()));
+    @Override
+    public void resourceDataChanged(ChangeType type, Object object) {
+        if (object instanceof ColorableCapability) {
+            pgenOverlayRscData.setColor(
+                    getCapability(ColorableCapability.class).getColor());
         }
     }
 }

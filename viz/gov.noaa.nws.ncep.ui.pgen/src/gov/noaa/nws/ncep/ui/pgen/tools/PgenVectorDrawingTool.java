@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.tools.PgenVectorDrawingTool
- * 
+ *
  * May 7th, 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -8,35 +8,37 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.VectorAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-
 import java.util.ArrayList;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.VectorAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+
 //import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
 
 /**
  * Implements a modal map tool for PGEN vector drawing.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 05/09        #111		J. Wu  		Initial creation
- * 03/03/2016   R13557      J. Beck     Set keyboard focus to wind speed text field for Wind Barb and Wind Arrow
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * 05/09         111      J. Wu     Initial creation
+ * Mar 03, 2016  R13557   J. Beck   Set keyboard focus to wind speed text field
+ *                                  for Wind Barb and Wind Arrow
+ * Jul 26, 2019  66393    mapeters  Handle {@link AttrSettings#getSettings}
+ *                                  change
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 
@@ -46,17 +48,13 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
         super();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
     protected void activateTool() {
 
         super.activateTool();
 
-        AbstractDrawableComponent attr = AttrSettings.getInstance().getSettings().get(pgenType);
+        AbstractDrawableComponent attr = AttrSettings.getInstance()
+                .getSettings(pgenType);
         if (attr == null) {
             ((VectorAttrDlg) attrDlg).adjustAttrForDlg(pgenType);
         }
@@ -67,11 +65,6 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenTool#getMouseHandler()
-     */
     @Override
     public IInputHandler getMouseHandler() {
 
@@ -83,20 +76,23 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
     }
 
     /**
-     * Determines if we want keyboard focus maintained on the speed text field for a given VectorAttrDlg.
-     * 
-     * Our solution is that if the actual speedText Text field is enabled, then we want to maintain focus on it.
-     * 
-     * This may seem unnecessary but this extra, yet simple level of abstraction provides a place for other/future
-     * criteria and business logic.
-     * 
+     * Determines if we want keyboard focus maintained on the speed text field
+     * for a given VectorAttrDlg.
+     *
+     * Our solution is that if the actual speedText Text field is enabled, then
+     * we want to maintain focus on it.
+     *
+     * This may seem unnecessary but this extra, yet simple level of abstraction
+     * provides a place for other/future criteria and business logic.
+     *
      * @param dialog
      *            the dialog that contains the speedText field
-     * 
-     * @return true if this dialog has the speedText attribute enabled, false otherwise
-     * 
+     *
+     * @return true if this dialog has the speedText attribute enabled, false
+     *         otherwise
+     *
      * @author J.Beck
-     * 
+     *
      */
     public boolean isSpeedTextFocusNeeded(VectorAttrDlg dialog) {
 
@@ -109,15 +105,16 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
 
     /**
      * Implements input handler for mouse events.
-     * 
+     *
      * @author bingfan
-     * 
+     *
      */
 
     public class PgenVectorDrawingHandler extends InputHandlerDefaultImpl {
 
         /**
-         * Left mouse button initializes drawing, and sets an attribute like direction, depending on drawing tool.
+         * Left mouse button initializes drawing, and sets an attribute like
+         * direction, depending on drawing tool.
          */
         private int LEFT_MOUSE_BUTTON_CLICK = 1;
 
@@ -129,10 +126,11 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
         /**
          * Points of the new element.
          */
-        private ArrayList<Coordinate> points = new ArrayList<Coordinate>();
+        private ArrayList<Coordinate> points = new ArrayList<>();
 
         /**
-         * An instance of DrawableElementFactory, which is used to create new elements.
+         * An instance of DrawableElementFactory, which is used to create new
+         * elements.
          */
         private DrawableElementFactory def = new DrawableElementFactory();
 
@@ -141,21 +139,18 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
          */
         private AbstractDrawableComponent elem = null;
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int, int, int)
-         */
         @Override
         public boolean handleMouseDown(int anX, int aY, int button) {
-            if (!isResourceEditable())
+            if (!isResourceEditable()) {
                 return false;
+            }
 
             // Check if mouse is in geographic extent
             Coordinate loc = mapEditor.translateClick(anX, aY);
 
-            if (loc == null || shiftDown)
+            if (loc == null || shiftDown) {
                 return false;
+            }
 
             // If this dialog has an enabled speedText field, keep focus on it.
             if (isSpeedTextFocusNeeded((VectorAttrDlg) attrDlg)) {
@@ -167,19 +162,23 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
                 if (points.size() == 0) {
                     points.add(0, loc);
 
-                    elem = (AbstractDrawableComponent) def.create(DrawableType.VECTOR, (IAttribute) attrDlg,
-                            pgenCategory, pgenType, points.get(0), drawingLayer.getActiveLayer());
+                    elem = def.create(DrawableType.VECTOR, attrDlg,
+                            pgenCategory, pgenType, points.get(0),
+                            drawingLayer.getActiveLayer());
                 } else {
 
                     drawingLayer.removeElement(elem);
 
-                    elem = def.create(DrawableType.VECTOR, (IAttribute) attrDlg, pgenCategory, pgenType, points.get(0),
+                    elem = def.create(DrawableType.VECTOR, attrDlg,
+                            pgenCategory, pgenType, points.get(0),
                             drawingLayer.getActiveLayer());
 
-                    double dir = ((Vector) elem).vectorDirection(points.get(0), loc);
+                    double dir = ((Vector) elem).vectorDirection(points.get(0),
+                            loc);
 
                     ((Vector) elem).setDirection(dir);
-                    ((VectorAttrDlg) attrDlg).setDirection(((Vector) elem).getDirection());
+                    ((VectorAttrDlg) attrDlg)
+                            .setDirection(((Vector) elem).getDirection());
 
                 }
 
@@ -187,7 +186,7 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
                 if (elem != null) {
                     drawingLayer.addElement(elem);
                     mapEditor.refresh();
-                    AttrSettings.getInstance().setSettings((DrawableElement) elem);
+                    AttrSettings.getInstance().setSettings(elem);
                 }
 
                 return true;
@@ -203,20 +202,17 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
             }
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseMove(int, int)
-         */
         @Override
         public boolean handleMouseMove(int x, int y) {
-            if (!isResourceEditable())
+            if (!isResourceEditable()) {
                 return false;
+            }
 
             // Check if mouse is in geographic extent
             Coordinate loc = mapEditor.translateClick(x, y);
-            if (loc == null)
+            if (loc == null) {
                 return false;
+            }
 
             // If this dialog has an enabled speedText field, keep focus on it.
             if (isSpeedTextFocusNeeded((VectorAttrDlg) attrDlg)) {
@@ -227,10 +223,11 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
 
                 AbstractDrawableComponent ghost = null;
 
-                ghost = def.create(DrawableType.VECTOR, (IAttribute) attrDlg, pgenCategory, pgenType, points.get(0),
-                        drawingLayer.getActiveLayer());
+                ghost = def.create(DrawableType.VECTOR, attrDlg, pgenCategory,
+                        pgenType, points.get(0), drawingLayer.getActiveLayer());
 
-                double dir = ((Vector) ghost).vectorDirection(points.get(0), loc);
+                double dir = ((Vector) ghost).vectorDirection(points.get(0),
+                        loc);
 
                 ((Vector) ghost).setDirection(dir);
                 ((VectorAttrDlg) attrDlg).setDirection(dir);
@@ -242,15 +239,11 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
             return false;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.InputAdapter#handleMouseUp(int, int, int)
-         */
         @Override
         public boolean handleMouseUp(int x, int y, int button) {
-            if (!drawingLayer.isEditable() || shiftDown)
+            if (!drawingLayer.isEditable() || shiftDown) {
                 return false;
+            }
 
             // If the dialog has an enabled spdTxt field, keep focus on it.
             if (isSpeedTextFocusNeeded((VectorAttrDlg) attrDlg)) {
@@ -277,18 +270,14 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
             }
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.InputAdapter#handleMouseDownMove(int, int, int)
-         */
         @Override
         public boolean handleMouseDownMove(int x, int y, int mouseButton) {
 
-            if (!isResourceEditable() || shiftDown)
+            if (!isResourceEditable() || shiftDown) {
                 return false;
-            else
+            } else {
                 return true;
+            }
         }
 
     }

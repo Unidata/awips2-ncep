@@ -312,7 +312,7 @@
 	<otlktype name="EXCE_RAIN" prefix="" makegrid="false" fromline ="true" >
 	    <label name="MRGL" />
 		<label name="SLGT"/>
-		<label name="MOD"/>
+		<label name="MDT"/>
 		<label name="HIGH"/>
 	</otlktype>
 		

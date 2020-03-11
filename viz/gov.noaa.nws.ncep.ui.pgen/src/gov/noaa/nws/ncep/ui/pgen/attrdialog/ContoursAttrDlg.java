@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.attrDialog.ContoursAttrDlg
- * 
+ *
  * October 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -11,7 +11,6 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -94,7 +93,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
 
 /**
  * Singleton attribute dialog for Contours.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -124,7 +123,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  *                                      main Contour tool window on Cancel, changing a
  *                                      symbol's label should not change the symbol;
  * 04/25/2014   TTR868      D. Sushon   Editing/moving contour text attribute causes contour
- *                                      to disappear. 
+ *                                      to disappear.
  * 04/29/2014   trac 1132   D. Sushon   In testing solution for TTR 868, it was found that
  *                                      similar changes to labels for other contour objects
  *                                      caused a similar error (label or object or both
@@ -141,7 +140,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 01/15        R5201/T1060 J. Wu       Add getLabelTempKey(adc).
  * 01/15        R5413       B. Yin      Added open methods for circle and line dialogs.
  * 07/15        R8352       J. Wu       Make label list collapsible and remove select/delete buttons.
- * 08/01/2015   R8213       P.          CAVE>PGEN 
+ * 08/01/2015   R8213       P.          CAVE>PGEN
  *                          Chowdhuri    - Refinements to contoursInfo.xml
  * 08/15        R8552       J. Wu       Limit contours' hotkeys within its own context.
  * 09/29/2015   R8163       J. Wu       Prevent exception when contour type changes.
@@ -157,9 +156,14 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 06/01/2016   R18387      B. Yin      Removed "Edit" and "All" buttons.
  * 07/01/2016   R17377      J. Wu       Add "shiftDownInContourDialog" flag.
  * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
- * 
+ * 07/26/2019   66393       mapeters    Handle parm-specific contours settings
+ * 08/07/2019   66393       mapeters    Only get available symbol/line types for the current parm
+ * 09/06/2019   64150       ksunil      Change private class visibility to protected
+ * 09/06/2019   64970       ksunil      Call changeMinmaxType when label/symbol only checkbox is pressed.
+ * 02/10/2020   74136       smanoj      Fixed NullPointerException when drawingLayer is null
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 
@@ -192,9 +196,9 @@ public class ContoursAttrDlg extends AttrDlg
 
     private String contourFcstHr = "f000";
 
-    private Calendar contourTime1 = (Calendar) Calendar.getInstance();
+    private Calendar contourTime1 = Calendar.getInstance();
 
-    private Calendar contourTime2 = (Calendar) Calendar.getInstance();
+    private Calendar contourTime2 = Calendar.getInstance();
 
     private String defCint = ContoursInfoDlg.getCints()
             .get(contourParm + "-" + contourLevel);
@@ -274,10 +278,6 @@ public class ContoursAttrDlg extends AttrDlg
 
     private LinkedHashMap<String, IConfigurationElement> symbolItemMap = null;
 
-    private LinkedHashMap<String, Boolean> contourSymbolType = null;
-
-    private LinkedHashMap<String, Boolean> contourLineType = null;
-
     private LineTypeSelectionDlg lineTypePanel = null;
 
     private SymbolTypeSelectionDlg symbolTypePanel = null;
@@ -352,7 +352,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /*
      * A flag to check if "shift" key is pressed down.
-     * 
+     *
      * When this dialog is up, its "labelTxt" always has keyboard focus.
      * However, other tools like panning tool needs the status of SHIFT key to
      * be activated. So we need to trace this "SHIFT" key and allow the contour
@@ -363,7 +363,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Private constructor
-     * 
+     *
      * @param parShell
      * @throws VizException
      */
@@ -373,27 +373,17 @@ public class ContoursAttrDlg extends AttrDlg
 
         retrieveIconType();
 
-        if (contourLineType == null) {
-            contourLineType = getContourLineSymbols();
-        }
-
         if (contourLineBtns == null) {
-            contourLineBtns = new ArrayList<Button>();
-        }
-
-        if (contourSymbolType == null) {
-            contourSymbolType = getContourSymbols();
+            contourLineBtns = new ArrayList<>();
         }
 
         if (contourSymbolBtns == null) {
-            contourSymbolBtns = new ArrayList<Button>();
+            contourSymbolBtns = new ArrayList<>();
         }
-
-        retrieveContoursSettings();
 
         // Create a map to store the last status of check buttons.
         if (btnLastStatus == null) {
-            btnLastStatus = new HashMap<String, Boolean>();
+            btnLastStatus = new HashMap<>();
         }
 
     }
@@ -401,7 +391,7 @@ public class ContoursAttrDlg extends AttrDlg
     /**
      * Creates a Contours attribute dialog if the dialog does not exist and
      * returns the instance. If the dialog exists, return the instance.
-     * 
+     *
      * @param parShell
      * @return
      */
@@ -457,6 +447,7 @@ public class ContoursAttrDlg extends AttrDlg
         setInfoBtnText();
 
         infoBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 openContourInfoDlg();
             }
@@ -467,6 +458,7 @@ public class ContoursAttrDlg extends AttrDlg
         makeGridBtn.setText("Make Grid");
         makeGridBtn.setToolTipText("Generate grid from this Contours");
         makeGridBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 openG2GDlg();
             }
@@ -514,9 +506,9 @@ public class ContoursAttrDlg extends AttrDlg
         contourLineComp.setLayout(contourLineCompGl);
 
         int ii = 0;
-        for (String str : contourLineType.keySet()) {
+        for (String str : getContourLineSymbols()) {
 
-            if (contourLineType.get(str) && ii < MAX_QUICK_LINES) {
+            if (ii < MAX_QUICK_LINES) {
 
                 ii++;
 
@@ -528,6 +520,7 @@ public class ContoursAttrDlg extends AttrDlg
                 contourLineBtns.add(btn);
 
                 btn.addListener(SWT.MouseDoubleClick, new Listener() {
+                    @Override
                     public void handleEvent(Event event) {
                         openLineTypePanel();
                     }
@@ -591,6 +584,7 @@ public class ContoursAttrDlg extends AttrDlg
 
         setBtnStatus(lineClosedBtn, false);
         lineClosedBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 saveBtnLastStatus(lineClosedBtn);
             }
@@ -640,9 +634,9 @@ public class ContoursAttrDlg extends AttrDlg
         contoursComp.setLayout(contoursCompGl);
 
         ii = 0;
-        for (String str : contourSymbolType.keySet()) {
+        for (String str : getContourSymbols()) {
 
-            if (contourSymbolType.get(str) && ii < MAX_QUICK_SYMBOLS) {
+            if (ii < MAX_QUICK_SYMBOLS) {
 
                 ii++;
 
@@ -655,6 +649,7 @@ public class ContoursAttrDlg extends AttrDlg
                 contourSymbolBtns.add(btn);
 
                 btn.addListener(SWT.MouseDoubleClick, new Listener() {
+                    @Override
                     public void handleEvent(Event event) {
                         openSymbolPanel();
                     }
@@ -741,7 +736,9 @@ public class ContoursAttrDlg extends AttrDlg
 
         setBtnStatus(symbolOnlyBtn, false);
         symbolOnlyBtn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
+
                 if (((Button) e.widget).getSelection()) {
                     labelOnlyBtn.setSelection(false);
                     hideSymbolLabelBtn.setSelection(false);
@@ -751,7 +748,7 @@ public class ContoursAttrDlg extends AttrDlg
                         hideSymbolLabelBtn.setEnabled(true);
                     }
                 }
-
+                changeMinmaxType();
                 saveBtnLastStatus(symbolOnlyBtn);
                 saveBtnLastStatus(labelOnlyBtn);
                 saveBtnLastStatus(hideSymbolLabelBtn);
@@ -767,8 +764,11 @@ public class ContoursAttrDlg extends AttrDlg
 
         setBtnStatus(labelOnlyBtn, false);
         labelOnlyBtn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
+
                 if (((Button) e.widget).getSelection()) {
+
                     symbolOnlyBtn.setSelection(false);
                     hideSymbolLabelBtn.setSelection(false);
                     hideSymbolLabelBtn.setEnabled(false);
@@ -777,7 +777,7 @@ public class ContoursAttrDlg extends AttrDlg
                         hideSymbolLabelBtn.setEnabled(true);
                     }
                 }
-
+                changeMinmaxType();
                 saveBtnLastStatus(symbolOnlyBtn);
                 saveBtnLastStatus(labelOnlyBtn);
                 saveBtnLastStatus(hideSymbolLabelBtn);
@@ -798,6 +798,7 @@ public class ContoursAttrDlg extends AttrDlg
         }
 
         hideSymbolLabelBtn.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 if (symbolOnlyBtn.getSelection()
                         || labelOnlyBtn.getSelection()) {
@@ -838,6 +839,7 @@ public class ContoursAttrDlg extends AttrDlg
         setButtonColor(circleTypeBtn, circleTemplate.getColors()[0]);
 
         circleTypeBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (!ContoursAttrDlg.this.drawCircle()) {
                     if (circleTemplate == null) {
@@ -862,6 +864,7 @@ public class ContoursAttrDlg extends AttrDlg
 
         setBtnStatus(hideCircleLabelBtn, false);
         hideCircleLabelBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 saveBtnLastStatus(hideCircleLabelBtn);
             }
@@ -908,6 +911,7 @@ public class ContoursAttrDlg extends AttrDlg
         labelTxt.setText("0");
         labelTxt.addFocusListener(new FocusListener() {
 
+            @Override
             public void focusLost(FocusEvent e) {
                 float value = 0;
                 try {
@@ -923,18 +927,21 @@ public class ContoursAttrDlg extends AttrDlg
 
             }
 
+            @Override
             public void focusGained(FocusEvent e) {
             }
         });
 
         // Key listener to check the status of "shift" key.
         labelTxt.addKeyListener(new KeyListener() {
+            @Override
             public void keyPressed(KeyEvent e) {
                 if (e.keyCode == SWT.SHIFT) {
                     shiftDownInContourDialog = true;
                 }
             }
 
+            @Override
             public void keyReleased(KeyEvent e) {
                 if (e.keyCode == SWT.SHIFT) {
                     shiftDownInContourDialog = false;
@@ -945,6 +952,7 @@ public class ContoursAttrDlg extends AttrDlg
         Button valueUpArrow = new Button(textValueComp, SWT.ARROW | SWT.UP);
         valueUpArrow.setLayoutData(new GridData(20, 22));
         valueUpArrow.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 changeLabel(true);
             }
@@ -954,6 +962,7 @@ public class ContoursAttrDlg extends AttrDlg
         Button valueDownArrow = new Button(textValueComp, SWT.ARROW | SWT.DOWN);
         valueDownArrow.setLayoutData(new GridData(20, 22));
         valueDownArrow.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 changeLabel(false);
             }
@@ -988,6 +997,7 @@ public class ContoursAttrDlg extends AttrDlg
 
         setBtnStatus(labelColorChkBox, true);
         labelColorChkBox.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 saveBtnLastStatus(labelColorChkBox);
             }
@@ -1013,6 +1023,7 @@ public class ContoursAttrDlg extends AttrDlg
             hideLabelListBtn.setText(COLLAPSE_LEVELS);
         }
         hideLabelListBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 boolean hideLabelList = true;
                 if ((boolean) hideLabelListBtn.getData()) {
@@ -1315,7 +1326,7 @@ public class ContoursAttrDlg extends AttrDlg
         if (labelBtns != null) {
             labelBtns.clear();
         } else {
-            labelBtns = new ArrayList<Button>();
+            labelBtns = new ArrayList<>();
         }
 
         /*
@@ -1337,6 +1348,7 @@ public class ContoursAttrDlg extends AttrDlg
                 btn.setLayoutData(gdata);
 
                 btn.addSelectionListener(new SelectionAdapter() {
+                    @Override
                     public void widgetSelected(SelectionEvent event) {
                         labelTxt.setText(event.widget.getData().toString());
                         if (labelTemplate != null) {
@@ -1903,7 +1915,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Initialize and open the line and label attribute editing dialog
-     * 
+     *
      * @param dlg
      */
     private void openAttrDlg(AttrDlg dlg) {
@@ -1916,11 +1928,11 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Private Label Text dialog class
-     * 
+     *
      * @author jwu
-     * 
+     *
      */
-    private class LabelAttrDlg extends TextAttrDlg {
+    protected class LabelAttrDlg extends TextAttrDlg {
 
         private LabelAttrDlg(Shell parShell) throws VizException {
 
@@ -2168,11 +2180,11 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Private Contour Line attribute dialog class
-     * 
+     *
      * @author jwu
-     * 
+     *
      */
-    private class ContourLineAttrDlg extends LineAttrDlg {
+    protected class ContourLineAttrDlg extends LineAttrDlg {
 
         private ContourLineAttrDlg(Shell parShell) throws VizException {
 
@@ -2351,11 +2363,11 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Private Contour Circle attribute dialog class
-     * 
+     *
      * @author jwu
-     * 
+     *
      */
-    private class ContourCircleAttrDlg extends ArcAttrDlg {
+    protected class ContourCircleAttrDlg extends ArcAttrDlg {
 
         private ContourCircleAttrDlg(Shell parShell) throws VizException {
 
@@ -2574,7 +2586,7 @@ public class ContoursAttrDlg extends AttrDlg
 
         // Get all Line types
         if (lineIconType == null) {
-            lineIconType = new LinkedHashMap<String, String>();
+            lineIconType = new LinkedHashMap<>();
         }
 
         List<String> lineObjNames = plt.getObjectNames("Lines");
@@ -2584,7 +2596,7 @@ public class ContoursAttrDlg extends AttrDlg
         }
 
         //
-        lineItemMap = new LinkedHashMap<String, IConfigurationElement>();
+        lineItemMap = new LinkedHashMap<>();
 
         HashMap<String, IConfigurationElement> itemMap = plt.getItemMap();
         for (String str : itemMap.keySet()) {
@@ -2599,7 +2611,7 @@ public class ContoursAttrDlg extends AttrDlg
         }
 
         // Get all Symbols
-        symbolItemMap = new LinkedHashMap<String, IConfigurationElement>();
+        symbolItemMap = new LinkedHashMap<>();
 
         for (String str : itemMap.keySet()) {
             IConfigurationElement ifg = itemMap.get(str);
@@ -2824,9 +2836,9 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Class for a a list of Symbols to be selected for drawing min/max.
-     * 
+     *
      * @author jun
-     * 
+     *
      */
     public class LineTypeSelectionDlg extends Dialog {
 
@@ -2943,6 +2955,7 @@ public class ContoursAttrDlg extends AttrDlg
         /**
          * Updates the selected type's data string and image icon.
          */
+        @Override
         public void okPressed() {
 
             Color clr = activeButtonColor;
@@ -2966,9 +2979,9 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Class for a a list of Symbols to be selected for drawing min/max.
-     * 
+     *
      * @author jun
-     * 
+     *
      */
     public class SymbolTypeSelectionDlg extends Dialog {
 
@@ -3088,6 +3101,7 @@ public class ContoursAttrDlg extends AttrDlg
         /**
          * Updates the selected type's data string and image icon.
          */
+        @Override
         public void okPressed() {
 
             Color clr = activeButtonColor;
@@ -3117,7 +3131,7 @@ public class ContoursAttrDlg extends AttrDlg
     private void openSymbolPanel() {
 
         if (symbolTypePanel == null) {
-            List<String> objs = new ArrayList<String>(symbolItemMap.keySet());
+            List<String> objs = new ArrayList<>(symbolItemMap.keySet());
             Shell sh = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getShell();
 
@@ -3138,7 +3152,7 @@ public class ContoursAttrDlg extends AttrDlg
     private void openLineTypePanel() {
 
         if (lineTypePanel == null) {
-            List<String> objs = new ArrayList<String>(lineIconType.keySet());
+            List<String> objs = new ArrayList<>(lineIconType.keySet());
             Shell sh = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getShell();
             lineTypePanel = new LineTypeSelectionDlg(sh, objs,
@@ -3154,11 +3168,11 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Private Contour Min/Max attribute dialog class
-     * 
+     *
      * @author jwu
-     * 
+     *
      */
-    private class ContourMinmaxAttrDlg extends LabeledSymbolAttrDlg {
+    protected class ContourMinmaxAttrDlg extends LabeledSymbolAttrDlg {
 
         private PgenContoursTool tool = null;
 
@@ -3199,7 +3213,7 @@ public class ContoursAttrDlg extends AttrDlg
              * Update the symbol template first.
              */
             minmaxTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Symbol) new DrawableElementFactory()
-                    .create(DrawableType.SYMBOL, (IAttribute) this, "Symbol",
+                    .create(DrawableType.SYMBOL, this, "Symbol",
                             getActiveSymbolObjType(), (Coordinate) null, null);
             contoursAttrSettings.put(getActiveSymbolObjType(), minmaxTemplate);
 
@@ -3333,9 +3347,9 @@ public class ContoursAttrDlg extends AttrDlg
                 } else if (tool
                         .getMouseHandler() instanceof PgenSelectHandler) {
                     minmaxTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Symbol) new DrawableElementFactory()
-                            .create(DrawableType.SYMBOL, (IAttribute) this,
-                                    "Symbol", getActiveSymbolObjType(),
-                                    (Coordinate) null, null);
+                            .create(DrawableType.SYMBOL, this, "Symbol",
+                                    getActiveSymbolObjType(), (Coordinate) null,
+                                    null);
                     contoursAttrSettings.put(getActiveSymbolObjType(),
                             minmaxTemplate);
 
@@ -3401,7 +3415,7 @@ public class ContoursAttrDlg extends AttrDlg
                                 if (minmaxAttrDlg.latitudeText.isEnabled()
                                         && minmaxAttrDlg.longitudeText
                                                 .isEnabled()) {
-                                    ArrayList<Coordinate> loc = new ArrayList<Coordinate>();
+                                    ArrayList<Coordinate> loc = new ArrayList<>();
                                     double lat = ((Symbol) newEl)
                                             .getLocation().y;
                                     double lon = ((Symbol) newEl)
@@ -3591,46 +3605,40 @@ public class ContoursAttrDlg extends AttrDlg
     /**
      * Get a list of contouring symbols defined in for ContoursInfo.xml If none
      * of them is selected, the "H" and "L" will be selected by default.
-     * 
+     *
      * @param
      * @return
      */
-    private LinkedHashMap<String, Boolean> getContourSymbols() {
+    private List<String> getContourSymbols() {
 
-        LinkedHashMap<String, Boolean> lbls = new LinkedHashMap<String, Boolean>();
+        List<String> lbls = new ArrayList<>();
 
         int selected = 0;
 
         HashMap<String, ContoursInfo> cntinfo = ContoursInfoDlg.readInfoTbl();
 
-        Collection<ContoursInfo> cntInfoValues = cntinfo.values();
+        ContoursInfo coninf = cntinfo.get(getParm());
+        if (coninf != null) {
+            ContourButtons btns = coninf.getButtons();
 
-        if (null != cntInfoValues) {
+            List<ContourObject> objects = btns.getObjects();
+            for (ContourObject obj : objects) {
+                String className = obj.getClassName();
+                String name = obj.getName();
 
-            for (ContoursInfo coninf : cntInfoValues) {
-                ContourButtons btns = coninf.getButtons();
-
-                List<ContourObject> objects = btns.getObjects();
-                for (ContourObject obj : objects) {
-                    String className = obj.getClassName();
-                    String name = obj.getName();
-
-                    if ("Symbol".equals(className)) {
-                        lbls.put(name, true);
-                        selected++;
-                    }
-
+                if ("Symbol".equals(className)) {
+                    lbls.add(name);
+                    selected++;
                 }
 
             }
-
-        } // if cntinfo
+        }
 
         numOfButtons = selected;
 
         if (selected == 0) {
-            lbls.put("FILLED_HIGH_PRESSURE_H", true);
-            lbls.put("FILLED_LOW_PRESSURE_L", true);
+            lbls.add("FILLED_HIGH_PRESSURE_H");
+            lbls.add("FILLED_LOW_PRESSURE_L");
             numOfButtons = 2;
         }
 
@@ -3642,7 +3650,7 @@ public class ContoursAttrDlg extends AttrDlg
     /**
      * Retrieve default settings from "settings.tbl" for contour line, symbol,
      * label, and circle.
-     * 
+     *
      * @param
      * @return
      */
@@ -3651,19 +3659,20 @@ public class ContoursAttrDlg extends AttrDlg
         String skey = AttrSettings.getInstance().getSettingsName();
 
         if (contoursAttrSettingsMap == null) {
-            contoursAttrSettingsMap = new HashMap<String, HashMap<String, AbstractDrawableComponent>>();
-            contoursAttrSettings = new HashMap<String, AbstractDrawableComponent>();
+            contoursAttrSettingsMap = new HashMap<>();
+            contoursAttrSettings = new HashMap<>();
         }
 
         // Each settings table should be only loaded once.
         if (contoursAttrSettingsMap.get(skey) != null) {
             contoursAttrSettings = contoursAttrSettingsMap.get(skey);
         } else {
-
-            HashMap<String, AbstractDrawableComponent> ncontoursAttrSettings = new HashMap<String, AbstractDrawableComponent>();
+            String defaultSettingsContoursKey = AttrSettings
+                    .getContoursSettingsKey(getParm());
+            HashMap<String, AbstractDrawableComponent> ncontoursAttrSettings = new HashMap<>();
 
             ncontoursAttrSettings.put(PgenConstant.CONTOURS,
-                    (Contours) retrieveDefaultSettings(PgenConstant.CONTOURS));
+                    retrieveDefaultSettings(defaultSettingsContoursKey));
 
             // Get all line types from "settings.tbl"
             for (String str : lineIconType.keySet()) {
@@ -3688,7 +3697,7 @@ public class ContoursAttrDlg extends AttrDlg
              * "settings.tbl"
              */
             AbstractDrawableComponent adc = retrieveDefaultSettings(
-                    PgenConstant.CONTOURS);
+                    defaultSettingsContoursKey);
             if (adc != null && adc instanceof Contours) {
                 List<ContourLine> cline = ((Contours) adc).getContourLines();
                 if (cline != null && cline.size() > 0) {
@@ -3751,12 +3760,15 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Retrieve default settings for a given type of DE.
-     * 
-     * @param pgenType
+     *
+     * @param key
+     *            key for the drawable component (typically PGEN type, but
+     *            contours should use
+     *            {@link AttrSettings#getContourSettingsKey})
      * @return AbstractDrawableComponent
      */
-    private AbstractDrawableComponent retrieveDefaultSettings(String pgenType) {
-        return AttrSettings.getInstance().getSettings().get(pgenType);
+    private AbstractDrawableComponent retrieveDefaultSettings(String key) {
+        return AttrSettings.getInstance().getSettings(key);
     }
 
     @Override
@@ -3799,6 +3811,7 @@ public class ContoursAttrDlg extends AttrDlg
     /**
      * Removes ghost line, handle bars, and closes the dialog
      */
+    @Override
     public void cancelPressed() {
 
         PgenUtil.setSelectingMode();
@@ -3868,23 +3881,22 @@ public class ContoursAttrDlg extends AttrDlg
      * Get a list of contouring lines defined in the contours info xml files. If
      * none of them is selected, the "LINE_SOLID" and "LINE_DASHED_2" will be
      * selected by default.
-     * 
+     *
      * @param
      * @return
      */
-    private LinkedHashMap<String, Boolean> getContourLineSymbols() {
+    private List<String> getContourLineSymbols() {
 
-        LinkedHashMap<String, Boolean> lbls = new LinkedHashMap<String, Boolean>();
+        List<String> lbls = new ArrayList<>();
 
         int selected = 0;
 
         // Read information in the contours info xml files
         HashMap<String, ContoursInfo> cntinfo = ContoursInfoDlg.readInfoTbl();
 
-        Collection<ContoursInfo> cntInfoValues = cntinfo.values();
-
-        // make a list of contour line objects from contours info xml files
-        for (ContoursInfo coninf : cntInfoValues) {
+        // make a list of contour line objects from contours info xml file
+        ContoursInfo coninf = cntinfo.get(getParm());
+        if (coninf != null) {
             ContourLines lines = coninf.getLines();
 
             List<ContourObject> objects = lines.getObjects();
@@ -3894,7 +3906,7 @@ public class ContoursAttrDlg extends AttrDlg
                 String name = obj.getName();
 
                 if (null == className || className.isEmpty()) {
-                    lbls.put(name, true);
+                    lbls.add(name);
                 }
 
                 selected++;
@@ -3903,8 +3915,8 @@ public class ContoursAttrDlg extends AttrDlg
         }
 
         if (selected == 0) {
-            lbls.put("LINE_SOLID", true);
-            lbls.put("LINE_DASHED_2", true);
+            lbls.add("LINE_SOLID");
+            lbls.add("LINE_DASHED_2");
         }
 
         return lbls;
@@ -4053,11 +4065,9 @@ public class ContoursAttrDlg extends AttrDlg
 
     @Override
     public int open() {
-
-        /*
-         * Get the default attributes from settings table.
-         */
-        retrieveContoursSettings();
+        if (drawingLayer == null ) {
+            return CANCEL;
+        }
 
         /*
          * Use defaults defined for this layer. Otherwise, use the default from
@@ -4074,9 +4084,6 @@ public class ContoursAttrDlg extends AttrDlg
                 contourTime1 = oneContours.getTime1();
                 contourTime2 = oneContours.getTime2();
             } else {
-                Contours adc = (Contours) contoursAttrSettings
-                        .get(PgenConstant.CONTOURS);
-
                 String parmOnLayer = getContourParmOnLayer();
                 ContourDefault contourDef = ContoursInfoDlg
                         .getContourMetaDefault(parmOnLayer);
@@ -4084,7 +4091,18 @@ public class ContoursAttrDlg extends AttrDlg
                 // Use "parm" defined on the layer.
                 if (parmOnLayer != PgenConstant.NONE) {
                     contourParm = parmOnLayer;
-                } else if (adc != null) {
+                }
+
+                /*
+                 * Get the default attributes from settings table. Need to do
+                 * this after setting contourParm above since different parms
+                 * can have different contour settings.
+                 */
+                retrieveContoursSettings();
+
+                Contours adc = (Contours) contoursAttrSettings
+                        .get(PgenConstant.CONTOURS);
+                if (parmOnLayer == PgenConstant.NONE && adc != null) {
                     contourParm = adc.getParm();
                 }
 
@@ -4116,6 +4134,9 @@ public class ContoursAttrDlg extends AttrDlg
             }
         }
 
+        // Ensure settings are initialized
+        retrieveContoursSettings();
+
         // Activate contours-specific hotkeys.
         activatePGENContoursContext();
 
@@ -4146,7 +4167,7 @@ public class ContoursAttrDlg extends AttrDlg
         IEditorPart editor = EditorUtil.getActiveEditor();
         if (pgenContoursContextActivation == null
                 && PgenUtil.isNatlCntrsEditor(editor)) {
-            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+            IContextService ctxSvc = PlatformUI.getWorkbench()
                     .getService(IContextService.class);
             pgenContoursContextActivation = ctxSvc.activateContext(
                     "gov.noaa.nws.ncep.ui.pgen.pgenContoursContext");
@@ -4159,7 +4180,7 @@ public class ContoursAttrDlg extends AttrDlg
     private void deactivatePGENContoursContext() {
         if (pgenContoursContextActivation != null) {
 
-            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+            IContextService ctxSvc = PlatformUI.getWorkbench()
                     .getService(IContextService.class);
             ctxSvc.deactivateContext(pgenContoursContextActivation);
             pgenContoursContextActivation = null;
@@ -4168,7 +4189,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /*
      * Retrieve the contour parameter name defined for the current layer.
-     * 
+     *
      * @return - name of the contour parameter.
      */
     private String getContourParmOnLayer() {
@@ -4197,10 +4218,10 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Loop through current layer and see if there is an same type of Contours.
-     * 
+     *
      * If "one contour per layer" rule is forced and cannot find the same type
      * of Contours, the first Contours in the layer is used.
-     * 
+     *
      * @return the contours
      */
     public Contours findExistingContours() {
@@ -4417,7 +4438,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Save a button's last status to the map.
-     * 
+     *
      * @param btn
      *            the button to save
      */
@@ -4427,7 +4448,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Initialize or Restore a button's status from the map.
-     * 
+     *
      * @param btn
      *            the button to restore
      */
@@ -4444,9 +4465,9 @@ public class ContoursAttrDlg extends AttrDlg
 
     /*
      * Initialize the default time to the current GMT time.
-     * 
+     *
      * If minutes >= ROUND_UP_ONE_HOUR (15 minutes), round to the next hour.
-     * 
+     *
      * @param
      */
     private void setDefaultTimeToCurrent() {
@@ -4465,7 +4486,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Save the hide button's last status to the map.
-     * 
+     *
      * @param btn
      *            the hide label button
      */
@@ -4475,7 +4496,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Get the status of the hide button from the map.
-     * 
+     *
      * @return the state of the hide button
      */
     private boolean getHideLabelBtnStatus() {
@@ -4506,13 +4527,13 @@ public class ContoursAttrDlg extends AttrDlg
             if (de != null && de.getParent() != null
                     && de.getParent() instanceof ContourLine) {
                 ContourLine pde = (ContourLine) de.getParent();
-                lineAttrDlg.setAttrForDlg((IAttribute) pde.getLine());
+                lineAttrDlg.setAttrForDlg(pde.getLine());
             } else {
                 if (lineTemplate == null) {
                     lineTemplate = (Line) contoursAttrSettings
                             .get(activeContourLineBtn.getData().toString());
                 }
-                lineAttrDlg.setAttrForDlg((IAttribute) lineTemplate);
+                lineAttrDlg.setAttrForDlg(lineTemplate);
             }
 
             // disable unused attributes
@@ -4543,7 +4564,7 @@ public class ContoursAttrDlg extends AttrDlg
             DrawableElement de = drawingLayer.getSelectedDE();
             if (de != null && de instanceof Symbol
                     && de.getParent() instanceof ContourMinmax) {
-                minmaxAttrDlg.setAttrForDlg((IAttribute) de);
+                minmaxAttrDlg.setAttrForDlg(de);
             } else {
                 minmaxTemplate = (Symbol) contoursAttrSettings
                         .get(activeContourSymbolBtn.getData().toString());
@@ -4553,7 +4574,7 @@ public class ContoursAttrDlg extends AttrDlg
                             PgenConstant.SYMBOL, getActiveSymbolObjType());
                 }
 
-                minmaxAttrDlg.setAttrForDlg((IAttribute) minmaxTemplate);
+                minmaxAttrDlg.setAttrForDlg(minmaxTemplate);
 
             }
         } catch (VizException e) {
@@ -4580,14 +4601,14 @@ public class ContoursAttrDlg extends AttrDlg
             if (de != null && de.getParent() != null
                     && de.getParent() instanceof ContourCircle) {
                 ContourCircle pde = (ContourCircle) de.getParent();
-                circleAttrDlg.setAttrForDlg((IAttribute) pde.getCircle());
+                circleAttrDlg.setAttrForDlg(pde.getCircle());
             } else {
                 if (circleTemplate == null) {
                     circleTemplate = (Arc) contoursAttrSettings
                             .get(PgenConstant.CIRCLE);
                     circleTemplate.setPgenType(PgenConstant.CIRCLE);
                 }
-                circleAttrDlg.setAttrForDlg((IAttribute) circleTemplate);
+                circleAttrDlg.setAttrForDlg(circleTemplate);
             }
 
             // disable unused attributes
@@ -4618,28 +4639,25 @@ public class ContoursAttrDlg extends AttrDlg
                 if (de.getParent() instanceof ContourLine
                         && ((ContourLine) (de.getParent())).getLabels()
                                 .size() > 0) {
-                    labelAttrDlg.setAttrForDlg(
-                            (IAttribute) ((ContourLine) (de.getParent()))
-                                    .getLabels().get(0));
+                    labelAttrDlg.setAttrForDlg(((ContourLine) (de.getParent()))
+                            .getLabels().get(0));
                 } else if (de.getParent() instanceof ContourMinmax
                         && ((ContourMinmax) (de.getParent()))
                                 .getLabel() != null) {
                     labelAttrDlg.setAttrForDlg(
-                            (IAttribute) ((ContourMinmax) (de.getParent()))
-                                    .getLabel());
+                            ((ContourMinmax) (de.getParent())).getLabel());
                 } else if (de.getParent() instanceof ContourCircle
                         && ((ContourCircle) (de.getParent()))
                                 .getLabel() != null) {
                     labelAttrDlg.setAttrForDlg(
-                            (IAttribute) ((ContourCircle) (de.getParent()))
-                                    .getLabel());
+                            ((ContourCircle) (de.getParent())).getLabel());
                 }
             } else {
 
                 labelTemplate = (gov.noaa.nws.ncep.ui.pgen.elements.Text) contoursAttrSettings
                         .get(getLabelTempKey());
 
-                labelAttrDlg.setAttrForDlg((IAttribute) labelTemplate);
+                labelAttrDlg.setAttrForDlg(labelTemplate);
 
                 if (isUseMainColor()) {
                     if (drawingStatus == ContourDrawingStatus.DRAW_LINE) {
@@ -4674,7 +4692,7 @@ public class ContoursAttrDlg extends AttrDlg
 
     /**
      * Calculates the location of the sub-object attribute dialog.
-     * 
+     *
      * @return Point - location of the attribute dialog
      */
     private Point getAttrDlgLocation() {

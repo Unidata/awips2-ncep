@@ -47,6 +47,8 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.viz.core.IDisplayPane;
+import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
@@ -61,7 +63,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import gov.noaa.nws.ncep.viz.common.LocatorUtil;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors;
 import gov.noaa.nws.ncep.viz.tools.cursor.NCCursors.CursorRef;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 /**
  * This class displays the SEEK results in National Centers perspective.
@@ -96,6 +97,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  *                                      perspective
  * May 08, 2019  63530     tjensen      Fix Take Control button to resolve editable
  *                                      conflicts
+ * Aug 14, 2019  65755    tjensen   Update open to not block as this doesn't
+ *                                  listen for events
+ * Sep 30, 2019  69187    ksunil    removed dependence on the active display.
+ *                                  Make SeekTool work for Multi-Panel
  *
  * </pre>
  *
@@ -264,12 +269,6 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         shell.pack();
 
         shell.open();
-
-        while (!shell.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
-            }
-        }
 
         font.dispose();
 
@@ -935,18 +934,25 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         SeekDrawingLayer seekDrawingLayer = null;
         AbstractEditor theEditor = (AbstractEditor) EditorUtil
                 .getActiveEditor();
-
         if (SeekResultsAction.isSeekToolAllowed(theEditor)) {
 
-            ResourceList rscs = NcEditorUtil.getDescriptor(theEditor)
-                    .getResourceList();
-            for (ResourcePair r : rscs) {
-                if (r.getResource() instanceof SeekDrawingLayer) {
-                    seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                    seekDrawingLayer.getResourceData().setFirstPt(c1);
-                    seekDrawingLayer.getResourceData().setLastPt(c2);
-                    theEditor.refresh();
-                    break;
+            for (IDisplayPane pane : theEditor.getDisplayPanes()) {
+                IRenderableDisplay display = pane.getRenderableDisplay();
+                if (display != null) {
+                    ResourceList rscs = display.getDescriptor()
+                            .getResourceList();
+
+                    for (ResourcePair r : rscs) {
+                        if (r.getResource() instanceof SeekDrawingLayer) {
+
+                            seekDrawingLayer = (SeekDrawingLayer) r
+                                    .getResource();
+                            seekDrawingLayer.getResourceData().setFirstPt(c1);
+                            seekDrawingLayer.getResourceData().setLastPt(c2);
+                            theEditor.refresh();
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -1298,20 +1304,24 @@ public class SeekResultsDialog extends Dialog implements ICloseCallbackDialog {
         SeekDrawingLayer seekDrawingLayer = null;
         AbstractEditor theEditor = (AbstractEditor) EditorUtil
                 .getActiveEditor();
-        ResourceList rscs = NcEditorUtil.getDescriptor(theEditor)
-                .getResourceList();
 
-        for (ResourcePair r : rscs) {
-            if (r.getResource() instanceof SeekDrawingLayer) {
+        for (IDisplayPane pane : theEditor.getDisplayPanes()) {
+            IRenderableDisplay display = pane.getRenderableDisplay();
+            if (display != null) {
+                ResourceList rscs = display.getDescriptor().getResourceList();
 
-                seekDrawingLayer = (SeekDrawingLayer) r.getResource();
-                seekDrawingLayer.getResourceData().setFirstPt(c1);
-                seekDrawingLayer.getResourceData().setLastPt(c2);
-                theEditor.refresh();
-                break;
+                for (ResourcePair r : rscs) {
+                    if (r.getResource() instanceof SeekDrawingLayer) {
+
+                        seekDrawingLayer = (SeekDrawingLayer) r.getResource();
+                        seekDrawingLayer.getResourceData().setFirstPt(c1);
+                        seekDrawingLayer.getResourceData().setLastPt(c2);
+                        theEditor.refresh();
+                        break;
+                    }
+                }
             }
         }
-
     }
 
     /**

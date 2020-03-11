@@ -77,7 +77,10 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
  * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
  * 01/23/2019   7716        K. Sunil    return true in createButtonBar call in case of PgenInterpDlg.
  * 03/20/2019   #7572       dgilling    Code cleanup.
- 
+ * 07/26/2019   66393       mapeters    Handle {@link AttrSettings#getSettings} change
+ * 09/06/2019   64150       ksunil      add button bar if working with various ContourAttr dialogs while "ANY" 
+ *                                           classes on UI is selected.
+ *
  *
  * </pre>
  *
@@ -142,14 +145,24 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     public Control createButtonBar(Composite parent) {
         String currentAction = PgenSession.getInstance().getPgenPalette()
                 .getCurrentAction();
+
         if (currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
                 || currentAction
                         .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)
                 || PgenSession.getInstance().getPgenPalette()
                         .getCurrentCategory()
                         .equalsIgnoreCase(PgenConstant.CATEGORY_MET)
-                || this instanceof CycleDlg 
-                || this instanceof PgenInterpDlg) { 
+                || this instanceof CycleDlg || this instanceof PgenInterpDlg
+                // When ANY is pressed AND trying to edit ANY one of the
+                // following 4, allow
+                || ((PgenSession.getInstance().getPgenPalette()
+                        .getCurrentCategory()
+                        .equalsIgnoreCase(PgenConstant.CATEGORY_ANY))
+                        && (this instanceof ContoursAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourLineAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourCircleAttrDlg
+                                || this instanceof ContoursAttrDlg.ContourMinmaxAttrDlg
+                                || this instanceof ContoursAttrDlg.LabelAttrDlg))) {
 
             Control bar = super.createButtonBar(parent);
             ((GridData) bar.getLayoutData()).horizontalAlignment = SWT.CENTER;
@@ -206,9 +219,9 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
          * separated from those that can be multi-selected.
          */
         DrawableElement de = drawingLayer.getSelectedDE();
-        if (de != null
-                && (de instanceof Jet.JetBarb || de instanceof Jet.JetHash
-                        || de instanceof Jet.JetText || de instanceof Jet.JetLine)) {
+        if (de != null && (de instanceof Jet.JetBarb
+                || de instanceof Jet.JetHash || de instanceof Jet.JetText
+                || de instanceof Jet.JetLine)) {
 
             DrawableElement newEl = (DrawableElement) de.copy();
 
@@ -223,14 +236,16 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                         Jet oldJet = (Jet) parent;
                         Jet newJet = oldJet.copy();
                         DECollection newWind = wind.copy();
-                        newJet.replace(newJet
-                                .getNearestComponent(((Jet.JetBarb) de)
-                                        .getLocation()), newWind);
+                        newJet.replace(
+                                newJet.getNearestComponent(
+                                        ((Jet.JetBarb) de).getLocation()),
+                                newWind);
                         drawingLayer.replaceElement(oldJet, newJet);
 
-                        newWind.replace(newWind
-                                .getNearestComponent(((Jet.JetBarb) de)
-                                        .getLocation()), newEl);
+                        newWind.replace(
+                                newWind.getNearestComponent(
+                                        ((Jet.JetBarb) de).getLocation()),
+                                newEl);
                         if (newEl instanceof Jet.JetBarb) {
                             newEl.update(this);
                             ((Jet.JetBarb) newEl)
@@ -247,16 +262,16 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 // reset the jet line attributes
                 if (de instanceof Jet.JetLine) {
                     AbstractDrawableComponent adc = AttrSettings.getInstance()
-                            .getSettings().get("JET");
+                            .getSettings("JET");
                     if (adc instanceof Jet) {
                         ((Jet) adc).getJetLine().update(this);
                     }
                 } else if (de instanceof Jet.JetHash) {
-                    JetAttrDlg.getInstance(this.getShell()).updateHashTemplate(
-                            (Jet.JetHash) newEl);
+                    JetAttrDlg.getInstance(this.getShell())
+                            .updateHashTemplate((Jet.JetHash) newEl);
                 } else if (de instanceof Jet.JetText) {
-                    JetAttrDlg.getInstance(this.getShell()).updateFlTemplate(
-                            (Jet.JetText) newEl);
+                    JetAttrDlg.getInstance(this.getShell())
+                            .updateFlTemplate((Jet.JetText) newEl);
                 }
             }
 
@@ -308,11 +323,12 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                             if (newEl instanceof Text) {
                                 pText = ((Text) newEl).getString();
                                 if ((newEl.getParent() instanceof DECollection)
-                                        && (!(newEl.getParent() instanceof Layer))) {
+                                        && (!(newEl
+                                                .getParent() instanceof Layer))) {
                                     pType = newEl.getParent().getPgenType();
                                 }
-                                AttrSettings.getInstance().setPgenTypeLabel(
-                                        pType, pText);
+                                AttrSettings.getInstance()
+                                        .setPgenTypeLabel(pType, pText);
                             }
                         }
                     }
@@ -322,7 +338,8 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                     AttrSettings.getInstance().setSettings(newEl);
                 }
 
-                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(adcList);
+                ArrayList<AbstractDrawableComponent> oldList = new ArrayList<>(
+                        adcList);
                 drawingLayer.replaceElements(null, oldList, newList);
             }
 
@@ -363,8 +380,8 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
             this.create();
         }
         if (shellLocation == null) {
-            this.getShell().setLocation(
-                    this.getShell().getParent().getLocation());
+            this.getShell()
+                    .setLocation(this.getShell().getParent().getLocation());
         } else {
             getShell().setLocation(shellLocation);
         }
@@ -546,7 +563,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     public void setDefaultAttr() {
 
         AbstractDrawableComponent adc = AttrSettings.getInstance()
-                .getSettings().get(pgenType);
+                .getSettings(pgenType);
         if (adc != null) {
             setAttr(adc);
         }

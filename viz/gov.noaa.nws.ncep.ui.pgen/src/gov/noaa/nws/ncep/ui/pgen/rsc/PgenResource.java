@@ -179,6 +179,8 @@ import com.vividsolutions.jts.geom.Point;
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
  * 07/11/2016   R17943      J. Wu       Display all objects in a non-active activity if its display flag is on.
  * 07/21/2016   R16077      J. Wu       Add context menu for contour lines to remove labels.
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
+ * 01/09/2020   71072       smanoj      Fix some NullPointerException issues
  * 
  * </pre>
  * 
@@ -661,23 +663,26 @@ public class PgenResource extends
             CoordinateList selectPts = new CoordinateList();
 
             for (AbstractDrawableComponent el : elSelected) {
-
-                if (selectedSymbol.containsKey(el)) {
-                    Symbol currSym = selectedSymbol.get(el);
-                    Coordinate[] pts = CoordinateArrays.toCoordinateArray(el
-                            .getPoints());
-                    if (map.containsKey(currSym)) {
-                        map.get(currSym).add(pts, true);
-                    } else {
-                        map.put(currSym, new CoordinateList(pts));
-                    }
+                if(el == null){
+                    return;
                 } else {
-                    for (Coordinate point : el.getPoints()) {
-                        int pointIdx = el.getPoints().indexOf(point);
-                        if (inSelectedIndex(pointIdx)) {
-                            selectPts.add(point, true);
+                    if (selectedSymbol.containsKey(el)) {
+                        Symbol currSym = selectedSymbol.get(el);
+                        Coordinate[] pts = CoordinateArrays.toCoordinateArray(el
+                                .getPoints());
+                        if (map.containsKey(currSym)) {
+                            map.get(currSym).add(pts, true);
                         } else {
-                            defaultPts.add(point, true);
+                            map.put(currSym, new CoordinateList(pts));
+                        }
+                    } else {
+                        for (Coordinate point : el.getPoints()) {
+                            int pointIdx = el.getPoints().indexOf(point);
+                            if (inSelectedIndex(pointIdx)) {
+                                selectPts.add(point, true);
+                            } else {
+                                defaultPts.add(point, true);
+                            }
                         }
                     }
                 }
@@ -2392,17 +2397,19 @@ public class PgenResource extends
         if (thisTool instanceof AbstractPgenDrawingTool) {
             AttrDlg thisDlg = ((AbstractPgenDrawingTool) thisTool).getAttrDlg();
             if (thisDlg instanceof ContoursAttrDlg) {
-                PgenContoursTool pgenTool = (PgenContoursTool) thisTool;
-                ContoursAttrDlg pgenDlg = (ContoursAttrDlg) thisDlg;
+                if (thisTool instanceof PgenContoursTool) {
+                    PgenContoursTool pgenTool = (PgenContoursTool) thisTool;
+                    ContoursAttrDlg pgenDlg = (ContoursAttrDlg) thisDlg;
 
-                pgenTool.setCurrentContour(newContour);
-                pgenDlg.setDrawableElement(newContour);
-                pgenDlg.setLabel(newLine.getLabelString()[0]);
-                pgenDlg.setNumOfLabels(newLine.getNumOfLabels());
+                    pgenTool.setCurrentContour(newContour);
+                    pgenDlg.setDrawableElement(newContour);
+                    pgenDlg.setLabel(newLine.getLabelString()[0]);
+                    pgenDlg.setNumOfLabels(newLine.getNumOfLabels());
 
-                PgenResource.this
+                    PgenResource.this
                         .setSelected((AbstractDrawableComponent) newLine
-                                .getLine());
+                            .getLine());
+                }
             }
         }
     }
@@ -2485,7 +2492,7 @@ public class PgenResource extends
                 && de.getParent().getParent() != null) {
             if (de.getParent().getParent().getPgenType() != null
                     && de.getParent().getParent().getPgenType()
-                            .equals("CCFP_SIGMET")) {
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
                 isccfparrow = true;
             }
         }
@@ -2504,7 +2511,7 @@ public class PgenResource extends
                 && de.getParent().getParent() != null) {
             if (de.getParent().getParent().getPgenType() != null
                     && de.getParent().getParent().getPgenType()
-                            .equals("CCFP_SIGMET")) {
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
                 isccfptext = true;
             }
         }

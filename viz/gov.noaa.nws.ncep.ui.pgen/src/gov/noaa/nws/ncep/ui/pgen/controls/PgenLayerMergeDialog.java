@@ -8,14 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -39,20 +31,31 @@ import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+
 /**
  * This class creates a dialog to allow the use import/merge layers from a
  * selected activity to the current activity's layers.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 07/12        #593     	J. Wu  		Initial Creation
- * 08/13		?			B. Yin		Merge outlook when layers are merged
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 07/12        #593        J. Wu       Initial Creation
+ * 08/13        ?           B. Yin      Merge outlook when layers are merged
  * 12/13        TTR776      J. Wu       Check default common action set in preference.
- * 
+ * 8/19         67220       ksunil      when contours are merged, copy second contour's contents
+ *                                      into the first one. (And not create 2 Contours in the layer)
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 
@@ -64,14 +67,20 @@ public class PgenLayerMergeDialog extends Dialog {
      * Available actions for each layer.
      */
     private static enum LayerActions {
-        NO_ACTION, ADD_AS_NEW_LAYER, REPLACE_LIKE_NAME_LAYER, REPLACE_ACTIVE_LAYER, REPLACE_RENAME_ACTIVE_LAYER, MERGE_INTO_LIKE_NAME_LAYER, MERGE_INTO_ACTIVE_LAYER, MERGE_RENAME_ACTIVE_LAYER
+        NO_ACTION,
+        ADD_AS_NEW_LAYER,
+        REPLACE_LIKE_NAME_LAYER,
+        REPLACE_ACTIVE_LAYER,
+        REPLACE_RENAME_ACTIVE_LAYER,
+        MERGE_INTO_LIKE_NAME_LAYER,
+        MERGE_INTO_ACTIVE_LAYER,
+        MERGE_RENAME_ACTIVE_LAYER
     };
 
     /*
      * Bulk actions names and definitions.
      */
-    private static String[] BulkActionNames = new String[] {
-            "Take no action",
+    private static String[] BulkActionNames = new String[] { "Take no action",
             "Reset all layers to 'Take no action'",
             "Set all layers to 'Add as a new layer'",
             "Set all layers to 'Replace content of like-named layers', if available",
@@ -159,8 +168,8 @@ public class PgenLayerMergeDialog extends Dialog {
         }
 
         if (shellLocation == null) {
-            this.getShell().setLocation(
-                    this.getShell().getParent().getLocation());
+            this.getShell()
+                    .setLocation(this.getShell().getParent().getLocation());
         } else {
             getShell().setLocation(shellLocation);
         }
@@ -209,7 +218,8 @@ public class PgenLayerMergeDialog extends Dialog {
         this.getShell().setText("Import/Merge Layers");
 
         Composite topComp = new Composite(top, SWT.NONE);
-        topComp.setLayoutData(new GridData(SWT.CENTER, SWT.DEFAULT, true, false));
+        topComp.setLayoutData(
+                new GridData(SWT.CENTER, SWT.DEFAULT, true, false));
         GridLayout layout0 = new GridLayout(1, false);
         topComp.setLayout(layout0);
 
@@ -218,8 +228,8 @@ public class PgenLayerMergeDialog extends Dialog {
 
         // Present basic info for current activity/layer.
         Composite curActComp = new Composite(top, SWT.NONE);
-        curActComp.setLayoutData(new GridData(SWT.LEFT, SWT.DEFAULT, true,
-                false));
+        curActComp.setLayoutData(
+                new GridData(SWT.LEFT, SWT.DEFAULT, true, false));
 
         GridLayout layout = new GridLayout(2, true);
         curActComp.setLayout(layout);
@@ -244,8 +254,8 @@ public class PgenLayerMergeDialog extends Dialog {
 
         // Present basic info for selected file.
         Composite selActComp = new Composite(top, SWT.NONE);
-        selActComp.setLayoutData(new GridData(SWT.LEFT, SWT.DEFAULT, true,
-                false));
+        selActComp.setLayoutData(
+                new GridData(SWT.LEFT, SWT.DEFAULT, true, false));
 
         GridLayout layout3 = new GridLayout(1, false);
         selActComp.setLayout(layout3);
@@ -261,8 +271,8 @@ public class PgenLayerMergeDialog extends Dialog {
 
         // Present actions for each incoming layer
         Composite layersComp = new Composite(top, SWT.NONE);
-        layersComp.setLayoutData(new GridData(SWT.LEFT, SWT.DEFAULT, true,
-                false));
+        layersComp.setLayoutData(
+                new GridData(SWT.LEFT, SWT.DEFAULT, true, false));
 
         GridLayout layout5 = new GridLayout(1, false);
         layersComp.setLayout(layout5);
@@ -277,12 +287,12 @@ public class PgenLayerMergeDialog extends Dialog {
             Label lbl4 = new Label(layersGrp, SWT.NONE);
             lbl4.setText(lyr.getName());
 
-            Combo layerActCombo = new Combo(layersGrp, SWT.DROP_DOWN
-                    | SWT.READ_ONLY);
+            Combo layerActCombo = new Combo(layersGrp,
+                    SWT.DROP_DOWN | SWT.READ_ONLY);
 
             boolean sameLayerExist = layerExist(lyr.getName());
-            layerActCombo
-                    .add("Take no action                                                                                   ");
+            layerActCombo.add(
+                    "Take no action                                                                                   ");
             layerActCombo.add("Add as layer '" + lyr.getName() + "'");
 
             if (sameLayerExist) {
@@ -290,18 +300,16 @@ public class PgenLayerMergeDialog extends Dialog {
             }
 
             layerActCombo.add("Replace content of 'ActiveLayer'");
-            layerActCombo
-                    .add("Replace content of 'ActiveLayer' and rename to '"
-                            + lyr.getName() + "'");
+            layerActCombo.add("Replace content of 'ActiveLayer' and rename to '"
+                    + lyr.getName() + "'");
 
             if (sameLayerExist) {
                 layerActCombo.add("Merge content into '" + lyr.getName() + "'");
             }
 
             layerActCombo.add("Merge content into 'ActiveLayer'");
-            layerActCombo
-                    .add("Merge content into 'ActiveLayer' and rename to '"
-                            + lyr.getName() + "'");
+            layerActCombo.add("Merge content into 'ActiveLayer' and rename to '"
+                    + lyr.getName() + "'");
 
             layerActCombo.select(0);
 
@@ -313,8 +321,8 @@ public class PgenLayerMergeDialog extends Dialog {
             Label lbl4 = new Label(layersGrp, SWT.NONE);
             lbl4.setText("Bulk Action");
 
-            Combo bulkCombo = new Combo(layersGrp, SWT.DROP_DOWN
-                    | SWT.READ_ONLY);
+            Combo bulkCombo = new Combo(layersGrp,
+                    SWT.DROP_DOWN | SWT.READ_ONLY);
 
             for (String str : BulkActionNames) {
                 bulkCombo.add(str);
@@ -450,8 +458,8 @@ public class PgenLayerMergeDialog extends Dialog {
                 break;
 
             case MERGE_INTO_LIKE_NAME_LAYER:
-                replaceMergeLayer(activeAct.getLayer(lyr.getName()), lyr,
-                        false, null);
+                replaceMergeLayer(activeAct.getLayer(lyr.getName()), lyr, false,
+                        null);
                 break;
 
             case MERGE_INTO_ACTIVE_LAYER:
@@ -524,10 +532,55 @@ public class PgenLayerMergeDialog extends Dialog {
 
         if (existingLayer != null && newLayer != null) {
 
-            if (replace)
+            if (replace) {
                 existingLayer.clear();
+                existingLayer.add(newLayer.getDrawables());
+            } else {
 
-            existingLayer.add(newLayer.getDrawables());
+                /*
+                 * for each component X in layer 2 (new layer), check if it is a
+                 * Contour. If so, check if the same contour exists in layer 1
+                 * and merge individual components of 2's Contour into 1's
+                 * Contour. If the same contour doesn't exist in 1, add the
+                 * Contour (nothing to merge) to layer 1. If X is not a Contour,
+                 * just add the component to layer 1.
+                 */
+
+                Iterator<AbstractDrawableComponent> iterN = newLayer
+                        .getComponentIterator();
+                while (iterN.hasNext()) {
+                    AbstractDrawableComponent adcN = iterN.next();
+                    if (adcN instanceof Contours) {
+                        Iterator<AbstractDrawableComponent> iterE = existingLayer
+                                .getComponentIterator();
+                        boolean hasSameContour = false;
+                        while (iterE.hasNext()) {
+                            AbstractDrawableComponent adcE = iterE.next();
+                            if (adcE instanceof Contours) {
+                                if (((Contours) adcE)
+                                        .compareLevelParmForecastHour(
+                                                (Contours) adcN)) {
+                                    hasSameContour = true;
+                                    ((Contours) adcE).add(((Contours) adcN)
+                                            .getContourCircles());
+                                    ((Contours) adcE).add(((Contours) adcN)
+                                            .getContourLines());
+                                    ((Contours) adcE).add(((Contours) adcN)
+                                            .getContourMinmaxs());
+                                    break;
+                                }
+                            }
+                        }
+                        if (!hasSameContour) {
+                            existingLayer.add(adcN);
+                        }
+
+                    } else {
+                        existingLayer.add(adcN);
+                    }
+                }
+
+            }
             mergeOutlooks(existingLayer);
 
             if (prd != null) {
@@ -650,8 +703,9 @@ public class PgenLayerMergeDialog extends Dialog {
         }
 
         if (conflict) {
-            MessageDialog confirmOpen = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
+            MessageDialog confirmOpen = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
                     "Conflicting actions to import layers", null, msg,
                     MessageDialog.WARNING, new String[] { "Ok" }, 0);
 
@@ -681,8 +735,8 @@ public class PgenLayerMergeDialog extends Dialog {
 
                 boolean found = false;
                 for (ArrayList<Outlook> aList : otlkList) {
-                    if (look.getOutlookType().equalsIgnoreCase(
-                            aList.get(0).getOutlookType())) {
+                    if (look.getOutlookType()
+                            .equalsIgnoreCase(aList.get(0).getOutlookType())) {
                         aList.add(look);
                         found = true;
                     }

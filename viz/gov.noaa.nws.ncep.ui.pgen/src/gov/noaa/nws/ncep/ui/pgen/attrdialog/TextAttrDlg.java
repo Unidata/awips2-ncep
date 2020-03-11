@@ -8,12 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IText;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +20,8 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -45,18 +41,24 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IText;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+
 /**
  * Singleton attribute dialog for text.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer        Description
  * ----------------------------------------------------------
  * 04/09                    J. Wu           Initial Creation.
  * 09/09        #149        B. Yin          Added check boxes for multi-selection
- * 03/10        #231        Archana         Altered the dialog for text 
- *                                          to display only a button showing the 
- *                                          selected color instead of displaying 
+ * 03/10        #231        Archana         Altered the dialog for text
+ *                                          to display only a button showing the
+ *                                          selected color instead of displaying
  *                                          the complete color matrix.
  * 04/11        #?          B. Yin          Re-factor IAttribute
  * 03/13        #928        B. Yin          Added a separator above the button bar.
@@ -65,9 +67,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/22/2015   R13545      K. Bugenhagen   Remember all attributes per box type
  * 06/30/2016   R17980      B. Yin          Fixed error dialog issue in multi-select mode.
  * 07/27/2016   R17378      J. Wu           Set cursor at end of the text string.
- * 
+ * 08/20/2019   67218       ksunil          prevent the text box from starting the text on line 2
+ * 02/26/2020   75024       smanoj          Fix to have correct default Color Attributes for 
+ *                                          tropical TROF front label.
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 
@@ -79,8 +84,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
     public static int[] FontSizeValue = { 10, 12, 14, 18, 24, 34 };
 
-    public static String[] FontName = new String[] { "Courier",
-            "Nimbus Sans L", "Liberation Serif" };
+    public static String[] FontName = new String[] { "Courier", "Nimbus Sans L",
+            "Liberation Serif" };
 
     private static final String bgmask = " w/ bg mask";
 
@@ -101,8 +106,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private final int TEXT_WIDTH = 160;
 
     private final int TEXT_HEIGHT = 40;
-
-    private final Color DEFAULT_COLOR = new Color(0, 255, 0);
 
     private final float INITIAL_FONT_SIZE = 0.0f;
 
@@ -455,7 +458,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
         // Set text and then the cursor at the end of the string.
         String str = result.toString();
         text.setText(str);
-        if ( str.length() > 0 ) {
+        if (str.length() > 0) {
             text.setSelection(str.length() - 1);
         }
     }
@@ -692,8 +695,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createTextAttr() {
 
         chkBox[ChkBox.TEXT.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.TEXT.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.TEXT.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.TEXT.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -717,6 +720,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         int style = SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL;
         text = new Text(top, style);
+
         text.setLayoutData(new GridData(TEXT_WIDTH, TEXT_HEIGHT));
         text.setEditable(true);
 
@@ -729,6 +733,32 @@ public class TextAttrDlg extends AttrDlg implements IText {
             }
         });
 
+        text.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if ("\n".equals(text.getText())) {
+                    text.setSelection(0);
+                }
+            }
+
+        });
+
+        text.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseDown(MouseEvent e) {
+                if ("\n".equals(text.getText())) {
+                    text.setSelection(0);
+                }
+            }
+
+            @Override
+            public void mouseDoubleClick(MouseEvent e) {
+                if ("\n".equals(text.getText())) {
+                    text.setSelection(0);
+                }
+            }
+        });
+
     }
 
     /**
@@ -737,8 +767,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createBoxAttr() {
 
         chkBox[ChkBox.BOX.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.BOX.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.BOX.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.BOX.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -784,8 +814,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
             public void modifyText(ModifyEvent e) {
 
                 String text = "";
-                String lastTextForBox = lastTextPerBoxType.get(boxCombo
-                        .getText());
+                String lastTextForBox = lastTextPerBoxType
+                        .get(boxCombo.getText());
                 if (lastTextForBox != null && !lastTextForBox.equals("")
                         && !lastTextForBox.equals("\n")) {
                     text = lastTextForBox;
@@ -797,7 +827,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 // If this box type has been used before, use the font for
                 // that box type.
                 if (lastFontPerBoxType.containsKey(boxCombo.getText())) {
-                    String fontName = lastFontPerBoxType.get(boxCombo.getText());
+                    String fontName = lastFontPerBoxType
+                            .get(boxCombo.getText());
                     if (fontName != null && !fontName.equals("")) {
                         setFontName(fontName);
                     } else {
@@ -827,8 +858,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 // If this box type has been used before, use the font size for
                 // that box type.
                 if (lastFontSizePerBoxType.containsKey(boxCombo.getText())) {
-                    float fontSize = lastFontSizePerBoxType.get(boxCombo
-                            .getText());
+                    float fontSize = lastFontSizePerBoxType
+                            .get(boxCombo.getText());
                     if (!(Float.isNaN(fontSize))
                             && fontSize != INITIAL_FONT_SIZE) {
                         setFontSize(fontSize);
@@ -843,12 +874,13 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
                 // If this box type has been used before, use the justification
                 // for that box type.
-                if (lastJustificationPerBoxType.containsKey(boxCombo.getText())) {
+                if (lastJustificationPerBoxType
+                        .containsKey(boxCombo.getText())) {
                     String justification = lastJustificationPerBoxType
                             .get(boxCombo.getText());
                     if (justification != null && !justification.equals("")) {
-                        setJustification(TextJustification
-                                .valueOf(justification));
+                        setJustification(
+                                TextJustification.valueOf(justification));
                     } else {
                         if (lastJustification != null
                                 && !lastJustification.equals("")) {
@@ -863,8 +895,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 // If this box type has been used before, use the rotation for
                 // that box type.
                 if (lastRotationPerBoxType.containsKey(boxCombo.getText())) {
-                    String rotation = lastRotationPerBoxType.get(boxCombo
-                            .getText());
+                    String rotation = lastRotationPerBoxType
+                            .get(boxCombo.getText());
                     if (rotation != null && !rotation.equals("")) {
                         setRotation(Double.valueOf(rotation));
                     } else {
@@ -879,23 +911,22 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 // If this box type has been used before, use the rotation
                 // relativity for that box type.
                 setRotationRelativity(DEFAULT_RELATIVE_ROTATION);
-                if (lastRotationRelativityPerBoxType.containsKey(boxCombo
-                        .getText())) {
+                if (lastRotationRelativityPerBoxType
+                        .containsKey(boxCombo.getText())) {
                     String rotationRelativity = lastRotationRelativityPerBoxType
                             .get(boxCombo.getText());
                     if (rotationRelativity != null
                             && !rotationRelativity.equals("")) {
-                        setRotationRelativity(TextRotation
-                                .valueOf(rotationRelativity));
+                        setRotationRelativity(
+                                TextRotation.valueOf(rotationRelativity));
                     }
                 } else if (lastRotationRelativity != null) {
-                    setRotationRelativity(TextRotation
-                            .valueOf(lastRotationRelativity));
+                    setRotationRelativity(
+                            TextRotation.valueOf(lastRotationRelativity));
                 }
 
                 // If this box type has been used before, use the color
                 // relativity for that box type.
-                setColor(DEFAULT_COLOR);
                 if (lastColorPerBoxType.containsKey(boxCombo.getText())) {
                     Color color = lastColorPerBoxType.get(boxCombo.getText());
                     if (color != null) {
@@ -915,8 +946,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createSizeAttr() {
 
         chkBox[ChkBox.SIZE.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.SIZE.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.SIZE.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.SIZE.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -973,8 +1004,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createFontAttr() {
 
         chkBox[ChkBox.FONT.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.FONT.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.FONT.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.FONT.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -1024,8 +1055,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
      */
     private void createStyleAttr() {
         chkBox[ChkBox.STYLE.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.STYLE.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.STYLE.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.STYLE.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -1076,8 +1107,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createJustAttr() {
 
         chkBox[ChkBox.JUSTIFICATION.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.JUSTIFICATION.ordinal()].setLayoutData(new GridData(
-                CHK_WIDTH, CHK_HEIGHT));
+        chkBox[ChkBox.JUSTIFICATION.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.JUSTIFICATION.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -1106,8 +1137,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
         }
 
         setJustification(DEFAULT_JUSTIFICATION);
-        String justification = lastJustificationPerBoxType.get(boxCombo
-                .getText());
+        String justification = lastJustificationPerBoxType
+                .get(boxCombo.getText());
         if (justification != null && !justification.equals("")) {
             setJustification(TextJustification.valueOf(justification));
         } else if (lastJustification != null && !lastJustification.equals("")) {
@@ -1129,8 +1160,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
      */
     private void createColorAttr() {
         chkBox[ChkBox.COLOR.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.COLOR.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.COLOR.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.COLOR.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -1150,9 +1181,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
         colorLbl = new Label(top, SWT.LEFT);
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(top);
-        cs.setColorValue(new RGB(0, 255, 0));
 
-        setColor(DEFAULT_COLOR);
         Color color = lastColorPerBoxType.get(boxCombo.getText());
         if (color != null) {
             setColor(color);
@@ -1178,8 +1207,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private void createRotationAttr() {
 
         chkBox[ChkBox.ROTATION.ordinal()] = new Button(top, SWT.CHECK);
-        chkBox[ChkBox.ROTATION.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
-                CHK_HEIGHT));
+        chkBox[ChkBox.ROTATION.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
         chkBox[ChkBox.ROTATION.ordinal()]
                 .addSelectionListener(new SelectionAdapter() {
 
@@ -1241,10 +1270,12 @@ public class TextAttrDlg extends AttrDlg implements IText {
                         rotSlider.setSelection(value);
                         rotText.setToolTipText("");
                     } else {
-                        rotText.setToolTipText("Only integer values between 0 and 360 are accepted.");
+                        rotText.setToolTipText(
+                                "Only integer values between 0 and 360 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    rotText.setToolTipText("Only integer values between 0 and 360 are accepted.");
+                    rotText.setToolTipText(
+                            "Only integer values between 0 and 360 are accepted.");
                 }
                 lastRotation = 0.0f;
                 String rotation = rotText.getText();
@@ -1307,14 +1338,14 @@ public class TextAttrDlg extends AttrDlg implements IText {
         /*
          * An error will pop up if the user leaves the text field blank. This
          * prevents errors in DisplayElementsFactory.java when bounds is null
-         * Don't open error dialog in multi-select mode when checkbox is 
+         * Don't open error dialog in multi-select mode when checkbox is
          * unchecked.
          */
         if (!(PgenSession.getInstance().getPgenPalette().getCurrentAction()
-                .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT) && !chkBox[ChkBox.TEXT
-                .ordinal()].getSelection())
-                && (text.getText().length() == 0 || text.getText().matches(
-                        "^[ \n]*$"))) {
+                .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)
+                && !chkBox[ChkBox.TEXT.ordinal()].getSelection())
+                && (text.getText().length() == 0
+                        || text.getText().matches("^[ \n]*$"))) {
 
             MessageDialog.openError(null, "Warning!", "No text entered");
 

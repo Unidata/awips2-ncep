@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -63,6 +64,7 @@ import com.raytheon.viz.ui.editor.IMultiPaneEditor;
 
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityCollection;
 import gov.noaa.nws.ncep.ui.pgen.controls.ActivityElement;
+import gov.noaa.nws.ncep.ui.pgen.controls.PgenRetrieveCommonDialogArea;
 import gov.noaa.nws.ncep.viz.overlays.resources.PgenStaticOverlayResourceData;
 
 /**
@@ -73,9 +75,13 @@ import gov.noaa.nws.ncep.viz.overlays.resources.PgenStaticOverlayResourceData;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Mar 1, 2019  7752       tjensen     Initial creation
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Mar 01, 2019  7752     tjensen   Initial creation
+ * Aug 26, 2019  67216    ksunil    Widget changes to implement the ticket.
+ *                                  Code-refactored
+ * Feb 06, 2020  57972    tjensen   Add option to display in map layer. Used for
+ *                                  GFE
  *
  * </pre>
  *
@@ -85,7 +91,9 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
     private static final RGB WHITE = RGBColors.getRGBColor("white");
 
-    private final transient IUFStatusHandler statusHandler = UFStatus
+    private PgenRetrieveCommonDialogArea commonDialogArea = null;
+
+    private final IUFStatusHandler statusHandler = UFStatus
             .getHandler(this.getClass());
 
     private Text locationText;
@@ -96,16 +104,16 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
     private Button monoColorBtn;
 
-    private Button okBtn;
+    private final boolean displayAsMap;
 
     private final Map<String, ActivityElement> dbEntries;
 
-    private org.eclipse.swt.widgets.List activityList;
-
-    public PgenStaticOverlayDialog(Shell parentShell) {
+    public PgenStaticOverlayDialog(Shell parentShell, boolean displayAsMap) {
         super(parentShell, SWT.DIALOG_TRIM | SWT.MIN,
                 CAVE.PERSPECTIVE_INDEPENDENT | CAVE.DO_NOT_BLOCK);
         setText("Load PGEN Static Overlay");
+
+        this.displayAsMap = displayAsMap;
 
         dbEntries = new HashMap<>();
         ActivityCollection ac = new ActivityCollection();
@@ -154,10 +162,10 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
 
         // Create the OK button
         gd = new GridData(GridData.FILL_HORIZONTAL);
-        okBtn = new Button(bottonBtnComposite, SWT.PUSH);
+        Button okBtn = new Button(bottonBtnComposite, SWT.PUSH);
         okBtn.setText("OK");
         okBtn.setLayoutData(gd);
-        okBtn.setEnabled(false);
+        okBtn.setEnabled(true);
         okBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -201,27 +209,33 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         // Build bundle from dialog selections
         PgenStaticOverlayResourceData resourceData = new PgenStaticOverlayResourceData();
         String productName = "";
-        // if file
-        if (locationText.isEnabled()) {
+        // if file is selected and has a valid and not empty text use local file
+        // loading
+        if (locationText.isEnabled() && locationText.getText() != null
+                && !locationText.getText().isEmpty()) {
             String filePath = locationText.getText();
-            if (filePath != null && !filePath.isEmpty()) {
-                File pgenFile = new File(filePath);
-                if (pgenFile.exists()) {
-                    resourceData
-                            .setPgenStaticProductLocation(pgenFile.getParent());
-                    productName = pgenFile.getName();
-                } else {
-                    throw new FileNotFoundException(
-                            "File '" + filePath + " does not exist.");
-                }
 
+            File pgenFile = new File(filePath);
+            if (pgenFile.exists()) {
+                resourceData.setPgenStaticProductLocation(pgenFile.getParent());
+                productName = pgenFile.getName();
+            } else {
+                throw new FileNotFoundException(
+                        "File '" + filePath + " does not exist.");
             }
         }
         // if DB
-        if (activityList.isEnabled()) {
-            String[] selection = activityList.getSelection();
-            if (selection.length != 0) {
-                productName = dbEntries.get(selection[0]).getActivityLabel();
+        else if (((IStructuredSelection) commonDialogArea.getFileListViewer()
+                .getSelection()).getFirstElement() != null) {
+
+            IStructuredSelection selection = (IStructuredSelection) commonDialogArea
+                    .getFileListViewer().getSelection();
+
+            if (selection.getFirstElement() instanceof ActivityElement) {
+                ActivityElement elem = (ActivityElement) selection
+                        .getFirstElement();
+                productName = dbEntries.get(elem.getActivityLabel())
+                        .getActivityLabel();
             }
         }
 
@@ -240,6 +254,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         ResourceProperties properties = new ResourceProperties();
         properties.setVisible(true);
         properties.setRenderingOrderId("MAP_OUTLINE");
+        properties.setMapLayer(displayAsMap);
         resourcePair.setProperties(properties);
         IMapDescriptor mapDescriptor;
 
@@ -255,6 +270,10 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
     }
 
     protected void initializeLocationGroup() {
+
+        commonDialogArea = new PgenRetrieveCommonDialogArea();
+        commonDialogArea.createComponents(shell);
+
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         Group locationGroup = new Group(shell, SWT.NONE);
         locationGroup.setLayoutData(gridData);
@@ -266,7 +285,8 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         loadFromFileRdo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                enableDbLoading(false);
+                locationText.setEnabled(true);
+                fileBrowseBtn.setEnabled(true);
             }
         });
 
@@ -288,33 +308,6 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
                 selectXMLFile();
             }
         });
-
-        Button loadFromDbRdo = new Button(locationGroup, SWT.RADIO);
-        loadFromDbRdo.setText("Database");
-        loadFromDbRdo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                enableDbLoading(true);
-            }
-        });
-
-        activityList = new org.eclipse.swt.widgets.List(locationGroup,
-                SWT.BORDER | SWT.V_SCROLL);
-        gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        gridData.heightHint = activityList.getItemHeight() * 7;
-        activityList.setLayoutData(gridData);
-        for (String key : dbEntries.keySet()) {
-            activityList.add(key);
-        }
-        activityList.setEnabled(false);
-
-    }
-
-    private void enableDbLoading(boolean useDB) {
-        locationText.setEnabled(!useDB);
-        fileBrowseBtn.setEnabled(!useDB);
-        activityList.setEnabled(useDB);
-        okBtn.setEnabled(true);
 
     }
 

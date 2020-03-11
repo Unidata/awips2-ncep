@@ -3,6 +3,8 @@ package gov.noaa.nws.ncep.viz.tools.plotModelMngr;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -28,6 +30,9 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.viz.pointdata.PlotModelFactory;
+import com.raytheon.viz.pointdata.def.ui.EditPlotResourceDialog;
+import com.raytheon.viz.ui.VizWorkbenchManager;
 
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
@@ -63,19 +68,23 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                       Brought Edit Plot Model dialog to front when its plot model is re-selected.
  *                                       Allowed to clear the selection of Plot Model when Edit Plot Model dialog is closed.
  *                                       Handle the event for the window close button to clean up saved info.
- *                                       Handle the double click event on the plot model list 
+ *                                       Handle the double click event on the plot model list
  *                                          to open or bring to front an Edit Plot Model dialog.
  * May 16, 2016  5647       tgurney     Remove minimize/maximize buttons
+ * Dec 10, 2019  72281      K Sunil     code to handle both NCP and D2D. If D2D, just handover to D2D's plot
+ *                                       model dialog.
+ * Feb 18, 2020  74965      K Sunil     Suppressed some irrelevant warnings for D2D.
  * </pre>
- * 
+ *
  * @author
- * @version 1
  */
 public class PlotModelMngrDialog extends Dialog {
     private static IUFStatusHandler statusHandler = UFStatus
             .getHandler(PlotModelMngrDialog.class);
 
     private Shell shell;
+
+    private String perspective;
 
     private Font font;
 
@@ -134,6 +143,12 @@ public class PlotModelMngrDialog extends Dialog {
     private EditPlotModelDialogManager manager = EditPlotModelDialogManager
             .getInstance();
 
+    private static final String NCP = "NCP";
+
+    private static final String D2D = "D2D";
+
+    Map<String, Set<String>> d2dPluginsAndModels;
+
     /**
      * Initial offset of X coordinate for Edit Plot Model dialog.
      */
@@ -164,14 +179,17 @@ public class PlotModelMngrDialog extends Dialog {
      */
     private int initYCoord = 0;
 
-    // the resource ext point mngr is used to get a list of all the
-    // resources that have a plotModel attribute and then we will
-    // get the plugin from the resource name
+    /*
+     * the resource ext point mngr is used to get a list of all the resources
+     * that have a plotModel attribute and then we will get the plugin from the
+     * resource name
+     * 
+     */
     protected ResourceExtPointMngr rscExtPointMngr = null;
 
-    public PlotModelMngrDialog(Shell parent) {
+    public PlotModelMngrDialog(Shell parent, String perspective) {
         super(parent);
-
+        this.perspective = perspective;
         rscExtPointMngr = ResourceExtPointMngr.getInstance();
     }
 
@@ -281,10 +299,13 @@ public class PlotModelMngrDialog extends Dialog {
 
                     String plotModelName = getSelectedPlotModelName();
 
-                    // If plot model is being edited, do not edit it twice, but
-                    // bring its dialog to front.
-                    if (manager.isPlotModelActivelyEdited(seldPlugin,
-                            plotModelName)) {
+                    /*
+                     * If plot model is being edited, do not edit it twice, but
+                     * bring its dialog to front.
+                     */
+                    if (NCP.equals(perspective)
+                            && manager.isPlotModelActivelyEdited(seldPlugin,
+                                    plotModelName)) {
 
                         editPlotModelBtn.setEnabled(false);
                         deletePlotModelBtn.setEnabled(false);
@@ -295,8 +316,10 @@ public class PlotModelMngrDialog extends Dialog {
                         editPlotModelBtn.setEnabled(true);
                         deletePlotModelBtn.setEnabled(false);
 
-                        // if this plotModel is in the USER context
-                        // then allow the user to delete it.
+                        /*
+                         * if this plotModel is in the USER context then allow
+                         * the user to delete it.
+                         */
                         PlotModel pm = PlotModelMngr.getInstance()
                                 .getPlotModel(seldPlugin, plotModelName);
 
@@ -315,8 +338,8 @@ public class PlotModelMngrDialog extends Dialog {
 
                 String plotModelName = getSelectedPlotModelName();
 
-                if (manager.isPlotModelActivelyEdited(seldPlugin,
-                        plotModelName)) {
+                if (NCP.equals(perspective) && manager
+                        .isPlotModelActivelyEdited(seldPlugin, plotModelName)) {
 
                     manager.bringShellToFront(seldPlugin, plotModelName);
 
@@ -404,6 +427,18 @@ public class PlotModelMngrDialog extends Dialog {
     }
 
     private void editPlotModel() {
+
+        // if we are in the D2D perspective, just open D2D's Edit Plot dialog
+        // and return
+        if (D2D.equals(perspective)) {
+            EditPlotResourceDialog dialog = new EditPlotResourceDialog(
+                    VizWorkbenchManager.getInstance().getCurrentWindow()
+                            .getShell(),
+                    getSelectedPlotModelName());
+            dialog.open();
+            return;
+        }
+
         String plotModelName = getSelectedPlotModelName();
 
         editPlotModelBtn.setEnabled(false);
@@ -526,52 +561,78 @@ public class PlotModelMngrDialog extends Dialog {
 
     private void init() {
         pluginNameList.removeAll();
-
-        // the Categories are the plugins for the PlotData implementations.
-        // get a list of all the ResourceDefinitions with the "PlotData"
-        // resource implementation.
-        // the plugin name will be one of the resource parameters.
-
+        /*
+         * the Categories are the plugins for the PlotData implementations. get
+         * a list of all the ResourceDefinitions with the "PlotData" resource
+         * implementation. the plugin name will be one of the resource
+         * parameters.
+         */
         try {
-            ArrayList<String> plotDataPlugins = new ArrayList<String>();
-
-            ArrayList<String> plotRscDefns = ResourceDefnsMngr.getInstance()
-                    .getRscTypesForRscImplementation(SURFACE_PLOT);
-            plotRscDefns.addAll(ResourceDefnsMngr.getInstance()
-                    .getRscTypesForRscImplementation(UPPER_AIR_PLOT));
-            plotRscDefns.addAll(ResourceDefnsMngr.getInstance()
-                    .getRscTypesForRscImplementation(MOSPLOT));
-            for (String rscType : plotRscDefns) {
-                ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
-                        .getResourceDefinition(rscType);
-                if (rscDefn != null) {
-                    String pluginName = rscDefn.getPluginName();
-                    if (pluginName != null
-                            && !plotDataPlugins.contains(pluginName)) {
-                        plotDataPlugins.add(pluginName);
-                        pluginNameList.add(pluginName);
+            if (NCP.equals(perspective)) {
+                // use full name. Not to confuse with Widget's List class
+                java.util.List<String> plotDataPlugins = new ArrayList<>();
+                java.util.List<String> plotRscDefns = ResourceDefnsMngr
+                        .getInstance()
+                        .getRscTypesForRscImplementation(SURFACE_PLOT);
+                plotRscDefns.addAll(ResourceDefnsMngr.getInstance()
+                        .getRscTypesForRscImplementation(UPPER_AIR_PLOT));
+                plotRscDefns.addAll(ResourceDefnsMngr.getInstance()
+                        .getRscTypesForRscImplementation(MOSPLOT));
+                for (String rscType : plotRscDefns) {
+                    ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
+                            .getResourceDefinition(rscType);
+                    if (rscDefn != null) {
+                        String pluginName = rscDefn.getPluginName();
+                        if (pluginName != null
+                                && !plotDataPlugins.contains(pluginName)) {
+                            plotDataPlugins.add(pluginName);
+                            pluginNameList.add(pluginName);
+                        }
                     }
                 }
+
+            } else {
+                d2dPluginsAndModels = PlotModelFactory.getPluginsAndModels();
+                for (String key : d2dPluginsAndModels.keySet()) {
+                    pluginNameList.add(key);
+                }
+            }
+            if (pluginNameList.getItemCount() > 0) {
+                pluginNameList.select(0);
+                loadPlotModelsList();
             }
         } catch (VizException e) {
-            e.getMessage();
+            statusHandler.error(
+                    "Unable to init the plugin name list. List may be empty",
+                    e);
         }
-
-        if (pluginNameList.getItemCount() > 0) {
-            pluginNameList.select(0);
-            loadPlotModelsList();
-        }
-
         editPlotModelBtn.setEnabled(false);
         deletePlotModelBtn.setEnabled(false);
     }
 
-    // this will load all of the prm files for all resources currently defined
-    // in the selected resource type(category). If there is not a plot model
-    // defined
-    // with the category and name of the prm file
+    /*
+     * this will load all of the prm files for all resources currently defined
+     * in the selected resource type(category). If there is not a plot model
+     * defined with the category and name of the prm file
+     */
 
     private void loadPlotModelsList() {
+        if (NCP.equals(perspective))
+            loadPlotModelsListNCP();
+        else {
+            loadPlotModelsListD2D();
+        }
+    }
+
+    private void loadPlotModelsListD2D() {
+        plotModelList.removeAll();
+        for (String plotModel : d2dPluginsAndModels
+                .get(pluginNameList.getSelection()[0])) {
+            plotModelList.add(plotModel);
+        }
+    }
+
+    private void loadPlotModelsListNCP() {
         if (pluginNameList.getSelectionCount() > 0) {
             plotModelList.removeAll();
             seldPlugin = pluginNameList.getSelection()[0];

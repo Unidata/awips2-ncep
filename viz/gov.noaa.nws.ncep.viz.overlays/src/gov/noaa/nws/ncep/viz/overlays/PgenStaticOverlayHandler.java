@@ -36,9 +36,11 @@ import gov.noaa.nws.ncep.viz.overlays.dialogs.PgenStaticOverlayDialog;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Mar 1, 2019  7752       tjensen     Initial creation
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Mar 01, 2019  7752     tjensen   Initial creation
+ * Feb 06, 2020  57972    tjensen   Add check for GFE shell to determine what
+ *                                  layer to display in.
  *
  * </pre>
  *
@@ -51,10 +53,14 @@ public class PgenStaticOverlayHandler extends AbstractTool {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         Shell shell = HandlerUtil.getActiveShell(event);
+        boolean isGFE = false;
+        if (shell.getText() != null && shell.getText().contains("GFE")) {
+            isGFE = true;
+        }
 
         if (dialog == null || dialog.getShell() == null
                 || dialog.isDisposed()) {
-            dialog = new PgenStaticOverlayDialog(shell);
+            dialog = new PgenStaticOverlayDialog(shell, isGFE);
             dialog.open();
         } else {
             dialog.bringToTop();

@@ -60,7 +60,6 @@ import com.raytheon.uf.common.time.SimulatedTime;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.common.util.file.IOPermissionsHelper;
 import com.raytheon.uf.edex.core.EDEXUtil;
-import com.raytheon.uf.edex.core.EdexException;
 
 /**
  * A bean that moves incoming NSBN files to their designated directories and
@@ -75,6 +74,9 @@ import com.raytheon.uf.edex.core.EdexException;
  * Oct 12, 2018  56039    mrichardson  Initial creation
  * Dec 10, 2018  56039    tjensen      Use Canonical paths, refactor threading,
  *                                     handle retransmissions
+ * Jun 07, 2019  64732    tjensen      Improve exception handling, logging
+ * Jan 28, 2020  73722    smanoj       Fix to properly handle multiple 
+ *                                     localization levels
  *
  * </pre>
  *
@@ -182,7 +184,7 @@ public class NSBNFileTransfer implements Processor {
         statusHandler.info("Initializing NSBN transfer mapping...");
         IPathManager pathMgr = PathManagerFactory.getPathManager();
         LocalizationLevel[] levels = new LocalizationLevel[] {
-                LocalizationLevel.BASE, LocalizationLevel.SITE };
+                LocalizationLevel.SITE, LocalizationLevel.BASE };
 
         Map<LocalizationLevel, ? extends ILocalizationFile> files = pathMgr
                 .getTieredLocalizationFile(LocalizationType.COMMON_STATIC,
@@ -284,8 +286,10 @@ public class NSBNFileTransfer implements Processor {
         String fileParent = srcParentAsFile.getName();
         ThreadPoolExecutor executor;
 
-        for (Entry<String, List<NSBNTransferDirectory>> directory : nsbnTransferDirectoryMap.entrySet()) {
-            currDirectory = nsbnTransferDirectoryMap.get(directory.getKey()).get(0);
+        for (Entry<String, List<NSBNTransferDirectory>> directory : nsbnTransferDirectoryMap
+                .entrySet()) {
+            currDirectory = nsbnTransferDirectoryMap.get(directory.getKey())
+                    .get(0);
             if (fileParent.equals(currDirectory.getScanDir())) {
                 fileAccepted = currDirectory.accept(inFile);
 
@@ -324,13 +328,13 @@ public class NSBNFileTransfer implements Processor {
                             try {
                                 newFile = createAndMoveNewFile(path, inFile);
                                 Map<String, Object> headers = new HashMap<>();
-                                headers.put("enqueueTime", System.currentTimeMillis());
-                                
+                                headers.put("enqueueTime",
+                                        System.currentTimeMillis());
+
                                 // Notify ingest of the new file
                                 EDEXUtil.getMessageProducer().sendAsyncUri(
                                         "jms-durable:queue:" + destQueue,
-                                        newFile.getPath(),
-                                        headers);
+                                        newFile.getPath(), headers);
 
                                 long stopMethodTime = System
                                         .currentTimeMillis();
@@ -354,21 +358,21 @@ public class NSBNFileTransfer implements Processor {
                                                     + TimeUtil.prettyDuration(
                                                             latencyTime));
                                 } else {
-                                    statusHandler.info(
-                                            "File " + newFile.getAbsolutePath()
-                                                    + " processed."
-                                                    + " File process time: "
-                                                    + TimeUtil.prettyDuration(
-                                                            processTime)
-                                                    + ", File latency time: "
-                                                    + TimeUtil.prettyDuration(
-                                                            latencyTime));
+                                    statusHandler.info("File "
+                                            + newFile.getAbsolutePath()
+                                            + " sent to queue '" + destQueue
+                                            + "'. File process time: "
+                                            + TimeUtil
+                                                    .prettyDuration(processTime)
+                                            + ", File latency time: "
+                                            + TimeUtil.prettyDuration(
+                                                    latencyTime));
                                 }
                             } catch (IOException e) {
                                 statusHandler
                                         .error("Unable to create and move file ["
                                                 + fileName + "]", e);
-                            } catch (EdexException e) {
+                            } catch (Exception e) {
                                 statusHandler.error(
                                         "Failed to insert file [" + fileName
                                                 + "] into NSBN ingest stream.",

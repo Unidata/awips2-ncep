@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.attributes;
 
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -16,12 +10,20 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.RGB;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+
 /**
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -36,14 +38,18 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *  04/23/12     #606       Greg Hull    add ConditionalFilter as a shortcut for the classname.
  *  -            -          S.Gurung     Code formatter changes only
  *  11/04/14     R4508      S. Gurung    Add XAxisScale as a shortcut for the classname
- * 
+ *  12/10/201    72281      K Sunil      changed the hard-coded location of ConditionalFilter in
+ *                                         getFullClassName()
+ *
  * </pre>
  * 
  * @author
- * @version 1
  */
 
 public class ResourceExtPointMngr {
+
+    private static IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ResourceExtPointMngr.class);
 
     private static final String NC_RESOURCE_EXT = "gov.noaa.nws.ncep.viz.resources.NC-Resource";
 
@@ -69,17 +75,18 @@ public class ResourceExtPointMngr {
 
     private static final String CONSTRAINT_NAME_TAG = "constraintName";
 
-    // private static final String PARAM_REF_LOC_TAG = "paramRefLocation";
     private static final String DFLT_VAL_TAG = "defaultValue";
 
     public static enum ResourceParamType {
-        EDITABLE_ATTRIBUTE("EDITABLE_ATTRIBUTE"), IMPLEMENTATION_PARAM(
-                "IMPLEMENTATION_PARAM"), // used to instantiate the
-                                         // ResourceImplementation
-        REQUEST_CONSTRAINT("REQUEST_CONSTRAINT"), // instantiates a Resource
-                                                  // Implementation and also
-                                                  // used as a request
-                                                  // constraint
+        EDITABLE_ATTRIBUTE("EDITABLE_ATTRIBUTE"),
+        // used to instantiate the ResourceImplementation
+        IMPLEMENTATION_PARAM("IMPLEMENTATION_PARAM"),
+        /*
+         * instantiates a Resource Implementation and also used as a request
+         * constraint
+         */
+        REQUEST_CONSTRAINT("REQUEST_CONSTRAINT"),
+
         NON_EDITABLE_ATTRIBUTE("NON_EDITABLE_ATTRIBUTE");
 
         private String name;
@@ -105,15 +112,14 @@ public class ResourceExtPointMngr {
     public static class ResourceParamInfo {
         private String paramName;
 
-        private String constraintName; // usually the same as the paramName
-                                       // except for
-                                       // GDFILE which is modelName
+        // usually the same as the paramName except for GDFILE
+        private String constraintName;
 
-        // the name of the member variable in the java resourceData class.
-        // This will default to the paramName which will be the case for
-        // everything
-        // except the Grid resource which will be the same except lower case.
-        //
+        /*
+         * the name of the member variable in the java resourceData class. This
+         * will default to the paramName which will be the case for everything
+         * except the Grid resource which will be the same except lower case.
+         */
         private String attributeName;
 
         private Class<?> paramClass;
@@ -122,17 +128,14 @@ public class ResourceExtPointMngr {
 
         private String dfltVal; // not implemented
 
-        // private String paramRefLocation; // for ref'd colorBars
-
         ResourceParamInfo(String n, String c, String a, Class<?> clz,
-                ResourceParamType ptype, String dval) { // , String prmRefLoc) {
+                ResourceParamType ptype, String dval) {
             paramName = n;
             constraintName = c;
             attributeName = a;
             paramClass = clz;
             paramType = ptype;
             dfltVal = dval;
-            // paramRefLocation = prmRefLoc;
         }
 
         public String getParamName() {
@@ -177,24 +180,18 @@ public class ResourceExtPointMngr {
         }
 
         void addParameter(String prmName, String cName, String aName,
-                Class<?> prmClass, ResourceParamType pType, String dflt) { // ,
-                                                                           // Object
-                                                                           // dfltVal
-                                                                           // )
-                                                                           // {
-
+                Class<?> prmClass, ResourceParamType pType, String dflt) {
             rscParameters.put(prmName, new ResourceParamInfo(prmName, cName,
                     aName, prmClass, pType, dflt));
         }
 
     }
 
-    // map from the resource name to the resource info containing the rscData
-    // class,
-    // the class that implements the edit dialog and a list of attributes from
-    // the
-    // attribute extension points
-    //
+    /*
+     * map from the resource name to the resource info containing the rscData
+     * class, the class that implements the edit dialog and a list of attributes
+     * from the attribute extension points
+     */
     static HashMap<String, ResourceExtPointInfo> rscExtPointInfoMap = null;
 
     static ResourceExtPointMngr instance = null;
@@ -221,8 +218,8 @@ public class ResourceExtPointMngr {
         IExtensionPoint extPoint = registry.getExtensionPoint(NC_RESOURCE_EXT);
 
         if (extPoint == null) {
-            System.out.println("Unable to get Extension Point : "
-                    + NC_RESOURCE_EXT);
+            statusHandler
+                    .warn("Unable to get Extension Point : " + NC_RESOURCE_EXT);
             return;
         }
 
@@ -240,12 +237,13 @@ public class ResourceExtPointMngr {
                         .getAttribute(EDIT_DLG_CLASS_TAG);
 
                 if (rscClassName == null) {
-                    System.out.println(" " + rscClassName);
                     continue;
                 }
-                // for now this is optional since we can have NC resources that
-                // do not have
-                // editable attributes.
+                /*
+                 * for now this is optional since we can have NC resources that
+                 * do not have editable attributes.
+                 */
+
                 if (editDlgClassName == null) {
                     continue;
                 }
@@ -262,7 +260,7 @@ public class ResourceExtPointMngr {
                     rscExtPointInfoMap.put(rscName, new ResourceExtPointInfo(
                             rscName, rscClass, editDlgClass));
                 } catch (ClassNotFoundException e) {
-                    System.out.println("Unable to load class " + rscClassName
+                    statusHandler.error("Unable to load class " + rscClassName
                             + " or " + editDlgClassName);
                 }
             }
@@ -277,7 +275,7 @@ public class ResourceExtPointMngr {
                 .getExtensionPoint(NC_RESOURCE_PARAMS_EXT);
 
         if (extPoint == null) {
-            System.out.println("Unable to get Extension Point : "
+            statusHandler.warn("Unable to get Extension Point : "
                     + NC_RESOURCE_PARAMS_EXT);
             return;
         }
@@ -301,13 +299,11 @@ public class ResourceExtPointMngr {
                             .getAttribute(CONSTRAINT_NAME_TAG);
                     String prmType = config[j].getAttribute(PARAM_TYPE_TAG);
                     String dfltVal = config[j].getAttribute(DFLT_VAL_TAG);
-                    // String refLoc =
-                    // config[j].getAttribute(PARAM_REF_LOC_TAG);
 
                     // sanity check ; these are required
                     if (rscName == null || prmName == null
                             || prmClassName == null || prmType == null) {
-                        System.out.println("Invalid Extension of Ext Point: "
+                        statusHandler.warn("Invalid Extension of Ext Point: "
                                 + NC_RESOURCE_PARAMS_EXT);
                         continue;
                     }
@@ -319,10 +315,10 @@ public class ResourceExtPointMngr {
                     ResourceExtPointInfo repi = rscExtPointInfoMap.get(rscName);
 
                     if (repi == null) {
-                        System.out.println("Error reading "
-                                + NC_RESOURCE_PARAMS_EXT
-                                + " Ext Point: The Resource " + rscName
-                                + " is not defined.");
+                        statusHandler
+                                .warn("Error reading " + NC_RESOURCE_PARAMS_EXT
+                                        + " Ext Point: The Resource " + rscName
+                                        + " is not defined.");
                         continue;
                     }
 
@@ -330,12 +326,11 @@ public class ResourceExtPointMngr {
                         constraintName = prmName;
                     }
 
-                    // this only exists for Grids where the parameter name is
-                    // upper case
-                    // and the attribute name (ie the name of the member
-                    // variable in the
-                    // java class) is lowercase
-                    //
+                    /*
+                     * this only exists for Grids where the parameter name is
+                     * upper case and the attribute name (ie the name of the
+                     * member variable in the java class) is lowercase
+                     */
                     if (attrName == null) {
                         attrName = prmName;
                     }
@@ -347,8 +342,8 @@ public class ResourceExtPointMngr {
                         repi.addParameter(prmName, constraintName, attrName,
                                 rscPrmClass, rscPrmType, dfltVal);
                     } catch (ClassNotFoundException e) {
-                        System.out.println("Unable to load class: "
-                                + prmClassName);
+                        statusHandler
+                                .warn("Unable to load class: " + prmClassName);
                     }
                 }
             }
@@ -360,14 +355,12 @@ public class ResourceExtPointMngr {
         // get the rsc Impl for this
         String rscImplName = null;
 
-        // if( rscCfgMngr == null ) {
         try {
             rscImplName = ResourceDefnsMngr.getInstance()
                     .getResourceImplementation(rscName.getRscType());
         } catch (VizException e) {
             e.printStackTrace();
         }
-        // }
 
         ResourceExtPointInfo repi = rscExtPointInfoMap.get(rscImplName);
 
@@ -404,36 +397,12 @@ public class ResourceExtPointMngr {
         } else if (clzName.equalsIgnoreCase("ColorBar")) {
             return "gov.noaa.nws.ncep.viz.ui.display.ColorBar";
         } else if (clzName.equalsIgnoreCase("conditionalFilter")) {
-            return "gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter";
+            return "com.raytheon.viz.pointdata.def.ConditionalFilter";
         } else if (clzName.equalsIgnoreCase("XAxisScale")) {
             return "gov.noaa.nws.ncep.viz.common.tsScaleMngr.XAxisScale";
         }
         return clzName;
     }
-
-    // public String getResourceNameForClass( Class<?> rscDataClass ) {
-    // ResourceExtPointInfo repi = rscExtPointInfoMap.get( //rscDataClass );
-    //
-    // return ( repi == null ? null : repi.rscName );
-    // }
-
-    // public HashMap<String,ResourceAttrInfo> getResourceAttributes(
-    // ResourceName rscName ) {
-    // String rscImplName = null;
-    //
-    // // if( rscCfgMngr == null ) {
-    // try {
-    // rscImplName = ResourceDefnsMngr.getInstance().getResourceImplementation(
-    // rscName.getRscType() );
-    // } catch (VizException e) {
-    // e.printStackTrace();
-    // }
-    // // }
-    //
-    // ResourceExtPointInfo repi = rscExtPointInfoMap.get( rscImplName );
-    //
-    // return ( repi == null ? null : repi.rscAttributes );
-    // }
 
     public HashMap<String, ResourceParamInfo> getParameterInfoForRscImplementation(
             ResourceName rscName) {
@@ -468,9 +437,7 @@ public class ResourceExtPointMngr {
                 return rscInfo.rscDataClass;
             }
         }
-        // if( rscExtPointInfoMap.containsKey( rscName ) ) {
-        // return rscExtPointInfoMap.get( rscName ).rscDataClass;
-        // }
+
         return null;
     }
 }

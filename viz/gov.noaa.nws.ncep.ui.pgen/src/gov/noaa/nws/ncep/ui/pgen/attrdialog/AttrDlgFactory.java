@@ -46,6 +46,8 @@ import org.eclipse.swt.widgets.Shell;
  * 06/12        #734        J. Zeng     Add SPENES
  * 11/13        #1065       J. Wu       Added kink lines.
  * 12/16        17469       W. Kwock    Added CWA Product Dialog
+ * 02/20        75024       smanoj      Fix to have correct default Text Attributes for 
+ *                                      tropical TROF front label.
  * </pre>
  * 
  * @author B. Yin
@@ -103,12 +105,14 @@ public class AttrDlgFactory {
 
         else if (pgenCategory.equalsIgnoreCase("Text")) {
 
-            if (pgenType != null
-                    && pgenType.equalsIgnoreCase("AVIATION_TEXT")) {
+            if ("AVIATION_TEXT".equalsIgnoreCase(pgenType)) {
                 return AvnTextAttrDlg.getInstance(parShell);
-            } else if (pgenType != null
-                    && pgenType.equalsIgnoreCase("MID_LEVEL_CLOUD")) {
+            } else if ("MID_LEVEL_CLOUD".equalsIgnoreCase(pgenType)) {
                 return MidLevelCloudAttrDlg.getInstance(parShell);
+            } else if (PgenConstant.TROP_TROF_TEXT.equalsIgnoreCase(pgenType)) {
+                TextAttrDlg textDlg = TextAttrDlg.getInstance(parShell);
+                textDlg.setPgenType(pgenType);
+                return textDlg;
             } else {
                 return TextAttrDlg.getInstance(parShell);
             }

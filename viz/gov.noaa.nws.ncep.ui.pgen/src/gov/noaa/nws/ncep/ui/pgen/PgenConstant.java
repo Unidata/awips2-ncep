@@ -3,27 +3,30 @@ package gov.noaa.nws.ncep.ui.pgen;
 /**
  * A central place for constants used throughout PGen, include constants here
  * that are likely to be used in more than one file within PGen.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Jun 26, 2015  R8198     srussell    Initial creation
- * 11/18/2015    R12829    J. Wu       Add more common constants.
- * 12/17/2015    R12990    J. Wu       Add more constants.
- * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
- * 01/27/2016    R13166    J. Wu       Add CIRCLE.
- * 05/02/2016    R16076    J. Wu       Add more constants.
- * 05/16/2016    R18388    J. Wu       Add more constants.
- * 05/25/2016    R17940    J. Wu       Add more constants.
- * 12/12/2016     17469    W. Kwock    Added CWA Formatter
- * 01/06/2020    71971     smanoj      Added constants for SIGMET Types
- * 02/26/2020    75024     smanoj      Added constants for Front Types and Labels
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * Jun 26, 2015  8198     srussell  Initial creation
+ * Nov 18, 2015  12829    J. Wu     Add more common constants.
+ * Dec 17, 2015  12990    J. Wu     Add more constants.
+ * Jan 14, 2016  12989    P. Moyer  Constants used in PgenTextDrawingTool that
+ *                                  can be shared.
+ * Jan 27, 2016  13166    J. Wu     Add CIRCLE.
+ * May 02, 2016  16076    J. Wu     Add more constants.
+ * May 16, 2016  18388    J. Wu     Add more constants.
+ * May 25, 2016  17940    J. Wu     Add more constants.
+ * Dec 12, 2016  17469    W. Kwock  Added CWA Formatter
+ * Jan 06, 2020  71971    smanoj    Added constants for SIGMET Types
+ * Feb 26, 2020  75024    smanoj    Added constants for Front Types and Labels
+ * Mar 13, 2020  76151    tjensen   Added TYPE_TROPICAL_CYCLONE and
+ *                                  TYPE_VOLCANIC_ASH
  *
  * </pre>
- * 
+ *
  * @author srussell
  *
  */
@@ -182,17 +185,17 @@ public final class PgenConstant {
 
     public static final String TROP_TROF_TEXT = "TROP_TROF_TEXT";
 
-    public static final String LABEL_TRPCL_WAVE  = "TRPCL WAVE";
+    public static final String LABEL_TRPCL_WAVE = "TRPCL WAVE";
 
-    public static final String TYPE_TROF =  "TROF";
+    public static final String TYPE_TROF = "TROF";
 
-    public static final String LABEL_TROF =  "TROF";
+    public static final String LABEL_TROF = "TROF";
 
-    public static final String TYPE_DRY_LINE =  "DRY_LINE";
+    public static final String TYPE_DRY_LINE = "DRY_LINE";
 
     public static final String LABEL_DRYLINE = "DRYLINE";
 
-    public static final String TYPE_INSTABILITY =  "INSTABILITY";
+    public static final String TYPE_INSTABILITY = "INSTABILITY";
 
     public static final String LABEL_SQUALL_LINE = "SQUALL LINE";
 
@@ -200,4 +203,7 @@ public final class PgenConstant {
 
     public static final String LABEL_SHEARLINE = "SHEARLINE";
 
+    public static final String TYPE_TROPICAL_CYCLONE = "TROPICAL_CYCLONE";
+
+    public static final String TYPE_VOLCANIC_ASH = "VOLCANIC_ASH";
 }

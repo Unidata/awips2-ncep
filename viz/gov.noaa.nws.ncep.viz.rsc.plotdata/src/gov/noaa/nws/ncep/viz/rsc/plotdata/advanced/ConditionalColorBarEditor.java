@@ -34,34 +34,35 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Text;
 
 import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 /**
- * // This widget is used to edit Conditional ColorBars for Plot Resources.
- * 
+ * This widget is used to edit Conditional ColorBars for Plot Resources.
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 07/24/12     #431        S. Gurung   Initial Creation.
- * 11/16/16     R21762      P. Moyer    Removed -Inf/Inf control buttons. Implemented Alpha transparency.
- * 
+ *
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Jul 24, 2012  431      S. Gurung  Initial Creation.
+ * Nov 16, 2016  21762    P. Moyer   Removed -Inf/Inf control buttons.
+ *                                   Implemented Alpha transparency.
+ * Mar 24, 2020  8049     randerso   Remove READ_ONLY from Spinner controls.
+ *                                   Code cleanup.
+ *
  * </pre>
- * 
+ *
  * @author sgurung
- * @version 1
  */
-
+/*
+ * TODO: This class seems to be largely a copy of ColorBarEditor. Consider
+ * refactoring into a single class or class hierarchy
+ */
 public class ConditionalColorBarEditor extends Composite {
-    private final int CBAR_XOFF = 15;
-
-    private final int CBAR_YOFF = 50;
+    private static final int CBAR_XOFF = 15;
 
     private ArrayList<Rectangle> colorBarRects = null;
-
-    private ArrayList<Float> intrvlsToLabel = null;
 
     private int seldIntrvl = 0;
 
@@ -81,28 +82,22 @@ public class ConditionalColorBarEditor extends Composite {
 
     private Point canvasSize = null;
 
-    private Float pixPerUnit = 1.0f;
+    private final Spinner numDecimalsSpnr;
 
-    final Spinner numDecimalsSpnr;
+    private final Button showLabelsBtn;
 
-    final Button showLabelsBtn;
+    private final Spinner intrvlMinSpnr;
 
-    final Spinner intrvlMinSpnr;
-
-    final Spinner intrvlMaxSpnr;
-
-    final Text pixelNumTxt;
-
-    final Button labelPixelBtn;
+    private final Spinner intrvlMaxSpnr;
 
     private Composite colorComp;
 
     private Composite labelColorComp;
 
-    final ColorButtonSelector intrvlColorSelector;
+    private final ColorButtonSelector intrvlColorSelector;
 
-    final ColorButtonSelector labelColorSelector; // also used for the border
-                                                  // color
+    // also used for the border color
+    private final ColorButtonSelector labelColorSelector;
 
     private Cursor pointerCursor;
 
@@ -112,6 +107,7 @@ public class ConditionalColorBarEditor extends Composite {
 
     private double scaleMult = 1.0;
 
+    // TODO: replace with proper MouseListener
     private final Listener mouseLstnr = new Listener() {
 
         @Override
@@ -119,7 +115,8 @@ public class ConditionalColorBarEditor extends Composite {
             canvas.redraw();
             switch (e.type) {
             case SWT.MouseDoubleClick:
-                System.out.println("Double Click"); // doesn't work?
+                // doesn't work?
+                System.out.println("Double Click");
                 break;
             case SWT.MouseDown:
                 if (e.button != 1) {
@@ -129,18 +126,17 @@ public class ConditionalColorBarEditor extends Composite {
                 for (Rectangle rect : colorBarRects) {
                     int intrvlIndx = colorBarRects.indexOf(rect);
 
-                    // if non-image and if drawing to scale then we
-                    // first check to see if clicking on the edge of an interval
-                    // (give them a little room for error)
-                    // (can't drag the last interval)
-                    if (colorBar.getDrawToScale()) {
+                    /*
+                     * if non-image and if drawing to scale then we first check
+                     * to see if clicking on the edge of an interval (give them
+                     * a little room for error) (can't drag the last interval)
+                     */ if (colorBar.getDrawToScale()) {
 
                         if (intrvlIndx != colorBarRects.size() - 1
                                 && Math.abs(e.x - rect.x - rect.width) <= 1) {
 
                             dragXvalue = rect.x + rect.width;
                             seldIntrvl = colorBarRects.indexOf(rect);
-                            // updateSelectedInterval();
                             break;
                         }
                     }
@@ -156,18 +152,22 @@ public class ConditionalColorBarEditor extends Composite {
                 break;
 
             case SWT.MouseMove:
-                // if not dragging, check if we on an interval and change the
-                // cursor
-                //
+                /*
+                 * if not dragging, check if we on an interval and change the
+                 * cursor
+                 */
                 if (dragXvalue == 0) {
                     boolean crossingInterval = false;
 
-                    // it only makes sense for the user to be able to drag an
-                    // interval if
-                    // the colorbar is drawn to scale.
+                    /*
+                     * it only makes sense for the user to be able to drag an
+                     * interval if the colorbar is drawn to scale.
+                     */
                     if (colorBar.getDrawToScale()) {
-                        // check to see if crossing the edge of an interval (but
-                        // not the last interval)
+                        /*
+                         * check to see if crossing the edge of an interval (but
+                         * not the last interval)
+                         */
                         for (int i = 0; i < colorBarRects.size() - 1; i++) {
                             Rectangle rect = colorBarRects.get(i);
                             if (e.y >= rect.y - 2
@@ -185,15 +185,17 @@ public class ConditionalColorBarEditor extends Composite {
                 } else {
                     dragXvalue = e.x;
 
-                    // if the user drags the max value past the min value or
-                    // past
-                    // an max value for the next interval then we will remove it
-                    // and
-                    // stop dragging.
+                    /*
+                     * if the user drags the max value past the min value or
+                     * past an max value for the next interval then we will
+                     * remove it and stop dragging.
+                     *
+                     */
                     if (e.x <= colorBarRects.get(seldIntrvl).x) {
                         colorBar.removeInterval(seldIntrvl);
                         dragXvalue = 0;
-                    } else { // note that we can't drag the last interval
+                    } else {
+                        // note that we can't drag the last interval
                         Rectangle nextRect = colorBarRects.get(seldIntrvl + 1);
 
                         if (e.x >= nextRect.x + nextRect.width) {
@@ -215,8 +217,10 @@ public class ConditionalColorBarEditor extends Composite {
                 if (e.button != 1) {
                     return;
                 }
-                // if dragging, then interpolate the new max and update the
-                // interval
+                /*
+                 * if dragging, then interpolate the new max and update the
+                 * interval
+                 */
                 if (dragXvalue != 0) {
                     Float newMax = interpolateNewIntervalMax();
                     if (newMax != Float.NaN) {
@@ -315,10 +319,8 @@ public class ConditionalColorBarEditor extends Composite {
 
         intrvlColorSelector = new ColorButtonSelector(colorComp, 50, 25, true);
 
-        labelPixelBtn = null;
-        pixelNumTxt = null;
-        intrvlMinSpnr = new Spinner(topForm, SWT.BORDER | SWT.READ_ONLY);
-        intrvlMaxSpnr = new Spinner(topForm, SWT.BORDER | SWT.READ_ONLY);
+        intrvlMinSpnr = new Spinner(topForm, SWT.BORDER);
+        intrvlMaxSpnr = new Spinner(topForm, SWT.BORDER);
 
         createNonImageCbarWidgets();
 
@@ -441,13 +443,15 @@ public class ConditionalColorBarEditor extends Composite {
 
         labelColor = new Color(colorDevice, colorBar.getLabelColor());
         canvasColor = new Color(colorDevice, 0, 0, 0);
-        seldColor = new Color(colorDevice, 255, 255, 255); // white
+        // white
+        seldColor = new Color(colorDevice, 255, 255, 255);
 
         font = new Font(colorDevice, "Times", 10, SWT.BOLD);
     }
 
-    // create listeners and init values and selections
-    //
+    /**
+     * create listeners and init values and selections
+     */
     private void initWidgets() {
         seldIntrvl = 0;
 
@@ -485,6 +489,7 @@ public class ConditionalColorBarEditor extends Composite {
         showLabelsBtn.setSelection(colorBar.getShowLabels());
 
         showLabelsBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 colorBar.setShowLabels(showLabelsBtn.getSelection());
                 computeColorBarRectangles();
@@ -516,6 +521,7 @@ public class ConditionalColorBarEditor extends Composite {
 
         });
 
+        // TODO: user proper addMouse*Listener() calls and appropriate listeners
         canvas.addListener(SWT.MouseDown, mouseLstnr);
         canvas.addListener(SWT.MouseMove, mouseLstnr);
         canvas.addListener(SWT.MouseUp, mouseLstnr);
@@ -523,6 +529,7 @@ public class ConditionalColorBarEditor extends Composite {
         labelColorSelector.setColorValue(colorBar.getLabelColor());
 
         intrvlColorSelector.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 colorBar.setRGB(seldIntrvl,
                         intrvlColorSelector.getColorValue());
@@ -533,6 +540,7 @@ public class ConditionalColorBarEditor extends Composite {
         });
 
         labelColorSelector.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 colorBar.setLabelColor(labelColorSelector.getColorValue());
                 if (labelColor != null) {
@@ -547,14 +555,18 @@ public class ConditionalColorBarEditor extends Composite {
 
     }
 
-    // update the values used to draw the colorBar
+    /**
+     * update the values used to draw the colorBar
+     */
     private void computeColorBarRectangles() {
 
-        // if an interval has been removed or added then just start over with a
-        // new array
+        /*
+         * if an interval has been removed or added then just start over with a
+         * new array
+         */
         if (colorBarRects == null
                 || colorBarRects.size() != colorBar.getNumIntervals()) {
-            colorBarRects = new ArrayList<Rectangle>();
+            colorBarRects = new ArrayList<>();
 
             for (int c = 0; c < colorBar.getNumIntervals(); c++) {
                 colorBarRects.add(new Rectangle(0, 0, 1, 1));
@@ -565,17 +577,13 @@ public class ConditionalColorBarEditor extends Composite {
         int cbarPixWidth = canvasSize.x - 2 * CBAR_XOFF;
 
         // center in the middle of the canvas
-        int barIntY = canvasSize.y / 2 - colorBar.getWidthInPixels() / 2 + 4; // 4
-                                                                              // for
-                                                                              // the
-                                                                              // text
-                                                                              // height
-                                                                              // approx.
+        // 4 for the text height approx.
+        int barIntY = canvasSize.y / 2 - colorBar.getWidthInPixels() / 2 + 4;
 
         // this will be constant if not drawing to scale
         int barIntWidth = 1;
 
-        if (colorBarRects.size() > 0) {
+        if (!colorBarRects.isEmpty()) {
             barIntWidth = (canvasSize.x - 2 * CBAR_XOFF) / colorBarRects.size();
         }
 
@@ -585,8 +593,10 @@ public class ConditionalColorBarEditor extends Composite {
             // the size in pixels of an interval to +- infinity
             int infIntSize = cbarPixWidth / intCnt;
 
-            // a scale value by dividing the width in pixels by the
-            // range of actual values (not including infinite intervals)
+            /*
+             * a scale value by dividing the width in pixels by the range of
+             * actual values (not including infinite intervals)
+             */
             Float rangeMin = (colorBar
                     .getIntervalMin(0) == Float.NEGATIVE_INFINITY
                             ? colorBar.getIntervalMax(0)
@@ -604,7 +614,7 @@ public class ConditionalColorBarEditor extends Composite {
                 cbarPixWidth -= infIntSize;
             }
 
-            pixPerUnit = cbarPixWidth / (rangeMax - rangeMin);
+            float pixPerUnit = cbarPixWidth / (rangeMax - rangeMin);
 
             for (int b = 0; b < intCnt; b++) {
                 Rectangle cbarRect = colorBarRects.get(b);
@@ -613,8 +623,10 @@ public class ConditionalColorBarEditor extends Composite {
                 cbarRect.y = barIntY;
                 cbarRect.height = colorBar.getWidthInPixels();
 
-                // determine the width of the interval in pixels. if inf then
-                // use the ave size of an interval
+                /*
+                 * determine the width of the interval in pixels. if inf then
+                 * use the ave size of an interval
+                 */
                 if ((b == 0 && colorBar
                         .getIntervalMin(0) == Float.NEGATIVE_INFINITY)
                         || (b == intCnt - 1 && colorBar.getIntervalMax(
@@ -641,7 +653,6 @@ public class ConditionalColorBarEditor extends Composite {
         canvas.redraw();
     }
 
-    //
     private void drawColorBar(Canvas canvas, GC gc) {
 
         int textHeight = gc.getFontMetrics().getHeight();
@@ -670,11 +681,13 @@ public class ConditionalColorBarEditor extends Composite {
 
         Rectangle seldRect = colorBarRects.get(seldIntrvl);
 
-        gc.setLineWidth(1); // (applyToImage ? 2 : 1) );
+        gc.setLineWidth(1);
         gc.setForeground(seldColor);
 
-        // if dragging, draw the modified interval selection.
-        // otherwise highlight the selected interval/pixel
+        /*
+         * if dragging, draw the modified interval selection. otherwise
+         * highlight the selected interval/pixel
+         */
         if (dragXvalue != 0) {
             gc.drawLine(seldRect.x + seldRect.width, seldRect.y,
                     seldRect.x + seldRect.width, seldRect.y + seldRect.height);
@@ -693,8 +706,10 @@ public class ConditionalColorBarEditor extends Composite {
                     seldRect.height + 2);
         }
 
-        // if showing the labels, draw them based on whether this for an image
-        // or not
+        /*
+         * if showing the labels, draw them based on whether this for an image
+         * or not
+         */
         if (colorBar.getShowLabels()) {
 
             gc.setForeground(labelColor);
@@ -710,8 +725,10 @@ public class ConditionalColorBarEditor extends Composite {
                 int textX = colorBarRects.get(b).x - textWidth / 2;
                 int textY = colorBarRects.get(b).y - textHeight;
 
-                // if this label will overwrite the previous one and it was not
-                // raised then raise it up
+                /*
+                 * if this label will overwrite the previous one and it was not
+                 * raised then raise it up
+                 */
                 labelRaised = (!labelRaised && textX < prevLabelExtent);
 
                 if (labelRaised) {
@@ -732,7 +749,9 @@ public class ConditionalColorBarEditor extends Composite {
         }
     }
 
-    // assembles the pattern used for representing No Color
+    /**
+     * assembles the pattern used for representing No Color
+     */
     private Pattern assembleAlphaPattern(Canvas canvas) {
         Display display = canvas.getDisplay();
         // define a pattern on an image
@@ -757,14 +776,16 @@ public class ConditionalColorBarEditor extends Composite {
             return "-Inf";
         } else if (val == Float.POSITIVE_INFINITY) {
             return "Inf";
-        } else
+        } else {
             return Float.toString(val);
+        }
     }
 
-    // this is called when the user selects an interval and when the usr
-    // modifies either
-    // by setting the min/max or by inserting or removing an interval
-    //
+    /**
+     * this is called when the user selects an interval and when the usr
+     * modifies either by setting the min/max or by inserting or removing an
+     * interval
+     */
     private void updateSelectedInterval() {
         removeModifyListenersForSpinners();
 
@@ -777,28 +798,30 @@ public class ConditionalColorBarEditor extends Composite {
 
         int lastIntrvl = colorBar.getNumIntervals() - 1;
 
-        // wait to set these values in the Spinners since we first have to
-        // change the min/max
-        // ranges or the Spinner won's accept the new selections.
+        /*
+         * wait to set these values in the Spinners since we first have to
+         * change the min/max ranges or the Spinner won's accept the new
+         * selections.
+         */
         Float minVal = colorBar.getIntervalMin(seldIntrvl) * (float) scaleMult;
         Float maxVal = colorBar.getIntervalMax(seldIntrvl) * (float) scaleMult;
 
-        // if the min/max is +-Inf then this will not be visible since it will
-        // be covered up by the Inf Text
-
-        // set the new min an max allowed values for the Spinners based on the
-        // min and max interval
-        // values of the adjacent intervals. This will also prevent the user
-        // from editing the text
-        // to be a value out of range for the interval.
-        //
+        /*
+         * if the min/max is +-Inf then this will not be visible since it will
+         * be covered up by the Inf Text
+         *
+         * set the new min an max allowed values for the Spinners based on the
+         * min and max interval values of the adjacent intervals. This will also
+         * prevent the user from editing the text to be a value out of range for
+         * the interval.
+         */
         int minMinVal, maxMinVal;
         int minMaxVal, maxMaxVal;
 
         // Set the min for the min to the min of the prev interval
         if (seldIntrvl == 0 || (seldIntrvl == 1
                 && colorBar.getIntervalMin(0) == Float.NEGATIVE_INFINITY)) {
-            minMinVal = Integer.MIN_VALUE; // Math.round( minVal ) - 1;
+            minMinVal = Integer.MIN_VALUE;
         } else {
             Float tVal = colorBar.getIntervalMin(seldIntrvl - 1).floatValue()
                     * (float) scaleMult;
@@ -815,9 +838,8 @@ public class ConditionalColorBarEditor extends Composite {
         if (seldIntrvl == lastIntrvl
                 || (seldIntrvl == lastIntrvl - 1 && colorBar.getIntervalMax(
                         lastIntrvl) == Float.POSITIVE_INFINITY)) {
-            maxMaxVal = Integer.MAX_VALUE; // colorBar.getIntervalMax(
-                                           // seldIntrvl ).floatValue() *
-                                           // (float)scaleMult;
+            maxMaxVal = Integer.MAX_VALUE;
+
         } else {
             Float tVal = colorBar.getIntervalMax(seldIntrvl + 1).floatValue()
                     * (float) scaleMult;
@@ -833,7 +855,6 @@ public class ConditionalColorBarEditor extends Composite {
         setIntervalMin(minVal);
         setIntervalMax(maxVal);
 
-        // intrvlMinSpnr.setTextLimit(limit);
         addModifyListenersForSpinners();
     }
 
@@ -849,7 +870,6 @@ public class ConditionalColorBarEditor extends Composite {
         return newMax;
     }
 
-    //
     private void setIntervalMin(Float newMin) {
 
         boolean isInf = (newMin == Float.NEGATIVE_INFINITY ? true : false);
@@ -874,28 +894,35 @@ public class ConditionalColorBarEditor extends Composite {
     public void dispose() {
         super.dispose();
 
-        if (font != null)
+        if (font != null) {
             font.dispose();
-        if (canvas != null)
+        }
+        if (canvas != null) {
             canvas.dispose();
-        if (seldColor != null)
+        }
+        if (seldColor != null) {
             seldColor.dispose();
-        if (labelColor != null)
+        }
+        if (labelColor != null) {
             labelColor.dispose();
-        if (pointerCursor != null)
+        }
+        if (pointerCursor != null) {
             pointerCursor.dispose();
-        if (dragIntrvlCursor != null)
+        }
+        if (dragIntrvlCursor != null) {
             dragIntrvlCursor.dispose();
+        }
     }
 
     public ModifyListener minSpnrListener = new ModifyListener() {
         @Override
         public void modifyText(ModifyEvent e) {
 
-            float intrvlValue = (float) intrvlMinSpnr.getSelection();
+            float intrvlValue = intrvlMinSpnr.getSelection();
 
-            if (intrvlValue == Integer.MIN_VALUE)
+            if (intrvlValue == Integer.MIN_VALUE) {
                 return;
+            }
 
             Float minVal = intrvlValue / (float) scaleMult;
 
@@ -908,13 +935,13 @@ public class ConditionalColorBarEditor extends Composite {
         @Override
         public void modifyText(ModifyEvent e) {
 
-            float intrvlValue = (float) intrvlMaxSpnr.getSelection();
+            float intrvlValue = intrvlMaxSpnr.getSelection();
 
-            if (intrvlValue == Integer.MAX_VALUE)
+            if (intrvlValue == Integer.MAX_VALUE) {
                 return;
+            }
 
-            Float maxVal = (float) intrvlMaxSpnr.getSelection()
-                    / (float) scaleMult;
+            Float maxVal = intrvlMaxSpnr.getSelection() / (float) scaleMult;
 
             colorBar.setIntervalMax(seldIntrvl, maxVal);
             computeColorBarRectangles();

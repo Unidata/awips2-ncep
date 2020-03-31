@@ -776,9 +776,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      *            - Calendar initial time
      */
     private void setInitDt(Calendar cal) {
-        initDate.setYear(cal.get(Calendar.YEAR));
-        initDate.setMonth(cal.get(Calendar.MONTH));
-        initDate.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        initDate.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH));
         initTime.setText(String.format("%1$tH%1$tM", cal));
     }
 
@@ -789,9 +788,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      *            - Calendar expiration time
      */
     private void setExpDt(Calendar cal) {
-        expDate.setYear(cal.get(Calendar.YEAR));
-        expDate.setMonth(cal.get(Calendar.MONTH));
-        expDate.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        expDate.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH));
         expTime.setText(String.format("%1$tH%1$tM", cal));
     }
 

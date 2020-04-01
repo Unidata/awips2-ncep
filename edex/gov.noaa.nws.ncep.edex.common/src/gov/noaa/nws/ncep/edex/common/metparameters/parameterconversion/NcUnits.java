@@ -29,18 +29,20 @@ import tec.uom.se.unit.ProductUnit;
 import tec.uom.se.unit.Units;
 
 /**
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- *                         archana     Initial creation
- * Apr 15, 2019  7596      lsingh      Units Framework upgrade to JSR-363
- * 
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ *                        archana   Initial creation
+ * Apr 15, 2019  7596     lsingh    Units Framework upgrade to JSR-363
+ * Apr 01, 2020  8118     randerso  Removed label for degree symbol as that is
+ *                                  not a valid ASCII character.
+ *
  * </pre>
- * 
+ *
  * @author archana
  *
  */
@@ -56,31 +58,31 @@ public class NcUnits implements ISerializableObject {
     }
 
     @DynamicSerializeElement
-    public static final Unit<AmountOfPrecipitation> KG_PER_METER_SQ = new ProductUnit<AmountOfPrecipitation>(
+    public static final Unit<AmountOfPrecipitation> KG_PER_METER_SQ = new ProductUnit<>(
             SI.KILOGRAM.divide((SI.METRE.pow(2))));
 
     @DynamicSerializeElement
     public static final Unit<?> GRAMS_PER_KILOGRAM = SI.GRAM
-            .divide(SI.KILOGRAM);
+    .divide(SI.KILOGRAM);
 
     @DynamicSerializeElement
     public static final Unit<Length> HUNDREDS_OF_FEET = USCustomary.FOOT
-            .multiply(100);
+    .multiply(100);
 
     @DynamicSerializeElement
-    public static Unit<?> INCHES_PER_THREE_HOURS = USCustomary.INCH
-            .divide(Units.HOUR.multiply(3));
+    public static final Unit<?> INCHES_PER_THREE_HOURS = USCustomary.INCH
+    .divide(Units.HOUR.multiply(3));
 
     @DynamicSerializeElement
-    public static Unit<?> INCHES_PER_HOUR = USCustomary.INCH.divide(Units.HOUR);
+    public static final Unit<?> INCHES_PER_HOUR = USCustomary.INCH.divide(Units.HOUR);
 
     @DynamicSerializeElement
-    public static Unit<PotentialForCyclonicUpdraftRotation> METER_SQUARE_PER_SECOND_SQUARE = new ProductUnit<PotentialForCyclonicUpdraftRotation>(
+    public static final Unit<PotentialForCyclonicUpdraftRotation> METER_SQUARE_PER_SECOND_SQUARE = new ProductUnit<>(
             (SI.METRE.pow(2)).divide((SI.SECOND.pow(2))));
 
     @DynamicSerializeElement
     public static final Unit<?> JOULES_PER_KILOGRAM = SI.JOULE
-            .divide(SI.KILOGRAM);
+    .divide(SI.KILOGRAM);
 
     @DynamicSerializeElement
     public static final Unit<Pressure> MILLIBAR = MetricPrefix.MILLI(NonSI.BAR);
@@ -90,35 +92,31 @@ public class NcUnits implements ISerializableObject {
 
     // TODO Rename to TEMPERATURE_PER_UNIT_HEIGHT ??
     @DynamicSerializeElement
-    public static final Unit<RateOfChangeInTemperatureWithHeight> KELVIN_PER_KILOMETER = new ProductUnit<RateOfChangeInTemperatureWithHeight>(
+    public static final Unit<RateOfChangeInTemperatureWithHeight> KELVIN_PER_KILOMETER = new ProductUnit<>(
             SI.KELVIN.divide(MetricPrefix.KILO(SI.METRE)));
 
     @DynamicSerializeElement
-    public static final Unit<RateOfChangeInTemperatureWithPressure> KELVIN_PER_MILLIBAR = new ProductUnit<RateOfChangeInTemperatureWithPressure>(
+    public static final Unit<RateOfChangeInTemperatureWithPressure> KELVIN_PER_MILLIBAR = new ProductUnit<>(
             SI.KELVIN.divide(NcUnits.MILLIBAR));
 
     @DynamicSerializeElement
-    public static final Unit<RateOfChangeInPressureWithTime> PASCALS_PER_SEC = new ProductUnit<RateOfChangeInPressureWithTime>(
+    public static final Unit<RateOfChangeInPressureWithTime> PASCALS_PER_SEC = new ProductUnit<>(
             SI.PASCAL.divide(SI.SECOND));
 
     @DynamicSerializeElement
-    public static final Unit<TemperatureTendency> KELVIN_PER_DAY = new ProductUnit<TemperatureTendency>(
+    public static final Unit<TemperatureTendency> KELVIN_PER_DAY = new ProductUnit<>(
             SI.KELVIN.divide(Units.DAY));
 
     @DynamicSerializeElement
-    public static final Unit<HeatFlux> WATT_PER_METRE_SQUARE = new ProductUnit<HeatFlux>(
+    public static final Unit<HeatFlux> WATT_PER_METRE_SQUARE = new ProductUnit<>(
             SI.WATT.divide(SI.METRE.pow(2)));
 
-    public static final Unit<Density> KILOGRAM_PER_METRE_CUBE = new ProductUnit<Density>(
+    public static final Unit<Density> KILOGRAM_PER_METRE_CUBE = new ProductUnit<>(
             MetricPrefix.KILO(SI.GRAM).divide(SI.METRE.pow(3)));
 
     public static void register() {
         final SimpleUnitFormat unitFormat = SimpleUnitFormat
-                .getInstance(SimpleUnitFormat.Flavor.ASCII); // UCUM Unit Format
-
-        if (unitFormat.isValidIdentifier("100*inHg")) {
-            System.out.println("100*inHg is invalid");
-        }
+                .getInstance(SimpleUnitFormat.Flavor.ASCII);
 
         unitFormat.label(NonSI.INCH_OF_MERCURY.divide(100), "hecto_inHg");
         unitFormat.label(HUNDREDS_OF_FEET, "hecto_ft");
@@ -135,7 +133,6 @@ public class NcUnits implements ISerializableObject {
         unitFormat.label(INCHES_PER_HOUR, "inches_per_hour");
         unitFormat.label(KG_PER_METER_SQ, "kg_per_meter_squared");
         unitFormat.label(CustomUnits.DECIBEL, "dB");
-        unitFormat.label(NonSI.DEGREE_ANGLE, "°");
 
     }
 }

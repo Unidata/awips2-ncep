@@ -75,6 +75,12 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenTcaTool;
  * Dec 2013      TTR800    B. Yin       Use UTC time class
  * Mar 20, 2019  #7572     dgilling     Code cleanup.
  *
+ * 11/08/2019   70909       smanoj       Fix to populate TCA Island breakpoint
+ *                                       correctly.
+ * 12/23/2019   72615       smanoj       Fix to automatically select new island breakpoint
+ *                                       when created.
+ * 01/09/2020   71072       smanoj       Fix TCA Attributes GUI NullPointerException
+ *
  * </pre>
  *
  * @author S. Gilbert
@@ -821,11 +827,14 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
         specialGeogTypes.setText(tca.getGeographyType());
         specialGeogTypes.setEnabled(false);
 
-        if (tca.getSegment() instanceof BreakpointPair) {
-            bkpt1Field.setText(tca.getSegment().getBreakpoints().get(0)
-                    .getName());
-            bkpt2Field.setText(tca.getSegment().getBreakpoints().get(1)
-                    .getName());
+        if (tca.getSegment() != null
+                && !tca.getSegment().getBreakpoints().isEmpty()) {
+            bkpt1Field.setText(
+                    tca.getSegment().getBreakpoints().get(0).getName());
+            if (tca.getSegment() instanceof BreakpointPair) {
+                bkpt2Field.setText(
+                        tca.getSegment().getBreakpoints().get(1).getName());
+            }
         } else {
             bkpt1Field.setText("");
             bkpt2Field.setText("");
@@ -1066,7 +1075,15 @@ public class TcaAttrDlg extends AttrDlg implements ITca, SelectionListener {
     public void addAdvisory(TropicalCycloneAdvisory advisory) {
         advisories.add(advisory);
         breakpointList.add(toListString(advisory));
-        getButton(SAVE_ID).setEnabled(true);
+        if (getButton(SAVE_ID) !=null) {
+            getButton(SAVE_ID).setEnabled(true);
+        }
+
+        // Automatically select the new advisory
+        int idx = breakpointList.getItemCount() - 1;
+        breakpointList.setSelection(idx);
+        selectAdvisory(idx);
+
     }
 
     /*

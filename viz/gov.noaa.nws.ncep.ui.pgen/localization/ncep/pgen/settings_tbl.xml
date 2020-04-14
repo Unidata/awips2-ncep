@@ -816,6 +816,10 @@
                     <textLine>Sample</textLine>
                     <textLine>Text</textLine>
                 </Text>
+                <Text pgenCategory="Text" pgenType="TROP_TROF_TEXT" fontSize="18.0" fontName="Courier" style="BOLD" justification="CENTER" rotation="0.0" rotationRelativity="SCREEN_RELATIVE" mask="true" displayType="NORMAL" yOffset="0" xOffset="0" hide="false" auto="false">
+                    <Color red="255" green="255" blue="228" alpha="255"/>
+                    <Point Lat="30.508823131419327" Lon="-98.25635229216034"/>
+                </Text>
                 <AvnText pgenCategory="Text" pgenType="AVIATION_TEXT" symbolPatternName="Not Applicable" fontSize="14.0" fontName="Courier" style="REGULAR" justification="CENTER" bottomValue="XXX" topValue="XXX" avnTextType="LOW_PRESSURE_BOX">
                     <Color red="255" green="255" blue="255" alpha="255"/>
                     <Point Lat="30.508823131419327" Lon="-98.25635229216034"/>

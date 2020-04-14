@@ -64,6 +64,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Text;
  * 06/01/2016   R18387      B. Yin      Open line dialog in activateTool().
  * 06/13/2016   R10233      J. Wu       Retain flags from previous PgenSelectHandler.
  * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
+ * 12/20/2019   71072       smanoj      Fix some NullPointerException.
  * 
  * </pre>
  * 
@@ -884,8 +885,12 @@ public class PgenContoursTool extends AbstractPgenDrawingTool
      * @param con
      */
     public void setCurrentContour(Contours con) {
-        attrDlg.setDrawableElement(con);
-        elem = con;
+        if (con != null) {
+            elem = con;
+            if (attrDlg != null) {
+                attrDlg.setDrawableElement(con);
+            }
+        }
     }
 
     /**

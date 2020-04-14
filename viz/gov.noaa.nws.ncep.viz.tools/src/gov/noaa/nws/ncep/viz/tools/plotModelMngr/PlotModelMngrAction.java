@@ -38,7 +38,8 @@ public class PlotModelMngrAction extends AbstractHandler {
             Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getShell();
             if (plotModelMngrDialog == null)
-                plotModelMngrDialog = new PlotModelMngrDialog(shell);
+                plotModelMngrDialog = new PlotModelMngrDialog(shell,
+                        arg0.getParameter("perspective"));
 
             if (!plotModelMngrDialog.isOpen())
                 plotModelMngrDialog.open();

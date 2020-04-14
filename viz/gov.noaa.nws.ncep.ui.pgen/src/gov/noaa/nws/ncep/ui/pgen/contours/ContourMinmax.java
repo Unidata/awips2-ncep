@@ -1,12 +1,15 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.contours.ContourMinMax
- * 
+ *
  * June 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
 package gov.noaa.nws.ncep.ui.pgen.contours;
+
+import java.awt.Color;
+import java.util.Iterator;
 
 import gov.noaa.nws.ncep.ui.pgen.display.IText.DisplayType;
 import gov.noaa.nws.ncep.ui.pgen.display.IText.FontStyle;
@@ -18,27 +21,26 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 
-import java.awt.Color;
-import java.util.Iterator;
-
 import org.locationtech.jts.geom.Coordinate;
-
 /**
  * Class for a ContourMinmax element - simple DECollection with one Symbol, and
  * one Text label.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 06/10		#215		J. Wu   	Initial Creation.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 06/10        #215        J. Wu       Initial Creation.
  * 07/15        R8354       J. Wu       Add "hide" flag for label.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 09/23/2019   68970       KSunil      Added LABEL_TEXT_YOFFSET
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 public class ContourMinmax extends DECollection {
+
+    public static double LABEL_TEXT_YOFFSET = -2.5;
 
     /**
      * Default constructor
@@ -61,11 +63,10 @@ public class ContourMinmax extends DECollection {
             // Create a Symbol or a ComboSymbol
             if (pgenCat.equals("Combo")) {
                 cmm = new ComboSymbol(null, new Color[] { Color.green }, 2.0F,
-                        1.0,
-                    true, loc, pgenCat, pgenType);
+                        1.0, true, loc, pgenCat, pgenType);
             } else {
                 cmm = new Symbol(null, new Color[] { Color.green }, 2.0F, 2.0,
-                    true, loc, pgenCat, pgenType);
+                        true, loc, pgenCat, pgenType);
             }
 
             cmm.setParent(this);
@@ -76,14 +77,15 @@ public class ContourMinmax extends DECollection {
         // Create a Text label. For "Symbol Only" Minmax, "text" is null.
         if (text != null) {
             Text lbl = new Text(null, "Courier", 14.0f,
-                    TextJustification.CENTER,
-                null, 0.0, TextRotation.SCREEN_RELATIVE, text,
-                FontStyle.REGULAR, Color.GREEN, 0, 0, true, DisplayType.NORMAL,
-                "Text", "General Text");
+                    TextJustification.CENTER, null, 0.0,
+                    TextRotation.SCREEN_RELATIVE, text, FontStyle.REGULAR,
+                    Color.GREEN, 0, 0, true, DisplayType.NORMAL, "Text",
+                    "General Text");
 
             // If "labelOnly", use the clicked loc and no auto-placement.
             if (pgenType != null) {
-                Coordinate pos = new Coordinate(loc.x, loc.y - 2.5);
+                Coordinate pos = new Coordinate(loc.x,
+                        loc.y + LABEL_TEXT_YOFFSET);
                 lbl.setLocation(pos);
                 lbl.setAuto(true);
                 lbl.setHide(hide);

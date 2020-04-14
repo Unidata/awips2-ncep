@@ -276,7 +276,7 @@
       </command>               
        <command
           id="gov.noaa.nws.ncep.ui.pgen.activityConfigure"
-          name="Configure PGEN  Acitivities">
+          name="Configure PGEN  Activities">
       </command>  
       <command
           id="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
@@ -623,17 +623,6 @@
    
     <extension
        point="org.eclipse.ui.menus">
-        <menuContribution locationURI="menu:tools?after=tools.Pg">
-            <command
-                commandId="gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette"
-                label="PGEN Display">
-                <visibleWhen>
-                    <reference
-                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-                    </reference>
-                </visibleWhen>
-            </command>
-        </menuContribution>
         <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.viz.overlays.staticOverlay">
             <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.palette"
@@ -3447,6 +3436,20 @@
 	         extensionFilter=".xml,.tbl,.png,.txt,.xsl,.xlt,.xslt">
        </path>
     </extension>
+
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:tools?after=tools.Pg">
+           <command
+                   commandId="gov.noaa.nws.ncep.ui.nctextui.palette"
+                   id="gov.noaa.nws.ncep.ui.nctextui.palette"
+                   label="NCTEXT"
+                   tooltip="nctext">
+             </command>
+       </menuContribution>
+   </extension>
+
    <extension
          point="com.raytheon.uf.viz.core.classContext">
          <classContext
@@ -3462,5 +3465,31 @@
    <extension
          point="com.raytheon.uf.viz.kml.export.disable">
          <kmlDisable class="gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource"/>
+   </extension>
+
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:tools?after=tools.Pg">
+           <command
+              label="Configure PGEN Activity"
+              commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
+           </command>
+       </menuContribution>
+   </extension>
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="menu:gfe?after=gov.noaa.nws.ncep.ui.pgen.palette">
+           <command
+              label="Configure PGEN Activity"
+              commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
+              <visibleWhen>
+                 <reference
+                     definitionId="com.raytheon.viz.gfe.inGFEActionSet">
+                 </reference>                        
+              </visibleWhen>
+           </command>
+       </menuContribution>
    </extension>
 </plugin>

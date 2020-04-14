@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.viz.ui.locator.resource;
 
 import java.awt.geom.Rectangle2D;
 
+import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
 import com.raytheon.uf.viz.core.drawables.IFont;
@@ -24,31 +25,33 @@ import org.locationtech.jts.geom.Coordinate;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
  *
- * 12/10/2011   #561        Greg Hull   make this a real nc resource
- * 12/14/1212   #903        Greg Hull   fontSize attribute, and color
- * 04/29/2019   #62919      K Sunil     changes to make Locator tool work on D2D.
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- ------------------------------------------
+ * Dec 10, 2011  561      Greg Hull  make this a real nc resource
+ * Dec 14, 1212  903      Greg Hull  fontSize attribute, and color
+ * Apr 29, 2019  62919    K Sunil    changes to make Locator tool work on D2D.
+ * Jun 11, 2019  63680    tjensen    Move registerMouseHandler call to init
+ * Jan 21  2020  73596    smanoj     Fix lat/lon in side panes for locator tool
+ * 
  * </pre>
  *
  * @author ghull
- * @version 1.0
  *
  */
 public class LocatorResource
         extends AbstractVizResource<LocatorResourceData, IMapDescriptor>
         implements INatlCntrsResource {
 
-    private LocatorResourceData locRscData;
+    private final LocatorResourceData locRscData;
 
     protected Coordinate currCoor = null;
 
     private IFont font = null;
 
-    private LocatorDataSource locDataSources[] = new LocatorDataSource[LocatorResourceData.MAX_NUM_SOURCES];
+    private final LocatorDataSource locDataSources[] = new LocatorDataSource[LocatorResourceData.MAX_NUM_SOURCES];
 
-    private LocatorDisplayAttributes dispAttrs[] = new LocatorDisplayAttributes[LocatorResourceData.MAX_NUM_SOURCES];
+    private final LocatorDisplayAttributes dispAttrs[] = new LocatorDisplayAttributes[LocatorResourceData.MAX_NUM_SOURCES];
 
     private IGraphicsTarget currTarget = null;
 
@@ -63,8 +66,6 @@ public class LocatorResource
         super(resourceData, loadProperties);
         locRscData = resourceData;
         handler = new LocatorMouseAdapter();
-        editor = ((AbstractEditor) EditorUtil.getActiveEditor());
-        editor.registerMouseHandler(handler);
     }
 
     @Override
@@ -92,6 +93,16 @@ public class LocatorResource
 
                 locDataSources[p] = locDataSrc;
             }
+        }
+
+        // Wait until initialization to get the active editor to ensure editor
+        // not null
+        editor = ((AbstractEditor) EditorUtil.getActiveEditor());
+        if (editor != null) {
+            editor.registerMouseHandler(handler);
+        } else {
+            statusHandler.error(
+                    "Unable to determine editor to register Locator resource.");
         }
     }
 
@@ -142,9 +153,10 @@ public class LocatorResource
                     locLabelStr);
 
             if (textBounds.getHeight() > maxHeight) {
-                if (locLabelStr != null && (!locLabelStr.isEmpty()))
+                if (locLabelStr != null && (!locLabelStr.isEmpty())) {
                     maxHeight = currTarget.getStringBounds(font, "J_/")
                             .getHeight();
+                }
             }
 
             currTarget.drawString(font, locLabelStr, x0, y0, 0,
@@ -212,7 +224,12 @@ public class LocatorResource
         @Override
         public boolean handleMouseMove(int x, int y) {
 
-            currCoor = editor.translateClick(x, y);
+            IDisplayPaneContainer container = getResourceContainer();
+            if (container == null) {
+                return false;
+            }
+
+            currCoor = container.translateClick(x, y);
             if (currTarget != null && currPaintProps != null) {
                 issueRefresh();
             }

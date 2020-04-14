@@ -8,6 +8,7 @@
 package gov.noaa.nws.ncep.ui.pgen.elements;
 
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
@@ -43,39 +44,37 @@ import org.locationtech.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/09					J. Wu   	Initial Creation.
- * 02/09					B. Yin		Added pgenType and locations as parameters
- * 										of the create(...) method. 	
- * 04/09		#88			J. Wu   	Added Text.
- * 04/09		#89			J. Wu   	Added Arc.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 01/09                    J. Wu       Initial Creation.
+ * 02/09                    B. Yin      Added pgenType and locations as parameters
+ *                                      of the create(...) method.
+ * 04/09        #88         J. Wu       Added Text.
+ * 04/09        #89         J. Wu       Added Arc.
  * 05/09        #42         S. Gilbert  Added pgenType and pgenCategory
- * 05/09		#111		J. Wu   	Added Vector.
+ * 05/09        #111        J. Wu       Added Vector.
  * 06/09        #42         S. Gilbert  Added ComboSymbol
- * 07/09		#135		B. Yin		Added Jet and changed DE to ADC
+ * 07/09        #135        B. Yin      Added Jet and changed DE to ADC
  * 07/09        #104        S. Gilbert  Added AvnText
- * 08/09		#135		B. Yin		Added parameter parent for create()
+ * 08/09        #135        B. Yin      Added parameter parent for create()
  * 09/09        #163        S. Gilbert  Added TCA
- * 10/09		#160		G. Zhang	Added Sigmet
- * 01/10		#182		G. Zhang	Added ConvSigmet
- * 01/10		#104?		S. Gilbert	Added Mid Level Cloud
- * 03/10		#223		M.Laryukhin	Gfa added. 
- * 09/10		#304		B. Yin		Added LabeledLine
- * 09/11		?			B. Yin		Added TCM
+ * 10/09        #160        G. Zhang    Added Sigmet
+ * 01/10        #182        G. Zhang    Added ConvSigmet
+ * 01/10        #104?       Gilbert     Added Mid Level Cloud
+ * 03/10        #223        M.Laryukhin Gfa added. 
+ * 09/10        #304        B. Yin      Added LabeledLine
+ * 09/11        ?           B. Yin      Added TCM
  * 03/12        #625        S. Gurung   Make Line and Line(Med) thicker for CCFP_SIGMET
  * 04/12        #734        J. Zeng     Added SPENES
  * 11/13/12     #1065       J. Wu       Added kink lines
+ * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  * 
  * </pre>
  * 
  * @author J. Wu
- * @version 0.0.1
+ * 
  */
 public class DrawableElementFactory {
-
-    // private final static org.apache.log4j.Logger log =
-    // org.apache.log4j.Logger.getLogger(DrawableElementFactory.class);
 
     public AbstractDrawableComponent create(DrawableType typeName,
             IAttribute attr, String pgenCategory, String pgenType,
@@ -193,7 +192,8 @@ public class DrawableElementFactory {
             ConvSigmet csgm = (ConvSigmet) de;
             csgm.setLinePoints(locations);
 
-            if (pgenType.equals("CCFP_SIGMET") && attr instanceof ICcfp) {
+            if (pgenType.equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET) 
+                    && attr instanceof ICcfp) {
 
                 ((ICcfp) attr).copyEditableAttrToAbstractSigmet(csgm);
                 break;
@@ -299,7 +299,7 @@ public class DrawableElementFactory {
      */
     public Outlook createOutlook(String otlkType,
             AbstractDrawableComponent child, DECollection dec, Outlook otlk) {
-        // AbstractDrawableComponent layer){
+
         /*
          * Outlook is a DECollection that contains lines and texts. It is not a
          * DrawableElemnt, so the generic create() method cannot apply for
@@ -309,9 +309,9 @@ public class DrawableElementFactory {
         Outlook newOtlk = null;
         ;
         if (otlk == null) {
-            newOtlk = new Outlook("Outlook");
+            newOtlk = new Outlook(PgenConstant.TYPE_OUTLOOK);
             newOtlk.setOutlookType(otlkType);
-            newOtlk.setPgenCategory("MET");
+            newOtlk.setPgenCategory(PgenConstant.CATEGORY_MET);
             newOtlk.setPgenType(otlkType);
         } else {
             newOtlk = otlk.copy();
@@ -358,9 +358,7 @@ public class DrawableElementFactory {
          * Create the WatchBox element and add it to the product
          */
         if (watchPts != null) {
-            // watchBox = (WatchBox)def.create( DrawableType.WATCH_BOX,
-            // (IAttribute)attrDlg,
-            // pgenCategory, pgenType, watchPts, drawingLayer.getActiveLayer());
+
             watchBox = new WatchBox();
 
             watchBox.setLinePoints(watchPts);
@@ -372,9 +370,9 @@ public class DrawableElementFactory {
             watchBox.setPgenType(pgenType);
 
             // add the watch box to PGEN resource
-            DECollection dec = new DECollection("Watch");
+            DECollection dec = new DECollection(PgenConstant.TYPE_WATCH);
             dec.setPgenType("WatchBox");
-            dec.setPgenCategory("MET");
+            dec.setPgenCategory(PgenConstant.CATEGORY_MET);
             dec.add(watchBox);
 
             return dec;
@@ -404,7 +402,7 @@ public class DrawableElementFactory {
         Line ln = new Line();
         ln.update(attrDlg);
         ln.setLinePoints(points);
-        ln.setPgenCategory("Lines");
+        ln.setPgenCategory(PgenConstant.CATEGORY_LINES);
 
         if (pgentype.equalsIgnoreCase("Cloud")) {
 
@@ -425,7 +423,7 @@ public class DrawableElementFactory {
                 ll.setPgenType(pgentype);
                 ll.setParent(parent);
             }
-        } else if ("CCFP_SIGMET".equalsIgnoreCase(pgentype)) {
+        } else if (PgenConstant.TYPE_CCFP_SIGMET.equalsIgnoreCase(pgentype)) {
 
             Sigmet sig = new Sigmet();
 
@@ -447,7 +445,7 @@ public class DrawableElementFactory {
             }
 
             if (ll == null || !(ll instanceof Ccfp)) {
-                ll = new Ccfp("CCFP_SIGMET");
+                ll = new Ccfp(PgenConstant.TYPE_CCFP_SIGMET);
                 ll.setPgenCategory(pgenCat);
                 ll.setPgenType(pgentype);
                 ll.setParent(parent);

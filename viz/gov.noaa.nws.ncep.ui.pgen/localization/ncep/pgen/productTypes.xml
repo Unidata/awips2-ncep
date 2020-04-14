@@ -3157,7 +3157,7 @@
         </ns3:PgenLayer>
         <ns3:PgenSave outputFile="CCFP.22Z.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
-    <ns3:ProductType Name="Intl_SIGMET" Type="Intl SIGMET" Subtype="None">
+    <ns3:ProductType Name="" Type="INTL SIGMET" Subtype="None">
         <ns3:PgenControls>
             <ns3:Name>Open</ns3:Name>
             <ns3:Name>Save</ns3:Name>
@@ -3205,7 +3205,7 @@
                 <ns3:Name>INTL_SIGMET</ns3:Name>
             </ns3:PgenObjects>
         </ns3:PgenClass>
-        <ns3:PgenSave outputFile="Intl_SIGMET.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="INTL_SIGMET.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="CONV SIGMET" Subtype="None">
         <ns3:PgenControls>

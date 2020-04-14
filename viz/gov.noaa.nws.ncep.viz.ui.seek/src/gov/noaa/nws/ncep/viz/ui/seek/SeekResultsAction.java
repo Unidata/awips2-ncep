@@ -8,10 +8,13 @@ import org.eclipse.ui.PlatformUI;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
+import com.raytheon.uf.viz.core.IDisplayPane;
+import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.editor.EditorInput;
@@ -49,6 +52,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * Apr 12, 2019  7803        K. Sunil  changes to make SeekTool work on D2D
  *                                     perspective
  * May 08, 2019  63530       tjensen   Added takeControl()
+ * Sep 30, 2019  69187       ksunil    removed dependence on the active display.
+ *                                     Make SeekTool work for Multi-Panel
  *
  * </pre>
  *
@@ -216,6 +221,7 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 if (ll == null) {
                     return false;
                 }
+
                 seekDrawingLayer.getResourceData().clearStrings();
                 seekDrawingLayer.getResourceData().clearLine();
                 mapEditor.refresh();
@@ -252,14 +258,21 @@ public class SeekResultsAction extends AbstractNcModalTool {
                 }
 
                 if (seekDrawingLayer == null) {
-                    seekDrawingLayer = seekResourceData.construct(
-                            new LoadProperties(),
-                            NcEditorUtil.getDescriptor(mapEditor));
+                    seekDrawingLayer = seekResourceData
+                            .construct(new LoadProperties());
                     seekDrawingLayer
                             .init(editor.getActiveDisplayPane().getTarget());
 
-                    NcEditorUtil.getDescriptor(mapEditor).getResourceList()
-                            .add(seekDrawingLayer);
+                    for (IDisplayPane pane : mapEditor.getDisplayPanes()) {
+                        IRenderableDisplay display = pane
+                                .getRenderableDisplay();
+                        if (display != null) {
+                            ResourceList rscs = display.getDescriptor()
+                                    .getResourceList();
+                            rscs.add(seekDrawingLayer);
+                        }
+                    }
+
                 }
             } catch (VizException | NullPointerException e) {
                 e.printStackTrace();

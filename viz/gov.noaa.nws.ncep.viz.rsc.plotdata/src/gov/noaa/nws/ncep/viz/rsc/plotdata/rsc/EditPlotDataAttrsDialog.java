@@ -1,13 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilterMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.EditConditionalFilterAttrDialog;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -30,12 +22,24 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+import com.raytheon.viz.pointdata.def.AbstractConditionalFilterManager;
+import com.raytheon.viz.pointdata.def.ConditionalFilter;
+import com.raytheon.viz.pointdata.def.ConditionalFilterFactory;
+import com.raytheon.viz.pointdata.def.IConditionalFilterMngr;
+
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.EditConditionalFilterAttrDialog;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
 
 /**
  * UI for editing Point data resource attributes.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -55,13 +59,17 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 12/29/2012    #947       Greg Hull   Add unimplemented level type
  * 11/17/2015   R9579       B. Hebbard  Cleanups
  * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ * 12/10/2019   72281       K Sunil     getInstance() is now through a Factory
+ *
  * </pre>
  * 
  * @author mli
- * @version 1.0
  */
 public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(EditPlotDataAttrsDialog.class);
+
     private RscAttrValue plotDensityAttr = null;
 
     private RscAttrValue plotLevelAttr = null;
@@ -91,8 +99,9 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             Capabilities capabilities, Boolean apply) {
         super(parentShell, r, capabilities, apply);
         if (!(r instanceof PlotResourceData)) {
-            System.out
-                    .println("EditPlotDataAttrsDialog: Resource is not a PlotResource");
+            statusHandler.error(
+                    "EditPlotDataAttrsDialog: Resource is not a PlotResource");
+
             return;
         }
         isSounding = !((PlotResourceData) r).isSurfaceOnly();
@@ -109,8 +118,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             plotLevelAttr = editedRscAttrSet.getRscAttr("levelKey");
             if (plotLevelAttr == null
                     || plotLevelAttr.getAttrClass() != String.class) {
-                System.out
-                        .println("plotModelAttr is null or not of expected class plotModel?");
+                statusHandler.warn(
+                        "plotModelAttr is null or not of expected class plotModel?");
                 return topComp;
             }
         }
@@ -120,20 +129,20 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         if (plotDensityAttr == null
                 || plotDensityAttr.getAttrClass() != Integer.class) {
-            System.out
-                    .println("plotDensityAttr is null or not of expected class Integer?");
+            statusHandler.warn(
+                    "plotDensityAttr is null or not of expected class Integer?");
             return topComp;
         }
         if (plotModelAttr == null
                 || plotModelAttr.getAttrClass() != PlotModel.class) {
-            System.out
-                    .println("plotModelAttr is null or not of expected class plotModel?");
+            statusHandler.warn(
+                    "plotModelAttr is null or not of expected class plotModel?");
             return topComp;
         }
         if (condFilterAttr == null
                 || condFilterAttr.getAttrClass() != ConditionalFilter.class) {
-            System.out
-                    .println("condFilterAttr is null or not of expected class ConditionalFilter?");
+            statusHandler.warn(
+                    "condFilterAttr is null or not of expected class ConditionalFilter?");
             return topComp;
         }
 
@@ -158,8 +167,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         fd.bottom = new FormAttachment(100, -10);
         densitySldr.setLayoutData(fd);
 
-        int initSldrVal = Math.min(
-                ((Integer) plotDensityAttr.getAttrValue()).intValue(), 30);
+        int initSldrVal = Math
+                .min(((Integer) plotDensityAttr.getAttrValue()).intValue(), 30);
         densitySldr.setValues(initSldrVal, 1, 31, 1, 1, 5);
         densitySldr.setToolTipText("Density of plot stations");
 
@@ -221,9 +230,10 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         densitySldr.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                plotDensityAttr.setAttrValue(new Integer(densitySldr
-                        .getSelection()));
-                densityTxt.setText(Integer.toString(densitySldr.getSelection()));
+                plotDensityAttr
+                        .setAttrValue(new Integer(densitySldr.getSelection()));
+                densityTxt
+                        .setText(Integer.toString(densitySldr.getSelection()));
             }
         });
 
@@ -246,10 +256,10 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
                     densityTxt.setEnabled(true);
                     sparseLbl.setEnabled(true);
                     denseLbl.setEnabled(true);
-                    plotDensityAttr.setAttrValue(new Integer(densitySldr
-                            .getSelection()));
-                    densityTxt.setText(Integer.toString(densitySldr
-                            .getSelection()));
+                    plotDensityAttr.setAttrValue(
+                            new Integer(densitySldr.getSelection()));
+                    densityTxt.setText(
+                            Integer.toString(densitySldr.getSelection()));
                 }
             }
         });
@@ -308,11 +318,12 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             @Override
             public void widgetSelected(SelectionEvent event) {
 
-                ConditionalFilter cf = ConditionalFilterMngr.getInstance()
+                ConditionalFilter cf = ConditionalFilterFactory
+                        .getFilterManagerInstance(ConditionalFilterFactory.NCP)
                         .getConditionalFilter(pluginName,
                                 condFilterCombo.getText().trim());
                 if (cf == null) {
-                    cf = ConditionalFilterMngr.getInstance()
+                    cf = AbstractConditionalFilterManager
                             .getDefaultConditionalFilter(pluginName);
                 } else {
                     cf = cf.clone();
@@ -331,8 +342,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
                 editedCondFilter.setName(condFilterCombo.getText().trim());
 
                 for (int i = 0; i < condFilterCombo.getItems().length; i++) {
-                    if (condFilterCombo.getItems()[i].equals(editedCondFilter
-                            .getName())) {
+                    if (condFilterCombo.getItems()[i]
+                            .equals(editedCondFilter.getName())) {
                         editBtn.setText(" Edit... ");
                         break;
                     }
@@ -438,7 +449,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     @Override
     public void initWidgets() {
-        String[] condFiltersArray = ConditionalFilterMngr.getInstance()
+        String[] condFiltersArray = ConditionalFilterFactory
+                .getFilterManagerInstance(ConditionalFilterFactory.NCP)
                 .getAllConditionalFiltersByPlugin(pluginName);
         condFilterCombo.setItems(condFiltersArray);
         condFilterCombo.setText(editedCondFilter.getName());
@@ -457,35 +469,39 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         String condFilterName = condFilterCombo.getText().trim();
 
         if (editedCondFilter == null) {
-            editedCondFilter = ConditionalFilterMngr.getInstance()
+            editedCondFilter = AbstractConditionalFilterManager
                     .getDefaultConditionalFilter(pluginName);
         }
 
         editedCondFilter.setName(condFilterName);
 
-        // Since we are editing the filter there are cases where the previous
-        // name might be misleading. In these cases we will create a name based
-        // on the new filter.
+        /*
+         * Since we are editing the filter there are cases where the previous
+         * name might be misleading. In these cases we will create a name based
+         * on the new filter.
+         */
         Boolean renameFilter = (condFilterName.isEmpty()
-                || condFilterName.equals(ConditionalFilterMngr.NullFilterName) || condFilterName
-                .equals(editedCondFilter.getFilterAsString()));
+                || condFilterName
+                        .equals(IConditionalFilterMngr.NULL_FILTER_NAME)
+                || condFilterName.equals(editedCondFilter.getFilterAsString()));
 
         EditConditionalFilterAttrDialog editConditionalFilterDlg = new EditConditionalFilterAttrDialog(
-                shell, editedCondFilter);
+                shell, ConditionalFilterFactory.NCP, editedCondFilter);
 
         ConditionalFilter newConditionalFilter = (ConditionalFilter) editConditionalFilterDlg
                 .open(shell.getLocation().x + 50, shell.getLocation().y);
 
         if (newConditionalFilter != null) {
             if (newConditionalFilter.getSize() == 0) {
-                condFilterName = ConditionalFilterMngr.NullFilterName;
+                condFilterName = IConditionalFilterMngr.NULL_FILTER_NAME;
             } else if (renameFilter) {
                 condFilterName = newConditionalFilter.getFilterAsString();
             }
             // If the NoFilter or a saved filter was edited, then add an '*' to
             // the name to indicate that it has been modified.
-            else if (ConditionalFilterMngr.getInstance().getConditionalFilter(
-                    pluginName, condFilterName) != null) {
+            else if (ConditionalFilterFactory
+                    .getFilterManagerInstance(ConditionalFilterFactory.NCP)
+                    .getConditionalFilter(pluginName, condFilterName) != null) {
 
                 condFilterName = condFilterName + "(E)";
             }
@@ -496,8 +512,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             condFilterCombo.setFocus();
 
             editedCondFilter = newConditionalFilter;
-            editedRscAttrSet
-                    .setAttrValue("conditionalFilter", editedCondFilter);
+            editedRscAttrSet.setAttrValue("conditionalFilter",
+                    editedCondFilter);
             rscData.setRscAttrSet(editedRscAttrSet);
             rscData.setIsEdited(true);
         }

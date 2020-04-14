@@ -20,7 +20,7 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.common.style.LabelingPreferences;
+import com.raytheon.uf.common.style.ImageryLabelingPreferences;
 import com.raytheon.uf.common.style.StyleException;
 import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.ImagePreferences;
@@ -64,9 +64,9 @@ import tec.uom.se.quantity.Quantities;
  *  07/01/2016   R17376     kbugenhagen  Overloaded getColorMapName method to allow
  *                                       Modis/Viirs to use colormap names
  *                                       specified in attribute set files.
- *  12/14/2016    R20988    kbugenhagen  Update getColorMapName to allow for 
+ *  12/14/2016   R20988    kbugenhagen  Update getColorMapName to allow for 
  *                                       override of colormap name in SPF.
- *                                       
+ *  05/21/2019   64168      ksunil       Use ImageryLabelingPreference                                     
  * </pre>
  * 
  * @author kbugenhagen
@@ -329,7 +329,8 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
     private void setColorBar(ImagePreferences preferences,
             ColorMapParameters colorMapParameters) {
         if (preferences != null && preferences.getColorbarLabeling() != null) {
-            LabelingPreferences labelPrefs = preferences.getColorbarLabeling();
+            ImageryLabelingPreferences labelPrefs = preferences
+                    .getColorbarLabeling();
             colorMapParameters.setColorBarIntervals(labelPrefs.getValues());
         }
 
@@ -404,7 +405,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
     @Override
     protected void paintFrame(AbstractFrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-                    throws VizException {
+            throws VizException {
 
         FrameData currFrame = (FrameData) frameData;
         RecordData recordData = currFrame.getRecordData();
@@ -453,7 +454,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
      */
     public List<Collection<DrawableImage>> getAllImages(FrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-                    throws VizException {
+            throws VizException {
         List<RecordData> recordDataList = frameData.getRecordDataMap()
                 .get(frameData.getFrameTime());
         List<Collection<DrawableImage>> images = new ArrayList<>();

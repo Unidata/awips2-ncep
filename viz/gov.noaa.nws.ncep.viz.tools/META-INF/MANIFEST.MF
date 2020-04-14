@@ -37,4 +37,11 @@ Export-Package: gov.noaa.nws.ncep.viz.tools,
  gov.noaa.nws.ncep.viz.tools.loopManagement,
  gov.noaa.nws.ncep.viz.tools.newEditors,
  gov.noaa.nws.ncep.viz.tools.panZoom,
+ gov.noaa.nws.ncep.viz.tools.conditionalfilter,
+ gov.noaa.nws.ncep.viz.tools.plotModelMngr,
  gov.noaa.nws.ncep.viz.tools.predefinedArea
+Import-Package: com.raytheon.viz.pointdata,
+ com.raytheon.viz.pointdata.def,
+ com.raytheon.viz.pointdata.def.ui,
+ com.raytheon.viz.pointdata.rsc,
+ gov.noaa.nws.ncep.common.log.logger

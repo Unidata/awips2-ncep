@@ -115,6 +115,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                      throwing exception due to updated 
  *                                      checksum.  Replaced deprecated calls
  *                                      to LocalizationFile.save method.
+ * 12/20/2019   71069       smanoj      Modified the code to better handle
+ *                                      a null productType.getName()
  * 
  * </pre>
  * 
@@ -2631,7 +2633,7 @@ public class ProductConfigureDialog extends ProductDialog {
 
             ProductType ityp = findProductType(typeInputName, subtypeInputName);
             for (ProductType ptp : prdTyps.getProductType()) {
-                if (ityp == null && ptp.getName().equalsIgnoreCase(aliasName)) {
+                if (ityp == null && aliasName.equalsIgnoreCase(ptp.getName())) {
 
                     msg.append("Alias name '" + aliasName
                             + "' has been used.\n");

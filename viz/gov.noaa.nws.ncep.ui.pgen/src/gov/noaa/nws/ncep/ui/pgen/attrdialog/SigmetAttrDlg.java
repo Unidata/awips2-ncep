@@ -8,6 +8,8 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import java.awt.Color;
 import java.beans.PropertyDescriptor;
 import java.io.File;
@@ -108,7 +110,10 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 09/14        TTR974      J. Wu       update "editableAttrFromLine" in "setSigmet()".
  * 10/14        TTR433      J. Wu       Set input verification/output format for Phenom Lat/Lon.
  * 10/14        TTR722      J. Wu       Display TC center/Movement/FL level for ISOLATED TC.
+ * 01/07/2020   71971       smanoj      Code fix to Store and Retrieve INTL_SIGMET.
  * 03/20/2019   #7572       dgilling    Code cleanup.
+ * 01/31/2020   73863       smanoj      Added check to validate lat/lon values.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -1317,15 +1322,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.setSideOfLine(comboLine.getText());
         this.setWidthStr(txtWidth.getText());
 
-        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)) {// ONLY
-                                                                                 // the
-                                                                                 // two
-                                                                                 // with
-                                                                                 // all
-            btnLine.setEnabled(false);
-            btnIsolated.setEnabled(false);
-            comboLine.setEnabled(false);
-            txtWidth.setEnabled(false);
+        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType) 
+             && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)) {
+                btnLine.setEnabled(false);
+                btnIsolated.setEnabled(false);
+                comboLine.setEnabled(false);
+                txtWidth.setEnabled(false);
         }
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++ selected
@@ -2089,11 +2091,36 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String forecaster = System.getProperty("user.name");
             ProductTime refTime = new ProductTime();
 
-            Product defaultProduct = new Product("Intl_SIGMET", "Intl SIGMET",
-                    forecaster, null, refTime, layerList);
-            // defaultProduct.addLayer(defaultLayer);
-            defaultProduct.setOutputFile(SigmetAttrDlg.this.drawingLayer
-                    .buildActivityLabel(defaultProduct));
+            // Use (hardcode) pgenType as the name and type of a new Product.
+            Product defaultProduct = new Product(
+                    SigmetAttrDlg.this.pgenType,
+                    SigmetAttrDlg.this.pgenType, forecaster, null, refTime,
+                    layerList);
+
+            String plabel = SigmetAttrDlg.this.drawingLayer
+                    .getActiveProduct().getOutputFile();
+            if (plabel == null) {
+                plabel = SigmetAttrDlg.this.drawingLayer
+                        .buildActivityLabel(defaultProduct);
+            }
+
+            // Construct a new label name and activity xml filename by using
+            // (1) pgenType as the prefix, and
+            // (2) its tag name inserted before the filename extension "xml"
+            // with a dot connecting each field in the filename,
+            // e.g., "INTL_SIGMET.07012020.10.KKCI_BRAVO_5.xml".
+            String prefix = SigmetAttrDlg.this.pgenType.replaceAll("\\s",
+                    "");
+            String fromFileName = getFileName();
+            String tagName = fromFileName.substring(0,
+                    fromFileName.indexOf('.'));
+            int insertionPoint = plabel.lastIndexOf('.');
+            String filename = prefix
+                    + plabel.substring(plabel.indexOf('.'), insertionPoint + 1)
+                    + tagName + plabel.substring(insertionPoint);
+
+            defaultProduct.setOutputFile(filename);
+
             defaultProduct.setCenter(PgenUtil.getCurrentOffice());
 
             try {
@@ -2962,14 +2989,37 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             Coordinate coor = coors[i];
 
             result.append(coor.y >= 0 ? "N" : "S");
-            long y = ((int) Math.abs(coor.y) * 100)
-                    + Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            int latDeg = ((int) Math.abs(coor.y) * 100);
+            int latMin = (int) Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            long y = 0;
+
+            // Coordinates are specified in degrees and minutes.
+            // The expected minutes range from 0 to 59.
+            if (latMin >= 60) {
+                latMin = latMin - 60;
+                latDeg = ((latDeg/100) + 1) * 100;
+                y = latDeg + latMin;
+            } else {
+                y = ((int) Math.abs(coor.y) * 100)
+                        + Math.round(Math.abs(coor.y - (int) (coor.y)) * 60);
+            }
             result.append(new DecimalFormat(FOUR_ZERO).format(y));
 
             result.append(coor.x >= 0 ? " E" : " W");
-            long x = ((int) Math.abs(coor.x)) * 100
-                    + Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            int lonDeg = ((int) Math.abs(coor.x)) * 100;
+            int lonMin = (int) Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            long x = 0;
 
+            // Coordinates are specified in degrees and minutes.
+            // The expected minutes range from 0 to 59.
+            if (lonMin >= 60) {
+                lonMin = lonMin - 60;
+                lonDeg = ((lonDeg/100) + 1) * 100;
+                x = lonDeg + lonMin;
+            } else {
+                x = ((int) Math.abs(coor.x)) * 100
+                        + Math.round(Math.abs(coor.x - (int) (coor.x)) * 60);
+            }
             result.append(new DecimalFormat(FIVE_ZERO).format(x));
 
             if (i < (coors.length - 1)) {

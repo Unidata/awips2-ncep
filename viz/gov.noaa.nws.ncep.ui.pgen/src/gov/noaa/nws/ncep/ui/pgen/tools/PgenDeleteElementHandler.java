@@ -18,9 +18,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.filter.AcceptFilter;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.PlatformUI;
-
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import org.locationtech.jts.geom.Coordinate;
 
@@ -34,6 +31,9 @@ import org.locationtech.jts.geom.Coordinate;
  * 04/13		927			B. Yin   	Moved from the PgenDeleteElement class
  * 04/14        1117        J. Wu       Added confirmation for deleting contours
  * 07/15        R8352       J. Wu       "Delete" contours components, not whole contours.
+ * 01/13/2020   71072       smanoj      "Delete" for multi-select.
+ * 02/20/2020   74901       smanoj      Removed confirmation for deleting contours.
+ *                                      Undo functionality issues are also fixed.
  * 
  * </pre>
  * 
@@ -175,40 +175,7 @@ public class PgenDeleteElementHandler extends InputHandlerDefaultImpl {
      * Deletes the selected element or component from the PGEN resource.
      */
     private void doDelete() {
-
-        AbstractDrawableComponent adc = pgenrsc.getSelectedComp();
-
-        // Ask for user confirmation before deleting a Contours element.
-        boolean deleteContour = true;
-        if (adc instanceof Contours) {
-
-            /*
-             * Confirm request to delete a Contour.
-             */
-            String msg = "Are you sure you want to delete this Contour completely?";
-
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm Delete of a Contour", null, msg,
-                    MessageDialog.QUESTION, new String[] { "OK", "Cancel" }, 0);
-            confirmDlg.open();
-
-            if (!(confirmDlg.getReturnCode() == MessageDialog.OK)) {
-                deleteContour = false;
-            }
-        }
-
-        if (deleteContour) {
-
-            if (adc.getParent().getName().equalsIgnoreCase("labeledSymbol")) {
-                pgenrsc.removeElement(adc.getParent());
-            } else {
-                pgenrsc.removeElement(adc);
-            }
-        }
-
-        // de-select element
-        pgenrsc.removeSelected();
+        pgenrsc.deleteSelectedElements();
         mapEditor.refresh();
     }
 

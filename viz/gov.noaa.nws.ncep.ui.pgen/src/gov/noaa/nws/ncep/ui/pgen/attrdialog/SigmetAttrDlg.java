@@ -126,7 +126,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                       INTL_SIGMET.
  * Jan 31, 2020  73863      smanoj       Added check to validate lat/lon values.
  * Mar 13, 2020  76151      tjensen      Code cleanup and added null checks
- *
+ * Apr 21, 2020  76155      ksunil       ID values for INTL is dependent on WMO value selected
  * </pre>
  *
  * @author gzhang
@@ -204,6 +204,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     protected Composite top = null;
 
     protected ColorButtonSelector cs = null;
+
+    private Combo comboMWO, comboID = null;
 
     private boolean withExpandedArea = false;
 
@@ -1377,8 +1379,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private void createDialogAreaSelected(Composite parent) {
         String[] mwoItems = SigmetInfo.AREA_MAP
                 .get(SigmetInfo.getSigmetTypeString(pgenType));
-        String[] idItems = SigmetInfo.ID_MAP
-                .get(SigmetInfo.getSigmetTypeString(pgenType));
+        String[] idItems;
 
         Composite topSelect = (Composite) super.createDialogArea(parent);
 
@@ -1411,7 +1412,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         Label lblMWO = new Label(top2, SWT.LEFT);
         lblMWO.setText(" MWO: ");
-        Combo comboMWO = new Combo(top2, SWT.READ_ONLY);
+        comboMWO = new Combo(top2, SWT.READ_ONLY);
         attrControlMap.put("editableAttrArea", comboMWO);
         comboMWO.setItems(mwoItems);
         comboMWO.select(0);
@@ -1423,18 +1424,19 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrArea(comboMWO.getText());
+                populateIdList();
             }
         });
 
         Label lblID = new Label(top2, SWT.LEFT);
         lblID.setText("ID: ");
-        Combo comboID = new Combo(top2, SWT.READ_ONLY);
+        comboID = new Combo(top2, SWT.READ_ONLY);
         attrControlMap.put("editableAttrId", comboID);
-        comboID.setItems(idItems);
-        comboID.select(0);
+        populateIdList();
+
         setEditableAttrId(comboID.getText());
         comboID.setLayoutData(
-                new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 
         comboID.addListener(SWT.Selection, new Listener() {
             @Override
@@ -1562,6 +1564,16 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             });
         }
+    }
+
+    private void populateIdList() {
+        // IF "INTL", the ID values are different for different wmo.
+        String key = SigmetInfo.SIGMET_TYPES[0]
+                .equals(SigmetInfo.getSigmetTypeString(pgenType))
+                        ? SigmetInfo.SIGMET_TYPES[0] + "-" + comboMWO.getText()
+                        : SigmetInfo.getSigmetTypeString(pgenType);
+        comboID.setItems(SigmetInfo.ID_MAP.get(key));
+        comboID.select(0);
     }
 
     private String getTimeStringPlusHourInHMS(int plusHour) {

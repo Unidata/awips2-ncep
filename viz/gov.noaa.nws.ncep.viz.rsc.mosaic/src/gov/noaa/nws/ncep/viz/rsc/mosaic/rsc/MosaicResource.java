@@ -1,15 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.mosaic.rsc;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
@@ -48,7 +38,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.image.ImagePreferences;
-import com.raytheon.uf.common.style.image.SamplePreferences;
+import com.raytheon.uf.common.style.image.NumericFormat;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.units.PiecewisePixel;
 import com.raytheon.uf.viz.core.DrawableImage;
@@ -69,42 +59,57 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 
+import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+
 /**
  * Provide Radar Mosaic raster rendering support
- * 
+ *
  * <pre>
- * 
+ *
  *  SOFTWARE HISTORY
- * 
- *  Date         Ticket#     Engineer     Description
- *  ------------ ----------  -----------  --------------------------
- *  01/2010	       204        M. Li       Initial Creation.
- *  03/2010                   B. Hebbard  Port TO11D6->TO11DR3; add localization
- *  04/2010        259        Greg Hull   Added Colorbar
- *  09/2010        307        Greg Hull   move getName to resourceData and base on 
- *                                        the productCode in the metadataMap 
- *  07/11/11                  Greg Hull   ColorBarResource 
- *  06-07-2012     717         Archana	  Updated setColorMapParameters() to store label information
- *                                        for the colorbar                                     
- *  06/21/2012     #825       Greg Hull   rm mosaicInfo.txt; get legend info from the Record.
- *  07/18/12       717        Archana     Refactored a field used to align the label data
- * 12/19/2012     #960        Greg Hull   override propertiesChanged() to update colorBar.
- * 06/15/2016     R19647      bsteffen    Improve performance
- * 10/20/2016     R20700      pmoyer      Added image brightness adjustment to paintFrame
- * 11/29/2017     5863        bsteffen    Change dataTimes to a NavigableSet
- * 
+ *
+ * Date          Ticket#  Engineer    Description
+ * ------------- -------- ----------- ------------------------------------------
+ * 01/2010       204      M. Li       Initial Creation.
+ * 03/2010                B. Hebbard  Port TO11D6->TO11DR3; add localization
+ * 04/2010       259      Greg Hull   Added Colorbar
+ * 09/2010       307      Greg Hull   move getName to resourceData and base on
+ *                                    the productCode in the metadataMap
+ * Jul 11, 2011           Greg Hull   ColorBarResource
+ * Jun 07, 2012  717      Archana     Updated setColorMapParameters() to store
+ *                                    label information for the colorbar
+ * Jun 21, 2012  825      Greg Hull   rm mosaicInfo.txt; get legend info from
+ *                                    the Record.
+ * Jul 18, 2012  717      Archana     Refactored a field used to align the label
+ *                                    data
+ * Dec 19, 2012  960      Greg Hull   override propertiesChanged() to update
+ *                                    colorBar.
+ * Jun 15, 2016  19647    bsteffen    Improve performance
+ * Oct 20, 2016  20700    pmoyer      Added image brightness adjustment to
+ *                                    paintFrame
+ * Nov 29, 2017  5863     bsteffen    Change dataTimes to a NavigableSet
+ * Apr 20, 2020  8145     randerso    Replace SamplePreferences with
+ *                                    SampleFormat
+ *
  * </pre>
- * 
+ *
  * @author mli
- * @version 1
  */
 
-public class MosaicResource extends
-        AbstractNatlCntrsResource<MosaicResourceData, NCMapDescriptor>
+public class MosaicResource
+        extends AbstractNatlCntrsResource<MosaicResourceData, NCMapDescriptor>
         implements IResourceDataChanged {
 
-    private static final IUFStatusHandler statusHandler = UFStatus.getHandler(
-            MosaicResource.class, "Mosaic");
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(MosaicResource.class, "Mosaic");
 
     /** The line color */
     private static final RGB DEFAULT_COLOR = new RGB(255, 255, 255);
@@ -113,23 +118,26 @@ public class MosaicResource extends
 
     protected class FrameData extends AbstractFrameData {
 
-        DrawableImage image;
+        private DrawableImage image;
 
-        MosaicRecord mosaicRecord;
+        private MosaicRecord mosaicRecord;
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
         }
 
+        @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             PluginDataObject pdo = ((DfltRecordRscDataObj) rscDataObj).getPDO();
             MosaicRecord mosaicRecord = (MosaicRecord) pdo;
             if (this.mosaicRecord != null) {
-                if (timeMatch(mosaicRecord.getDataTime()) >= timeMatch(this.mosaicRecord
-                        .getDataTime())) {
+                if (timeMatch(mosaicRecord.getDataTime()) >= timeMatch(
+                        this.mosaicRecord.getDataTime())) {
                     return false;
                 } else if (image != null) {
-                    /* if this is a better match, we need to create a new image. */
+                    /*
+                     * if this is a better match, we need to create a new image.
+                     */
                     image.dispose();
                     image = null;
                 }
@@ -178,8 +186,8 @@ public class MosaicResource extends
                         mosaicRecord);
                 ColorMapParameters colorMapParameters = getCapability(
                         ColorMapCapability.class).getColorMapParameters();
-                IColormappedImage cmapImage = cmapExtension.initializeRaster(
-                        callback, colorMapParameters);
+                IColormappedImage cmapImage = cmapExtension
+                        .initializeRaster(callback, colorMapParameters);
 
                 IMapMeshExtension meshExtension = target
                         .getExtension(IMapMeshExtension.class);
@@ -253,17 +261,17 @@ public class MosaicResource extends
             IDataStore dataStore = DataStoreFactory
                     .getDataStore(entry.getKey());
             try {
-                IDataRecord[] dataRecords = dataStore.retrieveDatasets(entry
-                        .getValue().toArray(new String[0]), Request.ALL);
+                IDataRecord[] dataRecords = dataStore.retrieveDatasets(
+                        entry.getValue().toArray(new String[0]), Request.ALL);
                 for (IDataRecord dataRecord : dataRecords) {
                     String dataURI = dataRecord.getGroup();
                     MosaicRecord mosaicRecord = mosaicRecordMap.get(dataURI);
-                    if (dataRecord.getName().equals(
-                            MosaicRecord.DATA_DATASET_NAME)) {
+                    if (dataRecord.getName()
+                            .equals(MosaicRecord.DATA_DATASET_NAME)) {
                         ByteDataRecord byteData = (ByteDataRecord) dataRecord;
                         mosaicRecord.setRawData(byteData.getByteData());
-                    } else if (dataRecord.getName().equals(
-                            MosaicRecord.THRESHOLD_DATASET_NAME)) {
+                    } else if (dataRecord.getName()
+                            .equals(MosaicRecord.THRESHOLD_DATASET_NAME)) {
                         ShortDataRecord shortData = (ShortDataRecord) dataRecord;
                         mosaicRecord.setThresholds(shortData.getShortData());
                     }
@@ -321,9 +329,8 @@ public class MosaicResource extends
 
             return fd.getLegendString() + "-No Data";
         } else {
-            return fd.getLegendString()
-                    + NmapCommon.getTimeStringFromDataTime(fd.getRecordTime(),
-                            "/");
+            return fd.getLegendString() + NmapCommon
+                    .getTimeStringFromDataTime(fd.getRecordTime(), "/");
         }
     }
 
@@ -341,9 +348,8 @@ public class MosaicResource extends
              * create the colorBar Resource and add it to the resourceList for
              * this descriptor.
              */
-            ResourcePair cbarRscPair = ResourcePair
-                    .constructSystemResourcePair(new ColorBarResourceData(
-                            resourceData.getColorBar()));
+            ResourcePair cbarRscPair = ResourcePair.constructSystemResourcePair(
+                    new ColorBarResourceData(resourceData.getColorBar()));
 
             descriptor.getResourceList().add(cbarRscPair);
             descriptor.getResourceList().instantiateResources(descriptor, true);
@@ -352,10 +358,10 @@ public class MosaicResource extends
 
             getCapability(ImagingCapability.class)
                     .setSuppressingMenuItems(true);
-            getCapability(ColorMapCapability.class).setSuppressingMenuItems(
-                    true);
-            getCapability(ColorableCapability.class).setSuppressingMenuItems(
-                    true);
+            getCapability(ColorMapCapability.class)
+                    .setSuppressingMenuItems(true);
+            getCapability(ColorableCapability.class)
+                    .setSuppressingMenuItems(true);
             queryRecords();
 
         }
@@ -376,13 +382,14 @@ public class MosaicResource extends
 
         try {
             if (image == null) {
-                IColormappedImage cmapImage = target.getExtension(
-                        IColormappedImageExtension.class).initializeRaster(
-                        new MosaicColorMapDataRetrievalCallback(
-                                currFrame.mosaicRecord), colorMapParameters);
+                IColormappedImage cmapImage = target
+                        .getExtension(IColormappedImageExtension.class)
+                        .initializeRaster(
+                                new MosaicColorMapDataRetrievalCallback(
+                                        currFrame.mosaicRecord),
+                                colorMapParameters);
 
-                IMesh mesh = target
-                        .getExtension(IMapMeshExtension.class)
+                IMesh mesh = target.getExtension(IMapMeshExtension.class)
                         .constructMesh(
                                 new MosaicTiler(currFrame.mosaicRecord)
                                         .constructGridGeometry(),
@@ -450,24 +457,26 @@ public class MosaicResource extends
         List<DataMappingEntry> dmEntriesList = new ArrayList<>(0);
         if (radarRecord.isFourBit()) {
             int numLevels = radarRecord.getNumLevels();
-            ArrayList<Integer> pixel = new ArrayList<>();
-            ArrayList<Float> real = new ArrayList<>();
+            List<Integer> pixel = new ArrayList<>();
+            List<Float> real = new ArrayList<>();
             for (int i = 0; i < numLevels; i++) {
                 dmEntry = new DataMappingEntry();
                 dmEntry.setPixelValue(new Double(i));
                 if (thresholds[i] instanceof Float) {
                     pixel.add(i);
                     real.add((Float) thresholds[i]);
-                    dmEntry.setDisplayValue(((Float) thresholds[i])
-                            .doubleValue());
+                    dmEntry.setDisplayValue(
+                            ((Float) thresholds[i]).doubleValue());
                     dmEntry.setLabel(((Float) thresholds[i]).toString());
                 } else {
                     dmEntry.setDisplayValue(Double.NaN);
 
-                    if (((String) thresholds[i]).compareToIgnoreCase("NO DATA") == 0) {
+                    if (((String) thresholds[i])
+                            .compareToIgnoreCase("NO DATA") == 0) {
                         dmEntry.setLabel("ND");
-                    } else
+                    } else {
                         dmEntry.setLabel((String) thresholds[i]);
+                    }
                 }
 
                 dmEntriesList.add(dmEntry);
@@ -477,13 +486,15 @@ public class MosaicResource extends
             double[] pix = new double[pixel.size()];
             int i = 0;
             for (Integer p : pixel) {
-                pix[i++] = p;
+                pix[i] = p;
+                i++;
             }
 
             double[] std = new double[real.size()];
             i = 0;
             for (Float r : real) {
-                std[i++] = r;
+                std[i] = r;
+                i++;
             }
 
             dataUnit = new PiecewisePixel(dataUnit, pix, std);
@@ -498,12 +509,15 @@ public class MosaicResource extends
 
         ColorMap colorMap;
         try {
-            colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
-                    .getResourceName().getRscCategory().getCategoryName(),
-                    resourceData.getColorMapName());
+            colorMap = (ColorMap) ColorMapUtil
+                    .loadColorMap(
+                            resourceData.getResourceName().getRscCategory()
+                                    .getCategoryName(),
+                            resourceData.getColorMapName());
         } catch (VizException e) {
-            throw new VizException("Error loading colormap: "
-                    + resourceData.getColorMapName());
+            throw new VizException(
+                    "Error loading colormap: " + resourceData.getColorMapName(),
+                    e);
         }
 
         ColorMapParameters colorMapParameters = new ColorMapParameters();
@@ -517,26 +531,24 @@ public class MosaicResource extends
         colorMapParameters.setColorMapMin(0);
         colorMapParameters.setDataMax(255);
         colorMapParameters.setDataMin(0);
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                colorMapParameters);
-        if (dmEntriesList.size() > 0) {
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
+        if (!dmEntriesList.isEmpty()) {
             DataMappingEntry[] dmEntryArray = new DataMappingEntry[dmEntriesList
                     .size()];
             dmEntriesList.toArray(dmEntryArray);
             dmPref.setSerializableEntries(dmEntryArray);
             ImagePreferences imgPref = new ImagePreferences();
             imgPref.setDataMapping(dmPref);
-            SamplePreferences sampPref = new SamplePreferences();
-            sampPref.setMinValue(0);
-            sampPref.setMaxValue(255);
-            imgPref.setSamplePrefs(sampPref);
+            imgPref.setSampleFormat(new NumericFormat(0.0, 255.0));
             ColorBarFromColormap cBar = (ColorBarFromColormap) this.cbarResource
                     .getResourceData().getColorbar();
             if (cBar != null) {
                 cBar.setImagePreferences(imgPref);
 
-                if (!cBar.isScalingAttemptedForThisColorMap())
+                if (!cBar.isScalingAttemptedForThisColorMap()) {
                     cBar.scalePixelValues();
+                }
 
                 if (radarRecord.getUnit().compareToIgnoreCase("in") == 0) {
                     cBar.setDisplayUnitStr("INCHES");
@@ -577,7 +589,8 @@ public class MosaicResource extends
     public void resourceChanged(ChangeType type, Object object) {
         if (type != null && type == ChangeType.CAPABILITY) {
             if (object instanceof ImagingCapability) {
-                ImagingCapability imgCap = getCapability(ImagingCapability.class);
+                ImagingCapability imgCap = getCapability(
+                        ImagingCapability.class);
                 ImagingCapability newImgCap = (ImagingCapability) object;
                 imgCap.setBrightness(newImgCap.getBrightness(), false);
                 imgCap.setContrast(newImgCap.getContrast(), false);
@@ -589,7 +602,8 @@ public class MosaicResource extends
 
             } else if (object instanceof ColorMapCapability) {
 
-                ColorMapCapability colorMapCap = getCapability(ColorMapCapability.class);
+                ColorMapCapability colorMapCap = getCapability(
+                        ColorMapCapability.class);
                 ColorMapCapability newColorMapCap = (ColorMapCapability) object;
                 colorMapCap.setColorMapParameters(
                         newColorMapCap.getColorMapParameters(), false);
@@ -636,8 +650,8 @@ public class MosaicResource extends
         cmapParams.setColorMap(colorBar.getColorMap());
         cmapParams.setColorMapName(resourceData.getColorMapName());
 
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                cmapParams);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(cmapParams);
 
         // TODO : how to migrate this to to11dr11? Or do we still need to do
         // this?

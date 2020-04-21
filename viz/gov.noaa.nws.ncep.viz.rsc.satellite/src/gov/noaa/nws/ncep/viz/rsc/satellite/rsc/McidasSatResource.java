@@ -27,7 +27,6 @@ import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.style.image.NumericFormat;
 import com.raytheon.uf.common.style.image.SampleFormat;
-import com.raytheon.uf.common.style.image.SamplePreferences;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -515,7 +514,6 @@ public class McidasSatResource extends NcSatelliteResource {
             if (!colorBar.isScalingAttemptedForThisColorMap()) {
                 imgPref = new ImagePreferences();
                 imgPref.setDataMapping(dmPref);
-                SamplePreferences sPref = new SamplePreferences();
                 imgPref.setSampleFormat(new NumericFormat(0.0, 255.0));
                 colorBar.setImagePreferences(imgPref);
                 colorBar.scalePixelValues();

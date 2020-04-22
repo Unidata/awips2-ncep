@@ -127,6 +127,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Jan 31, 2020  73863      smanoj       Added check to validate lat/lon values.
  * Mar 13, 2020  76151      tjensen      Code cleanup and added null checks
  * Apr 21, 2020  76155      ksunil       ID values for INTL is dependent on WMO value selected
+ * Apr 21, 2020  77994      ksunil       Tropical Cyclone and Volcanic Ash should default to 6 hours end time.
+ *               78000                   New fcst widget items for TC
  * </pre>
  *
  * @author gzhang
@@ -170,6 +172,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private static final String EDITABLE_ATTR_PHENOM_SPEED = "editableAttrPhenomSpeed";
 
     private static final String EDITABLE_ATTR_MOVEMENT = "editableAttrMovement";
+
+    private static final String EDITABLE_ATTR_FCST_AVAIL = "editableAttrFcstAvail";
+
+    private static final String EDITABLE_ATTR_FCST_TIME = "editableAttrFcstTime";
+
+    private static final String EDITABLE_ATTR_FCST_CENTER = "editableAttrFcstCntr";
 
     private static final int APPLY_ID = IDialogConstants.CLIENT_ID + 1;
 
@@ -215,7 +223,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     private boolean tropCycFlag = false;
 
-    private Text txtInfo;
+    private Text txtInfo, txtTo;
 
     private Control detailsArea;
 
@@ -262,6 +270,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private String editableAttrPhenomMaxWind;
 
     private String editableAttrFreeText;
+
+    private boolean editableAttrFcstAvail = false;
+
+    private String editableAttrFcstTime;
+
+    private String editableAttrFcstCntr;
 
     private String editableAttrTrend;
 
@@ -550,6 +564,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(editableAttrPhenom)) {
             createDetailsAreaSecondPhenom(detailsComposite);
+            createDetailsAreaForecastSection(detailsComposite);
         }
 
         // ------------------------------ Level Info:
@@ -687,9 +702,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         Label lblTo = new Label(top3, SWT.LEFT);
         lblTo.setText("To:");
 
-        final Text txtTo = new Text(top3, SWT.LEFT | SWT.BORDER);
+        txtTo = new Text(top3, SWT.LEFT | SWT.BORDER);
         attrControlMap.put("editableAttrEndTime", txtTo);
-        String endTime = StringUtil.isEmptyString(editableAttrEndTime)
+        String endTime;
+        endTime = StringUtil.isEmptyString(editableAttrEndTime)
                 ? this.getTimeStringPlusHourInHMS(4) : this.editableAttrEndTime;
         txtTo.setText(endTime);
         setEditableAttrEndTime(txtTo.getText());
@@ -781,6 +797,20 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrPhenom(comboPhenom.getText());
+                String endTime;
+                if (PgenConstant.TYPE_TROPICAL_CYCLONE
+                        .equals(comboPhenom.getText())
+                        || PgenConstant.TYPE_VOLCANIC_ASH
+                                .equals(comboPhenom.getText())) {
+                    endTime = convertTimeStringPlusHourInHMS(
+                            txtValidFrom.getText(), 6, true);
+
+                } else {
+                    endTime = convertTimeStringPlusHourInHMS(
+                            txtValidFrom.getText(), 4, true);
+                }
+                txtTo.setText(endTime);
+                setEditableAttrEndTime(txtTo.getText());
                 withExpandedArea = true;
                 tropCycFlag = PgenConstant.TYPE_TROPICAL_CYCLONE
                         .equals(editableAttrPhenom);
@@ -1218,6 +1248,56 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
     }
 
+    private void createDetailsAreaForecastSection(Composite detailsComposite) {
+
+        Group topSecPhenom = new Group(detailsComposite, SWT.LEFT);
+        topSecPhenom.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
+        topSecPhenom.setLayout(new GridLayout(8, false));
+        topSecPhenom.setText("Forecast Section:");
+
+        Label fcstVailable = new Label(topSecPhenom, SWT.LEFT);
+        fcstVailable.setText("Fcst Available: ");
+
+        Button fcstCheckBox = new Button(topSecPhenom, SWT.CHECK);
+        attrControlMap.put(EDITABLE_ATTR_FCST_AVAIL, fcstCheckBox);
+        fcstCheckBox.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                Button btn = (Button) event.getSource();
+                SigmetAttrDlg.this.setEditableAttrFcstAvail(btn.getSelection());
+            }
+        });
+
+        Label fTimeLabel = new Label(topSecPhenom, SWT.LEFT);
+        fTimeLabel.setText("Fcst Time: ");
+        Text fcstTimeText = new Text(topSecPhenom, SWT.LEFT);
+        attrControlMap.put(EDITABLE_ATTR_FCST_TIME, fcstTimeText);
+
+        fcstTimeText.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrFcstTime(fcstTimeText.getText());
+            }
+        });
+
+        Label fcstCenter = new Label(topSecPhenom, SWT.LEFT);
+        fcstCenter.setText("Z                      Fcst Center: ");
+        Text fcstCenterText = new Text(topSecPhenom, SWT.LEFT);
+        attrControlMap.put(EDITABLE_ATTR_FCST_CENTER, fcstCenterText);
+
+        fcstCenterText.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrFcstCntr(fcstCenterText.getText());
+            }
+        });
+
+    }
+
     protected final void showDetailsArea() {
         // for save, apply buttons
         withExpandedArea = true;
@@ -1379,7 +1459,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private void createDialogAreaSelected(Composite parent) {
         String[] mwoItems = SigmetInfo.AREA_MAP
                 .get(SigmetInfo.getSigmetTypeString(pgenType));
-        String[] idItems;
 
         Composite topSelect = (Composite) super.createDialogArea(parent);
 
@@ -1862,6 +1941,30 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void setEditableAttrFreeText(String editableAttrFreeText) {
         this.editableAttrFreeText = editableAttrFreeText;
+    }
+
+    public boolean getEditableAttrFcstAvail() {
+        return editableAttrFcstAvail;
+    }
+
+    public void setEditableAttrFcstAvail(boolean editableAttrFcstAvail) {
+        this.editableAttrFcstAvail = editableAttrFcstAvail;
+    }
+
+    public String getEditableAttrFcstTime() {
+        return editableAttrFcstTime;
+    }
+
+    public void setEditableAttrFcstTime(String editableAttrFcstTime) {
+        this.editableAttrFcstTime = editableAttrFcstTime;
+    }
+
+    public String getEditableAttrFcstCntr() {
+        return editableAttrFcstCntr;
+    }
+
+    public void setEditableAttrFcstCntr(String editableAttrFcstCntr) {
+        this.editableAttrFcstCntr = editableAttrFcstCntr;
     }
 
     public String getEditableAttrTrend() {
@@ -2503,7 +2606,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String startTime = getEditableAttrStartTime();
 
             if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
-                sb.append(" ").append("FORECAST ");
+                sb.append(" ").append("FCST ");
+
                 sb.append(convertTimeStringPlusHourInHMS(startTime, 6, false))
                         .append("Z");
                 sb.append(" ").append("VA CLD APRX ");
@@ -2516,14 +2620,24 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
             // ------ outlook if tropical cyclone
             if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phen)) {
-                sb.append(" ").append("FORECAST ");
-                sb.append(convertTimeStringPlusHourInHMS(startTime, 6, false))
-                        .append("Z");
-                sb.append(" ").append("TC CENTER ");
+                sb.append(" ").append("FCST ");
+                if (SigmetAttrDlg.this.getEditableAttrFcstAvail()) {
+                    sb.append(SigmetAttrDlg.this.getEditableAttrFcstTime())
+                            .append("Z ");
+                } else {
+                    sb.append(
+                            convertTimeStringPlusHourInHMS(startTime, 6, false))
+                            .append("Z");
+                    sb.append(" ").append("TC CENTER ");
+                }
 
                 String freeText = SigmetAttrDlg.this.getEditableAttrFreeText();
                 if (freeText != null && freeText.length() > 0) {
                     sb.append(freeText.toUpperCase());
+                }
+                if (SigmetAttrDlg.this.getEditableAttrFcstAvail()) {
+                    sb.append(
+                            " " + SigmetAttrDlg.this.getEditableAttrFcstCntr());
                 }
 
             }
@@ -2706,10 +2820,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             return firCalledForSecondLine ? firNameBuilder.toString() : firId;
         }
 
-        public Map<String, Object> getAttrFromDlg() {
-            return new HashMap<>();
-        }
-
         @Override
         public void setAttrForDlg(IAttribute ia) {
             // No op
@@ -2782,6 +2892,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             } catch (Exception e) {
                 statusHandler.debug(e.getLocalizedMessage(), e);
             }
+
             Control cont = attrControlMap.get(attr);
 
             if (cont instanceof Combo || cont instanceof Spinner
@@ -2794,6 +2905,16 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     }
                 }
 
+                // if there is forecast time or center, set the "fcst avail"
+                // checkbox
+                if ((EDITABLE_ATTR_FCST_TIME.equals(attr)
+                        || EDITABLE_ATTR_FCST_CENTER.equals(attr))
+                        && (!cont.isDisposed())
+                        && !StringUtils.isEmpty(typeValue)) {
+                    Button checkBox = (Button) attrControlMap
+                            .get(EDITABLE_ATTR_FCST_AVAIL);
+                    checkBox.setSelection(true);
+                }
                 if (EDITABLE_ATTR_FROM_LINE.equals(attr) && (!cont.isDisposed())
                         && typeValue != null) {
                     // New, Old, VOR Buttons
@@ -3374,6 +3495,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.setEditableAttrPhenomDirection(
                 sig.getEditableAttrPhenomDirection());
 
+        this.setEditableAttrFcstTime(sig.getEditableAttrFcstTime());
+        this.setEditableAttrFcstCntr(sig.getEditableAttrFcstCntr());
+        if (sig.getEditableAttrFcstCntr() != null
+                || sig.getEditableAttrFcstTime() != null) {
+            this.setEditableAttrFcstAvail(true);
+        }
         this.setEditableAttrRemarks(sig.getEditableAttrRemarks());
         this.setEditableAttrPhenomName(sig.getEditableAttrPhenomName());
         this.setEditableAttrPhenomPressure(sig.getEditableAttrPhenomPressure());

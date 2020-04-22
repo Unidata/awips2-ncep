@@ -5,11 +5,11 @@
 // Generated on: 2009.11.20 at 10:41:49 AM EST 
 //
 
-
 package gov.noaa.nws.ncep.ui.pgen.file;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,11 +17,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -75,112 +77,183 @@ import javax.xml.bind.annotation.XmlType;
  * 
  * 
  */
+/**
+ * Element class for sigmet.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * ???          ???         ???         Initial Creation.
+ * 04/28/20     77994       ksunil      new fields for TC.
+ *
+ * </pre>
+ *
+ */
+
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "color",
-    "point"
-})
+@XmlType(name = "", propOrder = { "color", "point" })
 @XmlRootElement(name = "Sigmet")
 public class Sigmet {
 
     @XmlElement(name = "Color", required = true)
     protected List<Color> color;
+
     @XmlElement(name = "Point", required = true)
     protected List<Point> point;
+
     @XmlAttribute
     protected String pgenType;
+
     @XmlAttribute
     protected String fillPattern;
+
     @XmlAttribute
     protected Boolean filled;
+
     @XmlAttribute
     protected Boolean closed;
+
     @XmlAttribute
     protected Integer smoothFactor;
+
     @XmlAttribute
     protected Double sizeScale;
+
     @XmlAttribute
     protected Float lineWidth;
+
     @XmlAttribute
     protected String pgenCategory;
+
     @XmlAttribute
     protected String type;
+
     @XmlAttribute
     protected Double width;
+
     @XmlAttribute
     protected String editableAttrArea;
+
     @XmlAttribute
     protected String editableAttrIssueOffice;
+
     @XmlAttribute
     protected String editableAttrStatus;
+
     @XmlAttribute
     protected String editableAttrId;
+
     @XmlAttribute
     protected String editableAttrSeqNum;
+
     @XmlAttribute
     protected String editableAttrStartTime;
+
     @XmlAttribute
     protected String editableAttrEndTime;
+
     @XmlAttribute
     protected String editableAttrRemarks;
+
     @XmlAttribute
     protected String editableAttrPhenom;
+
     @XmlAttribute
     protected String editableAttrPhenom2;
+
     @XmlAttribute
     protected String editableAttrPhenomName;
+
     @XmlAttribute
     protected String editableAttrPhenomLat;
+
     @XmlAttribute
     protected String editableAttrPhenomLon;
+
     @XmlAttribute
     protected String editableAttrPhenomPressure;
+
     @XmlAttribute
     protected String editableAttrPhenomMaxWind;
+
     @XmlAttribute
     protected String editableAttrFreeText;
+
     @XmlAttribute
     protected String editableAttrTrend;
+
     @XmlAttribute
     protected String editableAttrMovement;
+
     @XmlAttribute
     protected String editableAttrPhenomSpeed;
+
     @XmlAttribute
     protected String editableAttrPhenomDirection;
+
     @XmlAttribute
     protected String editableAttrLevel;
+
     @XmlAttribute
     protected String editableAttrLevelInfo1;
+
     @XmlAttribute
     protected String editableAttrLevelInfo2;
+
     @XmlAttribute
     protected String editableAttrLevelText1;
+
     @XmlAttribute
     protected String editableAttrLevelText2;
+
     @XmlAttribute
     protected String editableAttrFromLine;
+
     @XmlAttribute
     protected String editableAttrFir;
+
+    @XmlAttribute
+    protected String editableAttrFcstTime;
+
+    @XmlAttribute
+    protected String editableAttrFcstCntr;
+
+    public String getEditableAttrFcstTime() {
+        return editableAttrFcstTime;
+    }
+
+    public void setEditableAttrFcstTime(String editableAttrFcstTime) {
+        this.editableAttrFcstTime = editableAttrFcstTime;
+    }
+
+    public String getEditableAttrFcstCntr() {
+        return editableAttrFcstCntr;
+    }
+
+    public void setEditableAttrFcstCntr(String editableAttrFcstCntr) {
+        this.editableAttrFcstCntr = editableAttrFcstCntr;
+    }
 
     /**
      * Gets the value of the color property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the color property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the color property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getColor().add(newItem);
+     * getColor().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Color }
+     * Objects of the following type(s) are allowed in the list {@link Color }
      * 
      * 
      */
@@ -195,21 +268,21 @@ public class Sigmet {
      * Gets the value of the point property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the point property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the point property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getPoint().add(newItem);
+     * getPoint().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Point }
+     * Objects of the following type(s) are allowed in the list {@link Point }
      * 
      * 
      */
@@ -223,10 +296,8 @@ public class Sigmet {
     /**
      * Gets the value of the pgenType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenType() {
         return pgenType;
@@ -236,9 +307,8 @@ public class Sigmet {
      * Sets the value of the pgenType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenType(String value) {
         this.pgenType = value;
@@ -247,10 +317,8 @@ public class Sigmet {
     /**
      * Gets the value of the fillPattern property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getFillPattern() {
         return fillPattern;
@@ -260,9 +328,8 @@ public class Sigmet {
      * Sets the value of the fillPattern property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setFillPattern(String value) {
         this.fillPattern = value;
@@ -271,10 +338,8 @@ public class Sigmet {
     /**
      * Gets the value of the filled property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isFilled() {
         return filled;
@@ -284,9 +349,8 @@ public class Sigmet {
      * Sets the value of the filled property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setFilled(Boolean value) {
         this.filled = value;
@@ -295,10 +359,8 @@ public class Sigmet {
     /**
      * Gets the value of the closed property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isClosed() {
         return closed;
@@ -308,9 +370,8 @@ public class Sigmet {
      * Sets the value of the closed property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setClosed(Boolean value) {
         this.closed = value;
@@ -319,10 +380,8 @@ public class Sigmet {
     /**
      * Gets the value of the smoothFactor property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
+     * @return possible object is {@link Integer }
+     * 
      */
     public Integer getSmoothFactor() {
         return smoothFactor;
@@ -332,9 +391,8 @@ public class Sigmet {
      * Sets the value of the smoothFactor property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
+     *            allowed object is {@link Integer }
+     * 
      */
     public void setSmoothFactor(Integer value) {
         this.smoothFactor = value;
@@ -343,10 +401,8 @@ public class Sigmet {
     /**
      * Gets the value of the sizeScale property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getSizeScale() {
         return sizeScale;
@@ -356,9 +412,8 @@ public class Sigmet {
      * Sets the value of the sizeScale property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setSizeScale(Double value) {
         this.sizeScale = value;
@@ -367,10 +422,8 @@ public class Sigmet {
     /**
      * Gets the value of the lineWidth property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Float }
-     *     
+     * @return possible object is {@link Float }
+     * 
      */
     public Float getLineWidth() {
         return lineWidth;
@@ -380,9 +433,8 @@ public class Sigmet {
      * Sets the value of the lineWidth property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Float }
-     *     
+     *            allowed object is {@link Float }
+     * 
      */
     public void setLineWidth(Float value) {
         this.lineWidth = value;
@@ -391,10 +443,8 @@ public class Sigmet {
     /**
      * Gets the value of the pgenCategory property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenCategory() {
         return pgenCategory;
@@ -404,9 +454,8 @@ public class Sigmet {
      * Sets the value of the pgenCategory property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenCategory(String value) {
         this.pgenCategory = value;
@@ -415,10 +464,8 @@ public class Sigmet {
     /**
      * Gets the value of the type property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getType() {
         return type;
@@ -428,9 +475,8 @@ public class Sigmet {
      * Sets the value of the type property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setType(String value) {
         this.type = value;
@@ -439,10 +485,8 @@ public class Sigmet {
     /**
      * Gets the value of the width property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getWidth() {
         return width;
@@ -452,9 +496,8 @@ public class Sigmet {
      * Sets the value of the width property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setWidth(Double value) {
         this.width = value;
@@ -463,10 +506,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrArea property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrArea() {
         return editableAttrArea;
@@ -476,9 +517,8 @@ public class Sigmet {
      * Sets the value of the editableAttrArea property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrArea(String value) {
         this.editableAttrArea = value;
@@ -487,10 +527,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrIssueOffice property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrIssueOffice() {
         return editableAttrIssueOffice;
@@ -500,9 +538,8 @@ public class Sigmet {
      * Sets the value of the editableAttrIssueOffice property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrIssueOffice(String value) {
         this.editableAttrIssueOffice = value;
@@ -511,10 +548,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrStatus property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrStatus() {
         return editableAttrStatus;
@@ -524,9 +559,8 @@ public class Sigmet {
      * Sets the value of the editableAttrStatus property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrStatus(String value) {
         this.editableAttrStatus = value;
@@ -535,10 +569,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrId property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrId() {
         return editableAttrId;
@@ -548,9 +580,8 @@ public class Sigmet {
      * Sets the value of the editableAttrId property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrId(String value) {
         this.editableAttrId = value;
@@ -559,10 +590,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrSeqNum property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrSeqNum() {
         return editableAttrSeqNum;
@@ -572,9 +601,8 @@ public class Sigmet {
      * Sets the value of the editableAttrSeqNum property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrSeqNum(String value) {
         this.editableAttrSeqNum = value;
@@ -583,10 +611,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrStartTime property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrStartTime() {
         return editableAttrStartTime;
@@ -596,9 +622,8 @@ public class Sigmet {
      * Sets the value of the editableAttrStartTime property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrStartTime(String value) {
         this.editableAttrStartTime = value;
@@ -607,10 +632,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrEndTime property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrEndTime() {
         return editableAttrEndTime;
@@ -620,9 +643,8 @@ public class Sigmet {
      * Sets the value of the editableAttrEndTime property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrEndTime(String value) {
         this.editableAttrEndTime = value;
@@ -631,10 +653,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrRemarks property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrRemarks() {
         return editableAttrRemarks;
@@ -644,9 +664,8 @@ public class Sigmet {
      * Sets the value of the editableAttrRemarks property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrRemarks(String value) {
         this.editableAttrRemarks = value;
@@ -655,10 +674,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenom property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenom() {
         return editableAttrPhenom;
@@ -668,9 +685,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenom property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenom(String value) {
         this.editableAttrPhenom = value;
@@ -679,10 +695,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenom2 property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenom2() {
         return editableAttrPhenom2;
@@ -692,9 +706,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenom2 property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenom2(String value) {
         this.editableAttrPhenom2 = value;
@@ -703,10 +716,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomName property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomName() {
         return editableAttrPhenomName;
@@ -716,9 +727,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomName property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomName(String value) {
         this.editableAttrPhenomName = value;
@@ -727,10 +737,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomLat property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomLat() {
         return editableAttrPhenomLat;
@@ -740,9 +748,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomLat property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomLat(String value) {
         this.editableAttrPhenomLat = value;
@@ -751,10 +758,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomLon property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomLon() {
         return editableAttrPhenomLon;
@@ -764,9 +769,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomLon property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomLon(String value) {
         this.editableAttrPhenomLon = value;
@@ -775,10 +779,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomPressure property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomPressure() {
         return editableAttrPhenomPressure;
@@ -788,9 +790,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomPressure property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomPressure(String value) {
         this.editableAttrPhenomPressure = value;
@@ -799,10 +800,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomMaxWind property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomMaxWind() {
         return editableAttrPhenomMaxWind;
@@ -812,9 +811,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomMaxWind property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomMaxWind(String value) {
         this.editableAttrPhenomMaxWind = value;
@@ -823,10 +821,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrFreeText property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrFreeText() {
         return editableAttrFreeText;
@@ -836,9 +832,8 @@ public class Sigmet {
      * Sets the value of the editableAttrFreeText property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrFreeText(String value) {
         this.editableAttrFreeText = value;
@@ -847,10 +842,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrTrend property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrTrend() {
         return editableAttrTrend;
@@ -860,9 +853,8 @@ public class Sigmet {
      * Sets the value of the editableAttrTrend property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrTrend(String value) {
         this.editableAttrTrend = value;
@@ -871,10 +863,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrMovement property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrMovement() {
         return editableAttrMovement;
@@ -884,9 +874,8 @@ public class Sigmet {
      * Sets the value of the editableAttrMovement property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrMovement(String value) {
         this.editableAttrMovement = value;
@@ -895,10 +884,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomSpeed property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomSpeed() {
         return editableAttrPhenomSpeed;
@@ -908,9 +895,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomSpeed property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomSpeed(String value) {
         this.editableAttrPhenomSpeed = value;
@@ -919,10 +905,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrPhenomDirection property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrPhenomDirection() {
         return editableAttrPhenomDirection;
@@ -932,9 +916,8 @@ public class Sigmet {
      * Sets the value of the editableAttrPhenomDirection property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrPhenomDirection(String value) {
         this.editableAttrPhenomDirection = value;
@@ -943,10 +926,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrLevel property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrLevel() {
         return editableAttrLevel;
@@ -956,9 +937,8 @@ public class Sigmet {
      * Sets the value of the editableAttrLevel property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrLevel(String value) {
         this.editableAttrLevel = value;
@@ -967,10 +947,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrLevelInfo1 property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrLevelInfo1() {
         return editableAttrLevelInfo1;
@@ -980,9 +958,8 @@ public class Sigmet {
      * Sets the value of the editableAttrLevelInfo1 property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrLevelInfo1(String value) {
         this.editableAttrLevelInfo1 = value;
@@ -991,10 +968,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrLevelInfo2 property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrLevelInfo2() {
         return editableAttrLevelInfo2;
@@ -1004,9 +979,8 @@ public class Sigmet {
      * Sets the value of the editableAttrLevelInfo2 property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrLevelInfo2(String value) {
         this.editableAttrLevelInfo2 = value;
@@ -1015,10 +989,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrLevelText1 property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrLevelText1() {
         return editableAttrLevelText1;
@@ -1028,9 +1000,8 @@ public class Sigmet {
      * Sets the value of the editableAttrLevelText1 property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrLevelText1(String value) {
         this.editableAttrLevelText1 = value;
@@ -1039,10 +1010,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrLevelText2 property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrLevelText2() {
         return editableAttrLevelText2;
@@ -1052,9 +1021,8 @@ public class Sigmet {
      * Sets the value of the editableAttrLevelText2 property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrLevelText2(String value) {
         this.editableAttrLevelText2 = value;
@@ -1063,10 +1031,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrFromLine property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrFromLine() {
         return editableAttrFromLine;
@@ -1076,9 +1042,8 @@ public class Sigmet {
      * Sets the value of the editableAttrFromLine property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrFromLine(String value) {
         this.editableAttrFromLine = value;
@@ -1087,10 +1052,8 @@ public class Sigmet {
     /**
      * Gets the value of the editableAttrFir property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getEditableAttrFir() {
         return editableAttrFir;
@@ -1100,9 +1063,8 @@ public class Sigmet {
      * Sets the value of the editableAttrFir property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setEditableAttrFir(String value) {
         this.editableAttrFir = value;

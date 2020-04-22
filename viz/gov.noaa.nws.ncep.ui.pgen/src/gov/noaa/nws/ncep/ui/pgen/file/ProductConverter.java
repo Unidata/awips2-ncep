@@ -7,6 +7,24 @@ F * gov.noaa.nws.ncep.ui.pgen.file.ProductConverter
  */
 package gov.noaa.nws.ncep.ui.pgen.file;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.TimeZone;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.vividsolutions.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField.StationField;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
@@ -68,24 +86,6 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Volcano;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 
-import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.vividsolutions.jts.geom.Coordinate;
-
 /**
  * Define a ProductConverter Class - some methods to convert the products
  * between XML format and the actual in-memory PGEN products.
@@ -141,11 +141,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/05        R8879       B. Yin      Check Outlook/Contour by type
  * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
  * 07/28/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
- * 
+ * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * </pre>
  * 
  * @author J. Wu
- * @version 0.1
  */
 
 public class ProductConverter {
@@ -227,9 +226,9 @@ public class ProductConverter {
             Layer lyr = new Layer();
             lyr.setName(fLayer.getName());
 
-            lyr.setColor(new Color(fLayer.getColor().getRed(), fLayer
-                    .getColor().getGreen(), fLayer.getColor().getBlue(), fLayer
-                    .getColor().getAlpha()));
+            lyr.setColor(new Color(fLayer.getColor().getRed(),
+                    fLayer.getColor().getGreen(), fLayer.getColor().getBlue(),
+                    fLayer.getColor().getAlpha()));
 
             if (fLayer.isOnOff() != null) {
                 lyr.setOnOff(fLayer.isOnOff());
@@ -288,8 +287,8 @@ public class ProductConverter {
                     line = new KinkLine(null, clr, fLine.getLineWidth(),
                             fLine.getSizeScale(), fLine.isClosed(),
                             fLine.isFilled(), linePoints,
-                            fLine.getSmoothFactor(), FillPattern.valueOf(fLine
-                                    .getFillPattern()),
+                            fLine.getSmoothFactor(),
+                            FillPattern.valueOf(fLine.getFillPattern()),
                             fLine.getPgenCategory(), fLine.getPgenType(),
                             fLine.getKinkPosition(),
                             ArrowHeadType.valueOf(fLine.getArrowHeadType()));
@@ -297,8 +296,8 @@ public class ProductConverter {
                     line = new Line(null, clr, fLine.getLineWidth(),
                             fLine.getSizeScale(), fLine.isClosed(),
                             fLine.isFilled(), linePoints,
-                            fLine.getSmoothFactor(), FillPattern.valueOf(fLine
-                                    .getFillPattern()),
+                            fLine.getSmoothFactor(),
+                            FillPattern.valueOf(fLine.getFillPattern()),
                             fLine.getPgenCategory(), fLine.getPgenType());
                 }
 
@@ -326,16 +325,16 @@ public class ProductConverter {
                 if (fSymbol.pgenCategory.equals("Combo")) {
                     ComboSymbol symbol = new ComboSymbol(null, clr,
                             fSymbol.getLineWidth(), fSymbol.getSizeScale(),
-                            fSymbol.isClear(), (new Coordinate(loc.getLon(),
-                                    loc.getLat())), fSymbol.getPgenCategory(),
-                            fSymbol.getPgenType());
+                            fSymbol.isClear(),
+                            (new Coordinate(loc.getLon(), loc.getLat())),
+                            fSymbol.getPgenCategory(), fSymbol.getPgenType());
                     des.add(symbol);
                 } else {
                     Symbol symbol = new Symbol(null, clr,
                             fSymbol.getLineWidth(), fSymbol.getSizeScale(),
-                            fSymbol.isClear(), (new Coordinate(loc.getLon(),
-                                    loc.getLat())), fSymbol.getPgenCategory(),
-                            fSymbol.getPgenType());
+                            fSymbol.isClear(),
+                            (new Coordinate(loc.getLon(), loc.getLat())),
+                            fSymbol.getPgenCategory(), fSymbol.getPgenType());
                     des.add(symbol);
                 }
 
@@ -365,15 +364,15 @@ public class ProductConverter {
                 }
 
                 Text text = new Text((Coordinate[]) null, fText.getFontName(),
-                        fText.getFontSize(), TextJustification.valueOf(fText
-                                .getJustification()), (new Coordinate(
-                                loc.getLon(), loc.getLat())),
-                        fText.getRotation(), TextRotation.valueOf(fText
-                                .getRotationRelativity()), st,
+                        fText.getFontSize(),
+                        TextJustification.valueOf(fText.getJustification()),
+                        (new Coordinate(loc.getLon(), loc.getLat())),
+                        fText.getRotation(),
+                        TextRotation.valueOf(fText.getRotationRelativity()), st,
                         FontStyle.valueOf(fText.getStyle()), clr[0], 0, 0,
-                        fText.isMask(), DisplayType.valueOf(fText
-                                .getDisplayType()), fText.getPgenCategory(),
-                        fText.getPgenType());
+                        fText.isMask(),
+                        DisplayType.valueOf(fText.getDisplayType()),
+                        fText.getPgenCategory(), fText.getPgenType());
 
                 if (fText.getXOffset() != null) {
                     text.setXOffset(fText.getXOffset());
@@ -500,11 +499,12 @@ public class ProductConverter {
 
                 Arc arc = new Arc(null, clr[0], fArc.getLineWidth(),
                         fArc.getSizeScale(), fArc.isClosed(), fArc.isFilled(),
-                        fArc.getSmoothFactor(), FillPattern.valueOf(fArc
-                                .getFillPattern()), fArc.getPgenType(),
-                        linePoints.get(0), linePoints.get(1),
-                        fArc.getPgenCategory(), fArc.getAxisRatio(),
-                        fArc.getStartAngle(), fArc.getEndAngle());
+                        fArc.getSmoothFactor(),
+                        FillPattern.valueOf(fArc.getFillPattern()),
+                        fArc.getPgenType(), linePoints.get(0),
+                        linePoints.get(1), fArc.getPgenCategory(),
+                        fArc.getAxisRatio(), fArc.getStartAngle(),
+                        fArc.getEndAngle());
 
                 des.add(arc);
 
@@ -512,8 +512,8 @@ public class ProductConverter {
 
         }
 
-        des.addAll(TrackConverter.getTrackElementListByTrackBeanList(elem
-                .getTrack()));
+        des.addAll(TrackConverter
+                .getTrackElementListByTrackBeanList(elem.getTrack()));
 
         if (!elem.getVector().isEmpty()) {
 
@@ -570,8 +570,8 @@ public class ProductConverter {
                 tca.setTimeZone(ftca.getTimeZone());
                 tca.setTextLocation(ftca.getTextLocation());
 
-                Calendar advTime = Calendar.getInstance(TimeZone
-                        .getTimeZone("GMT"));
+                Calendar advTime = Calendar
+                        .getInstance(TimeZone.getTimeZone("GMT"));
                 XMLGregorianCalendar xmlCal = ftca.getAdvisoryTime();
                 advTime.set(xmlCal.getYear(), xmlCal.getMonth() - 1,
                         xmlCal.getDay(), xmlCal.getHour(), xmlCal.getMinute(),
@@ -647,7 +647,8 @@ public class ProductConverter {
 
         if (!elem.getSigmet().isEmpty()) {
 
-            for (gov.noaa.nws.ncep.ui.pgen.file.Sigmet fSig : elem.getSigmet()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Sigmet fSig : elem
+                    .getSigmet()) {
 
                 Color[] clr = new Color[fSig.getColor().size()];
                 int nn = 0;
@@ -695,7 +696,9 @@ public class ProductConverter {
                         fSig.getEditableAttrLevelText1(),
                         fSig.getEditableAttrLevelText2(),
                         fSig.getEditableAttrFromLine(),
-                        fSig.getEditableAttrFir());
+                        fSig.getEditableAttrFir(),
+                        fSig.getEditableAttrFcstTime(),
+                        fSig.getEditableAttrFcstCntr());
 
                 des.add(sigmet);
             }
@@ -719,8 +722,8 @@ public class ProductConverter {
                     linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
                 }
 
-                Coordinate gfaTextCoordinate = new Coordinate(
-                        fgfa.getLonText(), fgfa.getLatText());
+                Coordinate gfaTextCoordinate = new Coordinate(fgfa.getLonText(),
+                        fgfa.getLatText());
 
                 String haz = nvl(fgfa.getHazard());
                 if (haz.equalsIgnoreCase("IFR")) {
@@ -735,7 +738,8 @@ public class ProductConverter {
                         fgfa.getFcstHr(), fgfa.getTag(), fgfa.getDesk(),
                         fgfa.getIssueType(), fgfa.getCycleDay(),
                         fgfa.getCycleHour(), fgfa.getType(), fgfa.getArea(),
-                        fgfa.getBeginning(), fgfa.getEnding(), fgfa.getStates());
+                        fgfa.getBeginning(), fgfa.getEnding(),
+                        fgfa.getStates());
 
                 gfa.setGfaValue(Gfa.GR, fgfa.getGr());
                 gfa.setGfaValue(Gfa.FREQUENCY, fgfa.getFrequency());
@@ -791,10 +795,8 @@ public class ProductConverter {
                         prefix = "L";
                     }
 
-                    gfa.setGfaValue(
-                            Gfa.AIRMET_TAG,
-                            new String(prefix + gfa.getGfaTag()
-                                    + gfa.getGfaDesk()));
+                    gfa.setGfaValue(Gfa.AIRMET_TAG, new String(
+                            prefix + gfa.getGfaTag() + gfa.getGfaDesk()));
                 }
 
                 String timeStr = fgfa.getIssueTime();
@@ -1072,8 +1074,8 @@ public class ProductConverter {
                         fgfa.setCoverage(nvl(e.getGfaValue(Gfa.COVERAGE)));
                         fgfa.setBottom(nvl(e.getGfaBottom()));
                         fgfa.setTop(nvl(e.getGfaTop()));
-                        fgfa.setFzlTopBottom(nvl(e
-                                .getGfaValue(Gfa.FZL_TOP_BOTTOM)));
+                        fgfa.setFzlTopBottom(
+                                nvl(e.getGfaValue(Gfa.FZL_TOP_BOTTOM)));
                         fgfa.setContour(nvl(e.getGfaValue(Gfa.CONTOUR)));
                         fgfa.setIsOutlook(e.isOutlook());
                         if ("ICE".equals(e.getGfaHazard())) {
@@ -1093,8 +1095,8 @@ public class ProductConverter {
                                 prefix = "L";
                             }
 
-                            fgfa.setAirmetTag(new String(prefix + e.getGfaTag()
-                                    + e.getGfaDesk()));
+                            fgfa.setAirmetTag(new String(
+                                    prefix + e.getGfaTag() + e.getGfaDesk()));
                         }
 
                         Calendar cal = e.getAttribute(Gfa.ISSUE_TIME,
@@ -1119,21 +1121,17 @@ public class ProductConverter {
                             GfaWording w = e.getAttribute(GfaRules.WORDING,
                                     GfaWording.class);
                             fgfa.setFromCondsDvlpg(GfaRules
-                                    .replacePlusWithCycle(
-                                            w.getFromCondsDvlpg(),
+                                    .replacePlusWithCycle(w.getFromCondsDvlpg(),
                                             e.getGfaCycleHour()));
-                            fgfa.setFromCondsEndg(GfaRules
-                                    .replacePlusWithCycle(w.getFromCondsEndg(),
-                                            e.getGfaCycleHour()));
+                            fgfa.setFromCondsEndg(GfaRules.replacePlusWithCycle(
+                                    w.getFromCondsEndg(), e.getGfaCycleHour()));
                             fgfa.setCondsContg(GfaRules.replacePlusWithCycle(
                                     w.getCondsContg(), e.getGfaCycleHour()));
                             fgfa.setOtlkCondsDvlpg(GfaRules
-                                    .replacePlusWithCycle(
-                                            w.getOtlkCondsDvlpg(),
+                                    .replacePlusWithCycle(w.getOtlkCondsDvlpg(),
                                             e.getGfaCycleHour()));
-                            fgfa.setOtlkCondsEndg(GfaRules
-                                    .replacePlusWithCycle(w.getOtlkCondsEndg(),
-                                            e.getGfaCycleHour()));
+                            fgfa.setOtlkCondsEndg(GfaRules.replacePlusWithCycle(
+                                    w.getOtlkCondsEndg(), e.getGfaCycleHour()));
                         }
 
                         // textVOR
@@ -1143,15 +1141,14 @@ public class ProductConverter {
                         }
                         fgfa.setTextVor(nvl(vorStr));
 
-                        fgfa.setFillPattern(nvl(((Gfa) de).getFillPattern()
-                                .name()));
+                        fgfa.setFillPattern(
+                                nvl(((Gfa) de).getFillPattern().name()));
 
                         fde.getGfa().add(fgfa);
 
                     } else if (de instanceof Track) {
-                        fde.getTrack()
-                                .add(TrackConverter
-                                        .getTrackBeanByTrackElement((Track) de));
+                        fde.getTrack().add(TrackConverter
+                                .getTrackBeanByTrackElement((Track) de));
                     } else if (de instanceof Sigmet) {
 
                         gov.noaa.nws.ncep.ui.pgen.file.Sigmet sigmet = new gov.noaa.nws.ncep.ui.pgen.file.Sigmet();
@@ -1184,66 +1181,70 @@ public class ProductConverter {
                         sigmet.setClosed(((Sigmet) de).isClosedLine());
                         sigmet.setFilled(((Sigmet) de).isFilled());
                         sigmet.setPgenType(de.getPgenType());
-                        sigmet.setFillPattern(((Sigmet) de).getFillPattern()
-                                .name());
+                        sigmet.setFillPattern(
+                                ((Sigmet) de).getFillPattern().name());
 
                         sigmet.setType(((Sigmet) de).getType());
                         sigmet.setWidth(((Sigmet) de).getWidth());
 
-                        sigmet.setEditableAttrArea(((Sigmet) de)
-                                .getEditableAttrArea());
-                        sigmet.setEditableAttrIssueOffice(((Sigmet) de)
-                                .getEditableAttrIssueOffice());
-                        sigmet.setEditableAttrStatus(((Sigmet) de)
-                                .getEditableAttrStatus());
-                        sigmet.setEditableAttrId(((Sigmet) de)
-                                .getEditableAttrId());
-                        sigmet.setEditableAttrSeqNum(((Sigmet) de)
-                                .getEditableAttrSeqNum());
-                        sigmet.setEditableAttrStartTime(((Sigmet) de)
-                                .getEditableAttrStartTime());
-                        sigmet.setEditableAttrEndTime(((Sigmet) de)
-                                .getEditableAttrEndTime());
-                        sigmet.setEditableAttrRemarks(((Sigmet) de)
-                                .getEditableAttrRemarks());
-                        sigmet.setEditableAttrPhenom(((Sigmet) de)
-                                .getEditableAttrPhenom());
-                        sigmet.setEditableAttrPhenom2(((Sigmet) de)
-                                .getEditableAttrPhenom2());
-                        sigmet.setEditableAttrPhenomName(((Sigmet) de)
-                                .getEditableAttrPhenomName());
-                        sigmet.setEditableAttrPhenomLat(((Sigmet) de)
-                                .getEditableAttrPhenomLat());
-                        sigmet.setEditableAttrPhenomLon(((Sigmet) de)
-                                .getEditableAttrPhenomLon());
-                        sigmet.setEditableAttrPhenomPressure(((Sigmet) de)
-                                .getEditableAttrPhenomPressure());
-                        sigmet.setEditableAttrPhenomMaxWind(((Sigmet) de)
-                                .getEditableAttrPhenomMaxWind());
-                        sigmet.setEditableAttrFreeText(((Sigmet) de)
-                                .getEditableAttrFreeText());
-                        sigmet.setEditableAttrTrend(((Sigmet) de)
-                                .getEditableAttrTrend());
-                        sigmet.setEditableAttrMovement(((Sigmet) de)
-                                .getEditableAttrMovement());
-                        sigmet.setEditableAttrPhenomSpeed(((Sigmet) de)
-                                .getEditableAttrPhenomSpeed());
-                        sigmet.setEditableAttrPhenomDirection(((Sigmet) de)
-                                .getEditableAttrPhenomDirection());
-                        sigmet.setEditableAttrLevel(((Sigmet) de)
-                                .getEditableAttrLevel());
-                        sigmet.setEditableAttrLevelInfo1(((Sigmet) de)
-                                .getEditableAttrLevelInfo1());
-                        sigmet.setEditableAttrLevelInfo2(((Sigmet) de)
-                                .getEditableAttrLevelInfo2());
-                        sigmet.setEditableAttrLevelText1(((Sigmet) de)
-                                .getEditableAttrLevelText1());
-                        sigmet.setEditableAttrLevelText2(((Sigmet) de)
-                                .getEditableAttrLevelText2());
-                        sigmet.setEditableAttrFromLine(((Sigmet) de)
-                                .getEditableAttrFromLine());
-                        sigmet.setEditableAttrFir(((Sigmet) de)
-                                .getEditableAttrFir());
+                        sigmet.setEditableAttrArea(
+                                ((Sigmet) de).getEditableAttrArea());
+                        sigmet.setEditableAttrIssueOffice(
+                                ((Sigmet) de).getEditableAttrIssueOffice());
+                        sigmet.setEditableAttrStatus(
+                                ((Sigmet) de).getEditableAttrStatus());
+                        sigmet.setEditableAttrId(
+                                ((Sigmet) de).getEditableAttrId());
+                        sigmet.setEditableAttrSeqNum(
+                                ((Sigmet) de).getEditableAttrSeqNum());
+                        sigmet.setEditableAttrStartTime(
+                                ((Sigmet) de).getEditableAttrStartTime());
+                        sigmet.setEditableAttrEndTime(
+                                ((Sigmet) de).getEditableAttrEndTime());
+                        sigmet.setEditableAttrRemarks(
+                                ((Sigmet) de).getEditableAttrRemarks());
+                        sigmet.setEditableAttrPhenom(
+                                ((Sigmet) de).getEditableAttrPhenom());
+                        sigmet.setEditableAttrPhenom2(
+                                ((Sigmet) de).getEditableAttrPhenom2());
+                        sigmet.setEditableAttrPhenomName(
+                                ((Sigmet) de).getEditableAttrPhenomName());
+                        sigmet.setEditableAttrPhenomLat(
+                                ((Sigmet) de).getEditableAttrPhenomLat());
+                        sigmet.setEditableAttrPhenomLon(
+                                ((Sigmet) de).getEditableAttrPhenomLon());
+                        sigmet.setEditableAttrPhenomPressure(
+                                ((Sigmet) de).getEditableAttrPhenomPressure());
+                        sigmet.setEditableAttrPhenomMaxWind(
+                                ((Sigmet) de).getEditableAttrPhenomMaxWind());
+                        sigmet.setEditableAttrFreeText(
+                                ((Sigmet) de).getEditableAttrFreeText());
+                        sigmet.setEditableAttrFcstCntr(
+                                ((Sigmet) de).getEditableAttrFcstCntr());
+                        sigmet.setEditableAttrFcstTime(
+                                ((Sigmet) de).getEditableAttrFcstTime());
+                        sigmet.setEditableAttrTrend(
+                                ((Sigmet) de).getEditableAttrTrend());
+                        sigmet.setEditableAttrMovement(
+                                ((Sigmet) de).getEditableAttrMovement());
+                        sigmet.setEditableAttrPhenomSpeed(
+                                ((Sigmet) de).getEditableAttrPhenomSpeed());
+                        sigmet.setEditableAttrPhenomDirection(
+                                ((Sigmet) de).getEditableAttrPhenomDirection());
+                        sigmet.setEditableAttrLevel(
+                                ((Sigmet) de).getEditableAttrLevel());
+                        sigmet.setEditableAttrLevelInfo1(
+                                ((Sigmet) de).getEditableAttrLevelInfo1());
+                        sigmet.setEditableAttrLevelInfo2(
+                                ((Sigmet) de).getEditableAttrLevelInfo2());
+                        sigmet.setEditableAttrLevelText1(
+                                ((Sigmet) de).getEditableAttrLevelText1());
+                        sigmet.setEditableAttrLevelText2(
+                                ((Sigmet) de).getEditableAttrLevelText2());
+                        sigmet.setEditableAttrFromLine(
+                                ((Sigmet) de).getEditableAttrFromLine());
+                        sigmet.setEditableAttrFir(
+                                ((Sigmet) de).getEditableAttrFir());
 
                         fde.getSigmet().add(sigmet);
 
@@ -1281,15 +1282,16 @@ public class ProductConverter {
                         line.setFilled(((Line) de).isFilled());
                         line.setPgenType(de.getPgenType());
 
-                        line.setFillPattern(((Line) de).getFillPattern().name());
+                        line.setFillPattern(
+                                ((Line) de).getFillPattern().name());
                         line.setFlipSide(((Line) de).isFlipSide());
 
                         // specific attributes for KinkLine
                         if (de instanceof KinkLine) {
-                            line.setArrowHeadType(((KinkLine) de)
-                                    .getArrowHeadType().name());
-                            line.setKinkPosition(((KinkLine) de)
-                                    .getKinkPosition());
+                            line.setArrowHeadType(
+                                    ((KinkLine) de).getArrowHeadType().name());
+                            line.setKinkPosition(
+                                    ((KinkLine) de).getKinkPosition());
                         }
 
                         fde.getLine().add(line);
@@ -1343,7 +1345,8 @@ public class ProductConverter {
                     fpt.setLon(((ISinglePoint) de).getLocation().x);
                     atext.setPoint(fpt);
 
-                    atext.setAvnTextType(((AvnText) de).getAvnTextType().name());
+                    atext.setAvnTextType(
+                            ((AvnText) de).getAvnTextType().name());
                     atext.setTopValue(((AvnText) de).getTopValue());
                     atext.setBottomValue(((AvnText) de).getBottomValue());
 
@@ -1351,13 +1354,13 @@ public class ProductConverter {
 
                     atext.setIwidth(((AvnText) de).getIwidth());
 
-                    atext.setJustification(((AvnText) de).getJustification()
-                            .name());
+                    atext.setJustification(
+                            ((AvnText) de).getJustification().name());
                     atext.setStyle(((AvnText) de).getStyle().name());
                     atext.setFontName(((AvnText) de).getFontName());
                     atext.setFontSize(((AvnText) de).getFontSize());
-                    atext.setSymbolPatternName(((AvnText) de)
-                            .getSymbolPatternName());
+                    atext.setSymbolPatternName(
+                            ((AvnText) de).getSymbolPatternName());
                     atext.setPgenType(de.getPgenType());
                     atext.setPgenCategory(de.getPgenCategory());
 
@@ -1432,14 +1435,15 @@ public class ProductConverter {
                     text.setYOffset(((Text) de).getYOffset());
                     text.setDisplayType(((Text) de).getDisplayType().name());
                     text.setMask(((Text) de).maskText());
-                    text.setRotationRelativity(((Text) de)
-                            .getRotationRelativity().name());
+                    text.setRotationRelativity(
+                            ((Text) de).getRotationRelativity().name());
                     text.setRotation(((Text) de).getRotation());
 
                     text.setIthw(((Text) de).getIthw());
                     text.setIwidth(((Text) de).getIwidth());
 
-                    text.setJustification(((Text) de).getJustification().name());
+                    text.setJustification(
+                            ((Text) de).getJustification().name());
                     text.setStyle(((Text) de).getStyle().name());
                     text.setFontName(((Text) de).getFontName());
                     text.setFontSize(((Text) de).getFontSize());
@@ -1535,13 +1539,13 @@ public class ProductConverter {
                 }
             } else if (adc instanceof DECollection) {
 
-                if (adc instanceof Outlook){
-                	 fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
-                } else if (adc instanceof Contours)  {
-                	 fde.getContours().add(convertContours2XML((Contours) adc));
+                if (adc instanceof Outlook) {
+                    fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
+                } else if (adc instanceof Contours) {
+                    fde.getContours().add(convertContours2XML((Contours) adc));
                 } else {
-                    fde.getDECollection().add(
-                            convertDECollection2XML((DECollection) adc));
+                    fde.getDECollection()
+                            .add(convertDECollection2XML((DECollection) adc));
                 }
             }
         }
@@ -1640,8 +1644,8 @@ public class ProductConverter {
 
         // Snap jet
         if (PgenSession.getInstance() != null) {
-            PgenSnapJet st = new PgenSnapJet(PgenSession.getInstance()
-                    .getPgenResource().getDescriptor(),
+            PgenSnapJet st = new PgenSnapJet(
+                    PgenSession.getInstance().getPgenResource().getDescriptor(),
                     PgenUtil.getActiveEditor(), null);
             jet.setSnapTool(st);
             st.snapJet(jet);
@@ -1707,8 +1711,8 @@ public class ProductConverter {
             vtype = VectorType.HASH_MARK;
         }
         JetHash hash = jet.new JetHash(null, clr, fVector.getLineWidth(),
-                fVector.getSizeScale(), fVector.isClear(), (new Coordinate(
-                        loc.getLon(), loc.getLat())), vtype,
+                fVector.getSizeScale(), fVector.isClear(),
+                (new Coordinate(loc.getLon(), loc.getLat())), vtype,
                 fVector.getSpeed(), fVector.getDirection(),
                 fVector.getArrowHeadSize(), fVector.isDirectionOnly(),
                 fVector.getPgenCategory(), fVector.getPgenType());
@@ -1742,8 +1746,8 @@ public class ProductConverter {
             vtype = VectorType.WIND_BARB;
         }
         JetBarb barb = jet.new JetBarb(null, clr, fVector.getLineWidth(),
-                fVector.getSizeScale(), fVector.isClear(), (new Coordinate(
-                        loc.getLon(), loc.getLat())), vtype,
+                fVector.getSizeScale(), fVector.isClear(),
+                (new Coordinate(loc.getLon(), loc.getLat())), vtype,
                 fVector.getSpeed(), fVector.getDirection(),
                 fVector.getArrowHeadSize(), fVector.isDirectionOnly(),
                 fVector.getPgenCategory(), fVector.getPgenType());
@@ -1779,10 +1783,10 @@ public class ProductConverter {
                 fText.getFontName(), fText.getFontSize(),
                 TextJustification.valueOf(fText.getJustification()),
                 (new Coordinate(loc.getLon(), loc.getLat())),
-                fText.getRotation(), TextRotation.valueOf(fText
-                        .getRotationRelativity()), st, FontStyle.valueOf(fText
-                        .getStyle()), clr[0], 0, 0, fText.isMask(),
-                DisplayType.valueOf(fText.getDisplayType()),
+                fText.getRotation(),
+                TextRotation.valueOf(fText.getRotationRelativity()), st,
+                FontStyle.valueOf(fText.getStyle()), clr[0], 0, 0,
+                fText.isMask(), DisplayType.valueOf(fText.getDisplayType()),
                 fText.getPgenCategory(), fText.getPgenType());
 
         text.setLatLonFlag(false);
@@ -1816,8 +1820,7 @@ public class ProductConverter {
         XMLGregorianCalendar xmlCal = null;
         try {
             xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                    cntTime.get(Calendar.YEAR),
-                    cntTime.get(Calendar.MONTH) + 1,
+                    cntTime.get(Calendar.YEAR), cntTime.get(Calendar.MONTH) + 1,
                     cntTime.get(Calendar.DAY_OF_MONTH),
                     cntTime.get(Calendar.HOUR_OF_DAY),
                     cntTime.get(Calendar.MINUTE), cntTime.get(Calendar.SECOND),
@@ -1852,8 +1855,8 @@ public class ProductConverter {
             AbstractDrawableComponent next = it.next();
 
             if (next instanceof DECollection) {
-                contours.getDECollection().add(
-                        convertDECollection2XML((DECollection) next));
+                contours.getDECollection()
+                        .add(convertDECollection2XML((DECollection) next));
             }
 
             ii++;
@@ -1907,8 +1910,8 @@ public class ProductConverter {
             if (fdec.getCollectionName().equals("ContourLine")) {
                 ContourLine contourLine = new ContourLine();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 String[] labelString = null;
                 int numOfLabels = 0;
 
@@ -1949,8 +1952,8 @@ public class ProductConverter {
 
                 ContourMinmax contourMinmax = new ContourMinmax();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
 
                     de.setParent(contourMinmax);
@@ -1965,8 +1968,8 @@ public class ProductConverter {
 
                 ContourCircle contourCircle = new ContourCircle();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
 
                     de.setParent(contourCircle);
@@ -2208,9 +2211,8 @@ public class ProductConverter {
 
         // set anchor points
         for (Station stn : wb.getAnchors()) {
-            fwb.getAnchorPoints().add(
-                    stn.getStid() + " " + stn.getState() + " "
-                            + stn.getStnname());
+            fwb.getAnchorPoints().add(stn.getStid() + " " + stn.getState() + " "
+                    + stn.getStnname());
         }
 
         // set county list
@@ -2224,22 +2226,19 @@ public class ProductConverter {
                 ;
             }
 
-            fwb.getCounties()
-                    .add(String
-                            .format("%1$-7s%2$-5s%3$-17s%4$5.2f%5$8.2f%6$7s %7$-5s %8$s",
-                                    cnty.getUgcId(), cnty.getState(), cntyName,
-                                    cnty.getCentriod().y, cnty.getCentriod().x,
-                                    cnty.getFips(), cnty.getWfo(), cnty
-                                            .getZoneName().toUpperCase()));
+            fwb.getCounties().add(String.format(
+                    "%1$-7s%2$-5s%3$-17s%4$5.2f%5$8.2f%6$7s %7$-5s %8$s",
+                    cnty.getUgcId(), cnty.getState(), cntyName,
+                    cnty.getCentriod().y, cnty.getCentriod().x, cnty.getFips(),
+                    cnty.getWfo(), cnty.getZoneName().toUpperCase()));
         }
 
         // set original counties
         if (wb.getOriginalCountyList() != null) {
             for (SPCCounty cnty : wb.getOriginalCountyList()) {
 
-                fwb.getOriginalCounties().add(
-                        String.format("%1$-7s %2$7s", cnty.getUgcId(),
-                                cnty.getFips()));
+                fwb.getOriginalCounties().add(String.format("%1$-7s %2$7s",
+                        cnty.getUgcId(), cnty.getFips()));
             }
         }
 
@@ -2269,8 +2268,7 @@ public class ProductConverter {
                 if (statusValidTime != null) {
                     XMLGregorianCalendar xmlCal = null;
                     try {
-                        xmlCal = DatatypeFactory
-                                .newInstance()
+                        xmlCal = DatatypeFactory.newInstance()
                                 .newXMLGregorianCalendar(
                                         statusValidTime.get(Calendar.YEAR),
                                         statusValidTime.get(Calendar.MONTH) + 1,
@@ -2281,7 +2279,8 @@ public class ProductConverter {
                                         statusValidTime.get(Calendar.MINUTE),
                                         statusValidTime.get(Calendar.SECOND),
                                         statusValidTime
-                                                .get(Calendar.MILLISECOND), 0);
+                                                .get(Calendar.MILLISECOND),
+                                        0);
                     } catch (DatatypeConfigurationException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -2293,8 +2292,7 @@ public class ProductConverter {
                 if (statusExpTime != null) {
                     XMLGregorianCalendar xmlCal = null;
                     try {
-                        xmlCal = DatatypeFactory
-                                .newInstance()
+                        xmlCal = DatatypeFactory.newInstance()
                                 .newXMLGregorianCalendar(
                                         statusExpTime.get(Calendar.YEAR),
                                         statusExpTime.get(Calendar.MONTH) + 1,
@@ -2504,20 +2502,19 @@ public class ProductConverter {
 
         for (Status fws : fwb.getStatus()) {
 
-            Calendar statusValidTime = Calendar.getInstance(TimeZone
-                    .getTimeZone("GMT"));
+            Calendar statusValidTime = Calendar
+                    .getInstance(TimeZone.getTimeZone("GMT"));
             XMLGregorianCalendar xmlStatusValidCal = fws.getStatusValidTime();
             if (xmlStatusValidCal != null) {
                 statusValidTime.set(xmlStatusValidCal.getYear(),
                         xmlStatusValidCal.getMonth() - 1,
-                        xmlStatusValidCal.getDay(),
-                        xmlStatusValidCal.getHour(),
+                        xmlStatusValidCal.getDay(), xmlStatusValidCal.getHour(),
                         xmlStatusValidCal.getMinute(),
                         xmlStatusValidCal.getSecond());
             }
 
-            Calendar statusExpTime = Calendar.getInstance(TimeZone
-                    .getTimeZone("GMT"));
+            Calendar statusExpTime = Calendar
+                    .getInstance(TimeZone.getTimeZone("GMT"));
             XMLGregorianCalendar xmlStatusExpCal = fws.getStatusExpTime();
             if (xmlStatusExpCal != null) {
                 statusExpTime.set(xmlStatusExpCal.getYear(),
@@ -2622,8 +2619,8 @@ public class ProductConverter {
             AbstractDrawableComponent next = it.next();
 
             if (next instanceof DECollection) {
-                fotlk.getDECollection().add(
-                        convertDECollection2XML((DECollection) next));
+                fotlk.getDECollection()
+                        .add(convertDECollection2XML((DECollection) next));
             }
 
         }
@@ -2689,12 +2686,12 @@ public class ProductConverter {
         for (gov.noaa.nws.ncep.ui.pgen.file.DECollection fdec : fotlk
                 .getDECollection()) {
             // for non-grouped labeled lines
-            if (fdec.getCollectionName().equalsIgnoreCase(
-                    Outlook.OUTLOOK_LABELED_LINE)) {
+            if (fdec.getCollectionName()
+                    .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
                 DECollection dec = new DECollection(
                         Outlook.OUTLOOK_LABELED_LINE);
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
                     de.setParent(dec);
                     dec.add(de);
@@ -2704,16 +2701,16 @@ public class ProductConverter {
 
             }
             // for grouped labeled lines
-            else if (fdec.getCollectionName().equalsIgnoreCase(
-                    Outlook.OUTLOOK_LINE_GROUP)) {
+            else if (fdec.getCollectionName()
+                    .equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)) {
                 DECollection grp = new DECollection(Outlook.OUTLOOK_LINE_GROUP);
                 // add all labeled lines
                 for (gov.noaa.nws.ncep.ui.pgen.file.DECollection labeledLine : fdec
                         .getDrawableElement().getDECollection()) {
                     DECollection lblLine = new DECollection(
                             Outlook.OUTLOOK_LABELED_LINE);
-                    List<AbstractDrawableComponent> des = convert(labeledLine
-                            .getDrawableElement());
+                    List<AbstractDrawableComponent> des = convert(
+                            labeledLine.getDrawableElement());
                     for (AbstractDrawableComponent de : des) {
                         de.setParent(lblLine);
                         lblLine.add(de);
@@ -2771,8 +2768,9 @@ public class ProductConverter {
         }
         vol.setColors(clr);
         String fvp = fVol.getProduct() == null ? null : fVol.getProduct();
-        boolean isNoneDrawable = Arrays.asList(
-                VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1])).contains(fvp);
+        boolean isNoneDrawable = Arrays
+                .asList(VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1]))
+                .contains(fvp);
         ArrayList<Coordinate> volPoints = new ArrayList<Coordinate>();
         nn = 0;
         for (Point pt : fVol.getPoint()) {
@@ -2829,8 +2827,9 @@ public class ProductConverter {
             Volcano vol) {
         gov.noaa.nws.ncep.ui.pgen.file.Volcano fVol = new gov.noaa.nws.ncep.ui.pgen.file.Volcano();
         String vp = vol.getProduct() == null ? null : vol.getProduct().trim();
-        boolean isNoneDrawable = Arrays.asList(
-                VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1])).contains(vp);
+        boolean isNoneDrawable = Arrays
+                .asList(VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1]))
+                .contains(vp);
 
         // set color
         for (Color clr : vol.getColors()) {
@@ -2931,13 +2930,14 @@ public class ProductConverter {
                             for (gov.noaa.nws.ncep.ui.pgen.file.MidCloudText aText : lblDe
                                     .getMidCloudText()) {
 
-                                Color[] clr = new Color[aText.getColor().size()];
+                                Color[] clr = new Color[aText.getColor()
+                                        .size()];
                                 int nn = 0;
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 Point loc = aText.getPoint();
@@ -2946,10 +2946,10 @@ public class ProductConverter {
                                         (Coordinate[]) null,
                                         aText.getFontName(),
                                         aText.getFontSize(),
-                                        TextJustification.valueOf(aText
-                                                .getJustification()),
-                                        new Coordinate(loc.getLon(), loc
-                                                .getLat()),
+                                        TextJustification.valueOf(
+                                                aText.getJustification()),
+                                        new Coordinate(loc.getLon(),
+                                                loc.getLat()),
                                         aText.getCloudTypes(),
                                         aText.getCloudAmounts(),
                                         aText.getTurbulenceType(),
@@ -2974,13 +2974,14 @@ public class ProductConverter {
                             for (gov.noaa.nws.ncep.ui.pgen.file.AvnText aText : lblDe
                                     .getAvnText()) {
 
-                                Color[] clr = new Color[aText.getColor().size()];
+                                Color[] clr = new Color[aText.getColor()
+                                        .size()];
                                 int nn = 0;
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 Point loc = aText.getPoint();
@@ -2988,12 +2989,12 @@ public class ProductConverter {
                                 AvnText text = new AvnText((Coordinate[]) null,
                                         aText.getFontName(),
                                         aText.getFontSize(),
-                                        TextJustification.valueOf(aText
-                                                .getJustification()),
-                                        new Coordinate(loc.getLon(), loc
-                                                .getLat()),
-                                        AviationTextType.valueOf(aText
-                                                .getAvnTextType()),
+                                        TextJustification.valueOf(
+                                                aText.getJustification()),
+                                        new Coordinate(loc.getLon(),
+                                                loc.getLat()),
+                                        AviationTextType.valueOf(
+                                                aText.getAvnTextType()),
                                         aText.getTopValue(),
                                         aText.getBottomValue(),
                                         FontStyle.valueOf(aText.getStyle()),
@@ -3031,8 +3032,8 @@ public class ProductConverter {
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : arrowLine
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
@@ -3048,8 +3049,8 @@ public class ProductConverter {
                                         arrowLine.isClosed(),
                                         arrowLine.isFilled(), linePoints,
                                         arrowLine.getSmoothFactor(),
-                                        FillPattern.valueOf(arrowLine
-                                                .getFillPattern()),
+                                        FillPattern.valueOf(
+                                                arrowLine.getFillPattern()),
                                         arrowLine.getPgenCategory(),
                                         arrowLine.getPgenType());
 
@@ -3067,7 +3068,8 @@ public class ProductConverter {
 
             if (elem.getLine() != null) {
                 // convert lines
-                for (gov.noaa.nws.ncep.ui.pgen.file.Line fLine : elem.getLine()) {
+                for (gov.noaa.nws.ncep.ui.pgen.file.Line fLine : elem
+                        .getLine()) {
 
                     // get colors
                     Color[] clr = new Color[fLine.getColor().size()];
@@ -3089,8 +3091,8 @@ public class ProductConverter {
                     Line line = new Line(null, clr, fLine.getLineWidth(),
                             fLine.getSizeScale(), fLine.isClosed(),
                             fLine.isFilled(), linePoints,
-                            fLine.getSmoothFactor(), FillPattern.valueOf(fLine
-                                    .getFillPattern()),
+                            fLine.getSmoothFactor(),
+                            FillPattern.valueOf(fLine.getFillPattern()),
                             fLine.getPgenCategory(), fLine.getPgenType());
 
                     line.setParent(ll);
@@ -3159,17 +3161,18 @@ public class ProductConverter {
 
             Color[] clr = new Color[aText.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
 
             Point loc = aText.getPoint();
 
-            Text text = new Text(null, aText.getFontName(),
-                    aText.getFontSize(), TextJustification.valueOf(aText
-                            .getJustification()), new Coordinate(loc.getLon(),
-                            loc.getLat()), 0.0, TextRotation.SCREEN_RELATIVE,
+            Text text = new Text(null, aText.getFontName(), aText.getFontSize(),
+                    TextJustification.valueOf(aText.getJustification()),
+                    new Coordinate(loc.getLon(), loc.getLat()), 0.0,
+                    TextRotation.SCREEN_RELATIVE,
                     aText.getTextLine().toArray(new String[] {}),
                     FontStyle.valueOf(aText.getStyle()), clr[0], 0, 0, true,
                     DisplayType.BOX, aText.getPgenCategory(),
@@ -3186,7 +3189,8 @@ public class ProductConverter {
      * @param cnt
      * @return
      */
-    private static Tcm convertXML2Tcm(gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm) {
+    private static Tcm convertXML2Tcm(
+            gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm) {
 
         Tcm pgenTcm = new Tcm();
 
@@ -3221,7 +3225,8 @@ public class ProductConverter {
      * @param cnt
      * @return
      */
-    private static gov.noaa.nws.ncep.ui.pgen.file.TCM convertTcm2XML(Tcm pgenTcm) {
+    private static gov.noaa.nws.ncep.ui.pgen.file.TCM convertTcm2XML(
+            Tcm pgenTcm) {
 
         gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm = new gov.noaa.nws.ncep.ui.pgen.file.TCM();
 
@@ -3233,8 +3238,7 @@ public class ProductConverter {
 
         try {
             xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                    tcmTime.get(Calendar.YEAR),
-                    tcmTime.get(Calendar.MONTH) + 1,
+                    tcmTime.get(Calendar.YEAR), tcmTime.get(Calendar.MONTH) + 1,
                     tcmTime.get(Calendar.DAY_OF_MONTH),
                     tcmTime.get(Calendar.HOUR_OF_DAY),
                     tcmTime.get(Calendar.MINUTE), tcmTime.get(Calendar.SECOND),

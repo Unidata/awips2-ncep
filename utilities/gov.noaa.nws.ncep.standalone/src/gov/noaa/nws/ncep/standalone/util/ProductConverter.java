@@ -7,6 +7,27 @@
  */
 package gov.noaa.nws.ncep.standalone.util;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.TimeZone;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Polygon;
+
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField.StationField;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
@@ -70,27 +91,6 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Volcano;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 import gov.noaa.nws.ncep.viz.common.SnapUtil;
 
-import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
-
 /**
  * Define a ProductConverter Class - some methods to convert the products
  * between XML format and the actual in-memory PGEN products.
@@ -120,11 +120,12 @@ import com.vividsolutions.jts.geom.Polygon;
  *                                      constructor for Line() to save the
  *                                      flipSide value.
  *                                      Refactored converDEs() into convertListOfDEs()
+ *
+ * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * 
  * </pre>
- * 
+ *
  * @author J. Wu
- * @version 0.1
  */
 public class ProductConverter {
 
@@ -200,9 +201,9 @@ public class ProductConverter {
             Layer lyr = new Layer();
             lyr.setName(fLayer.getName());
 
-            lyr.setColor(new Color(fLayer.getColor().getRed(), fLayer
-                    .getColor().getGreen(), fLayer.getColor().getBlue(), fLayer
-                    .getColor().getAlpha()));
+            lyr.setColor(new Color(fLayer.getColor().getRed(),
+                    fLayer.getColor().getGreen(), fLayer.getColor().getBlue(),
+                    fLayer.getColor().getAlpha()));
 
             if (fLayer.isOnOff() != null) {
                 lyr.setOnOff(fLayer.isOnOff());
@@ -262,8 +263,8 @@ public class ProductConverter {
         // The types above can be used with a TrackCoverter for tracking storms
         // so add them now. Not necessary for the types following this
         // function call
-        des.addAll(TrackConverter.getTrackElementListByTrackBeanList(elem
-                .getTrack()));
+        des.addAll(TrackConverter
+                .getTrackElementListByTrackBeanList(elem.getTrack()));
 
         // Its a Vector
         if (!elem.getVector().isEmpty()) {
@@ -334,7 +335,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[fgfa.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fgfa.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fgfa
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -395,7 +397,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[fSig.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fSig.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fSig
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -419,16 +422,14 @@ public class ProductConverter {
                     fSig.getEditableAttrSeqNum(),
                     fSig.getEditableAttrStartTime(),
                     fSig.getEditableAttrEndTime(),
-                    fSig.getEditableAttrRemarks(),
-                    fSig.getEditableAttrPhenom(),
+                    fSig.getEditableAttrRemarks(), fSig.getEditableAttrPhenom(),
                     fSig.getEditableAttrPhenom2(),
                     fSig.getEditableAttrPhenomName(),
                     fSig.getEditableAttrPhenomLat(),
                     fSig.getEditableAttrPhenomLon(),
                     fSig.getEditableAttrPhenomPressure(),
                     fSig.getEditableAttrPhenomMaxWind(),
-                    fSig.getEditableAttrFreeText(),
-                    fSig.getEditableAttrTrend(),
+                    fSig.getEditableAttrFreeText(), fSig.getEditableAttrTrend(),
                     fSig.getEditableAttrMovement(),
                     fSig.getEditableAttrPhenomSpeed(),
                     fSig.getEditableAttrPhenomDirection(),
@@ -437,7 +438,9 @@ public class ProductConverter {
                     fSig.getEditableAttrLevelInfo2(),
                     fSig.getEditableAttrLevelText1(),
                     fSig.getEditableAttrLevelText2(),
-                    fSig.getEditableAttrFromLine(), fSig.getEditableAttrFir());
+                    fSig.getEditableAttrFromLine(), fSig.getEditableAttrFir(),
+                    fSig.getEditableAttrFcstTime(),
+                    fSig.getEditableAttrFcstCntr());
 
             des.add(sigmet);
         }
@@ -540,8 +543,8 @@ public class ProductConverter {
             }
 
             Vector vector = new Vector(null, clr, fVector.getLineWidth(),
-                    fVector.getSizeScale(), fVector.isClear(), (new Coordinate(
-                            loc.getLon(), loc.getLat())), vtype,
+                    fVector.getSizeScale(), fVector.isClear(),
+                    (new Coordinate(loc.getLon(), loc.getLat())), vtype,
                     fVector.getSpeed(), fVector.getDirection(),
                     fVector.getArrowHeadSize(), fVector.isDirectionOnly(),
                     fVector.getPgenCategory(), fVector.getPgenType());
@@ -561,7 +564,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[fArc.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fArc.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fArc
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -573,9 +577,9 @@ public class ProductConverter {
 
             Arc arc = new Arc(null, clr[0], fArc.getLineWidth(),
                     fArc.getSizeScale(), fArc.isClosed(), fArc.isFilled(),
-                    fArc.getSmoothFactor(), FillPattern.valueOf(fArc
-                            .getFillPattern()), fArc.getPgenType(),
-                    linePoints.get(0), linePoints.get(1),
+                    fArc.getSmoothFactor(),
+                    FillPattern.valueOf(fArc.getFillPattern()),
+                    fArc.getPgenType(), linePoints.get(0), linePoints.get(1),
                     fArc.getPgenCategory(), fArc.getAxisRatio(),
                     fArc.getStartAngle(), fArc.getEndAngle());
 
@@ -596,7 +600,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[mText.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : mText.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : mText
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -638,15 +643,16 @@ public class ProductConverter {
 
             Color[] clr = new Color[aText.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
 
             Point loc = aText.getPoint();
 
-            AvnText text = new AvnText((Coordinate[]) null,
-                    aText.getFontName(), aText.getFontSize(),
+            AvnText text = new AvnText((Coordinate[]) null, aText.getFontName(),
+                    aText.getFontSize(),
                     TextJustification.valueOf(aText.getJustification()),
                     (new Coordinate(loc.getLon(), loc.getLat())),
                     AviationTextType.valueOf(aText.getAvnTextType()),
@@ -678,7 +684,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[fText.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fText.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fText
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -693,13 +700,13 @@ public class ProductConverter {
             }
 
             Text text = new Text((Coordinate[]) null, fText.getFontName(),
-                    fText.getFontSize(), TextJustification.valueOf(fText
-                            .getJustification()), (new Coordinate(loc.getLon(),
-                            loc.getLat())), fText.getRotation(),
+                    fText.getFontSize(),
+                    TextJustification.valueOf(fText.getJustification()),
+                    (new Coordinate(loc.getLon(), loc.getLat())),
+                    fText.getRotation(),
                     TextRotation.valueOf(fText.getRotationRelativity()), st,
                     FontStyle.valueOf(fText.getStyle()), clr[0], 0, 0,
-                    fText.isMask(),
-                    DisplayType.valueOf(fText.getDisplayType()),
+                    fText.isMask(), DisplayType.valueOf(fText.getDisplayType()),
                     fText.getPgenCategory(), fText.getPgenType());
 
             if (fText.getXOffset() != null) {
@@ -753,9 +760,9 @@ public class ProductConverter {
             if (fSymbol.getPgenCategory().equals("Combo")) {
                 ComboSymbol symbol = new ComboSymbol(null, clr,
                         fSymbol.getLineWidth(), fSymbol.getSizeScale(),
-                        fSymbol.isClear(), (new Coordinate(loc.getLon(),
-                                loc.getLat())), fSymbol.getPgenCategory(),
-                        fSymbol.getPgenType());
+                        fSymbol.isClear(),
+                        (new Coordinate(loc.getLon(), loc.getLat())),
+                        fSymbol.getPgenCategory(), fSymbol.getPgenType());
                 des.add(symbol);
             } else {
                 Symbol symbol = new Symbol(null, clr, fSymbol.getLineWidth(),
@@ -779,7 +786,8 @@ public class ProductConverter {
 
             Color[] clr = new Color[fLine.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fLine.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : fLine
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
@@ -799,8 +807,8 @@ public class ProductConverter {
                         fLine.isFilled(), linePoints, fLine.getSmoothFactor(),
                         FillPattern.valueOf(fLine.getFillPattern()),
                         fLine.getPgenCategory(), fLine.getPgenType(),
-                        fLine.getKinkPosition(), ArrowHeadType.valueOf(fLine
-                                .getArrowHeadType()));
+                        fLine.getKinkPosition(),
+                        ArrowHeadType.valueOf(fLine.getArrowHeadType()));
             } else {
                 line = new Line(null, clr, fLine.getLineWidth(),
                         fLine.getSizeScale(), fLine.isClosed(),
@@ -931,9 +939,8 @@ public class ProductConverter {
                     } else if (de instanceof Gfa) {
                         convertLODLineGFA(fde, de);
                     } else if (de instanceof Track) {
-                        fde.getTrack()
-                                .add(TrackConverter
-                                        .getTrackBeanByTrackElement((Track) de));
+                        fde.getTrack().add(TrackConverter
+                                .getTrackBeanByTrackElement((Track) de));
                     } else if (de instanceof Sigmet) {
                         convertLODLineSigmet(fde, de);
                     } else {
@@ -986,12 +993,12 @@ public class ProductConverter {
                 } else if (adc.getName().equalsIgnoreCase("Outlook")) {
                     fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
                 } else {
-                    fde.getDECollection().add(
-                            convertDECollection2XML((DECollection) adc));
+                    fde.getDECollection()
+                            .add(convertDECollection2XML((DECollection) adc));
                 }
             }
 
-        }// end For Loop: For each ADC obj in the input List
+        } // end For Loop: For each ADC obj in the input List
 
         return fde;
     }
@@ -1024,8 +1031,7 @@ public class ProductConverter {
         XMLGregorianCalendar xmlCal = null;
         try {
             xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                    advTime.get(Calendar.YEAR),
-                    advTime.get(Calendar.MONTH) + 1,
+                    advTime.get(Calendar.YEAR), advTime.get(Calendar.MONTH) + 1,
                     advTime.get(Calendar.DAY_OF_MONTH),
                     advTime.get(Calendar.HOUR_OF_DAY),
                     advTime.get(Calendar.MINUTE), advTime.get(Calendar.SECOND),
@@ -1353,43 +1359,43 @@ public class ProductConverter {
         sigmet.setWidth(((Sigmet) de).getWidth());
 
         sigmet.setEditableAttrArea(((Sigmet) de).getEditableAttrArea());
-        sigmet.setEditableAttrIssueOffice(((Sigmet) de)
-                .getEditableAttrIssueOffice());
+        sigmet.setEditableAttrIssueOffice(
+                ((Sigmet) de).getEditableAttrIssueOffice());
         sigmet.setEditableAttrStatus(((Sigmet) de).getEditableAttrStatus());
         sigmet.setEditableAttrId(((Sigmet) de).getEditableAttrId());
         sigmet.setEditableAttrSeqNum(((Sigmet) de).getEditableAttrSeqNum());
-        sigmet.setEditableAttrStartTime(((Sigmet) de)
-                .getEditableAttrStartTime());
+        sigmet.setEditableAttrStartTime(
+                ((Sigmet) de).getEditableAttrStartTime());
         sigmet.setEditableAttrEndTime(((Sigmet) de).getEditableAttrEndTime());
         sigmet.setEditableAttrRemarks(((Sigmet) de).getEditableAttrRemarks());
         sigmet.setEditableAttrPhenom(((Sigmet) de).getEditableAttrPhenom());
         sigmet.setEditableAttrPhenom2(((Sigmet) de).getEditableAttrPhenom2());
-        sigmet.setEditableAttrPhenomName(((Sigmet) de)
-                .getEditableAttrPhenomName());
-        sigmet.setEditableAttrPhenomLat(((Sigmet) de)
-                .getEditableAttrPhenomLat());
-        sigmet.setEditableAttrPhenomLon(((Sigmet) de)
-                .getEditableAttrPhenomLon());
-        sigmet.setEditableAttrPhenomPressure(((Sigmet) de)
-                .getEditableAttrPhenomPressure());
-        sigmet.setEditableAttrPhenomMaxWind(((Sigmet) de)
-                .getEditableAttrPhenomMaxWind());
+        sigmet.setEditableAttrPhenomName(
+                ((Sigmet) de).getEditableAttrPhenomName());
+        sigmet.setEditableAttrPhenomLat(
+                ((Sigmet) de).getEditableAttrPhenomLat());
+        sigmet.setEditableAttrPhenomLon(
+                ((Sigmet) de).getEditableAttrPhenomLon());
+        sigmet.setEditableAttrPhenomPressure(
+                ((Sigmet) de).getEditableAttrPhenomPressure());
+        sigmet.setEditableAttrPhenomMaxWind(
+                ((Sigmet) de).getEditableAttrPhenomMaxWind());
         sigmet.setEditableAttrFreeText(((Sigmet) de).getEditableAttrFreeText());
         sigmet.setEditableAttrTrend(((Sigmet) de).getEditableAttrTrend());
         sigmet.setEditableAttrMovement(((Sigmet) de).getEditableAttrMovement());
-        sigmet.setEditableAttrPhenomSpeed(((Sigmet) de)
-                .getEditableAttrPhenomSpeed());
-        sigmet.setEditableAttrPhenomDirection(((Sigmet) de)
-                .getEditableAttrPhenomDirection());
+        sigmet.setEditableAttrPhenomSpeed(
+                ((Sigmet) de).getEditableAttrPhenomSpeed());
+        sigmet.setEditableAttrPhenomDirection(
+                ((Sigmet) de).getEditableAttrPhenomDirection());
         sigmet.setEditableAttrLevel(((Sigmet) de).getEditableAttrLevel());
-        sigmet.setEditableAttrLevelInfo1(((Sigmet) de)
-                .getEditableAttrLevelInfo1());
-        sigmet.setEditableAttrLevelInfo2(((Sigmet) de)
-                .getEditableAttrLevelInfo2());
-        sigmet.setEditableAttrLevelText1(((Sigmet) de)
-                .getEditableAttrLevelText1());
-        sigmet.setEditableAttrLevelText2(((Sigmet) de)
-                .getEditableAttrLevelText2());
+        sigmet.setEditableAttrLevelInfo1(
+                ((Sigmet) de).getEditableAttrLevelInfo1());
+        sigmet.setEditableAttrLevelInfo2(
+                ((Sigmet) de).getEditableAttrLevelInfo2());
+        sigmet.setEditableAttrLevelText1(
+                ((Sigmet) de).getEditableAttrLevelText1());
+        sigmet.setEditableAttrLevelText2(
+                ((Sigmet) de).getEditableAttrLevelText2());
         sigmet.setEditableAttrFromLine(((Sigmet) de).getEditableAttrFromLine());
         sigmet.setEditableAttrFir(((Sigmet) de).getEditableAttrFir());
 
@@ -1704,8 +1710,8 @@ public class ProductConverter {
             vtype = VectorType.HASH_MARK;
         }
         JetHash hash = jet.new JetHash(null, clr, fVector.getLineWidth(),
-                fVector.getSizeScale(), fVector.isClear(), (new Coordinate(
-                        loc.getLon(), loc.getLat())), vtype,
+                fVector.getSizeScale(), fVector.isClear(),
+                (new Coordinate(loc.getLon(), loc.getLat())), vtype,
                 fVector.getSpeed(), fVector.getDirection(),
                 fVector.getArrowHeadSize(), fVector.isDirectionOnly(),
                 fVector.getPgenCategory(), fVector.getPgenType());
@@ -1739,8 +1745,8 @@ public class ProductConverter {
             vtype = VectorType.WIND_BARB;
         }
         JetBarb barb = jet.new JetBarb(null, clr, fVector.getLineWidth(),
-                fVector.getSizeScale(), fVector.isClear(), (new Coordinate(
-                        loc.getLon(), loc.getLat())), vtype,
+                fVector.getSizeScale(), fVector.isClear(),
+                (new Coordinate(loc.getLon(), loc.getLat())), vtype,
                 fVector.getSpeed(), fVector.getDirection(),
                 fVector.getArrowHeadSize(), fVector.isDirectionOnly(),
                 fVector.getPgenCategory(), fVector.getPgenType());
@@ -1776,10 +1782,10 @@ public class ProductConverter {
                 fText.getFontName(), fText.getFontSize(),
                 TextJustification.valueOf(fText.getJustification()),
                 (new Coordinate(loc.getLon(), loc.getLat())),
-                fText.getRotation(), TextRotation.valueOf(fText
-                        .getRotationRelativity()), st, FontStyle.valueOf(fText
-                        .getStyle()), clr[0], 0, 0, fText.isMask(),
-                DisplayType.valueOf(fText.getDisplayType()),
+                fText.getRotation(),
+                TextRotation.valueOf(fText.getRotationRelativity()), st,
+                FontStyle.valueOf(fText.getStyle()), clr[0], 0, 0,
+                fText.isMask(), DisplayType.valueOf(fText.getDisplayType()),
                 fText.getPgenCategory(), fText.getPgenType());
 
         text.setLatLonFlag(true);
@@ -1813,8 +1819,7 @@ public class ProductConverter {
         XMLGregorianCalendar xmlCal = null;
         try {
             xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                    cntTime.get(Calendar.YEAR),
-                    cntTime.get(Calendar.MONTH) + 1,
+                    cntTime.get(Calendar.YEAR), cntTime.get(Calendar.MONTH) + 1,
                     cntTime.get(Calendar.DAY_OF_MONTH),
                     cntTime.get(Calendar.HOUR_OF_DAY),
                     cntTime.get(Calendar.MINUTE), cntTime.get(Calendar.SECOND),
@@ -1848,8 +1853,8 @@ public class ProductConverter {
             AbstractDrawableComponent next = it.next();
 
             if (next instanceof DECollection) {
-                contours.getDECollection().add(
-                        convertDECollection2XML((DECollection) next));
+                contours.getDECollection()
+                        .add(convertDECollection2XML((DECollection) next));
             }
 
         }
@@ -1902,8 +1907,8 @@ public class ProductConverter {
             if (fdec.getCollectionName().equals("ContourLine")) {
                 ContourLine contourLine = new ContourLine();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 String[] labelString = null;
                 int numOfLabels = 0;
 
@@ -1933,8 +1938,8 @@ public class ProductConverter {
 
                 ContourMinmax contourMinmax = new ContourMinmax();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
 
                     de.setParent(contourMinmax);
@@ -1949,8 +1954,8 @@ public class ProductConverter {
 
                 ContourCircle contourCircle = new ContourCircle();
 
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
 
                     de.setParent(contourCircle);
@@ -2082,9 +2087,8 @@ public class ProductConverter {
 
         // set anchor points
         for (Station stn : wb.getAnchors()) {
-            fwb.getAnchorPoints().add(
-                    stn.getStid() + " " + stn.getState() + " "
-                            + stn.getStnname());
+            fwb.getAnchorPoints().add(stn.getStid() + " " + stn.getState() + " "
+                    + stn.getStnname());
         }
 
         // set county list
@@ -2096,13 +2100,11 @@ public class ProductConverter {
                         .replaceAll(" City", "");
             }
 
-            fwb.getCounties().add(
-                    String.format(
-                            "%1$-7s%2$-5s%3$-12s%4$6.2f%5$8.2f%6$7s%7$5s %8$s",
-                            cnty.getUgcId(), cnty.getState(), cntyName, cnty
-                                    .getCentriod().y, cnty.getCentriod().x,
-                            cnty.getFips(), cnty.getWfo(), cnty.getZoneName()
-                                    .toUpperCase()));
+            fwb.getCounties().add(String.format(
+                    "%1$-7s%2$-5s%3$-12s%4$6.2f%5$8.2f%6$7s%7$5s %8$s",
+                    cnty.getUgcId(), cnty.getState(), cntyName,
+                    cnty.getCentriod().y, cnty.getCentriod().x, cnty.getFips(),
+                    cnty.getWfo(), cnty.getZoneName().toUpperCase()));
         }
 
         // set states
@@ -2131,8 +2133,7 @@ public class ProductConverter {
                 if (statusValidTime != null) {
                     XMLGregorianCalendar xmlCal = null;
                     try {
-                        xmlCal = DatatypeFactory
-                                .newInstance()
+                        xmlCal = DatatypeFactory.newInstance()
                                 .newXMLGregorianCalendar(
                                         statusValidTime.get(Calendar.YEAR),
                                         statusValidTime.get(Calendar.MONTH) + 1,
@@ -2143,7 +2144,8 @@ public class ProductConverter {
                                         statusValidTime.get(Calendar.MINUTE),
                                         statusValidTime.get(Calendar.SECOND),
                                         statusValidTime
-                                                .get(Calendar.MILLISECOND), 0);
+                                                .get(Calendar.MILLISECOND),
+                                        0);
                     } catch (DatatypeConfigurationException e) {
                         e.printStackTrace();
                     }
@@ -2154,8 +2156,7 @@ public class ProductConverter {
                 if (statusExpTime != null) {
                     XMLGregorianCalendar xmlCal = null;
                     try {
-                        xmlCal = DatatypeFactory
-                                .newInstance()
+                        xmlCal = DatatypeFactory.newInstance()
                                 .newXMLGregorianCalendar(
                                         statusExpTime.get(Calendar.YEAR),
                                         statusExpTime.get(Calendar.MONTH) + 1,
@@ -2345,7 +2346,6 @@ public class ProductConverter {
         // file:/usr1/qzhou/to11dr3/workspace/gov.noaa.nws.ncep.pgen/bin/
         // file:/usr1/qzhou/R1G1-6/workspace/gov.noaa.nws.ncep.standalone/
         // file:/usr1/qzhou/R1G1-6/workspace/gov.noaa.nws.ncep.standalone/distXC/xmlConverter.jar
-        // System.out.println("fileDir " + fileDir);
         if (fileDir.endsWith(".jar"))
             fileDir = fileDir.substring(5, (fileDir.lastIndexOf("/") + 1));
         else
@@ -2356,9 +2356,9 @@ public class ProductConverter {
         nn = 0;
         for (String str : fwb.getAnchorPoints()) {
             if (!str.equalsIgnoreCase(""))
-                anchors[nn++] = (new StationTable(fileDir
-                        + "table/spcwatch.xml")).getStation(StationField.STID,
-                        str.substring(0, 3));
+                anchors[nn++] = (new StationTable(
+                        fileDir + "table/spcwatch.xml")).getStation(
+                                StationField.STID, str.substring(0, 3));
         }
         wb.setAnchors(anchors[0], anchors[1]);
 
@@ -2394,20 +2394,19 @@ public class ProductConverter {
         // status info
         for (Status fws : fwb.getStatus()) {
 
-            Calendar statusValidTime = Calendar.getInstance(TimeZone
-                    .getTimeZone("GMT"));
+            Calendar statusValidTime = Calendar
+                    .getInstance(TimeZone.getTimeZone("GMT"));
             XMLGregorianCalendar xmlStatusValidCal = fws.getStatusValidTime();
             if (xmlStatusValidCal != null) {
                 statusValidTime.set(xmlStatusValidCal.getYear(),
                         xmlStatusValidCal.getMonth() - 1,
-                        xmlStatusValidCal.getDay(),
-                        xmlStatusValidCal.getHour(),
+                        xmlStatusValidCal.getDay(), xmlStatusValidCal.getHour(),
                         xmlStatusValidCal.getMinute(),
                         xmlStatusValidCal.getSecond());
             }
 
-            Calendar statusExpTime = Calendar.getInstance(TimeZone
-                    .getTimeZone("GMT"));
+            Calendar statusExpTime = Calendar
+                    .getInstance(TimeZone.getTimeZone("GMT"));
             XMLGregorianCalendar xmlStatusExpCal = fws.getStatusExpTime();
             if (xmlStatusExpCal != null) {
                 statusExpTime.set(xmlStatusExpCal.getYear(),
@@ -2510,8 +2509,8 @@ public class ProductConverter {
             AbstractDrawableComponent next = it.next();
 
             if (next instanceof DECollection) {
-                fotlk.getDECollection().add(
-                        convertDECollection2XML((DECollection) next));
+                fotlk.getDECollection()
+                        .add(convertDECollection2XML((DECollection) next));
             }
 
         }
@@ -2577,12 +2576,12 @@ public class ProductConverter {
         for (gov.noaa.nws.ncep.ui.pgen.file.DECollection fdec : fotlk
                 .getDECollection()) {
             // for non-grouped labeled lines
-            if (fdec.getCollectionName().equalsIgnoreCase(
-                    Outlook.OUTLOOK_LABELED_LINE)) {
+            if (fdec.getCollectionName()
+                    .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
                 DECollection dec = new DECollection(
                         Outlook.OUTLOOK_LABELED_LINE);
-                List<AbstractDrawableComponent> delist = convert(fdec
-                        .getDrawableElement());
+                List<AbstractDrawableComponent> delist = convert(
+                        fdec.getDrawableElement());
                 for (AbstractDrawableComponent de : delist) {
                     de.setParent(dec);
                     dec.add(de);
@@ -2592,16 +2591,16 @@ public class ProductConverter {
 
             }
             // for grouped labeled lines
-            else if (fdec.getCollectionName().equalsIgnoreCase(
-                    Outlook.OUTLOOK_LINE_GROUP)) {
+            else if (fdec.getCollectionName()
+                    .equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)) {
                 DECollection grp = new DECollection(Outlook.OUTLOOK_LINE_GROUP);
                 // add all labeled lines
                 for (gov.noaa.nws.ncep.ui.pgen.file.DECollection labeledLine : fdec
                         .getDrawableElement().getDECollection()) {
                     DECollection lblLine = new DECollection(
                             Outlook.OUTLOOK_LABELED_LINE);
-                    List<AbstractDrawableComponent> des = convert(labeledLine
-                            .getDrawableElement());
+                    List<AbstractDrawableComponent> des = convert(
+                            labeledLine.getDrawableElement());
                     for (AbstractDrawableComponent de : des) {
                         de.setParent(lblLine);
                         lblLine.add(de);
@@ -2721,8 +2720,9 @@ public class ProductConverter {
             Volcano vol) {
         gov.noaa.nws.ncep.ui.pgen.file.Volcano fVol = new gov.noaa.nws.ncep.ui.pgen.file.Volcano();
         String vp = vol.getProduct() == null ? null : vol.getProduct().trim();
-        boolean isNoneDrawable = Arrays.asList(
-                VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1])).contains(vp);
+        boolean isNoneDrawable = Arrays
+                .asList(VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1]))
+                .contains(vp);
 
         // set color
         for (Color clr : vol.getColors()) {
@@ -2829,8 +2829,8 @@ public class ProductConverter {
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : arrowLine
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
@@ -2846,8 +2846,8 @@ public class ProductConverter {
                                         arrowLine.isClosed(),
                                         arrowLine.isFilled(), linePoints,
                                         arrowLine.getSmoothFactor(),
-                                        FillPattern.valueOf(arrowLine
-                                                .getFillPattern()),
+                                        FillPattern.valueOf(
+                                                arrowLine.getFillPattern()),
                                         arrowLine.getPgenCategory(),
                                         arrowLine.getPgenType());
 
@@ -2862,13 +2862,14 @@ public class ProductConverter {
                             for (gov.noaa.nws.ncep.ui.pgen.file.MidCloudText aText : lblDe
                                     .getMidCloudText()) {
 
-                                Color[] clr = new Color[aText.getColor().size()];
+                                Color[] clr = new Color[aText.getColor()
+                                        .size()];
                                 int nn = 0;
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 Point loc = aText.getPoint();
@@ -2877,10 +2878,10 @@ public class ProductConverter {
                                         (Coordinate[]) null,
                                         aText.getFontName(),
                                         aText.getFontSize(),
-                                        TextJustification.valueOf(aText
-                                                .getJustification()),
-                                        new Coordinate(loc.getLon(), loc
-                                                .getLat()),
+                                        TextJustification.valueOf(
+                                                aText.getJustification()),
+                                        new Coordinate(loc.getLon(),
+                                                loc.getLat()),
                                         aText.getCloudTypes(),
                                         aText.getCloudAmounts(),
                                         aText.getTurbulenceType(),
@@ -2913,13 +2914,14 @@ public class ProductConverter {
                             for (gov.noaa.nws.ncep.ui.pgen.file.AvnText aText : lblDe
                                     .getAvnText()) {
 
-                                Color[] clr = new Color[aText.getColor().size()];
+                                Color[] clr = new Color[aText.getColor()
+                                        .size()];
                                 int nn = 0;
                                 for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
                                         .getColor()) {
                                     clr[nn++] = new Color(fColor.getRed(),
-                                            fColor.getGreen(),
-                                            fColor.getBlue(), fColor.getAlpha());
+                                            fColor.getGreen(), fColor.getBlue(),
+                                            fColor.getAlpha());
                                 }
 
                                 Point loc = aText.getPoint();
@@ -2927,12 +2929,12 @@ public class ProductConverter {
                                 AvnText text = new AvnText((Coordinate[]) null,
                                         aText.getFontName(),
                                         aText.getFontSize(),
-                                        TextJustification.valueOf(aText
-                                                .getJustification()),
-                                        new Coordinate(loc.getLon(), loc
-                                                .getLat()),
-                                        AviationTextType.valueOf(aText
-                                                .getAvnTextType()),
+                                        TextJustification.valueOf(
+                                                aText.getJustification()),
+                                        new Coordinate(loc.getLon(),
+                                                loc.getLat()),
+                                        AviationTextType.valueOf(
+                                                aText.getAvnTextType()),
                                         aText.getTopValue(),
                                         aText.getBottomValue(),
                                         FontStyle.valueOf(aText.getStyle()),
@@ -2965,7 +2967,8 @@ public class ProductConverter {
 
             if (elem.getLine() != null) {
                 // convert lines
-                for (gov.noaa.nws.ncep.ui.pgen.file.Line fLine : elem.getLine()) {
+                for (gov.noaa.nws.ncep.ui.pgen.file.Line fLine : elem
+                        .getLine()) {
 
                     // get colors
                     Color[] clr = new Color[fLine.getColor().size()];
@@ -2987,8 +2990,8 @@ public class ProductConverter {
                     Line line = new Line(null, clr, fLine.getLineWidth(),
                             fLine.getSizeScale(), fLine.isClosed(),
                             fLine.isFilled(), linePoints,
-                            fLine.getSmoothFactor(), FillPattern.valueOf(fLine
-                                    .getFillPattern()),
+                            fLine.getSmoothFactor(),
+                            FillPattern.valueOf(fLine.getFillPattern()),
                             fLine.getPgenCategory(), fLine.getPgenType());
 
                     line.setParent(ll);
@@ -3057,17 +3060,18 @@ public class ProductConverter {
 
             Color[] clr = new Color[aText.getColor().size()];
             int nn = 0;
-            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText.getColor()) {
+            for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor : aText
+                    .getColor()) {
                 clr[nn++] = new Color(fColor.getRed(), fColor.getGreen(),
                         fColor.getBlue(), fColor.getAlpha());
             }
 
             Point loc = aText.getPoint();
 
-            Text text = new Text(null, aText.getFontName(),
-                    aText.getFontSize(), TextJustification.valueOf(aText
-                            .getJustification()), new Coordinate(loc.getLon(),
-                            loc.getLat()), 0.0, TextRotation.SCREEN_RELATIVE,
+            Text text = new Text(null, aText.getFontName(), aText.getFontSize(),
+                    TextJustification.valueOf(aText.getJustification()),
+                    new Coordinate(loc.getLon(), loc.getLat()), 0.0,
+                    TextRotation.SCREEN_RELATIVE,
                     aText.getTextLine().toArray(new String[] {}),
                     FontStyle.valueOf(aText.getStyle()), clr[0], 0, 0, true,
                     DisplayType.BOX, aText.getPgenCategory(),
@@ -3084,7 +3088,8 @@ public class ProductConverter {
      * @param cnt
      * @return
      */
-    private static Tcm convertXML2Tcm(gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm) {
+    private static Tcm convertXML2Tcm(
+            gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm) {
 
         Tcm pgenTcm = new Tcm();
 
@@ -3119,7 +3124,8 @@ public class ProductConverter {
      * @param cnt
      * @return
      */
-    private static gov.noaa.nws.ncep.ui.pgen.file.TCM convertTcm2XML(Tcm pgenTcm) {
+    private static gov.noaa.nws.ncep.ui.pgen.file.TCM convertTcm2XML(
+            Tcm pgenTcm) {
 
         gov.noaa.nws.ncep.ui.pgen.file.TCM fileTcm = new gov.noaa.nws.ncep.ui.pgen.file.TCM();
 
@@ -3131,8 +3137,7 @@ public class ProductConverter {
 
         try {
             xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                    tcmTime.get(Calendar.YEAR),
-                    tcmTime.get(Calendar.MONTH) + 1,
+                    tcmTime.get(Calendar.YEAR), tcmTime.get(Calendar.MONTH) + 1,
                     tcmTime.get(Calendar.DAY_OF_MONTH),
                     tcmTime.get(Calendar.HOUR_OF_DAY),
                     tcmTime.get(Calendar.MINUTE), tcmTime.get(Calendar.SECOND),

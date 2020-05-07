@@ -62,6 +62,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * 11/12        #893        J. Wu       TTR635 - Fix volcano in alphabetical breakdown order.
  * Mar 11, 2014 #2718       randerso    Changes for GeoTools 10.5
  * Apr 21, 2020 76155       ksunil      ID values for INTL is dependent on WMO value selected
+ * May 10, 2020 78441       ksunil      Removed reference to KNHC
  * </pre>
  *
  * @author gzhang
@@ -122,7 +123,7 @@ public class SigmetInfo {
             VOLCANO_BUCKET_MAP = initVolBucketMap();
 
             AREA_MAP.put(SIGMET_TYPES[0],
-                    new String[] { "KKCI", "KNHC", "PHFO", "PAWU" });
+                    new String[] { "KKCI", "PHFO", "PAWU" });
             AREA_MAP.put(SIGMET_TYPES[1], new String[] { "KMKC" });
             AREA_MAP.put(SIGMET_TYPES[2], new String[] { "KSFO", "KSLC", "KCHI",
                     "KDFW", "KBOS", "KMIA", "PHNL", "PANC", "PAFA", "PAJN" });
@@ -131,14 +132,9 @@ public class SigmetInfo {
             AREA_MAP.put(SIGMET_TYPES[4], new String[] { "KSFO", "KSLC", "KCHI",
                     "KDFW", "KBOS", "KMIA", "PHNL", "PANC", "PAFA", "PAJN" });
 
-            // INTL ID values are not unique and they depend on WMO. We have 4
+            // INTL ID values are not unique and they depend on WMO. We have 3
             // of them
-            ID_MAP.put(SIGMET_TYPES[0] + "-KNHC",
-                    new String[] { "ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO",
-                            "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT",
-                            "KILO", "LIMA", "MIKE", "NOVEMBER", "OSCAR", "PAPA",
-                            "QUEBEC", "ROMEO", "SIERRA", "TANGO", "UNIFORM",
-                            "VICTOR", "WHISKEY", "XRAY", "YANKEE", "ZULU" });
+
             ID_MAP.put(SIGMET_TYPES[0] + "-KKCI",
                     new String[] { "ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO",
                             "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT",

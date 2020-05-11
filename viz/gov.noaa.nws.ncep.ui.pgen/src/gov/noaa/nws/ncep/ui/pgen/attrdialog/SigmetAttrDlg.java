@@ -133,6 +133,9 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Apr 21, 2020  77994      ksunil       Tropical Cyclone and Volcanic Ash should default to 6 hours end time.
  *               78000                   New fcst widget items for TC
  * May 12, 2020  77473      ksunil       INtl Sigmet input validation framework
+ * Apr 28, 2020  77667      smanoj       Flight Information Region (FIR) update.
+ * May 04, 2020  77670      smanoj       Format changes for Thunderstorm.
+ * May 06, 2020  77691      smanoj       Format changes for Volcanic Ash.
  * </pre>
  *
  * @author gzhang
@@ -319,6 +322,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private static final Color rightFormatColor = Color.green;
 
     private Combo comboPhenom;
+
+    private boolean firCalledForSecondLine = false;
+
+    private String editableFirID;
 
     /**
      * Constructor.
@@ -610,6 +617,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             createDetailsAreaSecondPhenom(detailsComposite);
             createDetailsAreaForecastSection(detailsComposite);
         }
+
+        // ------------------------------ FIR Region Info:
+        editableFirID = "";
+        createFirRegion(detailsComposite);
 
         // ------------------------------ Level Info:
         createDetailsAreaLevel(detailsComposite);
@@ -1268,6 +1279,182 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             lblFreeText.setEnabled(false);
             txtFreeText.setEnabled(false);
         }
+    }
+
+    private void createFirRegion(Composite detailsComposite) {
+        editableFirID = getFirs();
+        Group top7 = new Group(detailsComposite, SWT.LEFT);
+        top7.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
+        top7.setLayout(new GridLayout(8, false));
+        top7.setText("FIR Region");
+
+        Group top8 = new Group(top7, SWT.LEFT);
+        top8.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        top8.setLayout(new GridLayout(8, false));
+        top8.setText("Pacific");
+        for (String s : SigmetInfo.FIR_PACIFIC) {
+            final Button btn = new Button(top8, SWT.CHECK);
+            btn.setText(s);
+            btn.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    editableFirID = getFirs();
+                    String newFir = btn.getText();
+                    if (btn.getSelection()) {
+                        if (!editableFirID.contains(newFir)) {
+                            if (editableFirID.length() == 0) {
+                                editableFirID = editableFirID.concat(newFir);
+                            } else {
+                                editableFirID = editableFirID
+                                        .concat(" " + newFir);
+                            }
+                        }
+                    } else {
+                        if (editableFirID.contains(newFir)) {
+                            editableFirID = editableFirID.replaceFirst(newFir,
+                                    "");
+                        }
+                    }
+                    editableFirID.trim();
+                }
+            });
+
+            if (editableFirID != null) {
+                if (editableFirID.contains(s)) {
+                    btn.setSelection(true);
+                }
+            }
+        }
+
+        Group top9 = new Group(top7, SWT.TOP);
+        top9.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
+        top9.setLayout(new GridLayout(8, false));
+        top9.setText("Atlantic");
+        for (String s : SigmetInfo.FIR_ATLANTIC) {
+            final Button btn = new Button(top9, SWT.CHECK);
+            btn.setText(s);
+            btn.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    editableFirID = getFirs();
+                    String newFir = btn.getText();
+                    if (btn.getSelection()) {
+                        if (!editableFirID.contains(newFir)) {
+                            if (editableFirID.length() == 0) {
+                                editableFirID = editableFirID.concat(newFir);
+                            } else {
+                                editableFirID = editableFirID
+                                        .concat(" " + newFir);
+                            }
+                        }
+                    } else {
+                        if (editableFirID.contains(newFir)) {
+                            editableFirID = editableFirID.replaceFirst(newFir,
+                                    "");
+                        }
+                    }
+                    editableFirID.trim();
+                }
+            });
+
+            if (editableFirID != null) {
+                if (editableFirID.contains(s)) {
+                    btn.setSelection(true);
+                }
+            }
+        }
+    }
+
+    public String getFirs() {
+        if (!(editableFirID == null || editableFirID.length() == 0)) {
+            return editableFirID;
+        }
+
+        StringBuilder fir = new StringBuilder();
+
+        AbstractDrawableComponent elSelected = SigmetAttrDlg.this.drawingLayer
+                .getSelectedComp();
+        Coordinate[] coors = (elSelected == null) ? null
+                : elSelected.getPoints().toArray(new Coordinate[] {});
+
+        String lineType = ((Sigmet) SigmetAttrDlg.this.drawingLayer
+                .getSelectedDE()).getType();
+
+        if (coors != null) {
+            IMapDescriptor mapDescriptor = SigmetAttrDlg.this.drawingLayer
+                    .getDescriptor();
+            double width = Double.parseDouble(widthStr);
+
+            if (SigmetAttrDlg.AREA.equals(lineType)) {
+
+                Coordinate[] coorsP = new Coordinate[coors.length + 1];
+                coorsP = Arrays.copyOf(coors, coorsP.length);
+                coorsP[coorsP.length - 1] = coors[0];
+
+                Polygon areaP = SigmetInfo.getPolygon(coorsP, mapDescriptor);
+                fir.append(getFirString(areaP));
+
+            } else if (SigmetAttrDlg.ISOLATED.equals(lineType)) {
+
+                Polygon areaP = SigmetInfo.getIsolatedPolygon(coors[0], width,
+                        mapDescriptor);
+                fir.append(getFirString(areaP));
+
+            } else {// Lines
+                String subLineType = lineType
+                        .split(SigmetInfo.LINE_SEPERATER)[1];
+                Polygon areaP = SigmetInfo.getSOLPolygon(coors, subLineType,
+                        width, mapDescriptor);
+                fir.append(getFirString(areaP));
+            }
+        }
+        editableFirID = fir.toString().trim();
+        return editableFirID;
+    }
+
+    public String getFirString(Polygon areaP) {
+        StringBuilder fir = new StringBuilder();
+        Map<String, Polygon> firPolygonMap = SigmetInfo
+                .initFirPolygonMapFromShapfile();
+
+        for (Entry<String, Polygon> entry : firPolygonMap.entrySet()) {
+            String aFir = entry.getKey();
+            Polygon firP = entry.getValue();
+            if ((firP.covers(areaP) || firP.intersects(areaP))
+                    && (!fir.toString().contains(aFir.substring(0, 4)))) {
+                fir.append(aFir.substring(0, 4)).append(" ");
+            }
+
+        }
+
+        String firId = fir.toString();
+
+        String[] firIdArray = firId.split(" ");
+
+        StringBuilder firNameBuilder = new StringBuilder();
+        for (
+
+        String id : firIdArray) {
+            String firName = "";
+            for (String s : SigmetInfo.FIR_ARRAY) {
+                if (id.equals(s.substring(0, 4))) {
+                    firName = s.substring(5, s.length());
+                }
+            }
+
+            String[] ss = firName.split("_");
+            for (String element : ss) {
+                firNameBuilder.append(element).append(" ");
+            }
+            if (!firId.trim().isEmpty()) {
+                firNameBuilder.append(" FIR ");
+            }
+        }
+
+        return firCalledForSecondLine ? firNameBuilder.toString() : firId;
     }
 
     private void createDetailsAreaSecondPhenom(Composite detailsComposite) {
@@ -2252,8 +2439,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         private Text txtSave;
 
-        private boolean firCalledForSecondLine = false;
-
         SigmetAttrDlgSaveMsgDlg(Shell parShell) {
             super(parShell);
         }
@@ -2355,11 +2540,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .buildActivityLabel(defaultProduct);
             }
 
-            // Construct a new label name and activity xml filename by using
-            // (1) pgenType as the prefix, and
-            // (2) its tag name inserted before the filename extension "xml"
-            // with a dot connecting each field in the filename,
-            // e.g., "INTL_SIGMET.07012020.10.KKCI_BRAVO_5.xml".
+            /* Construct a new label name and activity xml filename by using
+             * (1) pgenType as the prefix, and
+             * (2) its tag name inserted before the filename extension "xml"
+             * with a dot connecting each field in the filename,
+             * e.g., "INTL_SIGMET.07012020.10.KKCI_BRAVO_5.xml".
+             */
             String prefix = SigmetAttrDlg.this.pgenType.replaceAll("\\s", "");
             String fromFileName = getFileName();
             String tagName = fromFileName.substring(0,
@@ -2451,7 +2637,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String startTime = getTimeStringPlusHourInHMS(0);
             String endTime = getTimeStringPlusHourInHMS(4);
 
-            sb.append(getFirs());
+            sb.append(SigmetAttrDlg.this.getFirs());
             sb.append(" ").append("SIGMET");
             sb.append(" ").append(SigmetAttrDlg.this.getEditableAttrId());
             sb.append(" ").append(SigmetAttrDlg.this.getEditableAttrSeqNum());
@@ -2463,11 +2649,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             sb.append("/")
                     .append(SigmetAttrDlg.this.getEditableAttrEndTime() == null
                             ? endTime
-                            : SigmetAttrDlg.this.getEditableAttrEndTime());// should
-            // be
-            // from
-            // the
-            // widget
+                            : SigmetAttrDlg.this.getEditableAttrEndTime());
             sb.append(" ")
                     .append(SigmetAttrDlg.this.getEditableAttrIssueOffice())
                     .append("-");
@@ -2489,9 +2671,18 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
 
             // ---------------------FIR
+
             firCalledForSecondLine = true;
-            sb.append(getFirs());
+            String id = SigmetAttrDlg.this.getFirs();
+            String firName = "";
+            for (String s : SigmetInfo.FIR_ARRAY) {
+                if (id.contains(s.substring(0, 4))) {
+                    firName = s.substring(5, s.length());
+                    sb.append(firName.replace('_', ' ')).append(" FIR ");
+                }
+            }
             firCalledForSecondLine = false;
+
             // ---------------------phenomnon
 
             if (!(PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phen))) {
@@ -2576,9 +2767,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             // ------------ VOLCANIC_ASH
 
             if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
-                sb.append(" ").append("FROM ");
+                sb.append("ERUPTION").append(" ");
                 // phenName in C code: volcn
-                sb.append(phenName == null ? "" : phenName).append(".");
+                sb.append(phenName == null ? "" : phenName);
+                sb.append(" ").append("VA CLD");
                 // phenlat,phenlon in C code
                 String phenLat = SigmetAttrDlg.this.getEditableAttrPhenomLat();
                 String phenLon = SigmetAttrDlg.this.getEditableAttrPhenomLon();
@@ -2587,39 +2779,34 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         && !"".equals(phenLat.trim()) && phenLon != null
                         && !"".equals(phenLon.trim())) {
 
-                    sb.append(" ").append("LOC ");
-                    sb.append(phenLat);
-                    sb.append(phenLon);
+                    int lat = getIntValueOfLat(phenLat);
+                    int lon = getIntValueOfLon(phenLon);
+                    lat = getValRoundedToNearest15Min(lat);
+                    lon = getValRoundedToNearest15Min(lon);
+
+                    sb.append(" ").append("PSN").append(" ");
+                    sb.append(phenLat.substring(0, phenLat.length() - 4));
+                    sb.append(Integer.toString(lat));
+                    sb.append(" ")
+                            .append(phenLon.substring(0, phenLon.length() - 5));
+                    String strLon = Integer.toString(lon);
+                    if ((strLon.length()) < 5) {
+                        sb.append("0").append(strLon);
+                    } else {
+                        sb.append(strLon);
+                    }
                 }
             }
 
             // ----------------tops
 
             String tops = getEditableAttrLevel();
-
-            if ("FCST".equals(tops)) {
-                sb.append(NONE.equals(tops) ? "" : tops).append(" ");
-                sb.append(SigmetAttrDlg.this.getEditableAttrLevelInfo1())
-                        .append(" ");
-                sb.append("FL");
-                String text1 = SigmetAttrDlg.this.getEditableAttrLevelText1();
-                sb.append(text1 == null ? "" : text1).append(" ");
-
-                String levelInfo2 = SigmetAttrDlg.this
-                        .getEditableAttrLevelInfo2();
-                if (!NONE.equals(levelInfo2)) {
-                    sb.append(levelInfo2).append(" ");
-                    sb.append("FL");
+            if (tops != null && tops.contains("FCST")) {
+                if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
+                    sb.append(" ").append("FCST");
+                } else {
+                    sb.append(NONE.equals(tops) ? "" : tops).append(" ");
                 }
-                String text2 = getEditableAttrLevelText2();
-                sb.append(text2 == null ? "" : text2);
-            }
-
-            // ---------------- FCST level info nmap_pgsigw.c@3989
-
-            if (tops != null && tops.contains("FCST")
-                    && PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
-                sb.append(" ");
             }
 
             String lineType = ((Sigmet) SigmetAttrDlg.this.drawingLayer
@@ -2629,6 +2816,48 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     .getLatLonFormatFlagAndText();
             String[] lineArray = fromLineWithFormat
                     .split(SigmetInfo.LINE_SEPERATER);
+
+            String locationDesc = "";
+            if (fromLineWithFormat.contains("VOR")) {
+                StringBuilder vorLocation = new StringBuilder();
+                for (int i = 0; i < lineArray.length - 1; i++) {
+                    vorLocation.append(" ").append(lineArray[i]);
+                }
+                locationDesc = vorLocation.toString();
+            } else {
+                StringBuilder latLonLocation = new StringBuilder();
+                String lineInfo = lineArray[0];
+                String[] locPair = lineInfo.split("-");
+
+                for (int i = 0; i < locPair.length; i++) {
+                    String locTemp = locPair[i];
+                    locTemp = locTemp.trim();
+                    String[] latlonPair = locTemp.split(" ");
+                    String lat = latlonPair[0];
+                    String lon = latlonPair[1];
+
+                    int latval = getIntValueOfLat(lat);
+                    int lonval = getIntValueOfLon(lon);
+                    latval = getValRoundedToNearest15Min(latval);
+                    lonval = getValRoundedToNearest15Min(lonval);
+
+                    latLonLocation.append(" ")
+                            .append(lat.substring(0, lat.length() - 4));
+                    latLonLocation.append(Integer.toString(latval)).append(" ");
+                    latLonLocation.append(lon.substring(0, lon.length() - 5));
+                    String strLon = Integer.toString(lonval);
+                    if ((strLon.length()) < 5) {
+                        latLonLocation.append("0").append(strLon);
+                    } else {
+                        latLonLocation.append(strLon);
+                    }
+
+                    if (i < locPair.length - 1) {
+                        latLonLocation.append(" ").append("-");
+                    }
+                }
+                locationDesc = latLonLocation.toString();
+            }
 
             // in C: switch(_subType)nmap_pgsigw.c@4008
             if (SigmetAttrDlg.ISOLATED.equals(lineType)) {
@@ -2640,69 +2869,77 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(" ").append("WI ");
                     sb.append((int) SigmetAttrDlg.this.getWidth());
                     sb.append(" ").append("NM OF ");
-                    for (int i = 0; i < lineArray.length - 1; i++) {
-                        sb.append(" ").append(lineArray[i]);
-                    }
-                    sb.append(".");
+
+                    sb.append(" ").append(locationDesc).append(".");
                 }
             } else if (SigmetAttrDlg.AREA.equals(lineType)) {
-                if (!fromLineWithFormat.contains("VOR")) {
-                    if (sb.toString().contains("VOLCANIC")) {
-                        sb.append(" ").append("VA CLD WI AREA BOUNDED BY ");
-                    } else {
-                        sb.append(" ").append("WI AREA BOUNDED BY");
-                    }
+                if (sb.toString().contains("TS")) {
+                    sb.append("OBS AT ").append(
+                            getTimeStringPlusHourInHMS(0).substring(2, 6))
+                            .append("Z ");
+                    sb.append("WI");
                 } else {
-                    sb.append(" ").append("WI AREA BOUNDED BY LINE FM ");
+                    if (!fromLineWithFormat.contains("VOR")) {
+                        if (sb.toString().contains("VOLCANIC")) {
+                            sb.append(" ").append("WI");
+                        } else {
+                            sb.append(" ").append("WI AREA BOUNDED BY");
+                        }
+                    } else {
+                        sb.append(" ").append("WI AREA BOUNDED BY LINE FM ");
+                    }
                 }
-
-                for (int i = 0; i < lineArray.length - 1; i++) {
-                    sb.append(" ").append(lineArray[i]);
-                }
-                sb.append(".");
-
+                sb.append(" ").append(locationDesc).append(".");
             } else {
                 // line with LINE_SEPERATER
                 sb.append(" ").append("WI ");
                 sb.append((int) SigmetAttrDlg.this.getWidth());
                 sb.append(" ").append("NM ");
-                sb.append(getLineTypeForSOL(lineType));// [lineArray.length-2]);//watch
-                                                       // out for index
+                sb.append(getLineTypeForSOL(lineType));
 
                 if (!fromLineWithFormat.contains("VOR")) {
                     sb.append(" ").append("LINE");
                 } else {
                     sb.append(" ").append("LINE FM");
                 }
-
-                for (int i = 0; i < lineArray.length - 1; i++) {
-                    sb.append(" ").append(lineArray[i]);
-                }
-                sb.append(".");
+                sb.append(" ").append(locationDesc).append(".");
             }
 
             // in C: if( ! tc )nmap_pgsigw.c@4062
             if (!isTropCyc) {
 
                 // ------ TOPS
-                if ("TOPS".equals(tops)) {
-                    sb.append(" ").append(tops).append(" ");
-                    sb.append(SigmetAttrDlg.this.getEditableAttrLevelInfo1())
-                            .append(" ");
-                    sb.append("FL");
+                if (tops != null && (!NONE.equals(tops))) {
+                    if ("TOPS".equals(tops)) {
+                        sb.append(" ").append("TOP");
+                    }
+                    String levelInfo1 = SigmetAttrDlg.this
+                            .getEditableAttrLevelText1();
+                    if (levelInfo1 != null) {
+                        if ((SigmetAttrDlg.this.getEditableAttrLevelInfo1()
+                                .equalsIgnoreCase("ABV"))
+                                || (SigmetAttrDlg.this
+                                        .getEditableAttrLevelInfo1()
+                                        .equalsIgnoreCase("BLW"))) {
+                            sb.append(" ").append(SigmetAttrDlg.this
+                                    .getEditableAttrLevelInfo1());
+                        }
+                    }
+                    sb.append(" ").append("FL");
                     String text1 = SigmetAttrDlg.this
                             .getEditableAttrLevelText1();
-                    sb.append(text1 == null ? "" : text1).append(" ");
+                    sb.append(text1 == null ? "" : text1);
 
                     String levelInfo2 = SigmetAttrDlg.this
                             .getEditableAttrLevelInfo2();
                     if (!NONE.equals(levelInfo2)) {
-                        sb.append(levelInfo2).append(" ");
-                        sb.append("FL");
+                        sb.append("/");
+                        String text2 = SigmetAttrDlg.this
+                                .getEditableAttrLevelText2();
+                        sb.append(text2 == null ? "" : text2);
+
                     }
-                    String text2 = SigmetAttrDlg.this
-                            .getEditableAttrLevelText2();
-                    sb.append(text2 == null ? "" : text2).append(". ");
+                    sb.append(".");
                 }
 
                 // ------ movement
@@ -2772,6 +3009,42 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
 
             return sb.toString();
+        }
+
+        private int getIntValueOfLat(String val) {
+            int intVal = 0;
+            String tempVal = val.substring(val.length() - 4, val.length());
+            intVal = Integer.parseInt(tempVal);
+            return intVal;
+        }
+
+        private int getIntValueOfLon(String val) {
+            int intVal = 0;
+            String tempVal = val.substring(val.length() - 5, val.length());
+            intVal = Integer.parseInt(tempVal);
+            return intVal;
+        }
+
+        private int getValRoundedToNearest15Min(int val) {
+            int adjVal = val;
+            int hour = val / 100;
+            int min = val % 100;
+            int mod = min % 15;
+            int res = 0;
+
+            if (mod >= 8) {
+                res = min + (15 - mod);
+            } else {
+                res = min - mod;
+            }
+
+            if (res > 59) {
+                adjVal = (hour + 1) * 100;
+            } else {
+                adjVal = hour * 100 + res;
+            }
+
+            return adjVal;
         }
 
         private String getWmoPhen() {
@@ -2846,10 +3119,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 headers[2] = "PA";
             } else {
                 // area is KKCI or KNHC
-                String fir = getFirs();
+                String fir = SigmetAttrDlg.this.getFirs();
                 if (!(fir == null || fir.length() == 0)) {
                     if (fir.contains("KZHU") || fir.contains("KZMA")
-                            || fir.contains("KZNY") || fir.contains("TJZS")) {
+                            || fir.contains("KZWY") || fir.contains("TJZS")) {
                         headers[0] = "NT";
                         headers[1] = "NT";
                         headers[2] = "A0";
@@ -2864,89 +3137,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             return headers;
         }
 
-        private String getFirs() {
-            StringBuilder fir = new StringBuilder();
-
-            AbstractDrawableComponent elSelected = SigmetAttrDlg.this.drawingLayer
-                    .getSelectedComp();
-            Coordinate[] coors = (elSelected == null) ? null
-                    : elSelected.getPoints().toArray(new Coordinate[] {});
-
-            String lineType = ((Sigmet) SigmetAttrDlg.this.drawingLayer
-                    .getSelectedDE()).getType();
-
-            if (coors != null) {
-                IMapDescriptor mapDescriptor = SigmetAttrDlg.this.drawingLayer
-                        .getDescriptor();
-                double width = Double.parseDouble(widthStr);
-
-                if (SigmetAttrDlg.AREA.equals(lineType)) {
-
-                    Coordinate[] coorsP = new Coordinate[coors.length + 1];
-                    coorsP = Arrays.copyOf(coors, coorsP.length);
-                    coorsP[coorsP.length - 1] = coors[0];
-
-                    Polygon areaP = SigmetInfo.getPolygon(coorsP,
-                            mapDescriptor);
-                    fir.append(getFirString(areaP));
-
-                } else if (SigmetAttrDlg.ISOLATED.equals(lineType)) {
-
-                    Polygon areaP = SigmetInfo.getIsolatedPolygon(coors[0],
-                            width, mapDescriptor);
-                    fir.append(getFirString(areaP));
-
-                } else {// Lines
-                    String subLineType = lineType
-                            .split(SigmetInfo.LINE_SEPERATER)[1];
-                    Polygon areaP = SigmetInfo.getSOLPolygon(coors, subLineType,
-                            width, mapDescriptor);
-                    fir.append(getFirString(areaP));
-                }
-            }
-            return fir.toString();
-        }
-
-        private String getFirString(Polygon areaP) {
-            StringBuilder fir = new StringBuilder();
-            Map<String, Polygon> firPolygonMap = SigmetInfo
-                    .initFirPolygonMapFromShapfile();
-
-            for (Entry<String, Polygon> entry : firPolygonMap.entrySet()) {
-                String aFir = entry.getKey();
-                Polygon firP = entry.getValue();
-                if ((firP.covers(areaP) || firP.intersects(areaP))
-                        && (!fir.toString().contains(aFir.substring(0, 4)))) {
-                    fir.append(aFir.substring(0, 4)).append(" ");
-                }
-
-            }
-
-            String firId = fir.toString();
-
-            String[] firIdArray = firId.split(" ");
-
-            StringBuilder firNameBuilder = new StringBuilder();
-            for (
-
-            String id : firIdArray) {
-                String firName = "";
-                for (String s : SigmetInfo.FIR_ARRAY) {
-                    if (id.equals(s.substring(0, 4))) {
-                        firName = s.substring(5, s.length());
-                    }
-                }
-
-                String[] ss = firName.split("_");
-                for (String element : ss) {
-                    firNameBuilder.append(element).append(" ");
-                }
-                if (!firId.trim().isEmpty()) {
-                    firNameBuilder.append(" FIR ");
-                }
-            }
-
-            return firCalledForSecondLine ? firNameBuilder.toString() : firId;
+        public Map<String, Object> getAttrFromDlg() {
+            return new HashMap<>();
         }
 
         @Override

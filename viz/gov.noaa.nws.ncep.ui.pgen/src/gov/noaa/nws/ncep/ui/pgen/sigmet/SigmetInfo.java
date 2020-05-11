@@ -63,6 +63,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Mar 11, 2014 #2718       randerso    Changes for GeoTools 10.5
  * Apr 21, 2020 76155       ksunil      ID values for INTL is dependent on WMO value selected
  * May 10, 2020 78441       ksunil      Removed reference to KNHC
+ * Apr 28, 2020 77667       smanoj      Flight Information Region (FIR) update.
  * </pre>
  *
  * @author gzhang
@@ -92,7 +93,11 @@ public class SigmetInfo {
 
     public static final String[] FIR_ARRAY = new String[] { "PAZA|ANCHORAGE",
             "KZHU|HOUSTON_OCEANIC", "KZMA|MIAMI_OCEANIC",
-            "KZNY|NEW_YORK_OCEANIC", "KZAK|OAKLAND_OCEANIC", "TJZS|SAN_JUAN" };
+            "KZWY|NEW_YORK_OCEANIC", "KZAK|OAKLAND_OCEANIC", "TJZS|SAN_JUAN" };
+
+    public static final String[] FIR_PACIFIC =new String[] { "PAZA","KZAK"};
+
+    public static final String[] FIR_ATLANTIC =new String[] { "KZHU","KZWY","KZMA","TJZS"};
 
     public static final String[] TREND_ARRAY = new String[] { "-none-", "NC",
             "WKN", "INTSF" };

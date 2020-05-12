@@ -15,11 +15,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,7 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.common.util.StringUtil;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -129,6 +132,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Apr 21, 2020  76155      ksunil       ID values for INTL is dependent on WMO value selected
  * Apr 21, 2020  77994      ksunil       Tropical Cyclone and Volcanic Ash should default to 6 hours end time.
  *               78000                   New fcst widget items for TC
+ * May 12, 2020  77473      ksunil       INtl Sigmet input validation framework
  * </pre>
  *
  * @author gzhang
@@ -138,6 +142,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(SigmetAttrDlg.class);
+
+    private static final long FOUR_HR_MS = 4 * TimeUtil.MILLIS_PER_HOUR;
+
+    private static final long SIX_HR_MS = 6 * TimeUtil.MILLIS_PER_HOUR;
 
     private static final String NONE = "-none-";
 
@@ -514,6 +522,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         switch (buttonId) {
         case SAVE_ID:
+            String inValid = this.validateSigmetEntries();
+            if (!StringUtils.isEmpty(inValid)) {
+                (new SigmetAttrValidateDlg(getShell(), inValid)).open();
+                break;
+            }
             okPressed();
 
             SigmetAttrDlgSaveMsgDlg md = null;
@@ -536,6 +549,37 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         default:
             break;
         }
+    }
+
+    private String validateSigmetEntries() {
+
+        StringBuffer errors = new StringBuffer();
+        String phenomType = SigmetAttrDlg.this.getEditableAttrPhenom();
+        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phenomType)) {
+            // check if the fcstAvail check box is set and make sure time and
+            // center are correct
+            if (getEditableAttrFcstAvail()) {
+                if (!validateTimeStringInDHM(
+                        SigmetAttrDlg.this.getEditableAttrFcstTime())) {
+                    errors.append(
+                            "Incorrect format for fcst Start Time. Use DDHHMM zulu time.\n");
+                }
+                if (StringUtils.isEmpty(
+                        SigmetAttrDlg.this.getEditableAttrFcstCntr())) {
+                    errors.append("Fcst Center can't be null or empty.\n");
+                }
+            }
+            if (StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
+                errors.append("Phenon Name can't be null or empty.\n");
+            }
+
+            if (!validateTimeDifference(this.getEditableAttrStartTime(),
+                    this.getEditableAttrEndTime(), SIX_HR_MS)) {
+                errors.append("Valid from/to can't be more than 6 Hrs.\n");
+            }
+        }
+        return errors.toString();
     }
 
     @Override
@@ -673,7 +717,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             public void focusLost(org.eclipse.swt.events.FocusEvent e) {
                 String timeString = txtValidFrom.getText();
                 if (timeString == null || timeString.length() != 6
-                        || !validateTimeStringInHMS(timeString)) {
+                        || !validateTimeStringInDHM(timeString)) {
                     txtValidFrom.setText(getTimeStringPlusHourInHMS(0));
                 }
                 setEditableAttrStartTime(txtValidFrom.getText());
@@ -685,7 +729,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 if (e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
                     String timeString = txtValidFrom.getText();
                     if (timeString == null || timeString.length() != 6
-                            || !validateTimeStringInHMS(timeString)) {
+                            || !validateTimeStringInDHM(timeString)) {
                         txtValidFrom.setText(getTimeStringPlusHourInHMS(0));
                     }
                 }
@@ -730,7 +774,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             public void focusLost(org.eclipse.swt.events.FocusEvent e) {
                 String timeString = txtValidFrom.getText();
                 if (timeString == null || timeString.length() != 6
-                        || !validateTimeStringInHMS(timeString)) {
+                        || !validateTimeStringInDHM(timeString)) {
                     txtValidFrom.setText(getTimeStringPlusHourInHMS(4));
                 }
                 setEditableAttrEndTime(txtTo.getText());
@@ -742,7 +786,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 if (e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
                     String timeString = txtValidFrom.getText();
                     if (timeString == null || timeString.length() != 6
-                            || !validateTimeStringInHMS(timeString)) {
+                            || !validateTimeStringInDHM(timeString)) {
                         txtValidFrom.setText(getTimeStringPlusHourInHMS(4));
                     }
                 }
@@ -1690,7 +1734,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 : new StringBuilder().append(hour).append(minute).toString();
     }
 
-    private boolean validateTimeStringInHMS(String time) {
+    private boolean validateTimeStringInDHM(String time) {
         if (time == null || time.trim().length() != 6) {
             return false;
         }
@@ -1720,6 +1764,26 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         }
 
         return result;
+    }
+
+    private boolean validateTimeDifference(String from, String to,
+            long maxAllowedMillis) {
+
+        SimpleDateFormat format = new SimpleDateFormat("ddHHmm");
+        try {
+            Date toDate = format.parse(to);
+            Date fromDate = format.parse(from);
+
+            long diff = toDate.getTime() - fromDate.getTime();
+            if (diff <= 0 || diff > maxAllowedMillis) {
+                return false;
+            }
+
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+
     }
 
     private boolean validateHMSInput(Event e, Text txt) {
@@ -2115,6 +2179,71 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             statusHandler.debug("--- inside setControl(): " + e.getMessage(),
                     e);
         }
+    }
+
+    private class SigmetAttrValidateDlg extends AttrDlg {
+
+        private Text txtError;
+
+        private String errorInfo;
+
+        SigmetAttrValidateDlg(Shell parShell, String error) {
+            super(parShell);
+            this.errorInfo = error;
+        }
+
+        @Override
+        public Control createDialogArea(Composite parent) {
+            Composite top = (Composite) super.createDialogArea(parent);
+            new Label(top, SWT.LEFT)
+                    .setText("Please correct the following errors");
+
+            GridLayout mainLayout = new GridLayout(1, false);
+            mainLayout.marginHeight = 3;
+            mainLayout.marginWidth = 3;
+            top.setLayout(mainLayout);
+
+            this.getShell().setText("Invalid SIGMET Entries");
+
+            txtError = new Text(top,
+                    SWT.MULTI | SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
+            txtError.setText(errorInfo);
+
+            GC gc = new GC(txtError);
+            int charWidth = gc.getFontMetrics().getAverageCharWidth();
+            int charHeight = txtError.getLineHeight();
+            Rectangle size = txtError.computeTrim(0, 0, charWidth * 70,
+                    charHeight * 20);
+            gc.dispose();
+            txtError.setLayoutData(GridDataFactory.defaultsFor(txtError)
+                    .span(3, 1).hint(size.width, size.height).create());
+
+            return top;
+        }
+
+        @Override
+        public void createButtonsForButtonBar(Composite parent) {
+            createButton(parent, IDialogConstants.OK_ID, "Close", true);
+
+        }
+
+        @Override
+        public void enableButtons() {
+            this.getButton(IDialogConstants.OK_ID).setEnabled(true);
+        }
+
+        // listener function of Save Button
+        @Override
+        public void okPressed() {
+            setReturnCode(OK);
+            close();
+
+        }
+
+        @Override
+        public void setAttrForDlg(IAttribute ia) {
+        }
+
     }
 
     private class SigmetAttrDlgSaveMsgDlg extends AttrDlg {

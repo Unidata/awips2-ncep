@@ -136,6 +136,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Apr 28, 2020  77667      smanoj       Flight Information Region (FIR) update.
  * May 04, 2020  77670      smanoj       Format changes for Thunderstorm.
  * May 06, 2020  77691      smanoj       Format changes for Volcanic Ash.
+ * May 14, 2020  77691      smanoj       Additional format changes for VA ERUPTION.
  * </pre>
  *
  * @author gzhang
@@ -2689,7 +2690,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 String pString = phen == null
                         ? SigmetInfo.PHEN_MAP.get(SigmetInfo.SIGMET_TYPES[0])[0]
                         : phen;
-                sb.append(pString.replace('_', ' ')).append(" ");
+                if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
+                    sb.append("VA ERUPTION").append(" ");
+                } else {
+                    sb.append(pString.replace('_', ' ')).append(" ");
+                }
             } else {
                 isTropCyc = true;
                 isPhenNameEntered = true;
@@ -2767,7 +2772,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             // ------------ VOLCANIC_ASH
 
             if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
-                sb.append("ERUPTION").append(" ");
                 // phenName in C code: volcn
                 sb.append(phenName == null ? "" : phenName);
                 sb.append(" ").append("VA CLD");
@@ -2870,7 +2874,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append((int) SigmetAttrDlg.this.getWidth());
                     sb.append(" ").append("NM OF ");
 
-                    sb.append(" ").append(locationDesc).append(".");
+                    sb.append(locationDesc).append(".");
                 }
             } else if (SigmetAttrDlg.AREA.equals(lineType)) {
                 if (sb.toString().contains("TS")) {
@@ -2880,16 +2884,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append("WI");
                 } else {
                     if (!fromLineWithFormat.contains("VOR")) {
-                        if (sb.toString().contains("VOLCANIC")) {
-                            sb.append(" ").append("WI");
-                        } else {
-                            sb.append(" ").append("WI AREA BOUNDED BY");
-                        }
+                        sb.append(" ").append("WI");
                     } else {
-                        sb.append(" ").append("WI AREA BOUNDED BY LINE FM ");
+                        sb.append(" ").append("WI AREA BOUNDED BY LINE FM");
                     }
                 }
-                sb.append(" ").append(locationDesc).append(".");
+                sb.append(locationDesc).append(".");
             } else {
                 // line with LINE_SEPERATER
                 sb.append(" ").append("WI ");
@@ -2902,7 +2902,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 } else {
                     sb.append(" ").append("LINE FM");
                 }
-                sb.append(" ").append(locationDesc).append(".");
+                sb.append(locationDesc).append(".");
             }
 
             // in C: if( ! tc )nmap_pgsigw.c@4062

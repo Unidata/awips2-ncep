@@ -137,6 +137,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 04, 2020  77670      smanoj       Format changes for Thunderstorm.
  * May 06, 2020  77691      smanoj       Format changes for Volcanic Ash.
  * May 14, 2020  77691      smanoj       Additional format changes for VA ERUPTION.
+ * May 18, 2020  77690      smanoj       Tropical Cyclone format changes.
  * </pre>
  *
  * @author gzhang
@@ -1581,6 +1582,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         top.setLayout(mainLayout);
 
         this.getShell().setText("International SIGMET Edit");
+        this.setShellStyle(SWT.RESIZE | SWT.CLOSE);
 
         createDialogAreaGeneral();
 
@@ -2705,26 +2707,36 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(" ").append(phenName.trim()).append(" ");
                 }
 
-                String presHPA = SigmetAttrDlg.this
-                        .getEditableAttrPhenomPressure();
-                if (presHPA != null) {
-                    sb.append(" ").append(presHPA.trim()).append("HPA ");
-                }
+                sb.append(" ").append("OBS AT ");
+                // C code: loctim/local time
+                sb.append(getTimeStringPlusHourInHMS(0).substring(2, 6));
+                sb.append("Z");
 
                 if (SigmetAttrDlg.this.getEditableAttrPhenomLat() != null
                         && SigmetAttrDlg.this
                                 .getEditableAttrPhenomLon() != null) {
-                    sb.append(" ").append("NEAR");
+                    sb.append(" ").append("NR");
                     sb.append(" ").append(
                             SigmetAttrDlg.this.getEditableAttrPhenomLat());
                     sb.append(" ").append(
                             SigmetAttrDlg.this.getEditableAttrPhenomLon());
+                    sb.append(".");
                 }
 
-                sb.append(" ").append("AT ");
-                // C code: loctim/local time
-                sb.append(getTimeStringPlusHourInHMS(0).substring(0, 4));
-                sb.append("Z.");
+                String presHPA = SigmetAttrDlg.this
+                        .getEditableAttrPhenomPressure();
+                if (presHPA != null) {
+                    sb.append(" ").append(presHPA.trim()).append("HPA. ");
+                }
+
+                // --------------- max winds
+
+                String maxWinds = SigmetAttrDlg.this
+                        .getEditableAttrPhenomMaxWind();
+                if (maxWinds != null && !"".equals(maxWinds.trim())) {
+                    sb.append(" ").append("MAX WINDS ");
+                    sb.append(maxWinds).append("KT. ");
+                }
 
                 // --------------- movement
 
@@ -2742,16 +2754,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                             .getEditableAttrPhenomDirection());
                     sb.append(" ").append(
                             SigmetAttrDlg.this.getEditableAttrPhenomSpeed());
-                    sb.append("KT.  ");
-                }
-
-                // --------------- max winds
-
-                String maxWinds = SigmetAttrDlg.this
-                        .getEditableAttrPhenomMaxWind();
-                if (maxWinds != null && !"".equals(maxWinds.trim())) {
-                    sb.append(" ").append("MAX WINDS ");
-                    sb.append(maxWinds).append("KT.  ");
+                    sb.append("KT. ");
                 }
 
                 // ---------------- trend
@@ -2878,9 +2881,47 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             } else if (SigmetAttrDlg.AREA.equals(lineType)) {
                 if (sb.toString().contains("TS")) {
-                    sb.append("OBS AT ").append(
-                            getTimeStringPlusHourInHMS(0).substring(2, 6))
-                            .append("Z ");
+                    if (isTropCyc) {
+                        // ------ TOPS
+                        if (tops != null && (!NONE.equals(tops))) {
+                            if ("TOPS".equals(tops)) {
+                                sb.append(" ").append("TOP");
+                            }
+                            String levelInfo1 = SigmetAttrDlg.this
+                                    .getEditableAttrLevelText1();
+                            if (levelInfo1 != null) {
+                                if ((SigmetAttrDlg.this
+                                        .getEditableAttrLevelInfo1()
+                                        .equalsIgnoreCase("ABV"))
+                                        || (SigmetAttrDlg.this
+                                                .getEditableAttrLevelInfo1()
+                                                .equalsIgnoreCase("BLW"))) {
+                                    sb.append(" ").append(SigmetAttrDlg.this
+                                            .getEditableAttrLevelInfo1());
+                                }
+                            }
+                            sb.append(" ").append("FL");
+                            String text1 = SigmetAttrDlg.this
+                                    .getEditableAttrLevelText1();
+                            sb.append(text1 == null ? "" : text1);
+
+                            String levelInfo2 = SigmetAttrDlg.this
+                                    .getEditableAttrLevelInfo2();
+                            if (!NONE.equals(levelInfo2)) {
+                                sb.append("/");
+                                String text2 = SigmetAttrDlg.this
+                                        .getEditableAttrLevelText2();
+                                sb.append(text2 == null ? "" : text2);
+
+                            }
+                            sb.append(" ");
+                        }
+
+                    } else {
+                        sb.append("OBS AT ").append(
+                                getTimeStringPlusHourInHMS(0).substring(2, 6))
+                                .append("Z ");
+                    }
                     sb.append("WI");
                 } else {
                     if (!fromLineWithFormat.contains("VOR")) {
@@ -2972,7 +3013,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String startTime = getEditableAttrStartTime();
 
             if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
-                sb.append(" ").append("FCST ");
+                sb.append("\n").append("FCST ");
 
                 sb.append(convertTimeStringPlusHourInHMS(startTime, 6, false))
                         .append("Z");
@@ -2986,7 +3027,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
             // ------ outlook if tropical cyclone
             if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phen)) {
-                sb.append(" ").append("FCST ");
+                sb.append("\n").append("FCST ");
                 if (SigmetAttrDlg.this.getEditableAttrFcstAvail()) {
                     sb.append(SigmetAttrDlg.this.getEditableAttrFcstTime())
                             .append("Z ");

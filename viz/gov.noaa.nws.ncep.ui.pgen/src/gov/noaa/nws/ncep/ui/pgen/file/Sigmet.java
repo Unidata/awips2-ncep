@@ -86,7 +86,7 @@ import javax.xml.bind.annotation.XmlType;
  * ------------ ----------  ----------- --------------------------
  * ???          ???         ???         Initial Creation.
  * 04/28/20     77994       ksunil      new fields for TC.
- *
+ * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * </pre>
  *
  */
@@ -205,6 +205,9 @@ public class Sigmet {
     protected String editableAttrLevelText1;
 
     @XmlAttribute
+    protected String editableAttrAltLevelText;
+
+    @XmlAttribute
     protected String editableAttrLevelText2;
 
     @XmlAttribute
@@ -214,10 +217,63 @@ public class Sigmet {
     protected String editableAttrFir;
 
     @XmlAttribute
+    protected String editableAttrFcstAvail;
+
+    @XmlAttribute
     protected String editableAttrFcstTime;
 
     @XmlAttribute
     protected String editableAttrFcstCntr;
+
+    @XmlAttribute
+    protected String editableAttrFcstVADesc;
+
+    @XmlAttribute
+    protected String editableAttrRALSelection;
+
+    @XmlAttribute
+    protected String editableAttrAltitudeSelection;
+
+    public String getEditableAttrAltitudeSelection() {
+        return editableAttrAltitudeSelection;
+    }
+
+    public void setEditableAttrAltitudeSelection(
+            String editableAttrAltitudeSelection) {
+        this.editableAttrAltitudeSelection = editableAttrAltitudeSelection;
+    }
+
+    public String getEditableAttrAltLevelText() {
+        return editableAttrAltLevelText;
+    }
+
+    public void setEditableAttrAltLevelText(String editableAltLevelText1) {
+        this.editableAttrAltLevelText = editableAltLevelText1;
+    }
+
+    public String getEditableAttrRALSelection() {
+        return editableAttrRALSelection;
+    }
+
+    public void setEditableAttrRALSelection(String editableRALSelection) {
+        this.editableAttrRALSelection = editableRALSelection;
+    }
+
+    public String getEditableAttrFcstVADesc() {
+        return editableAttrFcstVADesc;
+    }
+
+    public void setEditableAttrFcstVADesc(String editableAttrFcstVADesc) {
+        this.editableAttrFcstVADesc = editableAttrFcstVADesc;
+    }
+
+    public String getEditableAttrFcstAvail() {
+        return editableAttrFcstAvail;
+    }
+
+    public void setEditableAttrFcstAvail(String editableAttrFcstAvail) {
+        this.editableAttrFcstAvail = editableAttrFcstAvail;
+    }
 
     public String getEditableAttrFcstTime() {
         return editableAttrFcstTime;

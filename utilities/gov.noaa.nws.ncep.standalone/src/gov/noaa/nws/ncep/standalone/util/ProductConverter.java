@@ -122,7 +122,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  *                                      Refactored converDEs() into convertListOfDEs()
  *
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
- * 
+ * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * </pre>
  *
  * @author J. Wu
@@ -409,38 +409,7 @@ public class ProductConverter {
                 sigmetPoints.add(new Coordinate(pt.getLon(), pt.getLat()));
             }
 
-            Sigmet sigmet = new Sigmet(null, clr, fSig.getLineWidth(),
-                    fSig.getSizeScale(), fSig.isClosed(), fSig.isFilled(),
-                    sigmetPoints, fSig.getSmoothFactor(),
-                    FillPattern.valueOf(fSig.getFillPattern()),
-                    fSig.getPgenCategory(), fSig.getPgenType(), fSig.getType(),
-                    fSig.getWidth(),
-
-                    fSig.getEditableAttrArea(),
-                    fSig.getEditableAttrIssueOffice(),
-                    fSig.getEditableAttrStatus(), fSig.getEditableAttrId(),
-                    fSig.getEditableAttrSeqNum(),
-                    fSig.getEditableAttrStartTime(),
-                    fSig.getEditableAttrEndTime(),
-                    fSig.getEditableAttrRemarks(), fSig.getEditableAttrPhenom(),
-                    fSig.getEditableAttrPhenom2(),
-                    fSig.getEditableAttrPhenomName(),
-                    fSig.getEditableAttrPhenomLat(),
-                    fSig.getEditableAttrPhenomLon(),
-                    fSig.getEditableAttrPhenomPressure(),
-                    fSig.getEditableAttrPhenomMaxWind(),
-                    fSig.getEditableAttrFreeText(), fSig.getEditableAttrTrend(),
-                    fSig.getEditableAttrMovement(),
-                    fSig.getEditableAttrPhenomSpeed(),
-                    fSig.getEditableAttrPhenomDirection(),
-                    fSig.getEditableAttrLevel(),
-                    fSig.getEditableAttrLevelInfo1(),
-                    fSig.getEditableAttrLevelInfo2(),
-                    fSig.getEditableAttrLevelText1(),
-                    fSig.getEditableAttrLevelText2(),
-                    fSig.getEditableAttrFromLine(), fSig.getEditableAttrFir(),
-                    fSig.getEditableAttrFcstTime(),
-                    fSig.getEditableAttrFcstCntr());
+            Sigmet sigmet = new Sigmet(null, clr, fSig, sigmetPoints);
 
             des.add(sigmet);
         }

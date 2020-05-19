@@ -11,8 +11,6 @@ package gov.noaa.nws.ncep.ui.pgen.sigmet;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
@@ -31,7 +29,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
  * 04/11        ?           B. Yin      Re-factor IAttribute
  * 03/12        #676        Q. Zhu      Added Issue Office field.
  * 04/28/20     77994       ksunil      new fields for TC.
- *
+ * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * </pre>
  *
  * @author gzhang
@@ -93,71 +91,68 @@ public class Sigmet extends AbstractSigmet {
 
     private String editableAttrFir;
 
-    private boolean editableAttrFcstAvail;
+    private String editableAttrFcstAvail;
 
     private String editableAttrFcstTime;
 
     private String editableAttrFcstCntr;
 
+    private String editableAttrFcstVADesc;
+
+    private String editableAttrRALSelection;
+
+    private String editableAttrAltLevelText;
+
+    private String editableAttrAltitudeSelection;
+
     public Sigmet() {
 
     }
 
-    public Sigmet(Coordinate[] range, Color[] colors, float lineWidth,
-            double sizeScale, boolean closed, boolean filled,
-            ArrayList<Coordinate> linePoints, int smoothFactor,
-            FillPattern fillPattern, String pgenCategory, String pgenType,
+    public Sigmet(Coordinate[] range, Color[] colors,
+            gov.noaa.nws.ncep.ui.pgen.file.Sigmet fSig,
+            ArrayList<Coordinate> sigmetPoints) {
 
-            String type, double width,
+        super(range, colors, fSig.getLineWidth(), fSig.getSizeScale(),
+                fSig.isClosed(), fSig.isFilled(), sigmetPoints,
+                fSig.getSmoothFactor(),
+                FillPattern.valueOf(fSig.getFillPattern()),
+                fSig.getPgenCategory(), fSig.getPgenType(), fSig.getType(),
+                fSig.getWidth(), fSig.getEditableAttrArea(),
+                fSig.getEditableAttrIssueOffice(), fSig.getEditableAttrStatus(),
+                fSig.getEditableAttrId(), fSig.getEditableAttrSeqNum());
 
-            String editableAttrArea, String editableAttrIssueOffice,
-            String editableAttrStatus, String editableAttrId,
-            String editableAttrSeqNum, String editableAttrStartTime,
-            String editableAttrEndTime, String editableAttrRemarks,
-            String editableAttrPhenom, String editableAttrPhenom2,
-            String editableAttrPhenomName, String editableAttrPhenomLat,
-            String editableAttrPhenomLon, String editableAttrPhenomPressure,
-            String editableAttrPhenomMaxWind, String editableAttrFreeText,
-            String editableAttrTrend, String editableAttrMovement,
-            String editableAttrPhenomSpeed, String editableAttrPhenomDirection,
-            String editableAttrLevel, String editableAttrLevelInfo1,
-            String editableAttrLevelInfo2, String editableAttrLevelText1,
-            String editableAttrLevelText2, String editableAttrFromLine,
-            String editableAttrFir, String editableAttrFcstTime,
-            String editableAttrFcstCntr) {
-
-        super(range, colors, lineWidth, sizeScale, closed, filled, linePoints,
-                smoothFactor, fillPattern, pgenCategory, pgenType,
-
-                type, width,
-
-                editableAttrArea, editableAttrIssueOffice, editableAttrFromLine,
-                editableAttrId, editableAttrSeqNum);
-
-        this.editableAttrStatus = editableAttrStatus;
-        this.editableAttrStartTime = editableAttrStartTime;
-        this.editableAttrEndTime = editableAttrEndTime;
-        this.editableAttrRemarks = editableAttrRemarks;
-        this.editableAttrPhenom = editableAttrPhenom;
-        this.editableAttrPhenom2 = editableAttrPhenom2;
-        this.editableAttrPhenomName = editableAttrPhenomName;
-        this.editableAttrPhenomLat = editableAttrPhenomLat;
-        this.editableAttrPhenomLon = editableAttrPhenomLon;
-        this.editableAttrPhenomPressure = editableAttrPhenomPressure;
-        this.editableAttrPhenomMaxWind = editableAttrPhenomMaxWind;
-        this.editableAttrFreeText = editableAttrFreeText;
-        this.editableAttrTrend = editableAttrTrend;
-        this.editableAttrMovement = editableAttrMovement;
-        this.editableAttrPhenomSpeed = editableAttrPhenomSpeed;
-        this.editableAttrPhenomDirection = editableAttrPhenomDirection;
-        this.editableAttrLevel = editableAttrLevel;
-        this.editableAttrLevelInfo1 = editableAttrLevelInfo1;
-        this.editableAttrLevelInfo2 = editableAttrLevelInfo2;
-        this.editableAttrLevelText1 = editableAttrLevelText1;
-        this.editableAttrLevelText2 = editableAttrLevelText2;
-        this.editableAttrFir = editableAttrFir;
-        this.editableAttrFcstTime = editableAttrFcstTime;
-        this.editableAttrFcstCntr = editableAttrFcstCntr;
+        this.editableAttrStatus = fSig.getEditableAttrStatus();
+        this.editableAttrStartTime = fSig.getEditableAttrStartTime();
+        this.editableAttrEndTime = fSig.getEditableAttrEndTime();
+        this.editableAttrRemarks = fSig.getEditableAttrRemarks();
+        this.editableAttrPhenom = fSig.getEditableAttrPhenom();
+        this.editableAttrPhenom2 = fSig.getEditableAttrPhenom2();
+        this.editableAttrPhenomName = fSig.getEditableAttrPhenomName();
+        this.editableAttrPhenomLat = fSig.getEditableAttrPhenomLat();
+        this.editableAttrPhenomLon = fSig.getEditableAttrPhenomLon();
+        this.editableAttrPhenomPressure = fSig.getEditableAttrPhenomPressure();
+        this.editableAttrPhenomMaxWind = fSig.getEditableAttrPhenomMaxWind();
+        this.editableAttrFreeText = fSig.getEditableAttrFreeText();
+        this.editableAttrTrend = fSig.getEditableAttrTrend();
+        this.editableAttrMovement = fSig.getEditableAttrMovement();
+        this.editableAttrPhenomSpeed = fSig.getEditableAttrPhenomSpeed();
+        this.editableAttrPhenomDirection = fSig
+                .getEditableAttrPhenomDirection();
+        this.editableAttrLevel = fSig.getEditableAttrLevel();
+        this.editableAttrLevelInfo1 = fSig.getEditableAttrLevelInfo1();
+        this.editableAttrLevelInfo2 = fSig.getEditableAttrLevelInfo2();
+        this.editableAttrLevelText1 = fSig.getEditableAttrLevelText1();
+        this.editableAttrLevelText2 = fSig.getEditableAttrLevelText2();
+        this.editableAttrFir = fSig.getEditableAttrFir();
+        this.editableAttrFcstAvail = fSig.getEditableAttrFcstAvail();
+        this.editableAttrFcstTime = fSig.getEditableAttrFcstTime();
+        this.editableAttrFcstCntr = fSig.getEditableAttrFcstCntr();
+        this.editableAttrFcstVADesc = fSig.getEditableAttrFcstVADesc();
+        this.editableAttrRALSelection = fSig.getEditableAttrRALSelection();
+        this.editableAttrAltLevelText = fSig.getEditableAttrAltLevelText();
+        this.editableAttrAltitudeSelection = fSig
+                .getEditableAttrAltitudeSelection();
     }
 
     @Override
@@ -209,10 +204,8 @@ public class Sigmet extends AbstractSigmet {
         newSigmet.setEditableAttrFreeText(this.getEditableAttrFreeText());
         newSigmet.setEditableAttrFcstCntr(this.getEditableAttrFcstCntr());
         newSigmet.setEditableAttrFcstTime(this.getEditableAttrEndTime());
-        if (!StringUtils.isEmpty(this.getEditableAttrFcstCntr())
-                || !StringUtils.isEmpty(this.getEditableAttrFcstTime())) {
-            newSigmet.setEditableAttrFcstAvail(true);
-        }
+        newSigmet.setEditableAttrFcstAvail(this.getEditableAttrFcstAvail());
+
         newSigmet.setEditableAttrFromLine(this.getEditableAttrFromLine());
         newSigmet.setEditableAttrStartTime(this.getEditableAttrStartTime());
         newSigmet.setEditableAttrEndTime(this.getEditableAttrEndTime());
@@ -239,7 +232,13 @@ public class Sigmet extends AbstractSigmet {
         newSigmet.setEditableAttrLevelText1(this.getEditableAttrLevelText1());
         newSigmet.setEditableAttrLevelText2(this.getEditableAttrLevelText2());
         newSigmet.setEditableAttrFir(this.getEditableAttrFir());
-
+        newSigmet.setEditableAttrFcstVADesc(this.getEditableAttrFcstVADesc());
+        newSigmet.setEditableAttrRALSelection(
+                this.getEditableAttrRALSelection());
+        newSigmet.setEditableAttrAltLevelText(
+                this.getEditableAttrAltLevelText());
+        newSigmet.setEditableAttrAltitudeSelection(
+                this.getEditableAttrAltitudeSelection());
         return newSigmet;
     }
 
@@ -413,12 +412,16 @@ public class Sigmet extends AbstractSigmet {
         this.editableAttrLevelText2 = editableAttrLevelText2;
     }
 
-    public boolean isEditableAttrFcstAvail() {
+    public String isEditableAttrFcstAvail() {
         return editableAttrFcstAvail;
     }
 
-    public void setEditableAttrFcstAvail(boolean editableAttrFcstAvail) {
+    public void setEditableAttrFcstAvail(String editableAttrFcstAvail) {
         this.editableAttrFcstAvail = editableAttrFcstAvail;
+    }
+
+    public String getEditableAttrFcstAvail() {
+        return editableAttrFcstAvail;
     }
 
     public String getEditableAttrFcstTime() {
@@ -437,6 +440,14 @@ public class Sigmet extends AbstractSigmet {
         this.editableAttrFcstCntr = editableAttrFcstCntr;
     }
 
+    public String getEditableAttrFcstVADesc() {
+        return editableAttrFcstVADesc;
+    }
+
+    public void setEditableAttrFcstVADesc(String editableAttrFcstVADesc) {
+        this.editableAttrFcstVADesc = editableAttrFcstVADesc;
+    }
+
     public String getEditableAttrFir() {
         return editableAttrFir;
     }
@@ -445,4 +456,28 @@ public class Sigmet extends AbstractSigmet {
         this.editableAttrFir = editableAttrFir;
     }
 
+    public String getEditableAttrRALSelection() {
+        return editableAttrRALSelection;
+    }
+
+    public void setEditableAttrRALSelection(String editableRALSelection) {
+        this.editableAttrRALSelection = editableRALSelection;
+    }
+
+    public String getEditableAttrAltLevelText() {
+        return editableAttrAltLevelText;
+    }
+
+    public void setEditableAttrAltLevelText(String editableAltLevelText1) {
+        this.editableAttrAltLevelText = editableAltLevelText1;
+    }
+
+    public String getEditableAttrAltitudeSelection() {
+        return editableAttrAltitudeSelection;
+    }
+
+    public void setEditableAttrAltitudeSelection(
+            String editableAttrAltitudeSelection) {
+        this.editableAttrAltitudeSelection = editableAttrAltitudeSelection;
+    }
 }

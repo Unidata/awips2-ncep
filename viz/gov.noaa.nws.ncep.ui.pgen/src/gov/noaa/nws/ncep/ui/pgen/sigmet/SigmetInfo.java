@@ -64,6 +64,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Apr 21, 2020 76155       ksunil      ID values for INTL is dependent on WMO value selected
  * May 10, 2020 78441       ksunil      Removed reference to KNHC
  * Apr 28, 2020 77667       smanoj      Flight Information Region (FIR) update.
+ * May 22, 2020 78000      ksunil      New Tropical Cyclone UI components for Fcst
  * </pre>
  *
  * @author gzhang
@@ -87,6 +88,9 @@ public class SigmetInfo {
     public static final String[] SPEED_ARRAY = new String[] { "5", "10", "15",
             "20", "25", "30", "35", "40", "45", "50" };
 
+    public static final String[] ROUND_TO_ARRAY = new String[] { "0", "5", "15",
+            "30" };
+
     public static final String[] DIRECT_ARRAY = new String[] { "N", "NNE", "NE",
             "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW",
             "NW", "NNW" };
@@ -95,9 +99,10 @@ public class SigmetInfo {
             "KZHU|HOUSTON_OCEANIC", "KZMA|MIAMI_OCEANIC",
             "KZWY|NEW_YORK_OCEANIC", "KZAK|OAKLAND_OCEANIC", "TJZS|SAN_JUAN" };
 
-    public static final String[] FIR_PACIFIC =new String[] { "PAZA","KZAK"};
+    public static final String[] FIR_PACIFIC = new String[] { "PAZA", "KZAK" };
 
-    public static final String[] FIR_ATLANTIC =new String[] { "KZHU","KZWY","KZMA","TJZS"};
+    public static final String[] FIR_ATLANTIC = new String[] { "KZHU", "KZWY",
+            "KZMA", "TJZS" };
 
     public static final String[] TREND_ARRAY = new String[] { "-none-", "NC",
             "WKN", "INTSF" };

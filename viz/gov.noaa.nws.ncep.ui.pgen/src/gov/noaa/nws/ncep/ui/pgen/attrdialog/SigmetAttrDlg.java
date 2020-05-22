@@ -138,6 +138,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 06, 2020  77691      smanoj       Format changes for Volcanic Ash.
  * May 14, 2020  77691      smanoj       Additional format changes for VA ERUPTION.
  * May 18, 2020  77690      smanoj       Tropical Cyclone format changes.
+ * May 22, 2020  78470      smanoj       INTL Sigmet Save ID Bug Fix.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -226,7 +228,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     protected ColorButtonSelector cs = null;
 
-    private Combo comboMWO, comboID = null;
+    private Combo comboISU, comboMWO, comboID = null;
 
     private boolean withExpandedArea = false;
 
@@ -551,7 +553,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             break;
 
         case APPLY_ID:
-            getSigmet();
+            setEditableAttrId(comboID.getText());
+            Sigmet sigmet = (Sigmet) this.getSigmet();
+            sigmet.setEditableAttrId(comboID.getText());
             okPressed();
             break;
 
@@ -824,6 +828,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
                 txtTo.setText(convertTimeStringPlusHourInHMS(
                         txtValidFrom.getText(), 4, true));
+                setEditableAttrEndTime(txtTo.getText());
             }
         });
 
@@ -837,6 +842,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
                 txtTo.setText(convertTimeStringPlusHourInHMS(
                         txtValidFrom.getText(), 6, true));
+                setEditableAttrEndTime(txtTo.getText());
             }
         });
 
@@ -1708,7 +1714,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         Label lblISU = new Label(top2, SWT.LEFT);
         lblISU.setText("ISSUE: ");
-        Combo comboISU = new Combo(top2, SWT.READ_ONLY);
+        comboISU = new Combo(top2, SWT.READ_ONLY);
         attrControlMap.put("editableAttrIssueOffice", comboISU);
         comboISU.setItems(mwoItems);
         comboISU.select(0);
@@ -3243,6 +3249,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         Sigmet sigmet = (Sigmet) this.getSigmet();
         if (sigmet != null) {
             copyEditableAttrToSigmetAttrDlg(sigmet);
+            if (sigmet.getEditableAttrIssueOffice() != null) {
+                if (!comboID.isDisposed()) {
+                    comboID.setItems(SigmetInfo.ID_MAP
+                            .get(SigmetInfo.SIGMET_TYPES[0] + "-"
+                                    + sigmet.getEditableAttrIssueOffice()));
+                    comboID.select(0);
+                }
+            }
         }
 
         Field[] fields = this.getClass().getDeclaredFields();

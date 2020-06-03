@@ -611,13 +611,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private String validateCommonSigmetEntries(String phenomType) {
 
         StringBuffer errors = new StringBuffer();
-        if (StringUtils
-                .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
-            errors.append("Phenon Name can't be null or empty.\n");
-        }
 
         if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phenomType)
                 || PgenConstant.TYPE_VOLCANIC_ASH.equals(phenomType)) {
+
+            if (StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
+                errors.append("Phenon Name can't be null or empty.\n");
+            }
             // check if the fcstAvail check box is set and make sure time and
             // center are correct
 

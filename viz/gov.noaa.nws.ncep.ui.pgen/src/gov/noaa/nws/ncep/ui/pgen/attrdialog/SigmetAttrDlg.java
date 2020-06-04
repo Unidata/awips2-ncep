@@ -141,6 +141,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 22, 2020  78470      smanoj       INTL Sigmet Save ID Bug Fix.
  * May 22, 2020  78000      ksunil       New Tropical Cyclone UI components for Fcst
  * Jun 4,  2020  79256      ksunil       Series ID is now a function of Issuing Office
+ * Jun 03, 2020  78215      smanoj       INTL Sigmet Cancel functionality changes.
+ *
  * </pre>
  *
  * @author gzhang
@@ -202,6 +204,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private static final String EDITABLE_ATTR_RAL_SELECTION = "editableAttrRALSelection";
 
     private static final String EDITABLE_ATTR_ALTITUDE_SELECTION = "editableAttrAltitudeSelection";
+
+    private static final String STATUS_NEW = "0";
+
+    private static final String STATUS_AMEND = "1";
+
+    private static final String STATUS_CANCEL = "2";
 
     private static final int APPLY_ID = IDialogConstants.CLIENT_ID + 1;
 
@@ -349,6 +357,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private String editableAttrRALSelection;
 
     private String editableAttrAltitudeSelection;
+
+    private SigmetCancelDlg sigmetCnlDlg = null;
 
     /**
      * Constructor.
@@ -566,7 +576,21 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 (new SigmetAttrValidateDlg(getShell(), inValid)).open();
                 break;
             }
+
             okPressed();
+
+            if (STATUS_CANCEL
+                    .equals(SigmetAttrDlg.this.getEditableAttrStatus())) {
+                if (!SigmetAttrDlg.this.isSigmetActive()) {
+                    statusHandler.warn(
+                            "Unable to Save SIGMET product for CANCEL: SIGMET is not active.");
+                    break;
+                } else if (!sigmetCnlDlg.getValidationCheck()) {
+                    statusHandler.warn(
+                            "Unable to Save SIGMET product for CANCEL: SIGMET Attributes are not Valid.");
+                    break;
+                }
+            }
 
             SigmetAttrDlgSaveMsgDlg md = null;
             try {
@@ -720,7 +744,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         btnNewUpdate.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                setEditableAttrStatus("0");// 0=new
+                setEditableAttrStatus(STATUS_NEW);
             }
         });
 
@@ -731,7 +755,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         btnAmend.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                setEditableAttrStatus("1");// 1=amend
+                setEditableAttrStatus(STATUS_AMEND);
             }
         });
 
@@ -742,9 +766,37 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         btnCancel.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                setEditableAttrStatus("2");// 1=amend
+                setEditableAttrStatus(STATUS_CANCEL);
+
+                if (btnCancel.getSelection()) {
+                    if (SigmetAttrDlg.this.drawingLayer.getActiveProduct()
+                            .getInputFile() != null) {
+
+                        // User can CANCEL a SIGMET if it is active
+                        if (isSigmetActive()) {
+                            Sigmet sigmet = (Sigmet) getSigmet();
+                            try {
+                                sigmetCnlDlg = new SigmetCancelDlg(getShell(), sigmet);
+                            } catch (Exception ee) {
+                                statusHandler
+                                        .warn("Unable to create SIGMET Cancellation Dialog: "
+                                                + ee.getLocalizedMessage(), ee);
+                            }
+                            if (sigmetCnlDlg != null) {
+                                sigmetCnlDlg.open();
+                            }
+                        } else {
+                            statusHandler.warn(
+                                    "Unable to cancel SIGMET product: SIGMET is not active.");
+                        }
+                    } else {
+                        statusHandler.warn(
+                                "Unable to cancel SIGMET product: SIGMET is not Saved.");
+                    }
+                }
             }
         });
+
         attrButtonMap.put(EDITABLE_ATTR_STATUS,
                 new Button[] { btnNewUpdate, btnAmend, btnCancel });
 
@@ -1338,16 +1390,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .setEditableAttrFreeText(txtFreeText.getText());
             }
         });
-
-        if (!PgenConstant.TYPE_TROPICAL_CYCLONE.equals(editableAttrPhenom)
-                && !PgenConstant.TYPE_VOLCANIC_ASH.equals(editableAttrPhenom)) {
-            lblFreeText.setEnabled(false);
-            txtFreeText.setEnabled(false);
-        }
     }
 
     private void createFirRegion(Composite detailsComposite) {
         editableFirID = getFirs();
+        setEditableAttrFir(editableFirID);
         Group top7 = new Group(detailsComposite, SWT.LEFT);
         top7.setLayoutData(
                 new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
@@ -2268,6 +2315,26 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         return result;
     }
 
+    private boolean isSigmetActive() {
+        boolean isActive = false;
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, c.get(Calendar.HOUR_OF_DAY));
+
+        // round to 5 min
+        c.set(Calendar.MINUTE, (c.get(Calendar.MINUTE) / 5) * 5);
+
+        DateFormat dateFormat = new SimpleDateFormat("ddHHmm");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        int currentTime = Integer.parseInt(dateFormat.format(c.getTime()));
+        if (editableAttrEndTime != null) {
+            if (currentTime < Integer.parseInt(editableAttrEndTime)
+                    && currentTime >= Integer.parseInt(editableAttrStartTime)) {
+                isActive = true;
+            }
+        }
+        return isActive;
+    }
+
     private boolean validateNumInput(Event e) {
 
         boolean result = true;
@@ -2384,6 +2451,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void setEditableAttrPhenom(String editableAttrPhenom) {
         this.editableAttrPhenom = editableAttrPhenom;
+        ((Sigmet) this.getSigmet()).setEditableAttrPhenom(editableAttrPhenom);
     }
 
     public String getEditableAttrPhenom2() {
@@ -2588,6 +2656,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void setEditableAttrFir(String editableAttrFir) {
         this.editableAttrFir = editableAttrFir;
+        ((Sigmet) this.getSigmet()).setEditableAttrFir(editableAttrFir);
     }
 
     private void setControl(Control cont, String prop) {
@@ -2712,8 +2781,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         private Text txtSave;
 
+        private boolean cnlSigmet = false;
+
         SigmetAttrDlgSaveMsgDlg(Shell parShell) {
             super(parShell);
+            if (STATUS_CANCEL.equals(SigmetAttrDlg.this.getEditableAttrStatus())
+                    && SigmetAttrDlg.this.isSigmetActive()) {
+                cnlSigmet = true;
+            }
         }
 
         @Override
@@ -2759,6 +2834,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         public void enableButtons() {
             this.getButton(IDialogConstants.CANCEL_ID).setEnabled(true);
             this.getButton(IDialogConstants.OK_ID).setEnabled(true);
+        }
+
+        @Override
+        public void handleShellCloseEvent() {
+            close();
         }
 
         @Override
@@ -2913,12 +2993,22 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             sb.append(SigmetAttrDlg.this.getFirs());
             sb.append(" ").append("SIGMET");
             sb.append(" ").append(SigmetAttrDlg.this.getEditableAttrId());
-            sb.append(" ").append(SigmetAttrDlg.this.getEditableAttrSeqNum());
+            if (cnlSigmet) {
+                sb.append(" ").append(sigmetCnlDlg.getSeriesNumber());
+            } else {
+                sb.append(" ")
+                        .append(SigmetAttrDlg.this.getEditableAttrSeqNum());
+            }
             sb.append(" ").append("VALID");
-            sb.append(" ").append(
-                    SigmetAttrDlg.this.getEditableAttrStartTime() == null
-                            ? startTime
-                            : SigmetAttrDlg.this.getEditableAttrStartTime());
+            if (cnlSigmet) {
+                sb.append(" ").append(getTimeStringPlusHourInHMS(0));
+            } else {
+                sb.append(" ").append(
+                        SigmetAttrDlg.this.getEditableAttrStartTime() == null
+                                ? startTime
+                                : SigmetAttrDlg.this
+                                        .getEditableAttrStartTime());
+            }
             sb.append("/")
                     .append(SigmetAttrDlg.this.getEditableAttrEndTime() == null
                             ? endTime
@@ -2954,6 +3044,21 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(firName.replace('_', ' ')).append(" FIR ");
                 }
             }
+
+            // ---------------------CANCEL
+            if (cnlSigmet) {
+                sb.append("CNL");
+                sb.append(" ").append("SIGMET");
+                sb.append(" ").append(SigmetAttrDlg.this.getEditableAttrId());
+                sb.append(" ")
+                        .append(SigmetAttrDlg.this.getEditableAttrSeqNum());
+                sb.append(" ")
+                        .append(SigmetAttrDlg.this.getEditableAttrStartTime());
+                sb.append("/")
+                        .append(SigmetAttrDlg.this.getEditableAttrEndTime());
+                sb.append(" ");
+            }
+
             firCalledForSecondLine = false;
 
             // ---------------------phenomnon
@@ -2965,6 +3070,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
                     sb.append("VA ERUPTION").append(" ");
                 } else {
+                    SigmetAttrDlg.this.setEditableAttrPhenom(pString);
                     sb.append(pString.replace('_', ' ')).append(" ");
                 }
             } else {
@@ -3318,11 +3424,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(
                             convertTimeStringPlusHourInHMS(startTime, 6, false))
                             .append("Z");
-                    sb.append(" ").append("VA CLD APRX ");
-                }
-                String freeText = SigmetAttrDlg.this.getEditableAttrFreeText();
-                if (freeText != null && freeText.length() > 0) {
-                    sb.append(freeText.toUpperCase());
+                    sb.append(" ").append("VA CLD APRX.");
                 }
             }
 
@@ -3341,17 +3443,30 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(" ").append("TC CENTER ");
                 }
 
-                String freeText = SigmetAttrDlg.this.getEditableAttrFreeText();
-                if (freeText != null && freeText.length() > 0) {
-                    sb.append(freeText.toUpperCase());
-                }
                 if ("true".equals(
                         SigmetAttrDlg.this.getEditableAttrFcstAvail())) {
 
                     sb.append(
                             " " + SigmetAttrDlg.this.getEditableAttrFcstCntr());
                 }
+            }
 
+            // ------ CANCEL Correction Info
+            if (cnlSigmet) {
+                if (sigmetCnlDlg.getCorrInfo() != null) {
+                    sb.append("\n");
+                    sb.append("W");
+                    sb.append(getWmoPhen());
+                    sb.append(getOcnWmoAwpHeaders()[1]);
+                    sb.append(getInum());
+                    sb.append(" ").append(sigmetCnlDlg.getCorrInfo());
+                }
+            }
+
+            // ------ Free Text
+            String freeText = SigmetAttrDlg.this.getEditableAttrFreeText();
+            if (freeText != null && freeText.length() > 0) {
+                sb.append("\n").append(freeText.toUpperCase());
             }
 
             return sb.toString();

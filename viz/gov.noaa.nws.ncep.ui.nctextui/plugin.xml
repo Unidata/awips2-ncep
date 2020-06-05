@@ -47,7 +47,7 @@
            <view
             category="gov.noaa.nws.ncep.viz.ui.nmap"
             allowMultiple="false"
-            restorable="true"
+            restorable="false"
             class="gov.noaa.nws.ncep.ui.nctextui.palette.NctextuiPaletteWindow"
             id="gov.noaa.nws.ncep.ui.NCTEXTUI"
             name="NCTEXT"/>

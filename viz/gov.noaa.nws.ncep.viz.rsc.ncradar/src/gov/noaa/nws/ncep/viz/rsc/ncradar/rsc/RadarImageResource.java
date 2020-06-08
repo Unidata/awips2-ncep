@@ -51,7 +51,7 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.StyleException;
 import com.raytheon.uf.common.style.image.ColorMapParameterFactory;
 import com.raytheon.uf.common.style.image.ImagePreferences;
-import com.raytheon.uf.common.style.image.SamplePreferences;
+import com.raytheon.uf.common.style.image.NumericFormat;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.units.PiecewisePixel;
 import com.raytheon.uf.common.units.UnitConv;
@@ -97,20 +97,26 @@ import tec.uom.se.function.MultiplyConverter;
  * <pre>
  *
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 12/07/2011   #541       S. Gurung   Initial creation
- * 12/16/2011              S. Gurung   Added resourceAttrsModified()
- * 01/03/2011              S. Gurung   Changed circle color to black
- * 04/02/2012   #651       S. Gurung   Added fix for applying resource attributes changes.
- * 06-07-2012   #717       Archana     Updated setColorMapParameters() to store label information
- *                                      for the colorbar
- * 12/19/2012   #960       Greg Hull   override propertiesChanged() to update colorBar.
- * 06/10/2013   #999       Greg Hull   RadarRecords from RadarFrameData, rm interrogator
- * 06/30/2014    3165      njensen     Use ColorMapLoader to get ColorMap
- * 06/15/2016   R19647     bsteffen    Remove unused reference to RadarTileSet, formatting, and cleanup.
- * Mar 20, 2019 7569       tgurney     Fix colorbar alignment
- * Apr 15, 2019 7596       lsingh      Updated units framework to JSR-363.
+ *
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Dec 07, 2011  541      S. Gurung  Initial creation
+ * Dec 16, 2011           S. Gurung  Added resourceAttrsModified()
+ * Jan 03, 2011           S. Gurung  Changed circle color to black
+ * Apr 02, 2012  651      S. Gurung  Added fix for applying resource attributes
+ *                                   changes.
+ * Jun 07, 2012  717      Archana    Updated setColorMapParameters() to store
+ *                                   label information for the colorbar
+ * Dec 19, 2012  960      Greg Hull  override propertiesChanged() to update
+ *                                   colorBar.
+ * Jun 10, 2013  999      Greg Hull  RadarRecords from RadarFrameData, rm
+ *                                   interrogator
+ * Jun 30, 2014  3165     njensen    Use ColorMapLoader to get ColorMap
+ * Jun 15, 2016  19647    bsteffen   Remove unused reference to RadarTileSet,
+ *                                   formatting, and cleanup.
+ * Mar 20, 2019  7569     tgurney    Fix colorbar alignment
+ * Apr 15, 2019 7596      lsingh     Updated units framework to JSR-363.
+ * Apr 20, 2020  8145     randerso   Replace SamplePreferences with SampleFormat
  * 
  *
  * </pre>
@@ -121,7 +127,7 @@ import tec.uom.se.function.MultiplyConverter;
 public abstract class RadarImageResource<D extends IDescriptor>
         extends AbstractRadarResource<D>
         implements IMeshCallback, IRangeableResource, IResourceDataChanged {
-    protected static final transient IUFStatusHandler statusHandler = UFStatus
+    protected static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(RadarImageResource.class);
 
     private static final int RANGE_CIRCLE_PTS = 360;
@@ -165,9 +171,10 @@ public abstract class RadarImageResource<D extends IDescriptor>
             try {
                 setColorMapParameters(getRadarRecord());
             } catch (VizException e) {
-                statusHandler
-                        .debug("Failed to set color map parameters from radar record "
-                                + getRadarRecord().getDataURI(), e);
+                statusHandler.debug(
+                        "Failed to set color map parameters from radar record "
+                                + getRadarRecord().getDataURI(),
+                        e);
             }
             return true;
         }
@@ -213,8 +220,8 @@ public abstract class RadarImageResource<D extends IDescriptor>
         DataMappingEntry dmEntry;
         List<DataMappingEntry> dmEntriesList = new ArrayList<>(0);
         if (numLevels <= 16) {
-            ArrayList<Integer> pixel = new ArrayList<>();
-            ArrayList<Float> real = new ArrayList<>();
+            List<Integer> pixel = new ArrayList<>();
+            List<Float> real = new ArrayList<>();
             for (int i = 0; i < numLevels; i++) {
                 dmEntry = new DataMappingEntry();
 
@@ -298,10 +305,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
             dmPref.setSerializableEntries(dmEntryArray);
             ImagePreferences imgPref = new ImagePreferences();
             imgPref.setDataMapping(dmPref);
-            SamplePreferences sampPref = new SamplePreferences();
-            sampPref.setMinValue(0);
-            sampPref.setMaxValue(255);
-            imgPref.setSamplePrefs(sampPref);
+            imgPref.setSampleFormat(new NumericFormat(0.0, 255.0));
             colorBar.setImagePreferences(imgPref);
             colorBar.setDisplayUnitStr(radarRecord.getUnit());
             colorBar.setAlignLabelInTheMiddleOfInterval(

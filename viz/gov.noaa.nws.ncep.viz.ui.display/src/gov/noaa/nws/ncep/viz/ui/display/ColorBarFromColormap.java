@@ -19,6 +19,8 @@ import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingEntry;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.style.image.ImagePreferences;
+import com.raytheon.uf.common.style.image.NumericFormat;
+import com.raytheon.uf.common.style.image.SampleFormat;
 
 import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
 import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAttributesBuilder;
@@ -29,39 +31,47 @@ import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
  * An ColorBar initialized from a ColorMap.
  *
  * <pre>
+ *
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 04/14/10      #259        Greg Hull    Initial Creation.
- * 10/25/11      #463        qzhou        Added equals()
- * 12/06/11                  qzhou        Modified equals and added hashCode
- * 06/07/12      #717       Archana       Added imagePreferences to store the label information
- *                                        Added the method scalePixelValues() to
- *                                        scale the pixel values whenever the
- *                                        pixel values exceeded the actual number
- *                                        of colors in the color map
- *                                        Added numPixelsToReAlignLabel to position the label at the
- *                                        beginning or at the middle of the color interval.
  *
- * 06/07/12      #794       Archana       Added a Boolean flag called reverseOrder to enable/disable
- *                                        reversing the order of colors in the color-bar.
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * 04/14/10      259      Greg Hull Initial Creation.
+ * 10/25/11      463      qzhou     Added equals()
+ * 12/06/11               qzhou     Modified equals and added hashCode
+ * 06/07/12      717      Archana   Added imagePreferences to store the label
+ *                                  information.
+ *                                  Added the method scalePixelValues() to
+ *                                  scale the pixel values whenever the
+ *                                  pixel values exceeded the actual number
+ *                                  of colors in the color map.
+ *                                  Added numPixelsToReAlignLabel to position
+ *                                  the label at the beginning or at the middle
+ *                                  of the color interval.
  *
- * 06/18/12      #743       Archana       Added attributes to implement GEMPAK's CLRBAR parameter:
- *                                        xPixelCoordFraction, yPixelCoordFraction,drawColorBar,
- *                                        isDrawBoxAroundColorBar. added the corresponding setter/getter methods
- *                                        Added setAttributesFromColorBarAttributesBuilder()
- * 07/18/12       #717       Archana       Refactored numPixelsToReAlignLabel to alignLabelInTheMiddleOfInterval
- *                                        and added the corresponding setter/getter methods
- * 11/18/13      #1059      G. Hull       don't marshal displayUnitsStr
- * Mar 20, 2019  7569       tgurney       getLabelString() - allow arg greater
- *                                        than the number of intervals
+ * 06/07/12      794      Archana   Added a Boolean flag called reverseOrder to
+ *                                  enable/disable reversing the order of colors
+ *                                  in the color-bar.
  *
- *
+ * 06/18/12      743      Archana   Added attributes to implement GEMPAK's
+ *                                  CLRBAR parameter:
+ *                                     xPixelCoordFraction,
+ *                                     yPixelCoordFraction,
+ *                                     drawColorBar,
+ *                                     isDrawBoxAroundColorBar.
+ *                                  Added the corresponding setter/getter methods
+ *                                  Added setAttributesFromColorBarAttributesBuilder()
+ * 07/18/12      717      Archana   Refactored numPixelsToReAlignLabel to
+ *                                  alignLabelInTheMiddleOfInterval and added
+ *                                  the corresponding setter/getter methods
+ * 11/18/13      1059     G. Hull   don't marshal displayUnitsStr
+ * Mar 20, 2019  7569     tgurney   getLabelString() - allow arg greater
+ *                                  than the number of intervals
+ * Apr 20, 2020  8145     randerso  Replace SamplePreferences with SampleFormat
  *
  * </pre>
  *
  * @author ghull
- * @version 1
  */
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -241,10 +251,10 @@ public class ColorBarFromColormap implements IColorBar, ISerializableObject {
 
     public void scalePixelValues() {
         if (colorMap != null && imagePreferences != null) {
-            if (imagePreferences.getSamplePrefs() != null) {
-                double maxValue = imagePreferences.getSamplePrefs()
-                        .getMaxValue();
-                if (maxValue != 0 && maxValue != Double.NaN
+            SampleFormat sampleFormat = imagePreferences.getSampleFormat();
+            if (sampleFormat instanceof NumericFormat) {
+                Double maxValue = ((NumericFormat) sampleFormat).getMaxValue();
+                if (maxValue != null && maxValue != 0 && !maxValue.isNaN()
                         && maxValue > colorMap.getSize()) {
                     double scalingFactor = (int) Math
                             .round(maxValue / colorMap.getSize());

@@ -25,7 +25,8 @@ import com.raytheon.uf.common.style.StyleManager;
 import com.raytheon.uf.common.style.StyleRule;
 import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.ImagePreferences;
-import com.raytheon.uf.common.style.image.SamplePreferences;
+import com.raytheon.uf.common.style.image.NumericFormat;
+import com.raytheon.uf.common.style.image.SampleFormat;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -55,36 +56,46 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *
  * <pre>
  *
- *  SOFTWARE HISTORY
+ * SOFTWARE HISTORY
  *
- *  Date        Ticket#     Engineer    Description
- *  ----------  ----------  ----------- --------------------------
- *  05/24/2010    #281       ghull        Initial creation
- *  06/07/2012    #717       archana      Added the methods getImageTypeNumber(),
- *                                        getParameterList(), getLocFilePathForImageryStyleRule()
- *                                        Updated getDataUnitsFromRecord() to get the units from the database
- *  11/29/2012    #630       ghull        IGridGeometryProvider
- *  02/13/2015    #R6345     mkean        add areaName, resolution and getRscAttrSetName
- *                                        to legendStr
- *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
- *  12/03/2015    R12953     R. Reynolds  Modified to enhance Legend title
- *  02/04/2016    R14142     RCReynolds   Moved mcidas related string construction out to ResourceDefinition
- *  04/12/2016    R15945     RCReynolds   Added code to build customized string for input to getLegendString
- *  06/06/2016    R15945     RCReynolds   Used McidasConstants instead of SatelliteConstants
- *  06/01/2016    R18511     kbugenhagen  Refactored to use NcSatelliteResource
- *                                        instead of AbstractSatelliteResource
- *                                        in order to use TileSetRenderable.
- *  07/26/2016    R19277     bsteffen     Move redundant code into McidasRecord.getGridGeometry()
- *  07/29/2016    R17936     mkean        null in legendString for unaliased satellite.
- *  09/16/2016    R15716     SRussell     Updated the FrameData constructor,
- *                                        Removed setRenderable() method,
- *                                        Updated FrameData.updateFramData(),
- *                                        Extended getGridGeometry method(),
- *                                        Updated isCloudHeightCapable() method
- *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow
- *                                        for override of colormap name in SPF.
- *  11/29/2017    5863       bsteffen     Change dataTimes to a NavigableSet
- *  11/07/2018    #7552      dgilling     Remove unnecessary interface ICloudHeightCapable.
+ * Date          Ticket#  Engineer     Description
+ * ------------- -------- ------------ -----------------------------------------
+ * May 24, 2010  281      ghull        Initial creation
+ * Jun 07, 2012  717      archana      Added the methods getImageTypeNumber(),
+ *                                     getParameterList(),
+ *                                     getLocFilePathForImageryStyleRule()
+ *                                     Updated getDataUnitsFromRecord() to get
+ *                                     the units from the database
+ * Nov 29, 2012  630      ghull        IGridGeometryProvider
+ * Feb 13, 2015  6345     mkean        add areaName, resolution and
+ *                                     getRscAttrSetName to legendStr
+ * Oct 15, 2015  7190     R. Reynolds  Added support for Mcidas
+ * Dec 03, 2015  12953    R. Reynolds  Modified to enhance Legend title
+ * Feb 04, 2016  14142    RCReynolds   Moved mcidas related string construction
+ *                                     out to ResourceDefinition
+ * Apr 12, 2016  15945    RCReynolds   Added code to build customized string for
+ *                                     input to getLegendString
+ * Jun 06, 2016  15945    RCReynolds   Used McidasConstants instead of
+ *                                     SatelliteConstants
+ * Jun 01, 2016  18511    kbugenhagen  Refactored to use NcSatelliteResource
+ *                                     instead of AbstractSatelliteResource in
+ *                                     order to use TileSetRenderable.
+ * Jul 26, 2016  19277    bsteffen     Move redundant code into
+ *                                     McidasRecord.getGridGeometry()
+ * Jul 29, 2016  17936    mkean        null in legendString for unaliased
+ *                                     satellite.
+ * Sep 16, 2016  15716    SRussell     Updated the FrameData constructor,
+ *                                     Removed setRenderable() method, Updated
+ *                                     FrameData.updateFramData(), Extended
+ *                                     getGridGeometry method(), Updated
+ *                                     isCloudHeightCapable() method
+ * Dec 14, 2016  20988    kbugenhagen  Update initializeFirstFrame to allow for
+ *                                     override of colormap name in SPF.
+ * Nov 29, 2017  5863     bsteffen     Change dataTimes to a NavigableSet
+ * Nov 07, 2018  7552     dgilling     Remove unnecessary interface
+ *                                     ICloudHeightCapable.
+ * Apr 20, 0020  8145     randerso     Replace SamplePreferences with
+ *                                     SampleFormat
  *
  * </pre>
  *
@@ -121,7 +132,7 @@ public class McidasSatResource extends NcSatelliteResource {
                     .getResourceDefinition(rscName.getRscType());
             AttributeSet attributeSet = rscDefnsMngr.getAttrSet(rscName);
             rscDefn.setAttributeSet(attributeSet);
-            HashMap<String, String> attributes = attributeSet.getAttributes();
+            Map<String, String> attributes = attributeSet.getAttributes();
             Map<String, String> variables = new HashMap<>();
 
             // legendString can be assigned by the user in the attribute set,
@@ -129,12 +140,12 @@ public class McidasSatResource extends NcSatelliteResource {
             String legendStringAttribute = attributes.get("legendString");
 
             String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
-            for (int k = 0; k < subtypeParam.length; k++) {
-                legendString += resourceData.getMetadataMap()
-                        .get(subtypeParam[k].toString()).getConstraintValue()
-                        .toString() + "_";
+            StringBuilder sb = new StringBuilder();
+            for (String element : subtypeParam) {
+                sb.append(resourceData.getMetadataMap().get(element)
+                        .getConstraintValue()).append("_");
             }
-            legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
+            legendString = rscDefn.getRscGroupDisplayName(sb.toString()) + " ";
             // what's in subType generators
             String[] keysValues = rscDefn.getMcidasAliasedValues().split(",");
 
@@ -143,16 +154,16 @@ public class McidasSatResource extends NcSatelliteResource {
              * subType generator content)
              */
             String value = "";
-            for (int i = 0; i < keysValues.length; i++) {
-                value = keysValues[i].split(":")[1];
+            for (String keysValue : keysValues) {
+                value = keysValue.split(":")[1];
                 if (value != null && !value.isEmpty()) {
-                    if (keysValues[i]
+                    if (keysValue
                             .startsWith(McidasConstants.SATELLLITE + ":")) {
                         variables.put(McidasConstants.SATELLLITE, value);
-                    } else if (keysValues[i]
+                    } else if (keysValue
                             .startsWith(McidasConstants.AREA + ":")) {
                         variables.put(McidasConstants.AREA, value);
-                    } else if (keysValues[i]
+                    } else if (keysValue
                             .startsWith(McidasConstants.RESOLUTION + ":")) {
                         variables.put(McidasConstants.RESOLUTION, value);
                     }
@@ -186,7 +197,7 @@ public class McidasSatResource extends NcSatelliteResource {
             AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
             rscDefn.setAttributeSet(attSet);
             legendString += rscDefn.getRscAttributeDisplayName("");
-            legendString.trim();
+            legendString = legendString.trim();
 
         } catch (Exception ex) {
             statusHandler.error("Error building legend string ", ex);
@@ -221,9 +232,10 @@ public class McidasSatResource extends NcSatelliteResource {
                             // initialize colormap
                             initializeFirstFrame(satRec);
                         } catch (Exception e) {
-                            statusHandler
-                                    .error("Error initializing against SatelliteRecord "
-                                            + satRec, e);
+                            statusHandler.error(
+                                    "Error initializing against SatelliteRecord "
+                                            + satRec,
+                                    e);
                             return false;
                         }
                     }
@@ -311,7 +323,8 @@ public class McidasSatResource extends NcSatelliteResource {
                     .getResourceName().getRscCategory().getCategoryName(),
                     colorMapName);
         } catch (VizException e) {
-            throw new VizException("Error loading colormap: " + colorMapName);
+            throw new VizException("Error loading colormap: " + colorMapName,
+                    e);
         }
 
         colorMapParameters.setDisplayUnit(resourceData.getDisplayUnit());
@@ -333,7 +346,7 @@ public class McidasSatResource extends NcSatelliteResource {
             numLevels = downscaleSizes.length;
         } catch (Exception e) {
             throw new VizException(
-                    "Unable to get grid geometry for record: " + record);
+                    "Unable to get grid geometry for record: " + record, e);
         }
     }
 
@@ -341,8 +354,8 @@ public class McidasSatResource extends NcSatelliteResource {
     public void generateAndStoreColorBarLabelingInformation(IPersistable record,
             int imageTypeNumber) {
 
-        double minPixVal = Double.NaN;
-        double maxPixVal = Double.NaN;
+        Double minPixVal = null;
+        Double maxPixVal = null;
         ParamLevelMatchCriteria matchCriteria = new ParamLevelMatchCriteria();
 
         String dataUnitString = getDataUnitsFromRecord((McidasRecord) record);
@@ -372,10 +385,12 @@ public class McidasSatResource extends NcSatelliteResource {
                     imgPref = (ImagePreferences) stylePref;
 
                     // Might need to change this if/when we use the data-scaling
-                    SamplePreferences samplePref = imgPref.getSamplePrefs();
-                    if (samplePref != null) {
-                        minPixVal = imgPref.getSamplePrefs().getMinValue();
-                        maxPixVal = imgPref.getSamplePrefs().getMaxValue();
+                    SampleFormat sampleFormat = imgPref.getSampleFormat();
+                    if (sampleFormat instanceof NumericFormat) {
+                        minPixVal = ((NumericFormat) sampleFormat)
+                                .getMinValue();
+                        maxPixVal = ((NumericFormat) sampleFormat)
+                                .getMaxValue();
                     } else if (imgPref.getDataScale() != null) {
                         DataScale ds = imgPref.getDataScale();
                         if (ds.getMaxValue() != null) {
@@ -400,10 +415,8 @@ public class McidasSatResource extends NcSatelliteResource {
         if ((dataUnitString != null)
                 && ((dataUnitString).compareTo("BRIT") == 0)
                 && ((imageTypeNumber == 8) || (imageTypeNumber == 128))
-                && (minPixVal != Double.NaN) && (maxPixVal != Double.NaN)
-                && (colorBar != null) && (imgPref.getDataMapping() == null))
-
-        {
+                && (minPixVal != null) && (maxPixVal != null)
+                && (colorBar != null) && (imgPref.getDataMapping() == null)) {
 
             int imndlv = (int) Math.min(256, (maxPixVal - minPixVal + 1));
             NcIRPixelToTempConverter pixelToTemperatureConverter = new NcIRPixelToTempConverter();
@@ -418,7 +431,7 @@ public class McidasSatResource extends NcSatelliteResource {
             entry.setLabel(String.format(COLORBAR_STRING_FORMAT, tmpc));
             dmPref.addEntry(entry);
 
-            int ibrit = (imndlv - 1) + (int) minPixVal;
+            int ibrit = (imndlv - 1) + minPixVal.intValue();
             tmpk = pixelToTemperatureConverter.convert(ibrit);
             tmpc = SI.KELVIN.getConverterTo(SI.CELSIUS).convert(tmpk);
 
@@ -501,10 +514,7 @@ public class McidasSatResource extends NcSatelliteResource {
             if (!colorBar.isScalingAttemptedForThisColorMap()) {
                 imgPref = new ImagePreferences();
                 imgPref.setDataMapping(dmPref);
-                SamplePreferences sPref = new SamplePreferences();
-                sPref.setMaxValue(255);
-                sPref.setMinValue(0);
-                imgPref.setSamplePrefs(sPref);
+                imgPref.setSampleFormat(new NumericFormat(0.0, 255.0));
                 colorBar.setImagePreferences(imgPref);
                 colorBar.scalePixelValues();
             }

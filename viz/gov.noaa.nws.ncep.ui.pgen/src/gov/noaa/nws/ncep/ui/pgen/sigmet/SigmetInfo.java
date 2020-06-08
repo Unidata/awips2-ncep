@@ -10,6 +10,8 @@ package gov.noaa.nws.ncep.ui.pgen.sigmet;
 
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +27,16 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.raytheon.uf.common.localization.ILocalizationFile;
+import com.raytheon.uf.common.localization.IPathManager;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
+import com.raytheon.uf.common.localization.PathManager;
+import com.raytheon.uf.common.localization.PathManagerFactory;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
+import com.raytheon.uf.common.serialization.SerializationException;
+import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -64,7 +76,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Apr 21, 2020 76155       ksunil      ID values for INTL is dependent on WMO value selected
  * May 10, 2020 78441       ksunil      Removed reference to KNHC
  * Apr 28, 2020 77667       smanoj      Flight Information Region (FIR) update.
- * May 22, 2020 78000      ksunil      New Tropical Cyclone UI components for Fcst
+ * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
+ * Jun 4,  2020 79256       ksunil      Series ID is now a function of Issuing Office
  * </pre>
  *
  * @author gzhang
@@ -72,7 +85,16 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 
 public class SigmetInfo {
 
+    private static final String INTL_SIGMENT_ISSUE_LIST_FILE = "ncep"
+            + IPathManager.SEPARATOR + "pgen" + IPathManager.SEPARATOR
+            + "IntlSigmetIssueList.xml";
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(SigmetInfo.class);
+
     public static List<Station> VOLCANO_STATION_LIST;
+
+    public static IntlSigmetIssueList availableOffices;
 
     public static final String[] SIGMET_TYPES = new String[] { "INTL", "CONV",
             "NCON", "AIRM", "OUTL" };// should be consistent with plugin.xml
@@ -132,8 +154,11 @@ public class SigmetInfo {
 
             VOLCANO_BUCKET_MAP = initVolBucketMap();
 
-            AREA_MAP.put(SIGMET_TYPES[0],
-                    new String[] { "KKCI", "PHFO", "PAWU" });
+            availableOffices = readAvailableOfficesList();
+
+            String[] officeNames = availableOffices.getOffices().stream()
+                    .map(IssueOffice::getName).toArray(String[]::new);
+            AREA_MAP.put(SIGMET_TYPES[0], officeNames);
             AREA_MAP.put(SIGMET_TYPES[1], new String[] { "KMKC" });
             AREA_MAP.put(SIGMET_TYPES[2], new String[] { "KSFO", "KSLC", "KCHI",
                     "KDFW", "KBOS", "KMIA", "PHNL", "PANC", "PAFA", "PAJN" });
@@ -141,20 +166,6 @@ public class SigmetInfo {
                     "KDFW", "KBOS", "KMIA", "PHNL", "PANC", "PAFA", "PAJN" });
             AREA_MAP.put(SIGMET_TYPES[4], new String[] { "KSFO", "KSLC", "KCHI",
                     "KDFW", "KBOS", "KMIA", "PHNL", "PANC", "PAFA", "PAJN" });
-
-            // INTL ID values are not unique and they depend on WMO. We have 3
-            // of them
-
-            ID_MAP.put(SIGMET_TYPES[0] + "-KKCI",
-                    new String[] { "ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO",
-                            "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT",
-                            "KILO", "LIMA", "MIKE" });
-            ID_MAP.put(SIGMET_TYPES[0] + "-PAWU",
-                    new String[] { "INDIA", "JULIET", "KILO", "LIMA", "MIKE" });
-            ID_MAP.put(SIGMET_TYPES[0] + "-PHFO",
-                    new String[] { "NOVEMBER", "OSCAR", "PAPA", "QUEBEC",
-                            "ROMEO", "SIERRA", "TANGO", "UNIFORM", "VICTOR",
-                            "WHISKEY", "XRAY", "YANKEE", "ZULU" });
 
             ID_MAP.put(SIGMET_TYPES[1],
                     new String[] { "EAST", "CENTRAL", "WEST" });
@@ -186,6 +197,41 @@ public class SigmetInfo {
                 return temp;
         }
         return SIGMET_TYPES[0]; // default INTL
+    }
+
+    private static IntlSigmetIssueList readAvailableOfficesList() {
+
+        PathManager pm = (PathManager) PathManagerFactory.getPathManager();
+        ILocalizationFile lFile = pm.getStaticLocalizationFile(
+                LocalizationType.CAVE_STATIC, INTL_SIGMENT_ISSUE_LIST_FILE);
+        if (lFile != null) {
+            try (InputStream is = lFile.openInputStream()) {
+
+                SingleTypeJAXBManager<IntlSigmetIssueList> sTypeJAXB = SingleTypeJAXBManager
+                        .createWithoutException(IntlSigmetIssueList.class);
+
+                IntlSigmetIssueList officeList = sTypeJAXB
+                        .unmarshalFromInputStream(is);
+
+                return officeList;
+
+            } catch (SerializationException | LocalizationException
+                    | IOException e) {
+                statusHandler.error("Unable to read IntlSigmetIssueList", e);
+            }
+        }
+        return new IntlSigmetIssueList();
+
+    }
+
+    public static String[] getSeriesIDs(String office) {
+        for (IssueOffice ofc : availableOffices.getOffices()) {
+            if (office.equals(ofc.getName())) {
+                return (ofc.getSeriesIDs().split(","));
+            }
+        }
+        return new String[0];
+
     }
 
     private static Map<String, List<String>> initVolBucketMap() {

@@ -140,7 +140,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 18, 2020  77690      smanoj       Tropical Cyclone format changes.
  * May 22, 2020  78470      smanoj       INTL Sigmet Save ID Bug Fix.
  * May 22, 2020  78000      ksunil       New Tropical Cyclone UI components for Fcst
- *
+ * Jun 4,  2020  79256      ksunil       Series ID is now a function of Issuing Office
  * </pre>
  *
  * @author gzhang
@@ -1963,6 +1963,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrIssueOffice(comboISU.getText());
+                populateIdList(comboISU.getText());
             }
         });
 
@@ -1980,7 +1981,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrArea(comboMWO.getText());
-                populateIdList();
             }
         });
 
@@ -1988,7 +1988,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         lblID.setText("ID: ");
         comboID = new Combo(top2, SWT.READ_ONLY);
         attrControlMap.put("editableAttrId", comboID);
-        populateIdList();
+        populateIdList(comboISU.getText());
 
         setEditableAttrId(comboID.getText());
         comboID.setLayoutData(
@@ -2122,13 +2122,16 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         }
     }
 
-    private void populateIdList() {
-        // IF "INTL", the ID values are different for different wmo.
-        String key = SigmetInfo.SIGMET_TYPES[0]
-                .equals(SigmetInfo.getSigmetTypeString(pgenType))
-                        ? SigmetInfo.SIGMET_TYPES[0] + "-" + comboMWO.getText()
-                        : SigmetInfo.getSigmetTypeString(pgenType);
-        comboID.setItems(SigmetInfo.ID_MAP.get(key));
+    private void populateIdList(String issueOffice) {
+
+        // IF "INTL", the ID values are different for different Issue.
+        if (SigmetInfo.SIGMET_TYPES[0]
+                .equals(SigmetInfo.getSigmetTypeString(pgenType))) {
+            comboID.setItems(SigmetInfo.getSeriesIDs(issueOffice));
+        } else {
+            comboID.setItems(SigmetInfo.ID_MAP
+                    .get(SigmetInfo.getSigmetTypeString(pgenType)));
+        }
         comboID.select(0);
     }
 
@@ -3547,10 +3550,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             copyEditableAttrToSigmetAttrDlg(sigmet);
             if (sigmet.getEditableAttrIssueOffice() != null) {
                 if (!comboID.isDisposed()) {
-                    comboID.setItems(SigmetInfo.ID_MAP
-                            .get(SigmetInfo.SIGMET_TYPES[0] + "-"
-                                    + sigmet.getEditableAttrIssueOffice()));
-                    comboID.select(0);
+                    populateIdList(sigmet.getEditableAttrIssueOffice());
                 }
             }
         }

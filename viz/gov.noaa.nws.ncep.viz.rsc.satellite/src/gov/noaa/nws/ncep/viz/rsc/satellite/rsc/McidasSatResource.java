@@ -96,6 +96,7 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *                                     ICloudHeightCapable.
  * Apr 20, 0020  8145     randerso     Replace SamplePreferences with
  *                                     SampleFormat
+ * Jun 08, 2020  7983     randerso     Fix compatibility issue from merge     
  *
  * </pre>
  *
@@ -420,7 +421,7 @@ public class McidasSatResource extends NcSatelliteResource {
 
             int imndlv = (int) Math.min(256, (maxPixVal - minPixVal + 1));
             NcIRPixelToTempConverter pixelToTemperatureConverter = new NcIRPixelToTempConverter();
-            double tmpk = pixelToTemperatureConverter.convert(minPixVal);
+            double tmpk = pixelToTemperatureConverter.convert(minPixVal.doubleValue());
             double tmpc = SI.KELVIN.getConverterTo(SI.CELSIUS).convert(tmpk);
 
             DataMappingPreferences dmPref = new DataMappingPreferences();

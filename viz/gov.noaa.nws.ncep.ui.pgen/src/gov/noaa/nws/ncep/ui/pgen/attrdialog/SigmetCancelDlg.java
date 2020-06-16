@@ -64,6 +64,7 @@ import java.util.TimeZone;
  * Date          Ticket#  Engineer  Description
  * ------------- -------- --------- -----------------
  * Jun 01, 2020  78215    smanoj   Initial creation
+ * Jun 16, 2020  79243    smanoj   Added Caribbean and South American FIRs.
  *
  * </pre>
  *
@@ -198,13 +199,13 @@ public class SigmetCancelDlg extends AttrDlg {
         firRegGrp.setLayoutData(
                 new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
         firRegGrp.setLayout(new GridLayout(8, false));
-        firRegGrp.setText("FIR Region");
+        firRegGrp.setText(SigmetConstant.FIR_REGION);
 
         Group firPacificGrp = new Group(firRegGrp, SWT.LEFT);
         firPacificGrp.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         firPacificGrp.setLayout(new GridLayout(8, false));
-        firPacificGrp.setText("Pacific");
+        firPacificGrp.setText(SigmetConstant.PACIFIC);
         for (String s : SigmetInfo.FIR_PACIFIC) {
             final Button btn = new Button(firPacificGrp, SWT.CHECK);
             btn.setText(s);
@@ -220,7 +221,7 @@ public class SigmetCancelDlg extends AttrDlg {
         firAtlanticcGrp.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
         firAtlanticcGrp.setLayout(new GridLayout(8, false));
-        firAtlanticcGrp.setText("Atlantic");
+        firAtlanticcGrp.setText(SigmetConstant.ATLANTIC);
         for (String s : SigmetInfo.FIR_ATLANTIC) {
             final Button btn = new Button(firAtlanticcGrp, SWT.CHECK);
             btn.setText(s);
@@ -230,6 +231,42 @@ public class SigmetCancelDlg extends AttrDlg {
                 }
             }
         }
+        
+        Group firCarSAmericanGrp = new Group(firRegGrp, SWT.LEFT);
+        firCarSAmericanGrp.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
+        firCarSAmericanGrp.setLayout(new GridLayout(8, false));
+
+        Group firMexicoGrp = new Group(firCarSAmericanGrp, SWT.LEFT);
+        firMexicoGrp.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        firMexicoGrp.setLayout(new GridLayout(8, false));
+        firMexicoGrp.setText(SigmetConstant.MEXICO);
+        for (String s : SigmetInfo.FIR_MEXICO) {
+            final Button btn = new Button(firMexicoGrp, SWT.CHECK);
+            btn.setText(s);
+            if (firID != null) {
+                if (firID.contains(s)) {
+                    btn.setSelection(true);
+                }
+            }
+        }
+        
+        Group firOtherGrp = new Group(firCarSAmericanGrp, SWT.TOP);
+        firOtherGrp.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
+        firOtherGrp.setLayout(new GridLayout(8, false));
+        firOtherGrp.setText(SigmetConstant.OTHER_SITES);
+        for (String s : SigmetInfo.FIR_OTHER) {
+            final Button btn = new Button(firOtherGrp, SWT.CHECK);
+            btn.setText(s);
+            if (firID != null) {
+                if (firID.contains(s)) {
+                    btn.setSelection(true);
+                }
+            }
+        }
+
     }
 
     private void createSeriesTimeWMOArea(Composite topComposite) {
@@ -352,12 +389,12 @@ public class SigmetCancelDlg extends AttrDlg {
         comboQual.setItems(qualArray[0]);
         comboQual.select(0);
         qualType = qualArray[1];
-        if ("ASH".contains(qualType)) {
-            qualType = "VA";
-        } else if ("CYCLONE".contains(qualType)) {
-            qualType = "TC";
-        } else if ("CLD".contains(qualType)) {
-            qualType = "RC";
+        if (SigmetConstant.ASH.contains(qualType)) {
+            qualType = SigmetConstant.VA;
+        } else if (SigmetConstant.CYCLONE.contains(qualType)) {
+            qualType = SigmetConstant.TC;
+        } else if (SigmetConstant.CLD.contains(qualType)) {
+            qualType = SigmetConstant.RC;
         }
 
         Group activeSigGrp = new Group(typeQualGrp, SWT.LEFT);
@@ -373,14 +410,14 @@ public class SigmetCancelDlg extends AttrDlg {
         mapArea.setText("Include Hawaii or Alaska");
 
         final Button hawaiiBtn = new Button(mapArea, SWT.CHECK);
-        hawaiiBtn.setText("Hawaii");
+        hawaiiBtn.setText(SigmetConstant.HAWAII);
 
         final Button alaskaBtn = new Button(mapArea, SWT.CHECK);
-        alaskaBtn.setText("Alaska");
+        alaskaBtn.setText(SigmetConstant.ALASKA);
 
-        if (area.contains("PHFO")) {
+        if (area.contains(SigmetConstant.PHFO)) {
             hawaiiBtn.setSelection(true);
-        } else if (area.contains("PAWU")) {
+        } else if (area.contains(SigmetConstant.PAWU)) {
             alaskaBtn.setSelection(true);
         }
 
@@ -444,7 +481,8 @@ public class SigmetCancelDlg extends AttrDlg {
         boolean isValid = true;
         int timediff = (Integer.parseInt(endTime) - Integer.parseInt(startTime))
                 / 100;
-        if ((qualType.contains("VA")) || (qualType.contains("TC"))) {
+        if ((qualType.contains(SigmetConstant.VA))
+                || (qualType.contains(SigmetConstant.TC))) {
             if (timediff < 6) {
                 isValid = false;
                 errMsg = "Time Difference should be 6 hours Tropical Cyclone and Volcanic Ash";
@@ -483,20 +521,20 @@ public class SigmetCancelDlg extends AttrDlg {
         sb.append("\n");
 
         sb.append(firID);
-        sb.append(" ").append("SIGMET");
+        sb.append(" ").append(SigmetConstant.SIGMET);
         sb.append(" ").append(attrId);
         sb.append(" ").append(seriesNumber);
-        sb.append(" ").append("VALID").append(" ");
+        sb.append(" ").append(SigmetConstant.VALID).append(" ");
         sb.append(getTimeStringPlusHourInHMS(0)).append("/").append(endTime);
         sb.append(" ").append(area).append("-");
         sb.append("\n");
 
-        sb.append(firName.replace('_', ' ')).append(" ").append("FIR")
-                .append(" ");
+        sb.append(firName.replace('_', ' ')).append(" ")
+                .append(SigmetConstant.FIR).append(" ");
         sb.append(qualifier.replace('_', ' '));
-        sb.append(" ").append("CNL");
+        sb.append(" ").append(SigmetConstant.CNL);
 
-        sb.append(" ").append("SIGMET");
+        sb.append(" ").append(SigmetConstant.SIGMET);
         sb.append(" ").append(attrId);
         sb.append(" ").append(seqNum);
         sb.append(" ").append(startTime).append("/").append(endTime);

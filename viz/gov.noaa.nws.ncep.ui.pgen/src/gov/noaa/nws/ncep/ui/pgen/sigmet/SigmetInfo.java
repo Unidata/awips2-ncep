@@ -78,6 +78,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Apr 28, 2020 77667       smanoj      Flight Information Region (FIR) update.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Jun 4,  2020 79256       ksunil      Series ID is now a function of Issuing Office
+ * Jun 11, 2020 79243       smanoj      Added Caribbean and South American FIRs.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -117,14 +119,24 @@ public class SigmetInfo {
             "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW",
             "NW", "NNW" };
 
+    public static final String[] CAR_SAM_WMO = new String[] { "MMMX", "MUHA",
+            "TTPP", "MDSD", "MKJP" };
+
     public static final String[] FIR_ARRAY = new String[] { "PAZA|ANCHORAGE",
             "KZHU|HOUSTON_OCEANIC", "KZMA|MIAMI_OCEANIC",
-            "KZWY|NEW_YORK_OCEANIC", "KZAK|OAKLAND_OCEANIC", "TJZS|SAN_JUAN" };
+            "KZWY|NEW_YORK_OCEANIC", "KZAK|OAKLAND_OCEANIC", "TJZS|SAN_JUAN",
+            "MMFO|MAZATLAN_OCEANIC", "MMFR|MEXICO", "MUFH|HABANA",
+            "MKJK|KINGSTON", "MDCS|SANTO_DOMINGO", "TTZP|PIARCO" };
 
     public static final String[] FIR_PACIFIC = new String[] { "PAZA", "KZAK" };
 
     public static final String[] FIR_ATLANTIC = new String[] { "KZHU", "KZWY",
             "KZMA", "TJZS" };
+
+    public static final String[] FIR_MEXICO = new String[] { "MMFO", "MMFR" };
+
+    public static final String[] FIR_OTHER = new String[] { "MUFH", "MKJK",
+            "MDCS", "TTZP" };
 
     public static final String[] TREND_ARRAY = new String[] { "-none-", "NC",
             "WKN", "INTSF" };

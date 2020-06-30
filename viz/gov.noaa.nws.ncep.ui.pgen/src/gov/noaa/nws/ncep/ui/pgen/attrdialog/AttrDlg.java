@@ -80,6 +80,7 @@ import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
  * 07/26/2019   66393       mapeters    Handle {@link AttrSettings#getSettings} change
  * 09/06/2019   64150       ksunil      add button bar if working with various ContourAttr dialogs while "ANY" 
  *                                           classes on UI is selected.
+ * 06/18/2020   79252       pbutler     PGEN function fixes for null pointers when working w/ Airmets.
  *
  *
  * </pre>
@@ -146,7 +147,12 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         String currentAction = PgenSession.getInstance().getPgenPalette()
                 .getCurrentAction();
 
-        if (currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
+        String myPgenCat = PgenSession.getInstance().getPgenPalette()
+                .getCurrentCategory();
+
+        // Check the CurrentCategory for to stop PGEN cycle button error
+        if (myPgenCat == null
+                || currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
                 || currentAction
                         .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)
                 || PgenSession.getInstance().getPgenPalette()
@@ -166,10 +172,12 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
             Control bar = super.createButtonBar(parent);
             ((GridData) bar.getLayoutData()).horizontalAlignment = SWT.CENTER;
+
             return bar;
         } else {
             return null;
         }
+
     }
 
     /*

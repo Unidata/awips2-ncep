@@ -143,6 +143,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Jun 4,  2020  79256      ksunil       Series ID is now a function of Issuing Office
  * Jun 03, 2020  78215      smanoj       INTL Sigmet Cancel functionality changes.
  * Jun 11, 2020  79243      smanoj       Added Caribbean and South American FIRs.
+ * Jul 01, 2020  79980      smanoj       Tropical Cyclone FCST Center enhancement.
  * 
  * </pre>
  *
@@ -578,6 +579,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 break;
             }
 
+            setEditableAttrId(comboID.getText());
             okPressed();
 
             if (STATUS_CANCEL
@@ -1718,6 +1720,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         Label fcstCenter = new Label(topSecPhenom, SWT.LEFT);
         fcstCenter.setText("Fcst Center: ");
         Text fcstCenterText = new Text(topSecPhenom, SWT.LEFT);
+        fcstCenterText.setLayoutData(
+                new GridData(SWT.FILL, SWT.LEFT, true, true, 1, 1));
         attrControlMap.put(EDITABLE_ATTR_FCST_CENTER, fcstCenterText);
 
         fcstCenterText.addListener(SWT.Modify, new Listener() {
@@ -3552,18 +3556,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
                     sb.append(SigmetAttrDlg.this.getEditableAttrFcstTime())
                             .append(SigmetConstant.Z).append(" ");
+                    sb.append(SigmetConstant.TC_CENTER);
+                    sb.append(" " + SigmetAttrDlg.this.getEditableAttrFcstCntr()
+                            .toUpperCase()).append(".");
                 } else {
-                    sb.append(
-                            convertTimeStringPlusHourInHMS(startTime, 6, false))
-                            .append(SigmetConstant.Z);
-                    sb.append(" ").append(SigmetConstant.TC_CENTER).append(" ");
-                }
-
-                if (SigmetConstant.TRUE.equals(
-                        SigmetAttrDlg.this.getEditableAttrFcstAvail())) {
-
-                    sb.append(
-                            " " + SigmetAttrDlg.this.getEditableAttrFcstCntr());
+                    sb.append(" ").append("NA").append(".");
                 }
             }
 

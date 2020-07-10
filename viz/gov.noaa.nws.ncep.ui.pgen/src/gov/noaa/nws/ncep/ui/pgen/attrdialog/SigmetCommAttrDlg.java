@@ -886,7 +886,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             gData.heightHint = size.height;
             gData.widthHint = size.width;
             txtInfo.setLayoutData(gData);
-            txtInfo.setText(getFileContent());
+            txtInfo.setText(
+                    getEditableAttrFromLineDataAppend() + getFileContent());
             txtInfo.addDisposeListener((e) -> {
                 txtFont.dispose();
             });
@@ -994,8 +995,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     public void saveApplyPressed() {
         List<AbstractDrawableComponent> adcList = null;
         List<AbstractDrawableComponent> newList = new ArrayList<>();
-        // TODO
-        String newEditableLine = editableAttrFromLineDataAppend
+
+        String newEditableLine = this.editableAttrFromLineDataAppend
                 + this.getEditableAttrFromLine();
 
         if (PgenConstant.TYPE_NCON_SIGMET
@@ -1333,4 +1334,12 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         this.setWidth("" + (sig.getWidth()));
     }
 
+    public String getEditableAttrFromLineDataAppend() {
+        return editableAttrFromLineDataAppend;
+    }
+
+    public void setEditableAttrFromLineDataAppend(
+            String editableAttrFromLineDataAppend) {
+        this.editableAttrFromLineDataAppend = editableAttrFromLineDataAppend;
+    }
 }

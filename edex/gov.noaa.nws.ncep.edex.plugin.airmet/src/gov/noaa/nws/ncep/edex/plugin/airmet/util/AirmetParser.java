@@ -1,34 +1,9 @@
-/**
- * Airmen's Meteorological Information DecoderUtil
- * 
- * This java class intends to serve as a decoder utility for AIRMET.
- * 
- * HISTORY
- *
- * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 05/2009      39				L. Lin     	Initial coding
- * 07/2009		39				L. Lin		Migration to TO11
- * 09/2009		39				L. Lin		Add latitude/longitude to location table
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
-
 package gov.noaa.nws.ncep.edex.plugin.airmet.util;
-
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetLocation;
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +17,35 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetLocation;
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
+import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ * Airmen's Meteorological Information DecoderUtil
+ *
+ * This java class intends to serve as a decoder utility for AIRMET.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------
+ * May 2009      39       L. Lin    Initial coding
+ * Jul 2009      39       L. Lin    Migration to TO11
+ * Sep 2009      39       L. Lin    Add latitude/longitude to location table
+ * May 14, 2014  2536     bclement  moved WMO Header to common, removed
+ *                                  TimeTools usage
+ * Jul 15, 2020  8191     randerso  Updated for changes to LatLonPoint
+ *
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ *
+ * @author L. Lin
+ */
 public class AirmetParser {
 
     public static final Log logger = LogFactory.getLog(AirmetParser.class);
@@ -55,10 +59,10 @@ public class AirmetParser {
     /**
      * Parse the WMO line and store WMO header, OfficeID, issue time,
      * designatorBBB,...
-     * 
+     *
      * @param wmoline
      *            The bulletin message
-     * 
+     *
      * @return an AirmetRecord
      */
     public static AirmetRecord processWMO(String wmoline, Headers headers) {
@@ -82,8 +86,8 @@ public class AirmetParser {
 
             // Decode the issue time.
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = WMOTimeParser.findDataTime(theMatcher.group(3),
+                    fileName);
 
             record.setIssueTime(issueTime);
             DataTime dataTime = new DataTime(issueTime);
@@ -94,7 +98,7 @@ public class AirmetParser {
 
     /**
      * Obtains reportName as: SIERRA, TANGO or ZULU from a bulletin.
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for report type
@@ -117,7 +121,7 @@ public class AirmetParser {
 
     /**
      * Obtains updateNumber from a bulletin.
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return an integer for update number
@@ -142,7 +146,7 @@ public class AirmetParser {
 
     /**
      * Obtains correctionFlag from a report
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return an integer for correctionFlag 0 for normal, 1 for COR or CC, 2
@@ -160,11 +164,11 @@ public class AirmetParser {
         Matcher theMatcher = correctionPattern.matcher(bullMessage);
 
         if (theMatcher.find()) {
-            if (theMatcher.group(5).equals("COR")) {
+            if ("COR".equals(theMatcher.group(5))) {
                 retCorrection = 1;
-            } else if (theMatcher.group(5).equals("AMD")) {
+            } else if ("AMD".equals(theMatcher.group(5))) {
                 retCorrection = 2;
-            } else if ((theMatcher.group(5).substring(0, 2)).equals("CC")) {
+            } else if (("CC").equals(theMatcher.group(5).substring(0, 2))) {
                 retCorrection = 1;
             }
         }
@@ -183,7 +187,7 @@ public class AirmetParser {
 
     /**
      * Obtains cancelFlag from a report
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return an integer for cancelFlag 0 for normal and 1 for cancel
@@ -209,7 +213,7 @@ public class AirmetParser {
      * Obtains hazardType as: IFR (instrument flight rules), MO (mountain
      * obscuration), TB (turbulence), IC (icing), SW (sustained winds), or WS
      * (low level wind shear) from a report.
-     * 
+     *
      * @param theReport
      *            Input report message.
      * @return a string for class type
@@ -235,35 +239,47 @@ public class AirmetParser {
         Matcher type4Matcher = type4Pattern.matcher(theReport);
 
         if (theMatcher.find()) {
-            if (theMatcher.group(1).equals("IFR")) {
+            switch (theMatcher.group(1)) {
+            case "IFR":
                 retHazardType = "INSTRUMENT FLIGHT RULES";
-            } else if (theMatcher.group(1).equals("MTN OBSCN")) {
+                break;
+            case "MTN OBSCN":
                 retHazardType = "MOUNTAIN OBSCURATION";
-            } else if (theMatcher.group(1).equals("TURB")) {
+                break;
+            case "TURB":
                 retHazardType = "TURBULENCE";
-            } else if (theMatcher.group(1).equals("ICE")) {
+                break;
+            case "ICE":
                 retHazardType = "ICING";
-            } else if (theMatcher.group(1).equals("STG SFC WNDS")) {
+                break;
+            case "STG SFC WNDS":
                 retHazardType = "SUSTAINED SFC WINDS";
             }
         } else if (type2Matcher.find()) {
-            if (type2Matcher.group(1).equals("LLWS")) {
+            if ("LLWS".equals(type2Matcher.group(1))) {
                 retHazardType = "LOW LEVEL WIND SHEAR";
             }
         } else if (type3Matcher.find()) {
-            if (type3Matcher.group(1).equals("ICE")) {
+            switch (type3Matcher.group(1)) {
+            case "ICE":
                 retHazardType = "ICING";
-            } else if (type3Matcher.group(1).equals("TURB")) {
+                break;
+            case "TURB":
                 retHazardType = "TURBULENCE";
-            } else if (type3Matcher.group(1).equals("CIG BLW")) {
+                break;
+            case "CIG BLW":
                 retHazardType = "INSTRUMENT FLIGHT RULES";
-            } else if (type3Matcher.group(1).equals("VIS BLW")) {
+                break;
+            case "VIS BLW":
                 retHazardType = "INSTRUMENT FLIGHT RULES";
-            } else if (type3Matcher.group(1).equals("MTNS")) {
+                break;
+            case "MTNS":
                 retHazardType = "MOUNTAIN OBSCURATION";
-            } else if (type3Matcher.group(1).equals("LLWS")) {
+                break;
+            case "LLWS":
                 retHazardType = "LOW LEVEL WIND SHEAR";
-            } else if (type3Matcher.group(1).equals("SUSTAINED")) {
+                break;
+            case "SUSTAINED":
                 retHazardType = "SUSTAINED SFC WINDS";
             }
         } else if (type4Matcher.find()) {
@@ -276,7 +292,7 @@ public class AirmetParser {
     /**
      * Obtains forecast region as: S for SIERRA, T for TANGO or Z for ZULU from
      * an AirmetRecord.
-     * 
+     *
      * @param record
      *            The AirmetRecord
      * @return a string for forecast region
@@ -286,11 +302,14 @@ public class AirmetParser {
         String retRegion = null;
         String forecastRegion = reportName;
 
-        if (forecastRegion.equals("SIERRA")) {
+        switch (forecastRegion) {
+        case "SIERRA":
             retRegion = "S";
-        } else if (forecastRegion.equals("TANGO")) {
+            break;
+        case "TANGO":
             retRegion = "T";
-        } else if (forecastRegion.equals("ZULU")) {
+            break;
+        case "ZULU":
             retRegion = "Z";
         }
         return retRegion;
@@ -298,7 +317,7 @@ public class AirmetParser {
 
     /**
      * process regular section of an AIRMET report
-     * 
+     *
      * @param theReport
      *            The reports from bulletin message
      * @return an AirmetReport table
@@ -319,18 +338,16 @@ public class AirmetParser {
         AirmetReport currentReport = new AirmetReport();
         // Find and set the flight levels.
         if (flightMatcher.find()) {
-            if (flightMatcher.group(1).equals("BTN")) {
-                if ((flightMatcher.group(3).equals("FRZLVL"))) {
+            if ("BTN".equals(flightMatcher.group(1))) {
+                if (("FRZLVL".equals(flightMatcher.group(3)))) {
                     currentReport.setFlightLevel1("FRZLVL");
                 } else {
-                    currentReport.setFlightLevel1(flightMatcher.group(3)
-                            .toString());
+                    currentReport.setFlightLevel1(flightMatcher.group(3));
                 }
-                currentReport
-                        .setFlightLevel2(flightMatcher.group(5).toString());
+                currentReport.setFlightLevel2(flightMatcher.group(5));
             }
         } else if (blwMatcher.find()) {
-            currentReport.setFlightLevel2(blwMatcher.group(2).toString());
+            currentReport.setFlightLevel2(blwMatcher.group(2));
         }
         // Get and set reportType
         currentReport.setHazardType(getHazardType(theReport));
@@ -356,7 +373,7 @@ public class AirmetParser {
 
     /**
      * process the outlook of an AIRMET report.
-     * 
+     *
      * @param theOutlook
      *            The outlook section lines from bulletin message
      * @return an AirmetReport table
@@ -407,7 +424,7 @@ public class AirmetParser {
 
     /**
      * Obtains start time from input bulletin.
-     * 
+     *
      * @param theReport
      *            The bulletin message
      * @return a calendar for start time
@@ -435,7 +452,7 @@ public class AirmetParser {
 
     /**
      * Obtains the valid day from input bulletin.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @return a string for valid day.
@@ -463,7 +480,7 @@ public class AirmetParser {
     /**
      * Obtains the sequence ID which is composed by an identifier, a sequence
      * number and a series number.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @param series
@@ -498,11 +515,10 @@ public class AirmetParser {
         } else {
             seqNumber = "8";
         }
-        // System.out.println("seqNumber=" + seqNumber);
 
         // Regular expression for identifier
         final String IDENTIFIER_EXP = "([A-Z]{3})(S|Z|T) WA ([0-9]{6})( [A-Z]{3})?";
-        ;
+
         // Pattern used for extracting the sequence number
         final Pattern identifierPattern = Pattern.compile(IDENTIFIER_EXP);
         Matcher idMatcher = identifierPattern.matcher(theBulletin);
@@ -516,7 +532,7 @@ public class AirmetParser {
 
     /**
      * Get the end time
-     * 
+     *
      * @param theBulletin
      *            The bulletin which contains end time
      * @return a calendar for end time
@@ -544,7 +560,7 @@ public class AirmetParser {
 
     /**
      * Find and set valid start time and end time for outlook report.
-     * 
+     *
      * @param theReport
      *            The outlook section contains the valid times group
      */
@@ -586,7 +602,7 @@ public class AirmetParser {
     /**
      * Parse the location lines and add location table to the report table if
      * any
-     * 
+     *
      * @param theReport
      *            The report from bulletin message
      * @param reportTable
@@ -599,89 +615,90 @@ public class AirmetParser {
         Boolean hasLocationLine = true;
         String locationDelimiter = "-| TO ";
 
-        ArrayList<String> terminationList = new ArrayList<String>();
-        terminationList.addAll(Arrays.asList(new String[] { "CIG", "MTNS",
-                "ICE", "MOD", "LLWS", "SUSTAINED", "VIS", "TURB", "CANCEL",
-                "CNCL" }));
-
-        Scanner scLines = new Scanner(theReport)
-                .useDelimiter("FROM|BOUNDED BY");
+        List<String> terminationList = new ArrayList<>();
+        terminationList.addAll(Arrays
+                .asList(new String[] { "CIG", "MTNS", "ICE", "MOD", "LLWS",
+                        "SUSTAINED", "VIS", "TURB", "CANCEL", "CNCL" }));
 
         LatLonPoint point = null;
 
         // throws away the first section which is not the "FROM" location
-        String locationReport = scLines.next();
+        try (Scanner scLines = new Scanner(theReport)
+                .useDelimiter("FROM|BOUNDED BY")) {
+            String locationReport = scLines.next();
 
-        if (scLines.hasNext()) {
-            locationReport = scLines.next();
+            if (scLines.hasNext()) {
+                locationReport = scLines.next();
 
-            Scanner scLocationLine = new Scanner(locationReport)
-                    .useDelimiter("\\x0d\\x0d\\x0a");
-            String lines = " ";
-            String curLine = null;
-            ArrayList<String> locationList = new ArrayList<String>();
-            locationList.clear();
-            Boolean notBreak = true;
+                String lines = " ";
+                String curLine = null;
+                List<String> locationList = new ArrayList<>();
+                locationList.clear();
+                Boolean notBreak = true;
 
-            while (scLocationLine.hasNext() && notBreak) {
-                // Get next location line
-                curLine = scLocationLine.next();
+                try (Scanner scLocationLine = new Scanner(locationReport)
+                        .useDelimiter("\\x0d\\x0d\\x0a")) {
+                    while (scLocationLine.hasNext() && notBreak) {
+                        // Get next location line
+                        curLine = scLocationLine.next();
 
-                Scanner scLocationToken = new Scanner(curLine);
-                if (scLocationToken.hasNext()) {
-                    // Check the first token from each line
-                    String firstToken = scLocationToken.next();
-                    if (terminationList.contains(firstToken)) {
-                        // terminate
-                        notBreak = false;
-                        break;
+                        try (Scanner scLocationToken = new Scanner(curLine)) {
+                            if (scLocationToken.hasNext()) {
+                                // Check the first token from each line
+                                String firstToken = scLocationToken.next();
+                                if (terminationList.contains(firstToken)) {
+                                    // terminate
+                                    notBreak = false;
+                                    break;
+                                }
+                            }
+                        }
+                        lines = lines.concat(" ").concat(curLine);
                     }
                 }
-                lines = lines.concat(" ").concat(curLine);
-            }
 
-            // Clean up the leading space
-            lines = UtilN.removeLeadingWhiteSpaces(lines);
-            // Parse the location lines by a "-" or "TO"
-            Scanner scLocation = new Scanner(lines)
-                    .useDelimiter(locationDelimiter);
-            locationList.clear();
-            // Get all locations
-            while (scLocation.hasNext()) {
-                locationList.add(scLocation.next());
-            }
-
-            // set locations to data base
-            Integer idxLocation = 0;
-            if (locationList.size() > 1) {
-                for (String Location : locationList) {
-                    AirmetLocation currentLocation = new AirmetLocation();
-                    currentLocation.setLocationLine(lines);
-                    currentLocation.setLocation(Location);
-
-                    // Get a latLonPoint for this station ID from "vors"
-                    // location table
-                    point = LatLonLocTbl.getLatLonPoint(Location, "vors");
-                    if (point == null) {
-                        hasLocationLine = false;
-                        break;
+                // Clean up the leading space
+                lines = UtilN.removeLeadingWhiteSpaces(lines);
+                // Parse the location lines by a "-" or "TO"
+                locationList.clear();
+                // Get all locations
+                try (Scanner scLocation = new Scanner(lines)
+                        .useDelimiter(locationDelimiter)) {
+                    while (scLocation.hasNext()) {
+                        locationList.add(scLocation.next());
                     }
-                    currentLocation.setLatitude(point
-                            .getLatitude(LatLonPoint.INDEGREES));
-                    currentLocation.setLongitude(point
-                            .getLongitude(LatLonPoint.INDEGREES));
-
-                    currentLocation.setIndex(idxLocation + 1);
-                    idxLocation++;
-
-                    reportTable.addAirmetLocation(currentLocation);
                 }
+
+                // set locations to data base
+                Integer idxLocation = 0;
+                if (locationList.size() > 1) {
+                    for (String Location : locationList) {
+                        AirmetLocation currentLocation = new AirmetLocation();
+                        currentLocation.setLocationLine(lines);
+                        currentLocation.setLocation(Location);
+
+                        // Get a latLonPoint for this station ID from "vors"
+                        // location table
+                        point = LatLonLocTbl.getLatLonPoint(Location, "vors");
+                        if (point == null) {
+                            hasLocationLine = false;
+                            break;
+                        }
+                        currentLocation.setLatitude(point.getLatitude());
+                        currentLocation.setLongitude(point.getLongitude());
+
+                        currentLocation.setIndex(idxLocation + 1);
+                        idxLocation++;
+
+                        reportTable.addAirmetLocation(currentLocation);
+                    }
+                } else {
+                    hasLocationLine = false;
+                }
+
             } else {
                 hasLocationLine = false;
             }
-
-        } else {
-            hasLocationLine = false;
         }
 
         return hasLocationLine;

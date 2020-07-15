@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,14 +31,18 @@ import gov.noaa.nws.ncep.edex.util.UtilN;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Jun ??, 2009  113       L. Lin       Initial coding
- * Jul ??, 2009  113       L. Lin       Migration to TO11
- * Sep ??, 2009  113       L. Lin       Convert station ID to lat/lon if any exists.
- * Nov ??, 2011  512       S. Gurung    Fixed NullPointerException bug while processing lat/lon (from vors)
- * May 14, 2014  2536      bclement     moved WMO Header to common, removed TimeTools usage
- * Sep 13, 2018  #7460     dgilling     Improved getHazardType.
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Jun ??, 2009  113      L. Lin     Initial coding
+ * Jul ??, 2009  113      L. Lin     Migration to TO11
+ * Sep ??, 2009  113      L. Lin     Convert station ID to lat/lon if any
+ *                                   exists.
+ * Nov ??, 2011  512      S. Gurung  Fixed NullPointerException bug while
+ *                                   processing lat/lon (from vors)
+ * May 14, 2014  2536     bclement   moved WMO Header to common, removed
+ *                                   TimeTools usage
+ * Sep 13, 2018  7460     dgilling   Improved getHazardType.
+ * Jul 15, 2020  8191     randerso   Updated for changes to LatLonPoint
  *
  * </pre>
  *
@@ -50,8 +55,8 @@ public class IntlSigmetParser {
                     + "INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|TANGO|"
                     + "UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) ([0-9]{1,2}) VALID");
 
-    private static final Pattern CONUS_SIGMET_REGEX_2 = Pattern.compile(
-            "([A-Z]{4}) ([A-Z]{4} )?SIGMET ([A-Z])* ([0-9]{1,2}) "
+    private static final Pattern CONUS_SIGMET_REGEX_2 = Pattern
+            .compile("([A-Z]{4}) ([A-Z]{4} )?SIGMET ([A-Z])* ([0-9]{1,2}) "
                     + "VALID ([0-9]{6})/([0-9]{6})( UTC)? ([A-Z]{4})-");
 
     private static final Pattern CANADA_SIGMET_REGEX = Pattern.compile(
@@ -103,8 +108,10 @@ public class IntlSigmetParser {
             .compile("(TAF |METAR )");
 
     private static final Pattern CANCEL_HAZARD_TYPE_REGEX = Pattern
-            .compile("(CANCEL| CNL | CNCL |:CNL| CNL|INVALID|DISCARDED|"
-                    + "CNL SIGMET| CLN SIGMET|CNCLD|^CNL )", Pattern.MULTILINE);
+            .compile(
+                    "(CANCEL| CNL | CNCL |:CNL| CNL|INVALID|DISCARDED|"
+                            + "CNL SIGMET| CLN SIGMET|CNCLD|^CNL )",
+                    Pattern.MULTILINE);
 
     private static final Pattern TEST_HAZARD_TYPE_REGEX = Pattern
             .compile("(TEST |DISREGARD)");
@@ -139,8 +146,8 @@ public class IntlSigmetParser {
 
             // Decode the issue time.
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = WMOTimeParser.findDataTime(theMatcher.group(3),
+                    fileName);
             record.setIssueTime(issueTime);
 
             DataTime dataTime = new DataTime(issueTime);
@@ -189,79 +196,116 @@ public class IntlSigmetParser {
         } else if (testMatcher.find()) {
             retHazardType = "TEST";
         } else if (theMatcher.find()) {
-            if (theMatcher.group(1).equals("HURRICANE")) {
+            switch (theMatcher.group(1)) {
+            case "HURRICANE":
                 retHazardType = "HURRICANE";
-            } else if (theMatcher.group(1).equals("HURCN ")) {
+                break;
+            case "HURCN ":
                 retHazardType = "HURRICANE";
-            } else if (theMatcher.group(1).equals(" TD ")) {
+                break;
+            case " TD ":
                 retHazardType = "TROPICAL DEPRESSION";
-            } else if (theMatcher.group(1).equals("TROPICAL STORM")) {
+                break;
+            case "TROPICAL STORM":
                 retHazardType = "TROPICAL STORM";
-            } else if (theMatcher.group(1).equals("TROPICAL DEPRESSION")) {
+                break;
+            case "TROPICAL DEPRESSION":
                 retHazardType = "TROPICAL DEPRESSION";
-            } else if (theMatcher.group(1).equals(" SQL ")) {
+                break;
+            case " SQL ":
                 retHazardType = "SQUALL LINE";
-            } else if (theMatcher.group(1).equals("TURB")) {
+                break;
+            case "TURB":
                 retHazardType = "TURBULENCE";
-            } else if (theMatcher.group(1).equals(" ICE ")) {
+                break;
+            case " ICE ":
                 retHazardType = "ICING";
-            } else if (theMatcher.group(1).equals(" ICG")) {
+                break;
+            case " ICG":
                 retHazardType = "ICING";
-            } else if (theMatcher.group(1).equals("ICING")) {
+                break;
+            case "ICING":
                 retHazardType = "ICING";
-            } else if (theMatcher.group(1).equals(" TS ")) {
+                break;
+            case " TS ":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals("FRQ TS")) {
+                break;
+            case "FRQ TS":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals(" TS/")) {
+                break;
+            case " TS/":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals(" SH/TS ")) {
+                break;
+            case " SH/TS ":
                 retHazardType = "THUNDERSTORM WIND SHEAR";
-            } else if (theMatcher.group(1).equals(" CB ")) {
+                break;
+            case " CB ":
                 retHazardType = "CUMULONIMBUS";
-            } else if (theMatcher.group(1).equals(" VA ")) {
+                break;
+            case " VA ":
                 retHazardType = "VOLCANIC ASH CLOUD";
-            } else if (theMatcher.group(1).equals(" MTW ")) {
+                break;
+            case " MTW ":
                 retHazardType = "MARKED MOUNTAIN WAVES";
-            } else if (theMatcher.group(1).equals(" TR ")) {
+                break;
+            case " TR ":
                 retHazardType = "TROPICAL STORM";
-            } else if (theMatcher.group(1).equals(" GR ")) {
+                break;
+            case " GR ":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals(" TC ")) {
+                break;
+            case " TC ":
                 retHazardType = "TROPICAL CYCLONE";
-            } else if (theMatcher.group(1).equals(" CT ")) {
+                break;
+            case " CT ":
                 retHazardType = "CAT";
-            } else if (theMatcher.group(1).equals(" CAT ")) {
+                break;
+            case " CAT ":
                 retHazardType = "CAT";
-            } else if (theMatcher.group(1).equals(" DS ")) {
+                break;
+            case " DS ":
                 retHazardType = "DUSTSTORM";
-            } else if (theMatcher.group(1).equals(" SS ")) {
+                break;
+            case " SS ":
                 retHazardType = "SANDSTORM";
-            } else if (theMatcher.group(1).equals(" WS ")) {
+                break;
+            case " WS ":
                 retHazardType = "LOW LEVEL WIND SHEAR";
-            } else if (theMatcher.group(1).equals("LLWS")) {
+                break;
+            case "LLWS":
                 retHazardType = "LOW LEVEL WIND SHEAR";
-            } else if (theMatcher.group(1).equals(" TSGR ")) {
+                break;
+            case " TSGR ":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals("VOLCANIC ASH")) {
+                break;
+            case "VOLCANIC ASH":
                 retHazardType = "VOLCANIC ASH CLOUD";
-            } else if (theMatcher.group(1).equals("TS ")) {
+                break;
+            case "TS ":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals("HVYSS ")) {
+                break;
+            case "HVYSS ":
                 retHazardType = "HEAVY SANDSTORM";
-            } else if (theMatcher.group(1).equals("WATERSPOUTS")) {
+                break;
+            case "WATERSPOUTS":
                 retHazardType = "WATERSPOUTS";
-            } else if (theMatcher.group(1).equals("THUNDERSTORMS")) {
+                break;
+            case "THUNDERSTORMS":
                 retHazardType = "THUNDERSTORMS";
-            } else if (theMatcher.group(1).equals("WIND")) {
+                break;
+            case "WIND":
                 retHazardType = "WINDS";
-            } else if (theMatcher.group(1).equals("TS OBS")) {
+                break;
+            case "TS OBS":
                 retHazardType = "THUNDERSTORMS";
-            } else if (theMatcher.group(1).equals(" TS")) {
+                break;
+            case " TS":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals("CB/TS")) {
+                break;
+            case "CB/TS":
                 retHazardType = getThunderStorm(theReport);
-            } else if (theMatcher.group(1).equals("TORNADO")) {
+                break;
+            case "TORNADO":
                 retHazardType = "TORNADO";
             }
         } else if (nilMatcher.find()) {
@@ -727,7 +771,7 @@ public class IntlSigmetParser {
                 time = time2Matcher.group(2).concat(theMatcher.group(3));
             }
         }
-        if (time != "???") {
+        if (!"???".equals(time)) {
             // Get start time
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
             return WMOTimeParser.findDataTime(time, fileName);
@@ -786,8 +830,10 @@ public class IntlSigmetParser {
             time = timejapanMatcher.group(4);
         } else if (timecanadaMatcher.find()) {
             time = timecanadaMatcher.group(4);
-        } else if (timecanadaMatcher.find()) {
-            time = timecanadaMatcher.group(6);
+// TODO: SonarQube flagged this as unreachable since it duplicates the previous if check.
+// was it supposed to be something other than timecanadaMatcher.find()?
+//        } else if (timecanadaMatcher.find()) {
+//            time = timecanadaMatcher.group(6);
         } else if (time1Matcher.find()) {
             time = time1Matcher.group(4);
         } else if (time2Matcher.find()) {
@@ -801,7 +847,7 @@ public class IntlSigmetParser {
             }
         }
 
-        if (time != "???") {
+        if (!"???".equals(time)) {
             // Get end time
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
             return WMOTimeParser.findDataTime(time, fileName);
@@ -881,10 +927,10 @@ public class IntlSigmetParser {
         }
 
         // Set flight levels to database
-        if (flevel1 != " ") {
+        if (!" ".equals(flevel1)) {
             record.setFlightlevel1(Integer.parseInt(flevel1));
         }
-        if (flevel2 != " ") {
+        if (!" ".equals(flevel2)) {
             record.setFlightlevel2(Integer.parseInt(flevel2));
         }
 
@@ -977,7 +1023,8 @@ public class IntlSigmetParser {
         } else if (kmhMatcher.find()) {
             Integer kmhSpeed = Integer.parseInt(kmhMatcher.group(1));
             // Convert KMH to Knots
-            float speed = (float) (((double) kmhSpeed * 1000.0 / 3600.0) * 1.9425);
+            float speed = (float) (((double) kmhSpeed * 1000.0 / 3600.0)
+                    * 1.9425);
             retSpeed = (int) speed;
         }
 
@@ -1004,9 +1051,9 @@ public class IntlSigmetParser {
         if (theMatcher.find()) {
             intensity = theMatcher.group(1);
             intensity = UtilN.removeLeadingWhiteSpaces(intensity);
-            if (intensity.substring(0, 2).equals("NC")) {
+            if ("NC".equals(intensity.substring(0, 2))) {
                 intensity = "NC";
-            } else if (intensity.substring(0, 3).equals("WKN")) {
+            } else if ("WKN".equals(intensity.substring(0, 3))) {
                 intensity = "WKN";
             }
         }
@@ -1063,15 +1110,7 @@ public class IntlSigmetParser {
             direction = dir2Matcher.group(3);
         } else if (dir3Matcher.find()) {
             direction = dir3Matcher.group(2);
-            if (direction.equals("SOUTH")) {
-                direction = "S";
-            } else if (direction.equals("NORTH")) {
-                direction = "N";
-            } else if (direction.equals("WEST")) {
-                direction = "W";
-            } else if (direction.equals("EAST")) {
-                direction = "E";
-            }
+            direction = direction.substring(0, 1);
         }
         return direction;
     }
@@ -1087,7 +1126,7 @@ public class IntlSigmetParser {
     public static void processLatLon(String theLocation,
             IntlSigmetLocation locTb, Integer index, IntlSigmetRecord record) {
 
-    	double flat, flon;
+        double flat, flon;
 
         final String LATLON1_EXP = "(N|S)([0-9]{2})([0-9]{2}) (E|W)([0-9]{3})([0-9]{2})";
         // Pattern used for extracting latlon - CONUS
@@ -1136,67 +1175,61 @@ public class IntlSigmetParser {
         double seconds = 60.0;
         LatLonPoint point = null;
 
-        if (record.getWmoHeader().equals("WSMC31")) {
+        if ("WSMC31".equals(record.getWmoHeader())) {
             // WSMC31 issues lat/lon in decimals.
             seconds = 100.0;
         }
 
         if (latlon1Matcher.find()) {
             // latlon format for CONUS
-            if (latlon1Matcher.group(1).equals("S")) {
+            if ("S".equals(latlon1Matcher.group(1))) {
                 NSFlag = -1.0;
             }
-            flat = NSFlag
-                    * (Integer.parseInt(latlon1Matcher.group(2)) + (Integer
-                            .parseInt(latlon1Matcher.group(3)) / seconds));
-            if (latlon1Matcher.group(4).equals("W")) {
+            flat = NSFlag * (Integer.parseInt(latlon1Matcher.group(2))
+                    + (Integer.parseInt(latlon1Matcher.group(3)) / seconds));
+            if ("W".equals(latlon1Matcher.group(4))) {
                 EWFlag = -1.0;
             }
-            flon = EWFlag
-                    * (Integer.parseInt(latlon1Matcher.group(5)) + (Integer
-                            .parseInt(latlon1Matcher.group(6)) / seconds));
+            flon = EWFlag * (Integer.parseInt(latlon1Matcher.group(5))
+                    + (Integer.parseInt(latlon1Matcher.group(6)) / seconds));
             locTb.setLatitude(flat);
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon1Matcher.group());
         } else if (latlon2Matcher.find()) {
             // latlon format for Canada
-            if (latlon2Matcher.group(3).equals("S")) {
+            if ("S".equals(latlon2Matcher.group(3))) {
                 NSFlag = -1.0;
             }
-            flat = NSFlag
-                    * (Integer.parseInt(latlon2Matcher.group(1)) + (Integer
-                            .parseInt(latlon2Matcher.group(2)) / seconds));
-            if (latlon2Matcher.group(6).equals("W")) {
+            flat = NSFlag * (Integer.parseInt(latlon2Matcher.group(1))
+                    + (Integer.parseInt(latlon2Matcher.group(2)) / seconds));
+            if ("W".equals(latlon2Matcher.group(6))) {
                 EWFlag = -1.0;
             }
-            flon = EWFlag
-                    * (Integer.parseInt(latlon2Matcher.group(4)) + (Integer
-                            .parseInt(latlon2Matcher.group(5)) / seconds));
+            flon = EWFlag * (Integer.parseInt(latlon2Matcher.group(4))
+                    + (Integer.parseInt(latlon2Matcher.group(5)) / seconds));
             locTb.setLatitude(flat);
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon2Matcher.group(7));
         } else if (latlon3Matcher.find()) {
-            if (latlon3Matcher.group(1).equals("S")) {
+            if ("S".equals(latlon3Matcher.group(1))) {
                 NSFlag = -1.0;
             }
-            flat = NSFlag
-                    * (Integer.parseInt(latlon3Matcher.group(2)) + (Integer
-                            .parseInt(latlon3Matcher.group(3)) / seconds));
-            if (latlon3Matcher.group(4).equals("W")) {
+            flat = NSFlag * (Integer.parseInt(latlon3Matcher.group(2))
+                    + (Integer.parseInt(latlon3Matcher.group(3)) / seconds));
+            if ("W".equals(latlon3Matcher.group(4))) {
                 EWFlag = -1.0;
             }
-            flon = EWFlag
-                    * (Integer.parseInt(latlon3Matcher.group(5)) + (Integer
-                            .parseInt(latlon3Matcher.group(6)) / seconds));
+            flon = EWFlag * (Integer.parseInt(latlon3Matcher.group(5))
+                    + (Integer.parseInt(latlon3Matcher.group(6)) / seconds));
             locTb.setLatitude(flat);
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon3Matcher.group());
         } else if (latlon4Matcher.find()) {
-            if (latlon4Matcher.group(1).equals("S")) {
+            if ("S".equals(latlon4Matcher.group(1))) {
                 NSFlag = -1.0;
             }
             flat = NSFlag * (Integer.parseInt(latlon4Matcher.group(2)));
-            if (latlon4Matcher.group(3).equals("W")) {
+            if ("W".equals(latlon4Matcher.group(3))) {
                 EWFlag = -1.0;
             }
             flon = EWFlag * (Integer.parseInt(latlon4Matcher.group(4)));
@@ -1204,11 +1237,11 @@ public class IntlSigmetParser {
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon4Matcher.group());
         } else if (latlon5Matcher.find()) {
-            if (latlon5Matcher.group(2).equals("S")) {
+            if ("S".equals(latlon5Matcher.group(2))) {
                 NSFlag = -1.0;
             }
             flat = NSFlag * (Integer.parseInt(latlon5Matcher.group(1)));
-            if (latlon5Matcher.group(4).equals("W")) {
+            if ("W".equals(latlon5Matcher.group(4))) {
                 EWFlag = -1.0;
             }
             flon = EWFlag * (Integer.parseInt(latlon5Matcher.group(3)));
@@ -1217,44 +1250,40 @@ public class IntlSigmetParser {
             locTb.setLocationName(latlon5Matcher.group());
         } else if (latlon6Matcher.find()) {
             // latlon6 format
-            if (latlon6Matcher.group(3).equals("S")) {
+            if ("S".equals(latlon6Matcher.group(3))) {
                 NSFlag = -1.0;
             }
-            flat = NSFlag
-                    * (Integer.parseInt(latlon6Matcher.group(1)) + (Integer
-                            .parseInt(latlon6Matcher.group(2)) / seconds));
-            if (latlon6Matcher.group(6).equals("W")) {
+            flat = NSFlag * (Integer.parseInt(latlon6Matcher.group(1))
+                    + (Integer.parseInt(latlon6Matcher.group(2)) / seconds));
+            if ("W".equals(latlon6Matcher.group(6))) {
                 EWFlag = -1.0;
             }
-            flon = EWFlag
-                    * (Integer.parseInt(latlon6Matcher.group(4)) + (Integer
-                            .parseInt(latlon6Matcher.group(5)) / seconds));
+            flon = EWFlag * (Integer.parseInt(latlon6Matcher.group(4))
+                    + (Integer.parseInt(latlon6Matcher.group(5)) / seconds));
             locTb.setLatitude(flat);
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon6Matcher.group());
         } else if (latlon7Matcher.find()) {
             // latlon format
-            if (latlon7Matcher.group(1).equals("S")) {
+            if ("S".equals(latlon7Matcher.group(1))) {
                 NSFlag = -1.0;
             }
-            flat = NSFlag
-                    * (Integer.parseInt(latlon7Matcher.group(2)) + (Integer
-                            .parseInt(latlon7Matcher.group(3)) / seconds));
-            if (latlon7Matcher.group(4).equals("W")) {
+            flat = NSFlag * (Integer.parseInt(latlon7Matcher.group(2))
+                    + (Integer.parseInt(latlon7Matcher.group(3)) / seconds));
+            if ("W".equals(latlon7Matcher.group(4))) {
                 EWFlag = -1.0;
             }
-            flon = EWFlag
-                    * (Integer.parseInt(latlon7Matcher.group(5)) + (Integer
-                            .parseInt(latlon7Matcher.group(6)) / seconds));
+            flon = EWFlag * (Integer.parseInt(latlon7Matcher.group(5))
+                    + (Integer.parseInt(latlon7Matcher.group(6)) / seconds));
             locTb.setLatitude(flat);
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon7Matcher.group());
         } else if (latlon8Matcher.find()) {
-            if (latlon8Matcher.group(1).equals("S")) {
+            if ("S".equals(latlon8Matcher.group(1))) {
                 NSFlag = -1.0;
             }
             flat = NSFlag * (Integer.parseInt(latlon8Matcher.group(2)));
-            if (latlon8Matcher.group(4).equals("W")) {
+            if ("W".equals(latlon8Matcher.group(4))) {
                 EWFlag = -1.0;
             }
             flon = EWFlag * (Integer.parseInt(latlon8Matcher.group(5)));
@@ -1262,10 +1291,8 @@ public class IntlSigmetParser {
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon8Matcher.group());
         } else {
-            System.out.println("theLocation=" + theLocation);
-            if ((index == 0)
-                    && ((theLocation.substring(0, 3).equals("IN ")) || theLocation
-                            .substring(0, 3).equals("OF "))) {
+            if ((index == 0) && (("IN ".equals(theLocation.substring(0, 3)))
+                    || "OF ".equals(theLocation.substring(0, 3)))) {
                 // handle special case with "IN " or "OF " and location
                 String retLoc = theLocation.substring(3);
                 locTb.setLocationName(retLoc);
@@ -1273,8 +1300,8 @@ public class IntlSigmetParser {
                 // table
                 point = LatLonLocTbl.getLatLonPoint(retLoc, "vors");
                 if (point != null) {
-	                locTb.setLatitude(point.getLatitude(LatLonPoint.INDEGREES));
-	                locTb.setLongitude(point.getLongitude(LatLonPoint.INDEGREES));
+                    locTb.setLatitude(point.getLatitude());
+                    locTb.setLongitude(point.getLongitude());
                 }
             } else {
                 locTb.setLocationName(theLocation);
@@ -1282,8 +1309,8 @@ public class IntlSigmetParser {
                 // table
                 point = LatLonLocTbl.getLatLonPoint(theLocation, "vors");
                 if (point != null) {
-	                locTb.setLatitude(point.getLatitude(LatLonPoint.INDEGREES));
-	                locTb.setLongitude(point.getLongitude(LatLonPoint.INDEGREES));
+                    locTb.setLatitude(point.getLatitude());
+                    locTb.setLongitude(point.getLongitude());
                 }
 
             }
@@ -1380,53 +1407,54 @@ public class IntlSigmetParser {
         return retLocation;
     }
 
-	/**
-	 * Obtains polygon extent from a bulletin for a "LINE" type
-	 * or a polygon type
-	 *
-	 *  @param bullMessage The bulletin message
-	 *  @return a string
-	 */
-	public static String getPolygonExtent(String bullMessage) {
+    /**
+     * Obtains polygon extent from a bulletin for a "LINE" type or a polygon
+     * type
+     *
+     * @param bullMessage
+     *            The bulletin message
+     * @return a string
+     */
+    public static String getPolygonExtent(String bullMessage) {
 
-		String retStr = "";
+        String retStr = "";
 
-		// Regular expression for distance
-	    final String DISTANCE_EXP = "(WI )?([0-9]{2}|[0-9]{3})( )?NM ";
-	    // Pattern used for extracting distance
-		final Pattern distancePattern = Pattern.compile(DISTANCE_EXP);
-		Matcher theMatcher = distancePattern.matcher( bullMessage );
+        // Regular expression for distance
+        final String DISTANCE_EXP = "(WI )?([0-9]{2}|[0-9]{3})( )?NM ";
+        // Pattern used for extracting distance
+        final Pattern distancePattern = Pattern.compile(DISTANCE_EXP);
+        Matcher theMatcher = distancePattern.matcher(bullMessage);
 
-		// Regular expression for line
-	    final String LINE_EXP = " ([0-9]{2}|[0-9]{3})( )?NM (EITHER SIDE OF)";
-	    // Pattern used for extracting line information
-		final Pattern linePattern = Pattern.compile(LINE_EXP);
-		Matcher lineMatcher = linePattern.matcher( bullMessage );
+        // Regular expression for line
+        final String LINE_EXP = " ([0-9]{2}|[0-9]{3})( )?NM (EITHER SIDE OF)";
+        // Pattern used for extracting line information
+        final Pattern linePattern = Pattern.compile(LINE_EXP);
+        Matcher lineMatcher = linePattern.matcher(bullMessage);
 
-		// Regular expression distance for Canada
-	    final String CANADA_EXP = "(WTN|WITHIN) ([0-9]{2}|[0-9]{3})( )?NM OF (LN|LINE)";
-	    // Pattern used for extracting distance for CANADA sigmet
-		final Pattern canadaPattern = Pattern.compile(CANADA_EXP);
-		Matcher canadaMatcher = canadaPattern.matcher( bullMessage );
+        // Regular expression distance for Canada
+        final String CANADA_EXP = "(WTN|WITHIN) ([0-9]{2}|[0-9]{3})( )?NM OF (LN|LINE)";
+        // Pattern used for extracting distance for CANADA sigmet
+        final Pattern canadaPattern = Pattern.compile(CANADA_EXP);
+        Matcher canadaMatcher = canadaPattern.matcher(bullMessage);
 
-		// Regular expression for POLYGON
-	    final String POLYGON_EXP = " ([0-9]{2}|[0-9]{3})( )?NM ([EWSN]|[EWSN]{2}|[EWSN]{3}) OF";
-	    // Pattern used for extracting POLYGON information
-		final Pattern polygonPattern = Pattern.compile(POLYGON_EXP);
-		Matcher polygonMatcher = polygonPattern.matcher( bullMessage );
+        // Regular expression for POLYGON
+        final String POLYGON_EXP = " ([0-9]{2}|[0-9]{3})( )?NM ([EWSN]|[EWSN]{2}|[EWSN]{3}) OF";
+        // Pattern used for extracting POLYGON information
+        final Pattern polygonPattern = Pattern.compile(POLYGON_EXP);
+        Matcher polygonMatcher = polygonPattern.matcher(bullMessage);
 
-		if (canadaMatcher.find()) {
-			retStr = canadaMatcher.group(1);
-		} else if (lineMatcher.find()) {
-			retStr = lineMatcher.group(3);
-		} else if (polygonMatcher.find()) {
-			retStr = polygonMatcher.group(3).concat(" OF");
-		} else if (theMatcher.find()) {
-			retStr = theMatcher.group(1);
-		}
+        if (canadaMatcher.find()) {
+            retStr = canadaMatcher.group(1);
+        } else if (lineMatcher.find()) {
+            retStr = lineMatcher.group(3);
+        } else if (polygonMatcher.find()) {
+            retStr = polygonMatcher.group(3).concat(" OF");
+        } else if (theMatcher.find()) {
+            retStr = theMatcher.group(1);
+        }
 
-		return retStr;
-	}
+        return retStr;
+    }
 
     /**
      * Parse the location lines and add location table to the main record table
@@ -1447,16 +1475,12 @@ public class IntlSigmetParser {
         String retLocation = "?";
         int locPositionIndex = -1;
 
-        List<String> terminationList = new ArrayList<>();
-        // Locations ends with these key words
-        terminationList.addAll(Arrays
-                .asList(new String[] { "TOP", "SEV", "BKN", "STNR", "ISOL",
-                        "MOV", "SOLID", "TOPS", "AREA", "BTN", "STG", "SEVERE",
-                        "INTSF=", "MAINLY", "SIGMET", "OCNL", "WKN", "PL",
-                        "FZRA", "LLWS", "TURB", "STR", "FCST", "VA", "MDT",
-                        "STRONG", "LN", "AT", "BASED", "OF", "SVR", "OVER",
-                        "TS", "AND", "OBL", "TURBUL", "BLW", "TOP", "TORNADO",
-                        "CORRECTION" }));
+        Set<String> terminationList = Set.of("TOP", "SEV", "BKN", "STNR",
+                "ISOL", "MOV", "SOLID", "TOPS", "AREA", "BTN", "STG", "SEVERE",
+                "INTSF=", "MAINLY", "SIGMET", "OCNL", "WKN", "PL", "FZRA",
+                "LLWS", "TURB", "STR", "FCST", "VA", "MDT", "STRONG", "LN",
+                "AT", "BASED", "OF", "SVR", "OVER", "TS", "AND", "OBL",
+                "TURBUL", "BLW", "TOP", "TORNADO", "CORRECTION");
 
         final String LATLON1_EXP = "(N|S)([0-9]{4}) (E|W)([0-9]{5}) -";
         // Pattern used for extracting latlon
@@ -1539,33 +1563,36 @@ public class IntlSigmetParser {
 
         if (locPositionIndex > 0) {
             String secondHalf = theBulletin.substring(locPositionIndex);
-            Scanner scLocationLine = new Scanner(secondHalf)
-                    .useDelimiter("\\x0d\\x0d\\x0a");
             String lines = " ";
             String curLine = null;
             List<String> locationList = new ArrayList<>();
             locationList.clear();
             Boolean notBreak = true;
 
-            while (scLocationLine.hasNext() && notBreak) {
-                // Get next location line
-                curLine = scLocationLine.next();
+            try (Scanner scLocationLine = new Scanner(secondHalf)
+                    .useDelimiter("\\x0d\\x0d\\x0a")) {
+                while (scLocationLine.hasNext() && notBreak) {
+                    // Get next location line
+                    curLine = scLocationLine.next();
 
-                Scanner scLocationToken = new Scanner(curLine);
-                while (scLocationToken.hasNext() && notBreak) {
-                    // Check the token from each line
-                    String token = scLocationToken.next();
-                    if (terminationList.contains(token)) {
-                        // terminate and get the locations in this line
-                        int token_pos = curLine.indexOf(token);
-                        lines = lines.concat(" ").concat(
-                                curLine.substring(0, token_pos));
-                        notBreak = false;
-                        break;
+                    try (Scanner scLocationToken = new Scanner(curLine)) {
+                        while (scLocationToken.hasNext() && notBreak) {
+                            // Check the token from each line
+                            String token = scLocationToken.next();
+                            if (terminationList.contains(token)) {
+                                // terminate and get the locations in this line
+                                int token_pos = curLine.indexOf(token);
+                                lines = lines.concat(" ").concat(
+                                        curLine.substring(0, token_pos));
+                                notBreak = false;
+                                break;
+                            }
+                        }
                     }
-                }
-                if (notBreak) {
-                    lines = lines.concat(" ").concat(curLine);
+
+                    if (notBreak) {
+                        lines = lines.concat(" ").concat(curLine);
+                    }
                 }
             }
 
@@ -1576,8 +1603,8 @@ public class IntlSigmetParser {
 
             // Decide the location delimiter.
             Boolean whiteDel = false;
-            int dashPos = lines.indexOf("-");
-            int slashPos = lines.indexOf("/");
+            int dashPos = lines.indexOf('-');
+            int slashPos = lines.indexOf('/');
             if (dashPos != -1) {
                 locationDelimiter = "-";
             } else if (slashPos != -1) {
@@ -1587,31 +1614,32 @@ public class IntlSigmetParser {
                 whiteDel = true;
             }
             // Parse the location lines by a "-", "/", or " ".
-            Scanner scLocation = new Scanner(lines)
-                    .useDelimiter(locationDelimiter);
-
             locationList.clear();
             // Get all locations
-            while (scLocation.hasNext()) {
-                // Clean up the leading space
-                String location = UtilN.removeLeadingWhiteSpaces(scLocation
-                        .next());
-                if (whiteDel) {
-                    // white space as delimiter
-                    int lengthOfLocation = location.length();
-                    if (lengthOfLocation > 2) {
-                        if (Character.isDigit(location.toCharArray()[0])
-                                && (lengthOfLocation > 2)) {
-                            locationList.add(location);
-                        } else if (Character.isDigit(location.toCharArray()[1])
-                                && (lengthOfLocation > 2)) {
-                            locationList.add(location);
+            try (Scanner scLocation = new Scanner(lines)
+                    .useDelimiter(locationDelimiter)) {
+                while (scLocation.hasNext()) {
+                    // Clean up the leading space
+                    String location = UtilN
+                            .removeLeadingWhiteSpaces(scLocation.next());
+                    if (whiteDel) {
+                        // white space as delimiter
+                        int lengthOfLocation = location.length();
+                        if (lengthOfLocation > 2) {
+                            if (Character.isDigit(location.toCharArray()[0])
+                                    && (lengthOfLocation > 2)) {
+                                locationList.add(location);
+                            } else if (Character
+                                    .isDigit(location.toCharArray()[1])
+                                    && (lengthOfLocation > 2)) {
+                                locationList.add(location);
+                            }
                         }
+                    } else if ((location.length() > 0)
+                            && (!"FL".equals(location.substring(0, 2)))) {
+                        // exception handle for a "FL" false location
+                        locationList.add(location);
                     }
-                } else if ((location.length() > 0)
-                        && (!location.substring(0, 2).equals("FL"))) {
-                    // exception handle for a "FL" false location
-                    locationList.add(location);
                 }
             }
 
@@ -1654,37 +1682,53 @@ public class IntlSigmetParser {
         Matcher tsMatcher = tsTypePattern.matcher(theReport);
 
         if (tsMatcher.find()) {
-            if (tsMatcher.group(1).equals("EMBD TS GR ")) {
+            switch (tsMatcher.group(1)) {
+            case "EMBD TS GR ":
                 retTS = "EMBEDED THUNDERSTORMS HAIL";
-            } else if (tsMatcher.group(1).equals("SQL EMBD TS ")) {
+                break;
+            case "SQL EMBD TS ":
                 retTS = "SQUALL EMBEDED THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("ISOL EMBD TS ")) {
+                break;
+            case "ISOL EMBD TS ":
                 retTS = "ISOLATED EMBEDED THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("ISOL TS ")) {
+                break;
+            case "ISOL TS ":
                 retTS = "ISOLATED THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("EMBD TS ")) {
+                break;
+            case "EMBD TS ":
                 retTS = "EMBEDED THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("FRQ TS")) {
+                break;
+            case "FRQ TS":
                 retTS = "FREQUENT THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("SQL TS ")) {
+                break;
+            case "SQL TS ":
                 retTS = "SQUALL THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("TS GR ")) {
+                break;
+            case "TS GR ":
                 retTS = "THUNDERSTORMS HAIL";
-            } else if (tsMatcher.group(1).equals("OBSC TS")) {
+                break;
+            case "OBSC TS":
                 retTS = "OBSCURE THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("FRQ TSGR ")) {
+                break;
+            case "FRQ TSGR ":
                 retTS = "FREQUENT THUNDERSTORMS HAIL";
-            } else if (tsMatcher.group(1).equals("OCNL TS ")) {
+                break;
+            case "OCNL TS ":
                 retTS = "OCCASIONAL THUNDERSTORMS";
-            } else if (tsMatcher.group(1).equals("EMBD TSGR ")) {
+                break;
+            case "EMBD TSGR ":
                 retTS = "EMBEDED THUNDERSTORMS HAIL";
-            } else if (tsMatcher.group(1).equals(" TSGR ")) {
+                break;
+            case " TSGR ":
                 retTS = "THUNDERSTORMS HAIL";
-            } else if (tsMatcher.group(1).equals(" GR ")) {
+                break;
+            case " GR ":
                 retTS = "HAIL";
-            } else if (tsMatcher.group(1).equals("TS/CB")) {
+                break;
+            case "TS/CB":
                 retTS = "THUNDERSTORMS CUMULONIMBUS";
-            } else if (tsMatcher.group(1).equals("CB/TS")) {
+                break;
+            case "CB/TS":
                 retTS = "THUNDERSTORMS CUMULONIMBUS";
             }
         }
@@ -1702,16 +1746,15 @@ public class IntlSigmetParser {
      * @return a string.
      */
     public static String removeChar(String s, char c) {
-
-        String ret = "";
+        StringBuilder ret = new StringBuilder();
 
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) != c) {
-                ret += s.charAt(i);
+                ret.append(s.charAt(i));
             }
         }
 
-        return ret;
+        return ret.toString();
     }
 
 }

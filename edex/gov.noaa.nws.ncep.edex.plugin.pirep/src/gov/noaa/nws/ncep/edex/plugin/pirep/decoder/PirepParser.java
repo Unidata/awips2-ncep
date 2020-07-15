@@ -1,23 +1,24 @@
 /**
  * This software was developed and / or modified by Raytheon Company,
  * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
+ *
  * U.S. EXPORT CONTROLLED TECHNICAL DATA
  * This software product contains export-restricted data whose
  * export/transfer/disclosure is restricted by U.S. law. Dissemination
  * to non-U.S. persons whether in the United States or abroad requires
  * an export license or other authorization.
- * 
+ *
  * Contractor Name:        Raytheon Company
  * Contractor Address:     6825 Pine Street, Suite 340
  *                         Mail Stop B8
  *                         Omaha, NE 68106
  *                         402.291.0100
- * 
+ *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
  **/
 package gov.noaa.nws.ncep.edex.plugin.pirep.decoder;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -27,8 +28,10 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
@@ -41,52 +44,59 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
 
 /**
  * This class parses Pirep reports. Some of the parsing is ported from the NCEP
  * NWS decoder, and other parts use regular expressions based on information in
  * AFMAN 15-124 and FMH No. 12.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         PR#         Engineer    Description
- * -----------  ---------- ------------ --------------------------
- * 05/26/2011				F.J.Yen		Initial creation from pirep.  Change
- * 										temperature and windSpeed from Double to
- * 										Float; windDirection from Integer to Float.
- * 20110830     286        qzhou        Added fields for TB, IC, SK. Remove general fileds.
- *                                      Append intensity2 to intensity1 for TB, IC, SK.
- *                                      Use IdecoderConstantsN.UAIR_INTEGER_MISSING instead.
- *                                      Added PirepTools from raytheon for decoding TB. No need of FL_COND_WORDS.
- *                                      ICING_COND_WORDS instead of FL_COND_WORDS for icing.
- * 09/22/2011   286        qzhou        Fixed obs time: Added checkDayInTime().
- * 									    Modified decodeTimeData(), handled suspectTimeflag here.
- *                                      Modified parse() to handle time and station id.
- * 09.2/2011    286        qzhou        Fixed ice layer. Do regex twice. The secondtime is for intensity alone.
- * 										Fixed visibility.
- * 10/13/2011   286        qzhou        Remove \r \n \s in the reportData in parse().
- *                                      Handle abnormal location. /OV TBE 265040... Modified decodeLocationData() and parseLatLon()								
- * 10/20/2011   472        qzhou        Added WX_COND_WORDS. Removed SKY_SKC, SKY_CLR and other _COND_WORDS
- * 11/01/2011   286       Q.Zhou        Added month and year to decodetime
- * Sep 05, 2013 2316       bsteffen     Unify pirep and ncpirep.
- * Jul 23, 2014 3410       bclement     location changed to floats
- * 
+ *
+ * Date          PR#   Engineer  Description
+ * ------------- ----- --------- -----------------------------------------------
+ * May 26, 2011        F.J.Yen   Initial creation from pirep.  Change
+ *                               temperature and windSpeed from Double to Float;
+ *                               windDirection from Integer to Float.
+ * 20110830      286   qzhou     Added fields for TB, IC, SK. Remove general
+ *                               fileds. Append intensity2 to intensity1 for TB,
+ *                               IC, SK. Use
+ *                               IdecoderConstantsN.UAIR_INTEGER_MISSING
+ *                               instead. Added PirepTools from raytheon for
+ *                               decoding TB. No need of FL_COND_WORDS.
+ *                               ICING_COND_WORDS instead of FL_COND_WORDS for
+ *                               icing.
+ * Sep 22, 2011  286   qzhou     Fixed obs time: Added checkDayInTime().
+ *                               Modified decodeTimeData(), handled
+ *                               suspectTimeflag here. Modified parse() to
+ *                               handle time and station id.
+ * 09.2/2011     286   qzhou     Fixed ice layer. Do regex twice. The secondtime
+ *                               is for intensity alone. Fixed visibility.
+ * Oct 13, 2011  286   qzhou     Remove \r \n \s in the reportData in parse().
+ *                               Handle abnormal location. /OV TBE 265040...
+ *                               Modified decodeLocationData() and parseLatLon()
+ * Oct 20, 2011  472   qzhou     Added WX_COND_WORDS. Removed SKY_SKC, SKY_CLR
+ *                               and other _COND_WORDS
+ * Nov 01, 2011  286   Q.Zhou    Added month and year to decodetime
+ * Sep 05, 2013  2316  bsteffen  Unify pirep and ncpirep.
+ * Jul 23, 2014  3410  bclement  location changed to floats
+ * Jul 15, 2020  8191  randerso  Updated for changes to LatLonPoint
+ *
  * </pre>
- * 
+ *
  * @author jkorman
- * @version Dec. 27, 2007
  */
 public class PirepParser {
-    private static final double ONE_NM_RADIANS = (2.0 * Math.PI) / 21637.5;
-    
+    /** The logger */
+    private static final Logger logger = LoggerFactory
+            .getLogger(PirepParser.class);
+
     // Allowable future time in milliseconds (15 minutes).
     private static final int ALLOWABLE_TIME = 15;
-    
+
     private static final float RMISSD = -9999.f;
-    
-    private static final int IMISSD = IDecoderConstants.VAL_MISSING;;
+
+    private static final int IMISSD = IDecoderConstants.VAL_MISSING;
 
     private static final String[] RPIDS = { "UUA", "UA" };
 
@@ -94,16 +104,19 @@ public class PirepParser {
      * Note that there are intentionally spaces after some of the teis.
      */
     private static final String[] TEIS = { "/OV ", "/TM", "/FL", "/TP", "/SK ",
-        "/WX", "/TA", "/WV", "/TB", "/IC", "/RM" };
+            "/WX", "/TA", "/WV", "/TB", "/IC", "/RM" };
 
     private static final String BLO_HGT = "BLO";
+
     private static final String ABV_HGT = "ABV";
+
     private static final String NEG_ENTRY = "NEG";
+
     private static final String NULL_ENTRY = "---";
-    
-    private static final Map<String,String> WX_COND_WORDS = new HashMap<String,String>();
+
+    private static final Map<String, String> WX_COND_WORDS = new HashMap<>();
     static {
-    	WX_COND_WORDS.put("NEG", "NEG");
+        WX_COND_WORDS.put("NEG", "NEG");
         WX_COND_WORDS.put("NONE", "NULL_ENTRY");
         WX_COND_WORDS.put("NIL", "NULL_ENTRY");
         WX_COND_WORDS.put("SMOOTH", "NEG");
@@ -128,19 +141,14 @@ public class PirepParser {
         WX_COND_WORDS.put("INTERMIT", "INT");
         WX_COND_WORDS.put("CON", "CON");
         WX_COND_WORDS.put("CONS", "CON");
-        
+
         WX_COND_WORDS.put("RIME", "RIME");
-        //WX_COND_WORDS.put("CLR", "CLR");
         WX_COND_WORDS.put("MXD", "MXD");
         WX_COND_WORDS.put("MIX", "MXD");
         WX_COND_WORDS.put("MX", "MXD");
         WX_COND_WORDS.put("CLEAR", "CLR");
         WX_COND_WORDS.put("CHOP", "CHOP");
         WX_COND_WORDS.put("CAT", "CAT");
-        
-//      WX_COND_WORDS.put("IMC", "IMC"); //SK, RM
-//      WX_COND_WORDS.put("IN CLDS", "NULL_ENTRY"); //TB
-//      WX_COND_WORDS.put("MTN WAVE", NULL_ENTRY); //TB
 
         WX_COND_WORDS.put("OVC", "OVC");
         WX_COND_WORDS.put("BKN", "BKN");
@@ -151,13 +159,13 @@ public class PirepParser {
         WX_COND_WORDS.put("SKC", "CLR");
         WX_COND_WORDS.put("BLNK", "CLR");
         WX_COND_WORDS.put("OBS", "OBS");
-        
-        WX_COND_WORDS.put("UNKN", "UNKN");  
+
+        WX_COND_WORDS.put("UNKN", "UNKN");
         WX_COND_WORDS.put("UNKNOWN", "UNKN");
 
     }
-    
-    private static final Map<String,Integer> DIR_POINTS = new HashMap<String,Integer>();
+
+    private static final Map<String, Integer> DIR_POINTS = new HashMap<>();
     static {
         DIR_POINTS.put("N", 0);
         DIR_POINTS.put("NNE", 22);
@@ -176,23 +184,19 @@ public class PirepParser {
         DIR_POINTS.put("NW", 315);
         DIR_POINTS.put("NNW", 337);
     }
-    
+
     private static final String ICE_TURB_PREFIX = "([A-Z]{3,5})(?:((?:-)([A-Z]{3,5})))?";
 
     private static final String ABV_BLO = BLO_HGT + "|" + ABV_HGT;
-    private static final String ICE_TURB_SUFFIX = "(?: )?(((" + ABV_BLO + ")(?: )(\\d{3}))|((\\d{3})(?:(-(\\d{3}))?)))?(?:/)?()";
-    
-    private static final String ICE_REGEX = ICE_TURB_PREFIX + "((?: )(RIME|MXD|CLR))" + ICE_TURB_SUFFIX;//?
 
-    private static final String TRB_REGEX = ICE_TURB_PREFIX
-            + "((?: )(CHOP|CAT))?" + ICE_TURB_SUFFIX;
+    private static final String ICE_TURB_SUFFIX = "(?: )?(((" + ABV_BLO
+            + ")(?: )(\\d{3}))|((\\d{3})(?:(-(\\d{3}))?)))?(?:/)?()";
 
-    
+    private static final String ICE_REGEX = ICE_TURB_PREFIX
+            + "((?: )(RIME|MXD|CLR))" + ICE_TURB_SUFFIX;// ?
+
     // 3901N 08446W
-    private static final String LATLON_PTRN = "((([0-8]\\d[0-5]\\d)|(9000))[NS]((0\\d{2}[0-5]\\d)|([1][0-7]\\d[0-5]\\d)|(18000))[EW])";
-    
-    /** The logger */
-    private Log logger = LogFactory.getLog(getClass());
+    protected static final String LATLON_PTRN = "((([0-8]\\d[0-5]\\d)|(9000))[NS]((0\\d{2}[0-5]\\d)|([1][0-7]\\d[0-5]\\d)|(18000))[EW])";
 
     // Codes used in groupLikeTypes()
     // Was the character whitespace?
@@ -220,11 +224,11 @@ public class PirepParser {
     private BasePoint location = null;
 
     private LatLonPoint interLocation = null;
-    
+
     private Calendar observationTime = null;
 
     private AircraftFlightLevel flightLevel = null;
-    
+
     private String aircraftType = "UNKN";
 
 //    private Double temperature = null;
@@ -247,21 +251,17 @@ public class PirepParser {
     private List<AircraftFlightCondition> theIcingLayers = null;
 
     private String[] theWeatherCodes = null;
+
     private String suspectTimeFlag = null;
+
     private String headerTime = "";
-    
-    // these values are only populated if the pirep contained explicit lat/lon;
-    // theLocation holds the location of the pirep; values in radians
-//    private double latitude = Double.NaN;
-//
-//    private double longitude = Double.NaN;
 
     private String traceId;
-    
+
     /**
      * Construct a PirepParser from given String data. The report is completely
      * parsed and decoded upon success.
-     * 
+     *
      * @param report
      *            String data containing the possible PIREP.
      * @throws DecodeException
@@ -276,14 +276,14 @@ public class PirepParser {
     /**
      * Construct a PirepParser from given byte array data. The report is
      * completely parsed and decoded upon success.
-     * 
+     *
      * @param report
      *            Byte array data containing the possible PIREP.
      * @throws DecodeException
      *             An error occurred within the parser.
      */
     public PirepParser(byte[] report, String traceId) {
-        this(new String(report),traceId);
+        this(new String(report), traceId);
     }
 
     /**
@@ -296,14 +296,14 @@ public class PirepParser {
     public String getReportType() {
         return "PIREP";
     }
-    
+
     public String getSuspectTimeFlag() {
         return suspectTimeFlag;
     }
-    
+
     /**
      * Get the station reporting id.
-     * 
+     *
      * @return Returns the theReportingStationId.
      */
     public String getReportingStationId() {
@@ -312,7 +312,7 @@ public class PirepParser {
 
     /**
      * Get the reporting aircraft type.
-     * 
+     *
      * @return The aircraft type.
      */
     public String getAircraftType() {
@@ -321,21 +321,20 @@ public class PirepParser {
 
     /**
      * Get the decoded flight level information.
-     * 
+     *
      * @return The decoded flight level in feet.
      */
     public Integer getFlightLevel() {
-        //Integer retValue = null;
         Integer retValue = PirepTools.UAIR_INTEGER_MISSING; // -9999;
         if (flightLevel != null) {
             retValue = flightLevel.getFlightLevel();
         }
         return retValue;
-    } // getFlightLevel()
+    }
 
     /**
      * Get the aircraft location or midpoint location.
-     * 
+     *
      * @return Returns the aircraft location.
      */
     public BasePoint getLocation() {
@@ -344,17 +343,16 @@ public class PirepParser {
 
     /**
      * Get the PIREP observation time.
-     * 
+     *
      * @return Returns the observation time.
      */
     public Calendar getObservationTime() {
         return observationTime;
     }
 
-    
     /**
      * Get the air temperature at altitude.
-     * 
+     *
      * @return Returns the air temperature. (May return null)
      */
 //    public Double getTemperature() {
@@ -364,17 +362,17 @@ public class PirepParser {
 
     /**
      * Get the reported wind direction.
-     * 
+     *
      * @return Returns the wind direction. (May return null)
      */
 //    public Integer getWindDirection() {
-    public Float getWindDirection() {  
+    public Float getWindDirection() {
         return windDirection;
     }
 
     /**
      * Get the reported wind speed.
-     * 
+     *
      * @return Returns the wind speed. (May return null)
      */
 //    public Double getWindSpeed() {
@@ -384,7 +382,7 @@ public class PirepParser {
 
     /**
      * Get any remarks found in the report.
-     * 
+     *
      * @return Returns the remarks. (May return null)
      */
     public String getRemarks() {
@@ -393,7 +391,7 @@ public class PirepParser {
 
     /**
      * Get the cloud layer information.
-     * 
+     *
      * @return Returns the decoded cloud layers. (May return null)
      */
     public List<AircraftCloudLayer> getCloudLayers() {
@@ -402,7 +400,7 @@ public class PirepParser {
 
     /**
      * Get the turbulence layer information.
-     * 
+     *
      * @return Returns the turbulence layers. (May return null)
      */
     public List<AircraftFlightCondition> getTurbulenceLayers() {
@@ -411,7 +409,7 @@ public class PirepParser {
 
     /**
      * Get the icing layer information.
-     * 
+     *
      * @return Returns the icing layers. (May return null)
      */
     public List<AircraftFlightCondition> getIcingLayers() {
@@ -420,7 +418,7 @@ public class PirepParser {
 
     /**
      * Get the flight visibility if decoded.
-     * 
+     *
      * @return Returns the flight visibility. (May return null)
      */
     public Integer getHorzVisibility() {
@@ -429,7 +427,7 @@ public class PirepParser {
 
     /**
      * Get the decoded weather information.
-     * 
+     *
      * @return Returns the weather codes. (May return null)
      */
     public String[] getWeatherCodes() {
@@ -438,34 +436,39 @@ public class PirepParser {
 
     /**
      * This method parses the pirep based on TEIs and delegates the data for
-     * each to a different method. This method ported from NCEP decoder.
-     * "HJO UA /OV AUN-CRO /TM 2351 /FL075 /TP M20P /WX FV30SM HZ FU /WV 15015KT /TB NEG /RM SMTH="
+     * each to a different method. This method ported from NCEP decoder. "HJO UA
+     * /OV AUN-CRO /TM 2351 /FL075 /TP M20P /WX FV30SM HZ FU /WV 15015KT /TB NEG
+     * /RM SMTH="
+     *
      * @throws DecodeException
      *             An error occurred within this method.
      */
     protected void parse() {
         int pirepIndex = 0;
         int endTimeId = 6;
-        
+
         // remove \r \n white space
         reportData = reportData.replaceAll("[\r\n]", " ");
         reportData = reportData.replaceAll("[ ]{2,}", " ");
-        
-    	// reportData start with hmo_header time, then statioId
-    	if (reportData != null && reportData.length() >=10 ) //time + stationId =10
-    		headerTime = reportData.substring(pirepIndex, endTimeId);    	
-    	
-    	int stationStartIndex = endTimeId + 1;
-    	
-        String theStationId = reportData.substring(stationStartIndex, stationStartIndex +3);
+
+        // reportData start with hmo_header time, then statioId
+        if (reportData != null && reportData.length() >= 10) {
+            headerTime = reportData.substring(pirepIndex, endTimeId);
+        }
+
+        int stationStartIndex = endTimeId + 1;
+
+        String theStationId = reportData.substring(stationStartIndex,
+                stationStartIndex + 3);
         decodeReportingStationId(theStationId);
-        
+
         // Look for a 'UUA' or 'UA' indicator to denote the start of
         // the report.
-        if (!nextString(reportData, ( stationStartIndex + 3 + 1 ), reportData.length(), RPIDS)) {
+        if (!nextString(reportData, (stationStartIndex + 3 + 1),
+                reportData.length(), RPIDS)) {
             return;
         }
-        
+
         // if failed to decode reporting station id, this must be Canadian pirep
         // TODO convert!
 
@@ -473,23 +476,22 @@ public class PirepParser {
         if (!nextString(reportData, pirepIndex, reportData.length(), TEIS)) {
             return;
         }
-        
+
         int pos1 = this.theSearchPos;
         int tei1 = this.theTokenPos;
-        
+
         int teiIndex = pos1 + TEIS[tei1].length();
         int pos2, tei2;
 
         while (teiIndex < reportData.length()) {
-        	
+
             // Find the end of the data for this TEI by finding the next
             // TEI within the report.
             int endTeiIndex;
-            boolean lastTei = !nextString(reportData, teiIndex, reportData
-                .length(), TEIS);
+            boolean lastTei = !nextString(reportData, teiIndex,
+                    reportData.length(), TEIS);
             pos2 = this.theSearchPos;
             tei2 = this.theTokenPos;
-            //System.out.println("%%%%%%%%%tei2 "+tei1 +" "+pos1 +" "+teiIndex);
             if (lastTei) {
                 // This is the last TEI within the report, so set the end
                 // of the data for this TEI equal to the end of the report.
@@ -500,61 +502,61 @@ public class PirepParser {
 
             boolean success = false;
             switch (tei1) {
-                case 0:
-                    // Decode and store the "/OV" (i.e. location) data.
-                    success = decodeLocationData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
-                case 1:
-                    // Decode and store the "/TM" (i.e. time) data.
-                    success = decodeTimeData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
-                case 2:
-                    // Decode and store the "/FL" (i.e. flight level) data.
-                    success = decodeFlightLevelData(reportData.substring(
-                        teiIndex, endTeiIndex));
-                    break;
-                case 3:
-                    // Decode and store the "/TP" (i.e. aircraft type) data.
-                	success = decodeAircraftTypeData(reportData.substring(
-                        teiIndex, endTeiIndex));
-                    break;
-                case 4:
-                    // Decode and store the "/SK" (i.e. sky cover) data.
-                	success = decodeSkyCoverData(reportData.substring(
-                    	teiIndex, endTeiIndex));
-                    break;
-                case 5:
-                    // Decode and store the "/WX" (i.e. weather) data.
-                    success = decodeWeatherData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
-                case 6:
-                    // Decode and store the "/TA" (i.e. temperature) data.
-                    success = decodeTemperatureData(reportData.substring(
-                        teiIndex, endTeiIndex));
-                    break;
-                case 7:
-                    // Decode and store the "/WV" (i.e. wind) data.
-                    success = decodeWindData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
-                case 8:
-                    // Decode and store the "/TB" (i.e. turbulence) data.
-                	success = decodeTurbulenceData(reportData.substring(
-                        teiIndex, endTeiIndex));
-                    break;
-                case 9:
-                    // Decode and store the "/IC" (i.e. icing) data.
-                	success = decodeIcingData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
-                case 10:
-                    // Decode and store the "/RM" (i.e. remarks) data.
-                    success = decodeRemarksData(reportData.substring(teiIndex,
-                        endTeiIndex));
-                    break;
+            case 0:
+                // Decode and store the "/OV" (i.e. location) data.
+                success = decodeLocationData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 1:
+                // Decode and store the "/TM" (i.e. time) data.
+                success = decodeTimeData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 2:
+                // Decode and store the "/FL" (i.e. flight level) data.
+                success = decodeFlightLevelData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 3:
+                // Decode and store the "/TP" (i.e. aircraft type) data.
+                success = decodeAircraftTypeData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 4:
+                // Decode and store the "/SK" (i.e. sky cover) data.
+                success = decodeSkyCoverData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 5:
+                // Decode and store the "/WX" (i.e. weather) data.
+                success = decodeWeatherData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 6:
+                // Decode and store the "/TA" (i.e. temperature) data.
+                success = decodeTemperatureData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 7:
+                // Decode and store the "/WV" (i.e. wind) data.
+                success = decodeWindData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 8:
+                // Decode and store the "/TB" (i.e. turbulence) data.
+                success = decodeTurbulenceData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 9:
+                // Decode and store the "/IC" (i.e. icing) data.
+                success = decodeIcingData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
+            case 10:
+                // Decode and store the "/RM" (i.e. remarks) data.
+                success = decodeRemarksData(
+                        reportData.substring(teiIndex, endTeiIndex));
+                break;
             } // switch()
 
             // discontinue if processing of any data fails
@@ -569,24 +571,23 @@ public class PirepParser {
                 tei1 = tei2;
                 teiIndex = pos1 + TEIS[tei1].length();
             }
-        } // while()
-    } // parse()
+        }
+    }
 
     /**
      * This method gets the reporting station id for a PIREP. The reporting
      * station id is the station id which immediately precedes the characters UA
      * or UUA. This method ported from NCEP decoder.
-     * 
+     *
      * @param str
      *            String preceding UA or UUA
      * @return success or failure
      */
     protected boolean decodeReportingStationId(String str) {
-        //String id = str.trim();
 
         this.theReportingStationId = str;
         return true;
-    } // decodeReportingStationId()
+    }
 
     /**
      * This method decodes and stores the location data from within a PIREP
@@ -594,7 +595,7 @@ public class PirepParser {
      * (i.e. a "location point" is a navaid or a navaid/bearing/distance), or it
      * may be a latitude/longitude combination such as is found in AIREP
      * reports.
-     * 
+     *
      * @param locData
      *            All data located in the PIREP report "OV" section.
      * @return Decode success or failure status.
@@ -605,58 +606,63 @@ public class PirepParser {
         boolean decodeStatus = false;
         final int maxOVParts = 2;
 
-        // Remove space in locData. handle abormal input. e.g. 9000N 18000E,  /OV AEF 200067
+        // Remove space in locData. handle abormal input. e.g. 9000N 18000E, /OV
+        // AEF 200067
         String[] split = locData.split(" ");
-        if (split != null && split.length ==2)
-        	locData = split[0] + split[1];
-        
+        if (split != null && split.length == 2) {
+            locData = split[0] + split[1];
+        }
+
         Pattern p = Pattern.compile(LATLON_PTRN);
         Matcher m = p.matcher(locData);
-        if(m.find()) {
+        if (m.find()) {
             location = parseLatLon(m.group());
             decodeStatus = (location != null);
-        } 
-        else {
-            ArrayList<String> ovParts = new ArrayList<String>();
+        } else {
+            List<String> ovParts = new ArrayList<>();
 
             StringTokenizer st = new StringTokenizer(locData, "-", false);
             while (st.hasMoreTokens()) {
                 String s = st.nextToken();
                 ovParts.add(s.toUpperCase());
             }
-            // If there are more than 2 parts, this location data is in error BUT
-            // we will use the first two points and ignore trailing!
+            /*
+             * If there are more than 2 parts, this location data is in error
+             * BUT we will use the first two points and ignore trailing!
+             */
             if (ovParts.size() == 1) {
                 decodeStatus = decodeLocation(ovParts.get(0).trim());
             } else if (ovParts.size() >= maxOVParts) {
                 // If valid, this will leave the first location in theLocation.
                 if (decodeLocation(ovParts.get(0).trim())) {
-                    // Make sure to save the previous location. decodeLocation
-                    // will trash it.
+                    /*
+                     * Make sure to save the previous location. decodeLocation
+                     * will trash it.
+                     */
                     LatLonPoint firstPoint = interLocation;
                     // now get the second point.
                     if (decodeLocation(ovParts.get(1).trim())) {
                         LatLonPoint secondPoint = interLocation;
 
-                        // Now we have two valid points.
-                        // get the midpoint distance from point 1 to point 2.
-                        double dist = firstPoint.distanceTo(secondPoint) / 2;
-                        // and use the bearing between the points to construct the
-                        // midpoint location.
-                        secondPoint = firstPoint.positionOf(firstPoint
-                                .bearingTo(secondPoint), dist);
-                        location = new BasePoint(secondPoint
-                                .getLatitude(LatLonPoint.INDEGREES), secondPoint
-                                .getLongitude(LatLonPoint.INDEGREES));
+                        /*
+                         * Now we have two valid points. get the midpoint from
+                         * point 1 to point 2.
+                         */
+                        LatLonPoint midPoint = firstPoint.midPoint(secondPoint);
+                        location = new BasePoint(midPoint.getLatitude(),
+                                midPoint.getLongitude());
                         decodeStatus = true;
-                        if(ovParts.size() > maxOVParts) {
-                            logger.info(traceId + "- More than 2 locations reported, first 2 used");
+                        if (ovParts.size() > maxOVParts) {
+                            logger.info(traceId
+                                    + "- More than 2 locations reported, first 2 used");
                         }
                     } else {
-                        logger.error(traceId + "- Could not decode location " + ovParts.get(1).trim());
+                        logger.error(traceId + "- Could not decode location "
+                                + ovParts.get(1).trim());
                     }
                 } else {
-                    logger.error(traceId + "- Could not decode location " + ovParts.get(0).trim());
+                    logger.error(traceId + "- Could not decode location "
+                            + ovParts.get(0).trim());
                 }
             }
         }
@@ -665,7 +671,7 @@ public class PirepParser {
 
     /**
      * Decode the individual location points found in an "OV" section.
-     * 
+     *
      * @param aLocation
      *            A possible location point.
      * @return Was the decode successful (true|false).
@@ -682,11 +688,10 @@ public class PirepParser {
             BasePoint navaidLoc = getNavaidLocation(aLocation);
             if (navaidLoc != null) {
                 location = navaidLoc;
-                
-                interLocation = new LatLonPoint(navaidLoc
-                        .getLatitude(), navaidLoc.getLongitude(),
-                        LatLonPoint.INDEGREES);
-                
+
+                interLocation = new LatLonPoint(navaidLoc.getLatitude(),
+                        navaidLoc.getLongitude());
+
                 decodeStatus = true;
             }
         } else {
@@ -698,27 +703,29 @@ public class PirepParser {
 
                 BasePoint navaidLoc = getNavaidLocation(staId);
                 if (navaidLoc != null) {
-                    int len = aLocation.length();
+                    try {
+                        int len = aLocation.length();
 
-                    String s = aLocation.substring(len - 6, len - 3);
-                    Double bearing = Math.toRadians(parseInteger(s));
+                        String s = aLocation.substring(len - 6, len - 3);
+                        double bearing = Integer.valueOf(s);
 
-                    s = aLocation.substring(len - 3);
-                    Double dist = ONE_NM_RADIANS * parseInteger(s);
-                    
-                    
-                    LatLonPoint point1 = new LatLonPoint(navaidLoc
-                            .getLatitude(), navaidLoc.getLongitude(),
-                            LatLonPoint.INDEGREES);
+                        s = aLocation.substring(len - 3);
+                        double dist = Integer.valueOf(s);
 
-                    LatLonPoint point2 = point1.positionOf(-bearing, dist);
-                    interLocation = point2;
+                        LatLonPoint point1 = new LatLonPoint(
+                                navaidLoc.getLatitude(),
+                                navaidLoc.getLongitude());
 
-                    location = new BasePoint(
-                            point2.getLatitude(LatLonPoint.INDEGREES),
-                            point2.getLongitude(LatLonPoint.INDEGREES));
+                        LatLonPoint point2 = point1.positionOf(bearing, dist);
+                        interLocation = point2;
 
-                    decodeStatus = true;
+                        location = new BasePoint(point2.getLatitude(),
+                                point2.getLongitude());
+
+                        decodeStatus = true;
+                    } catch (NumberFormatException e) {
+                        decodeStatus = false;
+                    }
                 } else {
                     decodeStatus = false;
                 }
@@ -726,29 +733,11 @@ public class PirepParser {
             }
         }
         return decodeStatus;
-    } // decodeLocation()
-
-    /**
-     * Attempt to convert a string to an integer value.
-     * 
-     * @param aNumber
-     *            A possible integer value.
-     * @return The converted number or null if conversion failed.
-     */
-    private static Integer parseInteger(String aNumber) {
-        Integer retValue = null;
-        try {
-            retValue = new Integer(aNumber.trim());
-        }
-        catch (NumberFormatException nfe) {
-            retValue = null;
-        }
-        return retValue;
-    } // parseInteger()
+    }
 
     /**
      * Get the latitude/longitude pair for a given navigation point.
-     * 
+     *
      * @param aNavaid
      *            A possible navaid to look up.
      * @return The location of the navaid or null if not found.
@@ -762,26 +751,28 @@ public class PirepParser {
             logger.debug(traceId + " - Processing Navaid [" + navaid + "]");
             try {
                 obSta = new ObStationDao();
-                if(navaid.length() == 3) {
-                    String gid = ObStation.createGID(ObStation.CAT_TYPE_ACFT_PIREP, navaid);
-                    
+                if (navaid.length() == 3) {
+                    String gid = ObStation
+                            .createGID(ObStation.CAT_TYPE_ACFT_PIREP, navaid);
+
                     stationInfo = obSta.queryByGid(gid);
                 } else if (navaid.length() == 4) {
-                    String gid = ObStation.createGID(ObStation.CAT_TYPE_ICAO, navaid);
+                    String gid = ObStation.createGID(ObStation.CAT_TYPE_ICAO,
+                            navaid);
                     stationInfo = obSta.queryByGid(gid);
                 }
-            } catch(DataAccessLayerException e){
-                logger.error(traceId + " - Unable to retrieve station info",e);
-            } 
+            } catch (DataAccessLayerException e) {
+                logger.error(traceId + " - Unable to retrieve station info", e);
+            }
         } else {
             logger.info(traceId + " - Invalid navaid [" + navaid + "]");
         }
 
         if (stationInfo != null) {
             Geometry g = stationInfo.getGeometry();
-            if(g instanceof Point) {
+            if (g instanceof Point) {
                 Point p = (Point) g;
-                navaidLocation = new BasePoint(p.getY(),p.getX());
+                navaidLocation = new BasePoint(p.getY(), p.getX());
             }
         } else {
             logger.info(traceId + " - Station id not found [" + navaid + "]");
@@ -790,81 +781,71 @@ public class PirepParser {
     } // getNavaidLocation()
 
     /**
-     * 
+     *
      */
-    private static BasePoint parseLatLon(String latlon) {
+    protected static BasePoint parseLatLon(String latlon) {
         BasePoint point = null;
-        
-        // 012345678901
-        // lldds llldds    
-        
-        Integer lat_dd = parseInteger(latlon.substring(0,2));
-        Integer lat_mm = parseInteger(latlon.substring(2,4));
-        Integer lon_dd = 0;
-        Integer lon_mm = 0;
-        int lastLetterIdx = 0;
-        
-        if (latlon.split(" ").length ==2) {
-        	lon_dd = parseInteger(latlon.substring(6,9));
-        	lon_mm = parseInteger(latlon.substring(9,11));
-        	lastLetterIdx = 11;
-        }
-        else {
-        	lon_dd = parseInteger(latlon.substring(5,8));
-        	lon_mm = parseInteger(latlon.substring(8,10));
-        	lastLetterIdx = 10;
-        }
-        
-        if((lat_dd != null)&&(lat_mm) != null) {
-            if((lon_dd != null)&&(lon_mm) != null) {
 
-                Double lat = lat_dd + (lat_mm / 60.0d);
-                Double lon = lon_dd + (lon_mm / 60.0d);
-                if(lat_dd.equals(0)&&(lat_mm.equals(0))) {
-                    lat = 0.0;
-                } else {
-                    switch(latlon.charAt(4)) {
-                    case 'N' : {
-                        break;
-                    }
-                    case 'S' : {
-                        lat = lat * -1;
-                        break;
-                    }
-                    default : {
-                        lat = null;
-                    }
-                    }
-                }
-                if(lon_dd.equals(0)&&(lon_mm.equals(0))) {
-                    lon = 0.0;
-                } else {
-                    switch(latlon.charAt(lastLetterIdx)) {
-                    case 'E' : {
-                        break;
-                    }
-                    case 'W' : {
-                        lon = lon * -1;
-                        break;
-                    }
-                    default : {
-                        lon = null;
-                    }
-                    }
-                }
-                if(lat != null && lon != null) {
-                    point = new BasePoint(lat, lon);
-                }
-            }            
+        // 012345678901
+        // lldds llldds
+
+        try {
+            int lat_dd = Integer.valueOf(latlon.substring(0, 2));
+            int lat_mm = Integer.valueOf(latlon.substring(2, 4));
+            int lon_dd = 0;
+            int lon_mm = 0;
+            int lastLetterIdx = 0;
+
+            if (latlon.split(" ").length == 2) {
+                lon_dd = Integer.valueOf(latlon.substring(6, 9));
+                lon_mm = Integer.valueOf(latlon.substring(9, 11));
+                lastLetterIdx = 11;
+            } else {
+                lon_dd = Integer.valueOf(latlon.substring(5, 8));
+                lon_mm = Integer.valueOf(latlon.substring(8, 10));
+                lastLetterIdx = 10;
+            }
+
+            double lat = lat_dd + (lat_mm / 60.0);
+            switch (latlon.charAt(4)) {
+            case 'N':
+                break;
+
+            case 'S':
+                lat = lat * -1;
+                break;
+
+            default:
+                lat = Double.NaN;
+            }
+
+            double lon = lon_dd + (lon_mm / 60.0);
+            switch (latlon.charAt(lastLetterIdx)) {
+            case 'E':
+                break;
+
+            case 'W':
+                lon = lon * -1;
+                break;
+
+            default:
+                lon = Double.NaN;
+            }
+
+            if (!Double.isNaN(lat) && !Double.isNaN(lon)) {
+                point = new BasePoint(lat, lon);
+            }
+        } catch (NumberFormatException e) {
+            // fall through and return null
         }
         return point;
     }
-    
+
     /**
      * This method decodes a location point (i.e. a "location point" is either a
      * navaid or a navaid/bearing/distance) from within the location data of a
      * PIREP report. This method ported from NCEP decoder.
-     * 
+     *
      * @param fields
      *            "like-type" fields which contain location data
      * @param startIndex
@@ -878,21 +859,20 @@ public class PirepParser {
      *             If a decode error occured.
      */
     protected int decodeLocationPoint(String[] fields, int startIndex,
-        BasePoint aLoc) {
+            BasePoint aLoc) {
         boolean offset = false;
         boolean other = false;
         boolean bad = false;
         int endIndex = -1;
 
-        // LatLonPoint point1Loc = null;
-        
         // The "like-type" group should be a 3-letter or 4-letter navaid
         // identifier.
         BasePoint navaidLoc = null;
         int i = startIndex;
-        if ((Character.isLetter(fields[i].charAt(0)) && ((fields[i].length() == 3) || (fields[i]
-            .length() == 4)))
-            || (Character.isDigit(fields[i].charAt(0)) && (fields[i].length() <= 2))) {
+        if ((Character.isLetter(fields[i].charAt(0))
+                && ((fields[i].length() == 3) || (fields[i].length() == 4)))
+                || (Character.isDigit(fields[i].charAt(0))
+                        && (fields[i].length() <= 2))) {
             // Setting conditions if the navaid came after the reported
             // distance and range.
             if (Character.isDigit(fields[i].charAt(0))) {
@@ -940,18 +920,12 @@ public class PirepParser {
         int bearingDegrees = -1;
         int distanceNm = -1;
         if (!other && ((i + 1) < fields.length)
-            && Character.isDigit(fields[i + 1].charAt(0))
-            && (fields[i + 1].length() == 6)) {
+                && Character.isDigit(fields[i + 1].charAt(0))
+                && (fields[i + 1].length() == 6)) {
             endIndex = i + 1;
             bearingDegrees = Integer.parseInt(fields[i + 1].substring(0, 3));
             distanceNm = Integer.parseInt(fields[i + 1].substring(3, 6));
             offset = true;
-            if ((bearingDegrees < 0) || (bearingDegrees > 360)
-                || (distanceNm < 0)) {
-                // throw new DecodeException("Invalid bearing / distance: "
-                // + bearingDegrees + " / " + distanceNm + " data: "
-                // + fields[i + 1]);
-            }
         } else if (other) {
             // getting bearing and distance of aircraft
             distanceNm = Integer.parseInt(fields[i - 2]);
@@ -960,28 +934,6 @@ public class PirepParser {
         }
 
         BasePoint loc = null;
-        if (offset) {
-        // // convert distance from nautical miles to kilometers
-        // Length distance = distanceNm;
-        // // convert bearing from degrees to radians
-        // AngularMeasure bearing = new AngularMeasure()
-        // .fromDegree(bearingDegrees);
-        //
-        // // Compute the latitude and longitude of the location
-        // // point by applying the bearing and distance offsets
-        // // to the navaid latitude and longitude.
-        // // (assume spherical earth)
-        // double distanceRad = distance.getKilometers()
-        // / PhysPar.EARTH_RADIUS_KM;
-        // loc = LatLonPoint.positionOf(navaidLoc.getLatitude(), navaidLoc
-        // .getLongitude(), bearing.getRadians(), distanceRad);
-        // } else {
-        // // The location point is simply the navaid itself, so the
-        // // latitude and longitude of the location point are equal
-        // // to the latitude and longitude of the navaid.
-        // endIndex = i;
-        // loc = navaidLoc;
-        }
         aLoc.setLatitude(loc.getLatitude());
         aLoc.setLongitude(loc.getLongitude());
 
@@ -992,14 +944,14 @@ public class PirepParser {
      * This method decodes a location direction from a given compass point from
      * within the location data of a PIREP report. This method ported from NCEP
      * decoder.
-     * 
+     *
      * @param aField
      *            A possible location direction to decode.
      * @return location direction in degrees, -1 on failure
      */
     protected int decodeLocationDirection(String aField) {
         int bearingDegrees = -1;
-        if(DIR_POINTS.containsKey(aField)) {
+        if (DIR_POINTS.containsKey(aField)) {
             bearingDegrees = DIR_POINTS.get(aField).intValue();
         }
         return bearingDegrees;
@@ -1009,128 +961,131 @@ public class PirepParser {
      * This subroutine decodes and stores the time (i.e. report hour and report
      * minutes) from AMDAR, AIREP, PIREP, and RECCO reports. This method ported
      * from NCEP decoder.
-     * 
+     *
      * @param str
      *            time data
      * @return true on success
      * @throws DecodeException
      *             If a decode error occured.
      */
-    protected boolean decodeTimeData(String str) {   	
-    	//get current calendar and set day, hour and minute
+    protected boolean decodeTimeData(String str) {
+        // get current calendar and set day, hour and minute
         str = str.trim();
         Calendar oTime = TimeTools.getSystemCalendar();
-        
-    	Calendar issuTime = TimeTools.copy(oTime);
-    	int day = Integer.parseInt(headerTime.substring(0, 2));
-    	int hour = Integer.parseInt(headerTime.substring(2, 4));
-    	int minute = Integer.parseInt(headerTime.substring(4));
-    	
-    	int year = oTime.get(Calendar.YEAR); 
-    	int month = oTime.get(Calendar.MONTH);
-    	//System.out.println("DAY "+day +" "+ oTime.get(Calendar.DAY_OF_MONTH));
-        if ( day - oTime.get(Calendar.DAY_OF_MONTH ) >1) { //if obs day is much bigger than current day
-        	month = month - 1;
-        	if(month == 0) {
-        		month = 12;
-        		year = year-1;
-        	}
-        	issuTime.set(Calendar.MONTH, month);
-        	issuTime.set(Calendar.YEAR, year);
+
+        Calendar issuTime = TimeTools.copy(oTime);
+        int day = Integer.parseInt(headerTime.substring(0, 2));
+        int hour = Integer.parseInt(headerTime.substring(2, 4));
+        int minute = Integer.parseInt(headerTime.substring(4));
+
+        int year = oTime.get(Calendar.YEAR);
+        int month = oTime.get(Calendar.MONTH);
+
+        /*
+         * if obs day is much bigger than current day
+         */
+        if (day - oTime.get(Calendar.DAY_OF_MONTH) > 1) {
+            month = month - 1;
+            if (month == 0) {
+                month = 12;
+                year = year - 1;
+            }
+            issuTime.set(Calendar.MONTH, month);
+            issuTime.set(Calendar.YEAR, year);
         }
-        
+
         issuTime.set(Calendar.MONTH, month);
         issuTime.set(Calendar.DAY_OF_MONTH, day);
-    	issuTime.set(Calendar.HOUR_OF_DAY,hour);
-    	issuTime.set(Calendar.MINUTE,minute);
-    	issuTime.set(Calendar.SECOND,0);
-    	issuTime.set(Calendar.MILLISECOND,0);
-        
+        issuTime.set(Calendar.HOUR_OF_DAY, hour);
+        issuTime.set(Calendar.MINUTE, minute);
+        issuTime.set(Calendar.SECOND, 0);
+        issuTime.set(Calendar.MILLISECOND, 0);
+
         if (str.length() == 4) {
-        	hour = Integer.parseInt(str.substring(0, 2));
-        	minute = Integer.parseInt(str.substring(2, 4));
-        	
-        	observationTime = TimeTools.copy(oTime);   
-        	observationTime.set(Calendar.YEAR, year);
-        	observationTime.set(Calendar.MONTH, month);
-        	observationTime.set(Calendar.DAY_OF_MONTH, day);
-        	observationTime.set(Calendar.HOUR_OF_DAY,hour);
-        	observationTime.set(Calendar.MINUTE,minute);
-        	observationTime.set(Calendar.SECOND,0);
-        	observationTime.set(Calendar.MILLISECOND,0);
-        	
-        	if (observationTime.getTime() != issuTime.getTime())
-        		observationTime = checkDayInTime (observationTime, issuTime);
-        	//System.out.println("***********time2 "+observationTime.getTime());
-        	oTime.add(Calendar.MINUTE, ALLOWABLE_TIME);
-        	if(observationTime.compareTo(oTime) > 0) {
-        		observationTime.add(Calendar.DAY_OF_MONTH,-1);
-        	}
-        	
-        	return true;
-        }
-        else if (str.length() == 6) {
-        	day = Integer.parseInt(str.substring(0, 2));
-        	hour = Integer.parseInt(str.substring(2, 4));
-        	minute = Integer.parseInt(str.substring(4, 6));
-        
-        	observationTime = TimeTools.copy(oTime);   
-        	observationTime.set(Calendar.YEAR, year);
-        	observationTime.set(Calendar.MONTH, month);
-        	observationTime.set(Calendar.DAY_OF_MONTH, day);
-        	observationTime.set(Calendar.HOUR_OF_DAY,hour);
-        	observationTime.set(Calendar.MINUTE,minute);
-        	observationTime.set(Calendar.SECOND,0);
-        	observationTime.set(Calendar.MILLISECOND,0);
-        
-        	oTime.add(Calendar.MINUTE, ALLOWABLE_TIME);
-        	if(observationTime.compareTo(oTime) > 0) {
-        		observationTime.add(Calendar.DAY_OF_MONTH,-1);
-        	}
+            hour = Integer.parseInt(str.substring(0, 2));
+            minute = Integer.parseInt(str.substring(2, 4));
 
-        	return true;
+            observationTime = TimeTools.copy(oTime);
+            observationTime.set(Calendar.YEAR, year);
+            observationTime.set(Calendar.MONTH, month);
+            observationTime.set(Calendar.DAY_OF_MONTH, day);
+            observationTime.set(Calendar.HOUR_OF_DAY, hour);
+            observationTime.set(Calendar.MINUTE, minute);
+            observationTime.set(Calendar.SECOND, 0);
+            observationTime.set(Calendar.MILLISECOND, 0);
+
+            if (!observationTime.getTime().equals(issuTime.getTime())) {
+                observationTime = checkDayInTime(observationTime, issuTime);
+            }
+            oTime.add(Calendar.MINUTE, ALLOWABLE_TIME);
+            if (observationTime.compareTo(oTime) > 0) {
+                observationTime.add(Calendar.DAY_OF_MONTH, -1);
+            }
+
+            return true;
+        } else if (str.length() == 6) {
+            day = Integer.parseInt(str.substring(0, 2));
+            hour = Integer.parseInt(str.substring(2, 4));
+            minute = Integer.parseInt(str.substring(4, 6));
+
+            observationTime = TimeTools.copy(oTime);
+            observationTime.set(Calendar.YEAR, year);
+            observationTime.set(Calendar.MONTH, month);
+            observationTime.set(Calendar.DAY_OF_MONTH, day);
+            observationTime.set(Calendar.HOUR_OF_DAY, hour);
+            observationTime.set(Calendar.MINUTE, minute);
+            observationTime.set(Calendar.SECOND, 0);
+            observationTime.set(Calendar.MILLISECOND, 0);
+
+            oTime.add(Calendar.MINUTE, ALLOWABLE_TIME);
+            if (observationTime.compareTo(oTime) > 0) {
+                observationTime.add(Calendar.DAY_OF_MONTH, -1);
+            }
+
+            return true;
+        } else {
+            return false;
         }
-        else
-        	return false;
     }
+
     /*
-     * In 'ENA UA /OV PDN288051/TM 2348/FL340/TP B737/TA M56/WV 218035/TB CONT LGHT OCNL MOD/RM CONT CHOP FL350 ZAN =', 'TM 2348' is the obs time.
-     * Get the day from wmoHeader and add to front of '2348'
+     * In 'ENA UA /OV PDN288051/TM 2348/FL340/TP B737/TA M56/WV 218035/TB CONT
+     * LGHT OCNL MOD/RM CONT CHOP FL350 ZAN =', 'TM 2348' is the obs time. Get
+     * the day from wmoHeader and add to front of '2348'
      */
-    private Calendar checkDayInTime (Calendar obs, Calendar issue) {
-    	
-		long tdif = Math.abs(obs.getTime().getTime() - issue.getTime().getTime());
+    private Calendar checkDayInTime(Calendar obs, Calendar issue) {
 
-		final long MIN_HOUR = 60 * 60 * 1000;	    	
-		final long MAX_HOUR = 23 * MIN_HOUR;
+        long tdif = Math
+                .abs(obs.getTime().getTime() - issue.getTime().getTime());
 
-		if ( obs.compareTo(issue) > 0 ) {    			 
-			if ( tdif <= MIN_HOUR ) {
-				;
-			} else if ( tdif >= MAX_HOUR ) {
-				obs.add(Calendar.DATE, -1);
-			} else if ( tdif > MIN_HOUR && tdif < MAX_HOUR ) {
-				obs.add(Calendar.DATE, -1);
-				suspectTimeFlag = "true";
-			}
-		} 
-		else {
-			if ( tdif <= MIN_HOUR ) {
-				;
-			} else if ( tdif >= MAX_HOUR ) {
-				obs.add(Calendar.DATE, 1);
-			} else if ( tdif > MIN_HOUR && tdif < MAX_HOUR ) {
-				suspectTimeFlag = "true";
-			}                 
-		}
-		
-		return obs;		
+        final long MIN_HOUR = 60 * 60 * 1000;
+        final long MAX_HOUR = 23 * MIN_HOUR;
+
+        if (obs.compareTo(issue) > 0) {
+            if (tdif <= MIN_HOUR) {
+
+            } else if (tdif >= MAX_HOUR) {
+                obs.add(Calendar.DATE, -1);
+            } else if (tdif > MIN_HOUR && tdif < MAX_HOUR) {
+                obs.add(Calendar.DATE, -1);
+                suspectTimeFlag = "true";
+            }
+        } else {
+            if (tdif <= MIN_HOUR) {
+
+            } else if (tdif >= MAX_HOUR) {
+                obs.add(Calendar.DATE, 1);
+            } else if (tdif > MIN_HOUR && tdif < MAX_HOUR) {
+                suspectTimeFlag = "true";
+            }
+        }
+
+        return obs;
     }
-
 
     /**
      * This method decodes PIREP flight level.
-     * 
+     *
      * @param str
      *            Flight Level Data
      * @return true on success
@@ -1164,7 +1119,7 @@ public class PirepParser {
      * This method decodes a 3-digit string containing a height value in units
      * of hundreds-of-feet into a real height value in units of feet. This
      * method ported from NCEP decoder.
-     * 
+     *
      * @param aHeight
      *            Height data to decode.
      * @return The aircraft height information or null if the decode failed.
@@ -1172,10 +1127,11 @@ public class PirepParser {
     protected static Integer decodeHeight(String aHeight) {
         Integer altHundredsFeet = null;
         if (aHeight.length() == 3) {
-            if(!"UNKN".equals(aHeight)) {
+            if (!"UNKN".equals(aHeight)) {
                 // unknown heights
-                if ((aHeight.indexOf("UNK") != -1) || (aHeight.indexOf("ABV") != -1)
-                    || (aHeight.indexOf("BLO") != -1)) {
+                if ((aHeight.indexOf("UNK") != -1)
+                        || (aHeight.indexOf("ABV") != -1)
+                        || (aHeight.indexOf("BLO") != -1)) {
                     altHundredsFeet = null;
                 } else {
                     altHundredsFeet = Integer.parseInt(aHeight) * 100;
@@ -1188,7 +1144,7 @@ public class PirepParser {
     /**
      * This method decodes and stores the aircraft type data from within a PIREP
      * report. This method ported from NCEP decoder.
-     * 
+     *
      * @param aType
      *            Aircraft type data
      * @return Was the aircraft type decoded. (always true)
@@ -1209,7 +1165,7 @@ public class PirepParser {
     /**
      * This method decodes and stores the temperature data from within a PIREP
      * report. This method ported from NCEP decoder.
-     * 
+     *
      * @param aTemperature
      *            A possible temperature to be decoded.
      * @return Was the temperature data decoded.
@@ -1232,34 +1188,22 @@ public class PirepParser {
         int numGroups = Math.min(3, fields.length);
         for (int i = 0; i < numGroups; i++) {
             if ((fields[i].length() >= 1)
-                && (Character.isDigit(fields[i].charAt(0)))) {
-//                double temp;
+                    && (Character.isDigit(fields[i].charAt(0)))) {
                 float temp = RMISSD;
                 if (i == 0) {
                     // This is the first "like-type" group, so assume
                     // that the sign of the temperature is positive.
-//                	temp = decodeTemperatureData("+", fields[i];
-                    temp = (float)decodeTemperatureData("+", fields[i]);
+                    temp = (float) decodeTemperatureData("+", fields[i]);
                 } else {
                     // Assume that the previous "like-type" group
                     // contains the sign of the temperature.
-//                    temp = decodeTemperatureData(fields[i - 1], fields[i]);
-                    temp = (float)decodeTemperatureData(fields[i - 1], fields[i]);
+                    temp = (float) decodeTemperatureData(fields[i - 1],
+                            fields[i]);
                 }
 
-//qu                if (Double.isNaN(temp)) {
-//                	/* 8888888888888888888 */              	
-//                	temp = RMISSD;
-//                	System.out.println("   temp is NaN So set to RMISSD???");
-//                	/* 888 */
-//                    return false;
-//                }
-
                 // Check if temperature was reported in Fahrenheit.
-                if ((i < (fields.length - 1))
-                    && ((fields[i + 1].length() == 1) && (fields[i + 1]
-                        .charAt(0) == 'F'))) {
-                    // temperature = new Temperature().fromFahrenheit(temp);
+                if ((i < (fields.length - 1)) && ((fields[i + 1].length() == 1)
+                        && (fields[i + 1].charAt(0) == 'F'))) {
                 } else {
                     temperature = temp;
                 }
@@ -1273,7 +1217,7 @@ public class PirepParser {
     /**
      * Helper method to decode temperature in PIREP. This method was ported from
      * NCEP decoder.
-     * 
+     *
      * @param sign
      *            Sign of the data i.e. {"PS, P, +, MS, M, -}.
      * @param temp
@@ -1285,13 +1229,6 @@ public class PirepParser {
     protected double decodeTemperatureData(String sign, String temp) {
         double rmult = Double.NaN;
         double rdiv = Double.NaN;
-
-        // validate length
-        if ((temp.length() < 1) || (temp.length() > 3) || (sign.length() < 1)
-            || (sign.length() > 2)) {
-            // throw new DecodeException("Unrecognized temperature data format
-            // in Pirep: " + sign + temp);
-        }
 
         // Determine divisor based on the length of the input temperature
         // string.
@@ -1316,18 +1253,14 @@ public class PirepParser {
                 rmult = -1.0;
             }
         }
-        if (Double.isNaN(rmult)) {
-            // throw new DecodeException("Unrecognized temperature sign data
-            // format in Pirep: " + sign);
-        }
 
-        double t = (double) Integer.parseInt(temp) * rmult / rdiv;
+        double t = Integer.parseInt(temp) * rmult / rdiv;
         return t;
     }
 
     /**
      * This method decodes the sky cover data.
-     * 
+     *
      * @param str
      *            Sky cover data to be decoded.
      * @return Was the sky cover correctly decoded?
@@ -1340,116 +1273,78 @@ public class PirepParser {
         // bbb is the height of the base of a layer of clouds in hundreds of
         // feet
         // ttt is the top of the layer in hundreds of feet
-    	
-    	String[] str2 = sky.split("/");
-    	for (String str :str2) {
-    		   		
-//    		String regex = "([A-Z]{3}|UNKN?)(?:-([A-Z]{3}))?([0-9]{3}|UNKN?)(?:-TOP([0-9]{3}|UNKN?))?/?";
-//            Pattern pattern = Pattern.compile(regex);
-//            // Get a Matcher based on the target string.
-//            Matcher matcher = pattern.matcher(str);
-//            while (matcher.find()) {
-//                if (cloudLayers == null) {
-//                    cloudLayers = new ArrayList<AircraftCloudLayer>();
-//                }
-//
-//                // NNN
-//                String cloud_1 = matcher.group(1);
-//                // (NNN)
-//                String cloud_2 = matcher.group(2);
-//                // bbb
-//                String baseHeight = matcher.group(3);
-//                // (ttt)
-//                String topHeight = matcher.group(4);
-//
-//                if (cloud_1 == null) {
-//                    // throw new DecodeException("Unknown format of Sky Cover Data
-//                    // in Pirep: " + str);
-//                }
-//
-//                // TODO this should be mapped in the parameter lookups
-//                if (SK_SKC.equals(cloud_1)) {
-//                    cloud_1 = SK_CLR;
-//                }
-//                if (SK_SKC.equals(cloud_2)) {
-//                    cloud_2 = SK_CLR;
-//                }
-//
-//                AircraftCloudLayer layer = new AircraftCloudLayer();
-//                layer.setCloudCover1(cloud_1);
-//                layer.setCloudCover2(cloud_2);
-//
-//                if ((baseHeight != null)) {
-//                    layer.setCloudBaseHeight(decodeHeight(baseHeight));
-//                }
-//                if ((topHeight != null)) {
-//                    layer.setCloudTopHeight(decodeHeight(topHeight));
-//                }
-//                cloudLayers.add(layer);
-                
-    		AircraftCloudLayer layer = new AircraftCloudLayer();
-    		
-    		//Separate following regex to 2 part to fix all cases
-    		//String regex = "([A-Z]{3}|UNKN?)(?:-([A-Z]{3}))?([0-9]{3}|UNKN?)(?:-TOP([0-9]{3}|UNKN?))?/?";
-    		String regex = "([A-Z]{3}|UNKN?)(?:-([A-Z]{3}))?";
-            
+
+        String[] str2 = sky.split("/");
+        for (String str : str2) {
+
+            AircraftCloudLayer layer = new AircraftCloudLayer();
+
+            // Separate following regex to 2 part to fix all cases
+            String regex = "([A-Z]{3}|UNKN?)(?:-([A-Z]{3}))?";
+
             Pattern pattern = Pattern.compile(regex);
             Matcher matcher = pattern.matcher(str);
-            
-            if (matcher.find()) {  
-            	
-            	if (cloudLayers == null) {          		
-            		cloudLayers = new ArrayList<AircraftCloudLayer>();
-            	}
-            	
-            	String cloud_1 = matcher.group(1);
-            	String cloud_2 = matcher.group(2);
-            	      
-            	if (WX_COND_WORDS.get(cloud_1) != null)
-            		cloud_1 = WX_COND_WORDS.get(cloud_1);  
-            	if (WX_COND_WORDS.get(cloud_2) != null)
-            		cloud_2 = WX_COND_WORDS.get(cloud_2);
-                
-                if (cloud_1 != null )
-                	layer.setCloudCover1(cloud_1);                
-                if (cloud_2 != null)
-                	layer.setCloudCover1(cloud_1 + cloud_2);
-                
+
+            if (matcher.find()) {
+
+                if (cloudLayers == null) {
+                    cloudLayers = new ArrayList<>();
+                }
+
+                String cloud_1 = matcher.group(1);
+                String cloud_2 = matcher.group(2);
+
+                if (WX_COND_WORDS.get(cloud_1) != null) {
+                    cloud_1 = WX_COND_WORDS.get(cloud_1);
+                }
+                if (WX_COND_WORDS.get(cloud_2) != null) {
+                    cloud_2 = WX_COND_WORDS.get(cloud_2);
+                }
+
+                if (cloud_1 != null) {
+                    layer.setCloudCover1(cloud_1);
+                }
+                if (cloud_2 != null) {
+                    layer.setCloudCover1(cloud_1 + cloud_2);
+                }
+
             }
-               
+
             regex = "([0-9]{3}|UNKN?)(?:-TOP([0-9]{3}|UNKN?))?";
             pattern = Pattern.compile(regex);
             matcher = pattern.matcher(str);
-            
+
             if (matcher.find()) {
-            	if (cloudLayers == null) {          		
-            		cloudLayers = new ArrayList<AircraftCloudLayer>();
-            	}
-            	String baseHeight = matcher.group(1);
-            	String topHeight = matcher.group(2);
-            	
-            	if ((baseHeight != null)) {
-            		layer.setCloudBaseHeight(decodeHeight(baseHeight));
-            	}
-            	if ((topHeight != null)) {
-            		layer.setCloudTopHeight(decodeHeight(topHeight));
-            	}
-            }	
-            
-            if (cloudLayers != null)
-            	cloudLayers.add(layer);         
-            
-        // TODO alternate sky cover format and separator of cloud cover can be
-        // other than -
-        // also other possibilities in afpsky.f
-        // also TOP can be TPS, and can be second top height
-    	}
+                if (cloudLayers == null) {
+                    cloudLayers = new ArrayList<>();
+                }
+                String baseHeight = matcher.group(1);
+                String topHeight = matcher.group(2);
+
+                if ((baseHeight != null)) {
+                    layer.setCloudBaseHeight(decodeHeight(baseHeight));
+                }
+                if ((topHeight != null)) {
+                    layer.setCloudTopHeight(decodeHeight(topHeight));
+                }
+            }
+
+            if (cloudLayers != null) {
+                cloudLayers.add(layer);
+            }
+
+            // TODO alternate sky cover format and separator of cloud cover can
+            // be
+            // other than -
+            // also other possibilities in afpsky.f
+            // also TOP can be TPS, and can be second top height
+        }
         return true;
     }
 
     /**
      * This method decodes the wind data.
-     * 
+     *
      * @param str
      *            Wind data to be decoded.
      * @return Was the wind data properly decoded?
@@ -1466,15 +1361,10 @@ public class PirepParser {
         // Get a Matcher based on the target string.
         Matcher matcher = pattern.matcher(str);
         if (matcher.find()) {
-//            windDirection = Integer.parseInt(matcher.group(1));
             windDirection = Float.parseFloat(matcher.group(1));
 
             int windSpeedKnots = Integer.parseInt(matcher.group(2));
-//            windSpeed = new Double(windSpeedKnots); // Speed().fromKnots(windSpeedKnots);
             windSpeed = new Float(windSpeedKnots); // Speed().fromKnots(windSpeedKnots);
-        } else {
-            // throw new DecodeException("Unrecognized wind data format in
-            // Pirep: " + str);
         }
 
         return true;
@@ -1482,7 +1372,7 @@ public class PirepParser {
 
     /**
      * This method decodes the turbulence data.
-     * 
+     *
      * @param str
      *            Turbulence data to be decoded.
      * @return Was the turbulence properly decoded?
@@ -1496,50 +1386,20 @@ public class PirepParser {
         // bbb is the height of the base of a layer of clouds in hundreds of
         // feet
         // ttt is the top of the layer in hundreds of feet
-//        String regex = "([A-Z]{3,5})(?:((?:-)([A-Z]{3,5})))?((?: )"
-//                + "(CHOP|CAT))?(?: )?(((ABV|BLO)(?: )(\\d{3}))|((\\d{3})"
-//                + "(?:(-(\\d{3}))?)))?(?:/)?()";
-    	
-//    	String[] str2 = turbLayers.split("/");
-//    	for (String str :str2) {
-//        theTurbulenceLayers = new ArrayList<AircraftFlightCondition>();
-//        
-//        if (str.indexOf(NEG_ENTRY) > 0) {
-//            AircraftFlightCondition at = new AircraftFlightCondition();
-//
-//            // NEG should be the only value! Used to indicate forecasted but
-//            // not observed!
-//            at.setIntensity1(NEG_ENTRY);
-//            if (flightLevel != null) {
-//                at.setBaseHeight(flightLevel.getFlightLevel());
-//                theTurbulenceLayers.add(at);
-//            }
-//        } else {
-//            Pattern pattern = Pattern.compile(TRB_REGEX);
-//            // Get a Matcher based on the target string.
-//            Matcher matcher = pattern.matcher(str);
-//            // add each turbulence
-//            while (matcher.find()) {
-//                addFlightCondition(matcher, theTurbulenceLayers);
-//            }
-//        }
-    	
-    	//turbLayers = turbLayers.trim();
-    	
+
         PirepTools tools = new PirepTools(turbLayers);
         theTurbulenceLayers = tools.decodeTurbulenceData();
-        
-        
-        if (theTurbulenceLayers.size() == 0) {
+
+        if (theTurbulenceLayers.isEmpty()) {
             theTurbulenceLayers = null;
         }
-    	
+
         return true;
     }
 
     /**
      * This method decodes the icing data.
-     * 
+     *
      * @param str
      *            Icing data to be decoded.
      * @return Was the icing data decoded?
@@ -1553,76 +1413,78 @@ public class PirepParser {
         // bbb is the height of the base of a layer of clouds in hundreds of
         // feet
         // ttt is the top of the layer in hundreds of feet
-//        String regex = "([A-Z]{3,5})(?:((?:-)([A-Z]{3,5})))?((?: )"
-//                + "(RIME|MXD|CLR))(?: )?(((ABV|BLO)(?: )(\\d{3}))|((\\d{3})"
-//                + "(?:(-(\\d{3}))?)))?(?:/)?()";
-    	
+
         String[] str2 = icing.split("/");
-    	for (String str :str2) {
-        theIcingLayers = new ArrayList<AircraftFlightCondition>();
-        
-        if (str.indexOf(NEG_ENTRY) > 0) {
-            AircraftFlightCondition at = new AircraftFlightCondition();
+        for (String str : str2) {
+            theIcingLayers = new ArrayList<>();
 
-            // NEG should be the only value! Used to indicate forecasted but
-            // not observed!
-            at.setIntensity1(NEG_ENTRY);
-            if (flightLevel != null) {
-                at.setBaseHeight(flightLevel.getFlightLevel());
-                theIcingLayers.add(at);
-            }
-        } else {
-            Pattern pattern = Pattern.compile(ICE_REGEX);
-            Matcher matcher = pattern.matcher(str);
-            
-            if (matcher.find()) { 
-                matcher = pattern.matcher(str); //need to re-match.  LGT RIME 014-083
-            	while (matcher.find()) { 
-            		//System.out.println("***str "+str);               	
-                	addFlightCondition(matcher, theIcingLayers);                	
-            	}
-            }
-            else {
-            	Pattern pattern2 = Pattern.compile("([A-Z]{3,5})"); //only intensity.  LGT
-            	Matcher matcher2 = pattern2.matcher(str);
-            	while (matcher2.find()) {
-            		
-            		String s1 = str.substring(matcher2.start(), matcher2.end());           
-                    
-                    // check against ICING_COND_WORDS
-                    s1 = WX_COND_WORDS.get(s1);
-                    if((s1 == null) || (NULL_ENTRY.equals(s1))) {
-                        return false;
-                    }
-                    
-            		AircraftFlightCondition at = new AircraftFlightCondition();
+            // TODO: should this be >= 0?
+            if (str.indexOf(NEG_ENTRY) > 0) {
+                AircraftFlightCondition at = new AircraftFlightCondition();
 
-                    // NEG should be the only value! Used to indicate forecasted but
-                    // not observed!
-                    if(NEG_ENTRY.equals(s1)) {
-                        at.setIntensity1(s1);
-                        if(flightLevel != null) {
-                            at.setBaseHeight(flightLevel.getFlightLevel());
-                        }
-                    } else {
-                        at.setIntensity1(s1);
-                    }
-                    
+                // NEG should be the only value! Used to indicate forecasted but
+                // not observed!
+                at.setIntensity1(NEG_ENTRY);
+                if (flightLevel != null) {
+                    at.setBaseHeight(flightLevel.getFlightLevel());
                     theIcingLayers.add(at);
-            	}
+                }
+            } else {
+                Pattern pattern = Pattern.compile(ICE_REGEX);
+                Matcher matcher = pattern.matcher(str);
+
+                if (matcher.find()) {
+                    // need to re-match. LGT RIME 014-083
+                    matcher = pattern.matcher(str);
+                    while (matcher.find()) {
+                        // logger.debug("***str "+str);
+                        addFlightCondition(matcher, theIcingLayers);
+                    }
+                } else {
+                    Pattern pattern2 = Pattern.compile("([A-Z]{3,5})"); // only
+                                                                        // intensity.
+                                                                        // LGT
+                    Matcher matcher2 = pattern2.matcher(str);
+                    while (matcher2.find()) {
+
+                        String s1 = str.substring(matcher2.start(),
+                                matcher2.end());
+
+                        // check against ICING_COND_WORDS
+                        s1 = WX_COND_WORDS.get(s1);
+                        if ((s1 == null) || (NULL_ENTRY.equals(s1))) {
+                            return false;
+                        }
+
+                        AircraftFlightCondition at = new AircraftFlightCondition();
+
+                        // NEG should be the only value! Used to indicate
+                        // forecasted but
+                        // not observed!
+                        if (NEG_ENTRY.equals(s1)) {
+                            at.setIntensity1(s1);
+                            if (flightLevel != null) {
+                                at.setBaseHeight(flightLevel.getFlightLevel());
+                            }
+                        } else {
+                            at.setIntensity1(s1);
+                        }
+
+                        theIcingLayers.add(at);
+                    }
+                }
+            }
+
+            if (theIcingLayers.isEmpty()) {
+                theIcingLayers = null;
             }
         }
-
-        if (theIcingLayers.size() == 0) {
-            theIcingLayers = null;
-        }
-    	}
         return true;
     }
 
     /**
      * This method decodes the weather data.
-     * 
+     *
      * @param str
      *            Weather data to be decoded.
      * @return Was the weather information decoded?
@@ -1645,9 +1507,6 @@ public class PirepParser {
             // parse flight visibility
             if (matcher.group(3) != null) {
                 horzVisibility = Integer.parseInt(matcher.group(2));
-            } else {
-                // theFlightVisibility = new
-                // Length().fromKilometers(Integer.parseInt(matcher.group(2)));
             }
         }
 
@@ -1655,7 +1514,7 @@ public class PirepParser {
         regex = "([+|-]?[A-Z]{2,4})([0-9]{3}|UNKN?)?(?:-TOP([0-9]{3}|UNKN?))? ?";
         pattern = Pattern.compile(regex);
         matcher = pattern.matcher(matcher.group(4));
-        ArrayList<String> codes = new ArrayList<String>();
+        List<String> codes = new ArrayList<>();
         while (matcher.find()) {
             codes.add(matcher.group(1));
             // the level information is in groups 2 and 3 when provided,
@@ -1668,7 +1527,7 @@ public class PirepParser {
 
     /**
      * This method decodes data in remarks section.
-     * 
+     *
      * @param str
      *            Remarks data to be decoded.
      * @return Was the remarks data decoded? (Always returns true!)
@@ -1681,61 +1540,61 @@ public class PirepParser {
     /**
      * Utility method for decoding flight level information for turbulence and
      * icing layers.
-     * 
+     *
      * @param matcher
      *            A Matcher instance for the specific source data.
      * @param layers
      *            The decoded layer information.
      * @throws DecodeException
-     *             If a decode error occured.
+     *             If a decode error occurred.
      */
-    protected void addFlightCondition(Matcher matcher, List<AircraftFlightCondition> layers) {
-        
-        if(matcher.groupCount() >= 13) {
-            String s1 = matcher.group(1);           
+    protected void addFlightCondition(Matcher matcher,
+            List<AircraftFlightCondition> layers) {
+
+        if (matcher.groupCount() >= 13) {
+            String s1 = matcher.group(1);
             String s2 = matcher.group(3);
-            //System.out.println("***matcher "+matcher.group(0)); //MOD null null RIME RIME null null null
             // Some words that may show up in group 1 or 3 that need to be
             // thrown away!
             s1 = WX_COND_WORDS.get(s1);
-            if((s1 == null) || (NULL_ENTRY.equals(s1))) {
+            if ((s1 == null) || (NULL_ENTRY.equals(s1))) {
                 return;
             }
             // Need to allow s2 to be null,
-            if(s2 != null) {
+            if (s2 != null) {
                 // but not null after lookup!
                 s2 = WX_COND_WORDS.get(s2);
-                if((s2 == null) || (NULL_ENTRY.equals(s2))) {
+                if ((s2 == null) || (NULL_ENTRY.equals(s2))) {
                     return;
                 }
             }
-            //******************************************************************
-            
+            // ******************************************************************
+
             AircraftFlightCondition at = new AircraftFlightCondition();
 
             // NEG should be the only value! Used to indicate forecasted but
             // not observed!
-            if(NEG_ENTRY.equals(s1)) {
+            if (NEG_ENTRY.equals(s1)) {
                 at.setIntensity1(s1);
-                if(flightLevel != null) {
+                if (flightLevel != null) {
                     at.setBaseHeight(flightLevel.getFlightLevel());
                 }
             } else {
                 at.setIntensity1(s1);
                 at.setIntensity2(s2);
-                
+
                 s1 = matcher.group(5);
                 s1 = WX_COND_WORDS.get(s1);
-                if((s1 != null) && (!s1.equals(NULL_ENTRY))) {
+                if ((s1 != null) && (!s1.equals(NULL_ENTRY))) {
                     at.setType(s1);
                 }
 
                 s1 = matcher.group(8);
                 s2 = matcher.group(9);
-                if(BLO_HGT.equals(s1)) {
+                if (BLO_HGT.equals(s1)) {
                     at.setBaseHeight(PirepTools.UAIR_INTEGER_MISSING);
                     at.setTopHeight(decodeHeight(s2));
-                    
+
                 } else if (ABV_HGT.equals(s1)) {
                     at.setBaseHeight(decodeHeight(s2));
                     at.setTopHeight(PirepTools.UAIR_INTEGER_MISSING);
@@ -1743,34 +1602,35 @@ public class PirepParser {
                     // Check for one or more levels
                     s1 = matcher.group(11);
                     s2 = matcher.group(13);
-                    if(s1 != null) {
+                    if (s1 != null) {
                         at.setBaseHeight(decodeHeight(s1));
                     }
-                    if(s2 != null) {
+                    if (s2 != null) {
                         at.setTopHeight(decodeHeight(s2));
                     }
-                    if((s1 != null)&&(s2 != null)) {
+                    if ((s1 != null) && (s2 != null)) {
                         Integer base = at.getBaseHeight();
                         Integer top = at.getTopHeight();
                         if (base != PirepTools.UAIR_INTEGER_MISSING) {
                             if (top != PirepTools.UAIR_INTEGER_MISSING) {
-                                if(base > top) {
-                                    logger.debug(traceId + "- BASE-TOP inversion fixed");
+                                if (base > top) {
+                                    logger.debug(traceId
+                                            + "- BASE-TOP inversion fixed");
                                     at.setBaseHeight(top);
                                     at.setTopHeight(base);
                                 }
                             }
                         }
                     }
-                    if((s1 == null)&&(s2 == null)) {
+                    if ((s1 == null) && (s2 == null)) {
                         // Use the flight level if heights are not specified.
-                        if(flightLevel != null) {
+                        if (flightLevel != null) {
                             at.setBaseHeight(flightLevel.getFlightLevel());
                         }
                     }
                 }
             }
-            
+
             layers.add(at);
         }
     }
@@ -1780,7 +1640,7 @@ public class PirepParser {
      * any of a list of substrings within the input string. This method provides
      * equivalent functionality to the routine ST_NXTS in the ported code. The
      * outputs are provided in member variables.
-     * 
+     *
      * @param str
      *            Input string
      * @param firstPos
@@ -1792,11 +1652,12 @@ public class PirepParser {
      * @return success or failure
      */
     protected boolean nextString(String str, int firstPos, int lastPos,
-        String subStrings[]) {
+            String subStrings[]) {
         this.theTokenPos = -1;
         String tstr = str.substring(0, lastPos);
         for (int i = 0; i < subStrings.length; i++) {
-            if ((this.theSearchPos = tstr.indexOf(subStrings[i], firstPos)) != -1) {
+            if ((this.theSearchPos = tstr.indexOf(subStrings[i],
+                    firstPos)) != -1) {
                 this.theTokenPos = i;
                 return true;
             }
@@ -1807,7 +1668,7 @@ public class PirepParser {
 
     /**
      * This method finds a string in a string array and returns its index.
-     * 
+     *
      * @param str
      *            String to find
      * @param strs
@@ -1827,23 +1688,23 @@ public class PirepParser {
      * This method groups "like-types" of characters to facilitate decoding.
      * This method provides equivalent functionality to the UT_BKGP subroutine
      * in the ported code.
-     * 
+     *
      * @param str
      *            String data to check.
      * @return An array of "like type" strings.
      */
     protected String[] groupLikeTypes(String str) {
         char[] chars = str.toCharArray();
-        ArrayList<String> strs = new ArrayList<String>();
+        List<String> strs = new ArrayList<>();
         int prevGroup = NONE;
         int curGroup = NONE;
         String group = new String();
-        for (int i = 0; i < chars.length; i++) {
-            if (Character.isWhitespace(chars[i])) {
+        for (char element : chars) {
+            if (Character.isWhitespace(element)) {
                 curGroup = NONE;
-            } else if (Character.isDigit(chars[i])) {
+            } else if (Character.isDigit(element)) {
                 curGroup = DIGIT;
-            } else if (Character.isLetter(chars[i])) {
+            } else if (Character.isLetter(element)) {
                 curGroup = LETTER;
             } else { // non-alphanumeric
                 curGroup = NONALPHANUMERIC;
@@ -1856,7 +1717,7 @@ public class PirepParser {
                 }
             }
             if (curGroup != NONE) {
-                group = group.concat(String.valueOf(chars[i]));
+                group = group.concat(String.valueOf(element));
             }
             prevGroup = curGroup;
         }
@@ -1867,232 +1728,4 @@ public class PirepParser {
 
         return strs.toArray(new String[0]);
     }
-    
-    public static final void main(String [] args) {
-        //test1: latlon format
-        String [] latlons = {
-                "0000N 00000W",
-                "0000S 00000E",
-                "9000S 00000W",
-                "9000N 00000W",
-                "0000N 09000W",
-                "9000S 09000W",
-                "9000N 09000W",
-
-                "0000N 09000W",
-                "4500S 09000W",
-                "9000N 09000W",
-
-                "9000N 09959W",
-                "0000N 10000W",
-
-                "4500S 09000W",
-                "9000N 09000W",
-
-                "90N 18000E",  // no match
-                "9000S 18000E",
-                "9000N 18000W",
-                "9000S 18000W",
-                "90N 179W",
-                "9000S 17959W",                           
-        };
- 
-        for (int i=0; i<latlons.length; i++) {
-        	String[] split = latlons[i].split(" ");
-        	if (split != null && split.length ==2)
-        		latlons[i] = split[0] + split[1];
-        	System.out.println("latlons[i] " + latlons[i]);
-        }
-        
-        Pattern p = Pattern.compile(LATLON_PTRN);
-        
-        for(String s : latlons) {
-            Matcher m = p.matcher(s);
-            if(m.find()) {
-                BasePoint b = parseLatLon(m.group());
-                if(b != null) {
-                    System.out.println(String.format("%16s %10.6f %11.6f",s, b.getLatitude(),b.getLongitude()));
-                } else {
-                    System.out.println("Invalid parse " + s);
-                }
-            } else {
-                System.out.println("no match for " + s);
-            }
-        }
-
-        //test2 replace "[\r\n]", " "
-        String str = "123 123  123 \r SCT";        
-        str = str.replaceAll("[\r\n]", " ");
-        str = str.replaceAll(" {2,}", " ");
-        System.out.println("[" + str + "]");
-        
-        //test3: parse SK. BKN pased in first regex
-        String inputStr = "BKN-SCT046-TOPUNKN/OVC089/ SKC";
-        String[] string = inputStr.split("/");
-    	for (String mystr :string) {
-    		
-    		mystr.trim(); 
-       
-        String regex = "([A-Z]{3}|UNKN?)(?:-([A-Z]{3}))?";
-        
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(mystr);
-        
-       if (matcher.find()) {  
-        	String cloud_1 = matcher.group(1);
-        	String cloud_2 = matcher.group(2);
-        	System.out.println("FFFF "+cloud_1+ " "+cloud_2);
-     
-        }
-           
-        regex = "([0-9]{3}|UNKN?)(?:-TOP([0-9]{3}|UNKN?))?";
-        pattern = Pattern.compile(regex);
-        matcher = pattern.matcher(mystr);
-        
-        if (matcher.find()) {
-        	
-        	String baseHeight = matcher.group(1);
-        	String topHeight = matcher.group(2);
-        	System.out.println("DDDD "+baseHeight+" "+topHeight);
-        	
-        }	
-    	}
-        
-    	//test4: TB
-        String str1 = "SEV/LGT/MOD"; //"INTMT MOD-SEV ABV 014"; //"TB MOD-SEV CHOP 220/NEG BLO 095";
-        //String strIc = "MOD RIME BLO 095";
-        String[] str2 = str1.split("/");
-        
-        for(String strTmp : str2) {
-        	PirepTools tools = new PirepTools(strTmp);
-        	tools.decodeTurbulenceData();
-        }
-//        	if (str.indexOf(NEG_ENTRY) > 0) {
-//                AircraftFlightCondition at = new AircraftFlightCondition();
-//
-//                // NEG should be the only value! Used to indicate forecasted but not observed!
-//                at.setIntensity1(NEG_ENTRY);
-////                if (flightLevel != null) {
-////                    at.setBaseHeight(flightLevel.getFlightLevel());
-////                    theTurbulenceLayers.add(at);
-////                }
-//            } else {
-//                pattern = Pattern.compile(TRB_REGEX);
-//                // Get a Matcher based on the target string.
-//                matcher = pattern.matcher(str);
-//                // add each turbulence
-//                
-//                // decodeFlightLevelData()
-//                AircraftFlightLevel flightLevel = null;
-//                String regex1 = "([0-9]{3})(?:-([0-9]{3}))?";
-//                Pattern pattern1 = Pattern.compile(regex1);
-//
-//                // Get a Matcher based on the target string.
-//                Matcher matcher1 = pattern1.matcher(str);
-//                if (matcher1.find()) {
-//                    Integer fltLevel = decodeHeight(matcher1.group(1));
-//
-//                    if (matcher1.group(2) != null) {
-//                        Integer upperLevel = decodeHeight(matcher1.group(2));
-//
-//                        fltLevel = (fltLevel + upperLevel) / 2;
-//                    }
-//                    flightLevel = new AircraftFlightLevel(fltLevel);
-//                }
-//                // end decodeFlightLevelData()
-//                while (matcher.find()) {
-//                    //addFlightCondition(matcher, theTurbulenceLayers);
-//                	for (int i=0; i<matcher.groupCount(); i++)
-//                		System.out.print(matcher.group(i)+" ");
-//                	if(matcher.groupCount() >= 13) {
-//                        String s1 = matcher.group(1);
-//                        String s2 = matcher.group(3);
-//                        // Some words that may show up in group 1 or 3 that need to be
-//                        // thrown away!
-//                        s1 = FL_COND_WORDS.get(s1);
-//                        //if (s1.equalsIgnoreCase(cont, int,ocal))
-//                        if((s1 == null) || (NULL_ENTRY.equals(s1))) {
-//                            return;
-//                        }
-//                        // Need to allow s2 to be null,
-//                        if(s2 != null) {
-//                            // but not null after lookup!
-//                            s2 = FL_COND_WORDS.get(s2);
-//                            if((s2 == null) || (NULL_ENTRY.equals(s2))) {
-//                                return;
-//                            }
-//                        }
-//                        //******************************************************************
-//                        
-//                        AircraftFlightCondition at = new AircraftFlightCondition();
-//
-//                        // NEG should be the only value! Used to indicate forecasted but
-//                        // not observed!
-//                        if(NEG_ENTRY.equals(s1)) {
-//                            at.setIntensity1(s1);
-//                            if(flightLevel != null) {
-//                                at.setBaseHeight(flightLevel.getFlightLevel());
-//                            }
-//                        } else {
-//                            at.setIntensity1(s1);
-//                            at.setIntensity2(s2);
-//                            
-//                            s1 = matcher.group(5);
-//                            s1 = COND_TYPES.get(s1);
-//                            if((s1 != null) && (!s1.equals(NULL_ENTRY))) {
-//                                at.setType(s1);
-//                            }
-//
-//                            s1 = matcher.group(8);
-//                            s2 = matcher.group(9);
-//                            if(BLO_HGT.equals(s1)) {
-//                                at.setBaseHeight(IDecoderConstantsN.UAIR_INTEGER_MISSING);
-//                                at.setTopHeight(decodeHeight(s2));
-//                                
-//                            } else if (ABV_HGT.equals(s1)) {
-//                                at.setBaseHeight(decodeHeight(s2));
-//                                at.setTopHeight(IDecoderConstantsN.UAIR_INTEGER_MISSING);
-//                            } else {
-//                                // Check for one or more levels
-//                                s1 = matcher.group(11);
-//                                s2 = matcher.group(13);
-//                                if(s1 != null) {
-//                                    at.setBaseHeight(decodeHeight(s1));
-//                                }
-//                                if(s2 != null) {
-//                                    at.setTopHeight(decodeHeight(s2));
-//                                }
-//                                if((s1 != null)&&(s2 != null)) {
-//                                    Integer base = at.getBaseHeight();
-//                                    Integer top = at.getTopHeight();
-//                                    if(base != IDecoderConstantsN.UAIR_INTEGER_MISSING) {
-//                                        if(top != IDecoderConstantsN.UAIR_INTEGER_MISSING) {
-//                                            if(base > top) {
-//                                               // logger.debug(traceId + "- BASE-TOP inversion fixed");
-//                                                at.setBaseHeight(top);
-//                                                at.setTopHeight(base);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                                if((s1 == null)&&(s2 == null)) {
-//                                    // Use the flight level if heights are not specified.
-//                                    if(flightLevel != null) {
-//                                        at.setBaseHeight(flightLevel.getFlightLevel());
-//                                    }
-//                                }
-//                            }
-//                        }
-//                       // layers.add(at);
-//                    }
-//                	//System.out.println(theTurbulenceLayers);
-//                }
-//            }
-//        }
-        		
-//        String report = "BIG UA /OV BIG095040/TM 2343/FL090/TP SR22/TA M05/IC LGT RIME 090-100/RM CWSU ZAN=";
-//        String traceId = "1";
-//        new PirepParser(report, traceId);
-    }
-    
 }

@@ -5,9 +5,7 @@
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-    <bean id="pirepDecoder" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepDecoder">
-    	<constructor-arg ref="pirepPluginName" />
-    </bean>
+    <bean id="pirepDecoder" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepDecoder"/>
 
     <bean id="pirepPointData" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepPointDataTransform"/>
     

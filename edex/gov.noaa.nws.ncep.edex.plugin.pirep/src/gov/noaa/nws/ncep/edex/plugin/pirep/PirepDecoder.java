@@ -4,10 +4,6 @@
  **/
 package gov.noaa.nws.ncep.edex.plugin.pirep;
 
-import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepLayerData;
-import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepRecord;
-import gov.noaa.nws.ncep.edex.plugin.pirep.decoder.PirepParser;
-
 import java.util.Calendar;
 import java.util.List;
 
@@ -26,6 +22,10 @@ import com.raytheon.uf.edex.decodertools.core.DecoderTools;
 import com.raytheon.uf.edex.decodertools.core.IDecoderInput;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
+import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepLayerData;
+import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepRecord;
+import gov.noaa.nws.ncep.edex.plugin.pirep.decoder.PirepParser;
+
 /**
  * Decoder strategy for text PIREP observation data. Most common usage is as
  * follows. <code>
@@ -37,41 +37,38 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  *      // do something with record.
  *   }
  * </code>
- * 
- * 
+ *
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Apr 28, 2011            F.J.Yen     Initial creation from pirep.
- * Aug 30, 2011 286        qzhou       Fixed report time
- * Sep 26, 2011 286        qzhou       Changed reportType from int to string
- * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
- * Sep 05, 2013 2316       bsteffen    Unify pirep and ncpirep.
- * Jul 23, 2014 3410       bclement    location changed to floats
+ *
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------
+ * Apr 28, 2011           F.J.Yen   Initial creation from pirep.
+ * Aug 30, 2011  286      qzhou     Fixed report time
+ * Sep 26, 2011  286      qzhou     Changed reportType from int to string
+ * Aug 30, 2013  2298     rjpeter   Make getPluginName abstract
+ * Sep 05, 2013  2316     bsteffen  Unify pirep and ncpirep.
+ * Jul 23, 2014  3410     bclement  location changed to floats
+ * Jul 16, 2020  8191     randerso  Added check for NaN in location
+ *
  * </pre>
- * 
+ *
  * @author F. J. Yen
- * @version 1.0
  */
 public class PirepDecoder extends AbstractDecoder {
-    // Name of the plugin controlling this decoder.
-    private final String PLUGIN_NAME;
 
     /**
-     * Construct this decoder using supplied plugin name.
-     * 
-     * @throws DecoderException
+     * Construct this decoder
+     *
      */
-    public PirepDecoder(String pluginName) throws DecoderException {
-        PLUGIN_NAME = pluginName;
+    public PirepDecoder() {
     }
 
     /**
      * Get the next decoded data record.
-     * 
+     *
      * @param input
      *            the input
      * @return One record of decoded data.
@@ -89,7 +86,7 @@ public class PirepDecoder extends AbstractDecoder {
         }
         try {
             logger.debug(traceId + "- PirepDecoder.decode()");
-            System.out.println("****" + input.getReport());
+            logger.debug("****" + input.getReport());
 
             PirepRecord report = populateRecord(
                     new PirepParser(input.getReport(), traceId),
@@ -120,7 +117,7 @@ public class PirepDecoder extends AbstractDecoder {
     /**
      * Populate a PirepRecord with data that was decoded from a single PIREP
      * report.
-     * 
+     *
      * @param parser
      *            The PIREP parser that contains the decoded data.
      * @param wmoHeader
@@ -128,31 +125,29 @@ public class PirepDecoder extends AbstractDecoder {
      * @return The populated record. This method returns a null reference if
      *         either the observation time or location data is unavailable.
      */
-    private PirepRecord populateRecord(PirepParser parser, WMOHeader wmoHeader) {
+    private PirepRecord populateRecord(PirepParser parser,
+            WMOHeader wmoHeader) {
 
         PirepRecord record = null;
         AircraftObsLocation location = null;
 
         if (parser != null) {
-            // If there is no observation time or location, don't bother going
-            // further.
+            /*
+             * If there is no observation time or valid location, don't bother
+             * going further.
+             */
 
-            // parser.getObservationTime() get the current day of month. Need to
-            // set wmoHeader day.
+            /*
+             * parser.getObservationTime() get the current day of month. Need to
+             * set wmoHeader day.
+             */
             Calendar oTime = parser.getObservationTime();
             if (oTime != null) {
-                // try {
-                // oTime.set(Calendar.DAY_OF_MONTH, day);
-                // // oTime.set(Calendar.MONTH, month);
-                // // oTime.set(Calendar.YEAR, year);
-                // }
-                // catch (ArrayIndexOutOfBoundsException e) {
-                // }
-                // }
 
                 BasePoint p = parser.getLocation();
 
-                if ((oTime != null) && (p != null)) {
+                if (p != null && !Double.isNaN(p.getLatitude())
+                        && !Double.isNaN(p.getLongitude())) {
                     record = new PirepRecord();
                     location = new AircraftObsLocation();
 
@@ -171,7 +166,7 @@ public class PirepDecoder extends AbstractDecoder {
                     location.setStationId(parser.getReportingStationId());
 
                     record.setReportData(parser.getReportData());
-                    record.setReportType("PIREP"); // parser.getReportType());
+                    record.setReportType("PIREP");
 
                     location.setFlightLevel(parser.getFlightLevel());
                     record.setAircraftType(parser.getAircraftType());
@@ -245,7 +240,7 @@ public class PirepDecoder extends AbstractDecoder {
     }
 
     /**
-     * 
+     *
      * @param e
      * @return
      */

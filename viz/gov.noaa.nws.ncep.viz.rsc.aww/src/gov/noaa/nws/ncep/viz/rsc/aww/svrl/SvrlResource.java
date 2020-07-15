@@ -1,33 +1,13 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.svrl;
 
-/**
- * Svrl resourceResource - Display SVRL from aww data.
- * 
- *  This code has been developed by the SIB for use in the AWIPS2 system.
- *
- * <pre>
- * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 27 May 2010           Uma Josyula  Initial creation.
- * 01/10/11				Uma Josyula	 Made changes to preprocess update and event date  
- * 02/16/2012   555        S. Gurung   Added call to setAllFramesAsPopulated() in queryRecords().
- * 12/14         ?      B. Yin       Remove ScriptCreator, use Thrift Client.
- * 11/05/2015   5070      randerso    Adjust font sizes for dpi scaling
- * </pre>
- * 
- * @author ujosyula 
- * @version 1.0
- */
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -42,6 +22,8 @@ import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
@@ -82,41 +64,49 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * SVRL resource - Display severe local storm watch data from aww data.
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 
- * 27 May 2010          Uma Josyula    Initial creation.
- * 01/10/11             Uma Josyula    Made changes to preprocess update and event date  
- * 02/16/2012   555     S. Gurung      Added call to setAllFramesAsPopulated() in queryRecords().
- * 09/11/12     852     Q. Zhou        Modified time string and alignment in drawTimeLabelWatchNumber().
- * 02/25/13     972     Greg Hull      define on NCMapDescriptor instead of IMapDescriptor
- * 08/14/13     1028    G. Hull        Move to aww project. Use AwwReportType enum.
- * 12/14         ?      B. Yin         Remove ScriptCreator, use Thrift Client.
- * 03/15/2016   R15560  K. Bugenhagen  Refactored common code into AwwQueryResult 
- *                                     class, removing need for SvrlCountyQueryResult 
- *                                     class.  Also cleanup.
+ *
+ * Date          Ticket#  Engineer       Description
+ * ------------- -------- -------------- ---------------------------------------
+ * May 27, 2010           Uma Josyula    Initial creation.
+ * Jan 10, 2011           Uma Josyula    Made changes to preprocess update and
+ *                                       event date
+ * Feb 16, 2012  555      S. Gurung      Added call to setAllFramesAsPopulated()
+ *                                       in queryRecords().
+ * Sep 11, 2012  852      Q. Zhou        Modified time string and alignment in
+ *                                       drawTimeLabelWatchNumber().
+ * Feb 25, 2013  972      Greg Hull      define on NCMapDescriptor instead of
+ *                                       IMapDescriptor
+ * Aug 14, 2013  1028     G. Hull        Move to aww project. Use AwwReportType
+ *                                       enum.
+ * Dec 14        ?        B. Yin         Remove ScriptCreator, use Thrift
+ *                                       Client.
+ * Mar 15, 2016  15560    K. Bugenhagen  Refactored common code into
+ *                                       AwwQueryResult class, removing need for
+ *                                       SvrlCountyQueryResult class.  Also
+ *                                       cleanup.
+ * Jul 15, 2020  8191     randerso       Updated for changes to LatLonPoint
+ *
  * </pre>
- * 
+ *
  * @author ujosyula
- * @version 1.0
  */
-public class SvrlResource extends
-        AbstractNatlCntrsResource<SvrlResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IStationField {
+public class SvrlResource
+        extends AbstractNatlCntrsResource<SvrlResourceData, NCMapDescriptor>
+        implements INatlCntrsResource, IStationField {
 
-    private final static Logger logger = Logger.getLogger(SvrlResource.class
-            .getCanonicalName());
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(SvrlResource.class);
 
-    private final static String QUERY_PREFIX = "select ST_AsBinary(the_geom) G, ST_AsBinary(the_geom_0_001) G1, state,countyname,fips from mapdata.countylowres where ";
+    private static final String QUERY_PREFIX = "select ST_AsBinary(the_geom) G, ST_AsBinary(the_geom_0_001) G1, state,countyname,fips from mapdata.countylowres where ";
 
-    private final static String QUERY_PREFIX2 = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001) from mapdata.countylowres where countyname ='";
+    private static final String QUERY_PREFIX2 = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001) from mapdata.countylowres where countyname ='";
 
-    private final static String QUERY_COLUMN_NAME = "fips";
+    private static final String QUERY_COLUMN_NAME = "fips";
 
     private IFont font;
 
@@ -127,7 +117,7 @@ public class SvrlResource extends
     private List<SvrlData> modifyList;
 
     // for handling query part
-    AwwQueryResult queryResult = new AwwQueryResult();
+    private AwwQueryResult queryResult = new AwwQueryResult();
 
     // for pre-calculate the IWiredframeShape
     private CountyResultJob crjob = new CountyResultJob("");
@@ -139,44 +129,53 @@ public class SvrlResource extends
     private boolean areaChangeFlag = false;
 
     public class SvrlData implements IRscDataObject {
-        String datauri; // used as a key string
+        /** used as a key string */
+        private String datauri;
 
-        DataTime issueTime; // issue time from bulletin
+        /** issue time from bulletin */
+        private DataTime issueTime;
 
-        DataTime evStartTime; // Event start time of Vtec
+        /** Event start time of Vtec */
+        private DataTime evStartTime;
 
-        DataTime evEndTime; // Event end time of of Vtec
+        /** Event end time of of Vtec */
+        private DataTime evEndTime;
 
-        DataTime eventTime;
+        private DataTime eventTime;
 
-        AwwReportType reportType;
+        private AwwReportType reportType;
 
-        int countyNumPoints;
+        private int countyNumPoints;
 
-        float[] countyLat;
+        private float[] countyLat;
 
-        float[] countyLon;
+        private float[] countyLon;
 
-        List<LatLonPoint> countyPoints;
+        private List<LatLonPoint> countyPoints;
 
         // To get all the counties for the warning
-        List<String> countyUgc, countyNames, stateNames;
+        private List<String> countyUgc;
 
-        public List<String> countyFips = new ArrayList<String>();
+        private List<String> countyNames;
 
-        String eventType;
+        private List<String> stateNames;
 
-        String watchNumber; // watch number to be displayed
+        public List<String> countyFips = new ArrayList<>();
 
-        String evTrack;
+        private String eventType;
 
-        String evOfficeId;
+        /** watch number to be displayed */
+        private String watchNumber;
 
-        String evPhenomena;
+        private String evTrack;
 
-        String evProductClass;
+        private String evOfficeId;
 
-        String evSignificance;
+        private String evPhenomena;
+
+        private String evProductClass;
+
+        private String evSignificance;
 
         @Override
         public DataTime getDataTime() {
@@ -186,11 +185,11 @@ public class SvrlResource extends
     }
 
     protected class FrameData extends AbstractFrameData {
-        HashMap<String, SvrlData> svrlDataMap;
+        private Map<String, SvrlData> svrlDataMap;
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
-            svrlDataMap = new HashMap<String, SvrlData>();
+            svrlDataMap = new HashMap<>();
         }
 
         // turn the db record into an WarnRscDataObj which will be timeMatched
@@ -200,16 +199,15 @@ public class SvrlResource extends
         public boolean updateFrameData(IRscDataObject rscDataObj) {
 
             if (!(rscDataObj instanceof SvrlData)) {
-                logger.log(Level.SEVERE,
+                statusHandler.error(
                         "SVRL Resource.updateFrameData: expecting objects "
                                 + " of type SvrlRscDataObj");
                 return false;
             }
             SvrlData svrlRscDataObj = (SvrlData) rscDataObj;
             SvrlData existingSvrlData = svrlDataMap.get(svrlRscDataObj.datauri);
-            if (existingSvrlData == null
-                    || svrlRscDataObj.issueTime
-                            .greaterThan(existingSvrlData.issueTime)) {
+            if (existingSvrlData == null || svrlRscDataObj.issueTime
+                    .greaterThan(existingSvrlData.issueTime)) {
                 svrlDataMap.put(svrlRscDataObj.datauri, svrlRscDataObj);
 
             }
@@ -221,7 +219,7 @@ public class SvrlResource extends
     @Override
     public IRscDataObject[] processRecord(Object pdo) {
         AwwRecord awwRecord = (AwwRecord) pdo;
-        ArrayList<SvrlData> svrlDataList = getAwwtData(awwRecord);
+        List<SvrlData> svrlDataList = getAwwtData(awwRecord);
         if (svrlDataList == null) {
             return new IRscDataObject[] {};
         } else {
@@ -229,9 +227,9 @@ public class SvrlResource extends
         }
     }
 
-    private ArrayList<SvrlData> getAwwtData(AwwRecord awwRecord) {
+    private List<SvrlData> getAwwtData(AwwRecord awwRecord) {
         SvrlData svrlStatusData = null;
-        List<SvrlData> svrlDataList = new ArrayList<SvrlData>();
+        List<SvrlData> svrlDataList = new ArrayList<>();
         try {
 
             Set<AwwUgc> awwUgc = awwRecord.getAwwUGC();
@@ -249,9 +247,9 @@ public class SvrlResource extends
                 //
                 // get the ugc line to find the counties
                 String ugcline = awwugcs.getUgc();
-                if (ugcline != null && ugcline != "") {
+                if (ugcline != null && !ugcline.isEmpty()) {
 
-                    svrlStatusData.countyUgc = new ArrayList<String>();
+                    svrlStatusData.countyUgc = new ArrayList<>();
                     int i = 0;
                     String temp;
                     String countyname = ugcline.substring(0, 3);
@@ -266,8 +264,8 @@ public class SvrlResource extends
                             if (temp.contains(countyname)) {
                                 (svrlStatusData.countyUgc).add(temp);
                             } else {
-                                (svrlStatusData.countyUgc).add(countyname
-                                        .concat(temp));
+                                (svrlStatusData.countyUgc)
+                                        .add(countyname.concat(temp));
                             }
                             i++;
                         }
@@ -296,11 +294,8 @@ public class SvrlResource extends
                                 .getProductClass();
                         svrlStatusData.evSignificance = awwVtech
                                 .getSignificance();
-                        if ((awwVtech.getAction().equalsIgnoreCase("COR"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("CAN"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("EXP"))) {
+                        if (Set.of("COR", "CAN", "EXP")
+                                .contains(awwVtech.getAction().toUpperCase())) {
                             modifyList.add(svrlStatusData);
                         }
                         if (awwVtech.getEventStartTime() != null
@@ -313,9 +308,10 @@ public class SvrlResource extends
                             svrlStatusData.eventTime = new DataTime(
                                     svrlStatusData.issueTime
                                             .getRefTimeAsCalendar(),
-                                    new TimeRange(svrlStatusData.issueTime
-                                            .getRefTimeAsCalendar(), awwVtech
-                                            .getEventEndTime()));
+                                    new TimeRange(
+                                            svrlStatusData.issueTime
+                                                    .getRefTimeAsCalendar(),
+                                            awwVtech.getEventEndTime()));
                         } else if (awwVtech.getEventStartTime() != null) {
                             svrlStatusData.eventTime = new DataTime(
                                     awwVtech.getEventStartTime(),
@@ -334,29 +330,27 @@ public class SvrlResource extends
             }
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE,
-                    "Error getting AWW data: " + e.getMessage());
+            statusHandler.error("Error getting AWW data: " + e.getMessage(), e);
         }
 
-        return (ArrayList<SvrlData>) svrlDataList;
+        return svrlDataList;
     }
 
     private SvrlData getCountyNameLatLon(SvrlData sdata) {
-        sdata.countyPoints = new ArrayList<LatLonPoint>();
-        sdata.countyNames = new ArrayList<String>();
-        sdata.stateNames = new ArrayList<String>();
+        sdata.countyPoints = new ArrayList<>();
+        sdata.countyNames = new ArrayList<>();
+        sdata.stateNames = new ArrayList<>();
         sdata.countyLat = new float[sdata.countyUgc.size()];
         sdata.countyLon = new float[sdata.countyUgc.size()];
 
         try {
             int i = 0;
-            for (Iterator<String> iterator = sdata.countyUgc.iterator(); iterator
-                    .hasNext();) {
+            for (String string : sdata.countyUgc) {
                 Station station = stationTable.getStation(StationField.STID,
-                        iterator.next());
+                        string);
                 if (station != null) {
                     LatLonPoint point = new LatLonPoint(station.getLatitude(),
-                            station.getLongitude(), LatLonPoint.INDEGREES);
+                            station.getLongitude());
                     sdata.countyPoints.add(point);
                     sdata.countyNames.add(station.getStnname());
                     sdata.stateNames.add(station.getState());
@@ -369,7 +363,7 @@ public class SvrlResource extends
 
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error getting lat/lon: " + e.getMessage());
+            statusHandler.error("Error getting lat/lon: " + e.getMessage(), e);
         }
         sdata.countyNumPoints = sdata.countyNames.size();
         return sdata;
@@ -379,12 +373,14 @@ public class SvrlResource extends
     public SvrlResource(SvrlResourceData rscData, LoadProperties loadProperties)
             throws VizException {
         super(rscData, loadProperties);
-        svrlRscData = (SvrlResourceData) resourceData;
-        modifyList = new ArrayList<SvrlData>();
+        svrlRscData = resourceData;
+        modifyList = new ArrayList<>();
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    @Override
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
     @Override
@@ -409,17 +405,17 @@ public class SvrlResource extends
                                     .equalsIgnoreCase(candidate.evPhenomena)
                             && modify.evProductClass
                                     .equalsIgnoreCase(candidate.evProductClass)
-                            && modify.evSignificance
-                                    .equalsIgnoreCase(candidate.evSignificance)) {
-                        if (candidate.eventType.equalsIgnoreCase("CAN")
-                                || candidate.eventType.equalsIgnoreCase("COR")
-                                || candidate.eventType.equalsIgnoreCase("EXP")) {
+                            && modify.evSignificance.equalsIgnoreCase(
+                                    candidate.evSignificance)) {
+                        if (Set.of("CAN", "COR", "EXP")
+                                .contains(candidate.eventType.toUpperCase())) {
                         } else {
                             candidate.evEndTime = modify.issueTime;
                             candidate.eventTime = new DataTime(
                                     candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
+                                    new TimeRange(
+                                            candidate.eventTime
+                                                    .getRefTimeAsCalendar(),
                                             candidate.evEndTime
                                                     .getRefTimeAsCalendar()));
                         }
@@ -430,6 +426,7 @@ public class SvrlResource extends
         }
     }
 
+    @Override
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
         font = grphTarget.initializeFont("Monospace", 14,
                 new IFont.Style[] { IFont.Style.BOLD });
@@ -444,7 +441,7 @@ public class SvrlResource extends
 
         Iterator<IRscDataObject> iter = newRscDataObjsQueue.iterator();
         while (iter.hasNext()) {
-            IRscDataObject dataObject = (IRscDataObject) iter.next();
+            IRscDataObject dataObject = iter.next();
             SvrlResource.SvrlData sData = (SvrlResource.SvrlData) dataObject;
             queryResult.buildQueryPart(sData.countyFips, QUERY_COLUMN_NAME);
         }
@@ -457,6 +454,7 @@ public class SvrlResource extends
 
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -466,7 +464,7 @@ public class SvrlResource extends
         if (areaChangeFlag) {
             areaChangeFlag = false;
             postProcessFrameUpdate();
-        }// TODO: dispose old outlineShape
+        }
         FrameData currFrameData = (FrameData) frameData;
 
         RGB color = new RGB(155, 155, 155);
@@ -481,7 +479,8 @@ public class SvrlResource extends
             Boolean draw = false, drawLabel = true;
 
             if (svrlRscData.getColorCodeEnable()) {
-                int watchNumberchoice = Integer.parseInt(svrlData.watchNumber) % 10;
+                int watchNumberchoice = Integer.parseInt(svrlData.watchNumber)
+                        % 10;
 
                 switch (watchNumberchoice) {
                 case 0:
@@ -550,8 +549,10 @@ public class SvrlResource extends
                 }
             }
 
-            if ((svrlData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH && svrlRscData.thunderstormEnable)
-                    || (svrlData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE && svrlRscData.tornadoEnable)) {
+            if ((svrlData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH
+                    && svrlRscData.thunderstormEnable)
+                    || (svrlData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE
+                            && svrlRscData.tornadoEnable)) {
                 draw = true;
             }
 
@@ -570,8 +571,7 @@ public class SvrlResource extends
 
                 }
             }
-
-        }// for loop
+        }
     }
 
     public void drawCountyOutline(SvrlData svrlData, IGraphicsTarget target,
@@ -606,10 +606,10 @@ public class SvrlResource extends
             query.append("' AND ");
             query.append(geoConstraint);
             query.append(";");
-            List<Object[]> results = DirectDbQuery.executeQuery(
-                    query.toString(), "maps", QueryLanguage.SQL);
-            IWireframeShape newOutlineShape = target.createWireframeShape(
-                    false, descriptor, 0.0f);
+            List<Object[]> results = DirectDbQuery
+                    .executeQuery(query.toString(), "maps", QueryLanguage.SQL);
+            IWireframeShape newOutlineShape = target.createWireframeShape(false,
+                    descriptor, 0.0f);
             IShadedShape newShadedShape = target.createShadedShape(false,
                     descriptor, true);
             JTSCompiler jtsCompiler = new JTSCompiler(newShadedShape,
@@ -627,11 +627,12 @@ public class SvrlResource extends
                     }
 
                 } catch (VizException e) {
-                    logger.log(Level.SEVERE, "Error reprojecting map outline: "
-                            + e.getMessage());
+                    statusHandler.error(
+                            "Error reprojecting map outline: " + e.getMessage(),
+                            e);
                 } catch (ParseException e) {
-                    logger.log(Level.SEVERE,
-                            "Error parsing query result: " + e.getMessage());
+                    statusHandler.error(
+                            "Error parsing query result: " + e.getMessage(), e);
                 }
             }
             newOutlineShape.compile();
@@ -656,17 +657,17 @@ public class SvrlResource extends
                 if (labelPix != null) {
 
                     String[] text = new String[2];
-                    List<String> enabledText = new ArrayList<String>();
+                    List<String> enabledText = new ArrayList<>();
 
                     if (svrlRscData.getWatchBoxLabelEnable()) {
                         enabledText.add(svrlData.countyNames.get(i));
                     }
 
                     if (svrlRscData.getWatchBoxTimeEnable()) {
-                        DataTime startTime = new DataTime(svrlData.eventTime
-                                .getValidPeriod().getStart());
-                        DataTime endTime = new DataTime(svrlData.eventTime
-                                .getValidPeriod().getEnd());
+                        DataTime startTime = new DataTime(
+                                svrlData.eventTime.getValidPeriod().getStart());
+                        DataTime endTime = new DataTime(
+                                svrlData.eventTime.getValidPeriod().getEnd());
                         String temp = startTime.toString().substring(11, 13)
                                 + startTime.toString().substring(14, 16) + "-"
                                 + endTime.toString().substring(11, 13)
@@ -681,14 +682,15 @@ public class SvrlResource extends
                     text = enabledText.toArray(text);
 
                     target.drawStrings(font, text, labelPix[0], labelPix[1],
-                            0.0, TextStyle.NORMAL, new RGB[] { color, color,
-                                    color }, HorizontalAlignment.LEFT,
-                            VerticalAlignment.TOP);
+                            0.0, TextStyle.NORMAL,
+                            new RGB[] { color, color, color },
+                            HorizontalAlignment.LEFT, VerticalAlignment.TOP);
                 }
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error drawing time label watch number: "
-                    + e.getMessage());
+            statusHandler.error(
+                    "Error drawing time label watch number: " + e.getMessage(),
+                    e);
         }
     }
 
@@ -697,7 +699,7 @@ public class SvrlResource extends
      */
     private class CountyResultJob extends org.eclipse.core.runtime.jobs.Job {
 
-        private java.util.Map<String, Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<String, Result>();
+        private java.util.Map<String, Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<>();
 
         private IGraphicsTarget target;
 
@@ -739,12 +741,13 @@ public class SvrlResource extends
             for (AbstractFrameData afd : frameDataMap.values()) {
                 FrameData fd = (FrameData) afd;
                 for (SvrlData sd : fd.svrlDataMap.values()) {
-                    Collection<Geometry> gw = new ArrayList<Geometry>();
-                    for (int i = 0; i < sd.countyFips.size(); i++) {
+                    Collection<Geometry> gw = new ArrayList<>();
+                    for (String element : sd.countyFips) {
                         for (ArrayList<Object[]> counties : queryResult
-                                .getCountyResult(sd.countyFips.get(i))) {
-                            if (counties == null)
+                                .getCountyResult(element)) {
+                            if (counties == null) {
                                 continue;
+                            }
                             WKBReader wkbReader = new WKBReader();
                             for (Object[] result : counties) {
                                 int k = 0;
@@ -753,26 +756,23 @@ public class SvrlResource extends
                                 try {
                                     countyGeo = (MultiPolygon) wkbReader
                                             .read(wkb1);
-                                    if (countyGeo != null
-                                            && countyGeo.isValid()
+                                    if (countyGeo != null && countyGeo.isValid()
                                             && (!countyGeo.isEmpty())) {
                                         gw.add(countyGeo);
                                     }
                                 } catch (Exception e) {
-                                    logger.log(Level.SEVERE,
+                                    statusHandler.error(
                                             "Exception in run, CountyResultJob: "
-                                                    + e.getMessage());
+                                                    + e.getMessage(),
+                                            e);
                                 }
                             }
                         }
                     }
-                    if (gw.size() == 0) {
-                        continue;
-                    } else {
+                    if (!gw.isEmpty()) {
                         keyResultMap.put(sd.datauri, new Result(
                                 getEachWrdoShape(gw), null, null, null));
                     }
-
                 }
 
             }
@@ -782,8 +782,8 @@ public class SvrlResource extends
 
         public IWireframeShape getEachWrdoShape(Collection<Geometry> gw) {
 
-            IWireframeShape newOutlineShape = target.createWireframeShape(
-                    false, descriptor, 0.0f);
+            IWireframeShape newOutlineShape = target.createWireframeShape(false,
+                    descriptor, 0.0f);
 
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
@@ -799,9 +799,10 @@ public class SvrlResource extends
                 newOutlineShape.compile();
 
             } catch (Exception e) {
-                logger.log(Level.SEVERE,
+                statusHandler.error(
                         "Exception in getEachWrdoShape(), CountyResultJob: "
-                                + e.getMessage());
+                                + e.getMessage(),
+                        e);
             }
 
             return newOutlineShape;
@@ -816,6 +817,9 @@ public class SvrlResource extends
         CountyResultJob.Result result = crjob.keyResultMap.get(key);
 
         if (result != null) {
+            if (outlineShape != null) {
+                outlineShape.dispose();
+            }
             outlineShape = result.outlineShape;
         } else {
             return;
@@ -826,10 +830,9 @@ public class SvrlResource extends
                 target.drawWireframeShape(outlineShape, color, outlineWidth,
                         lineStyle);
             } catch (VizException e) {
-                logger.log(
-                        Level.SEVERE,
-                        "Exception drawing county outline wireframe: "
-                                + e.getMessage());
+                statusHandler
+                        .error("Exception drawing county outline wireframe: "
+                                + e.getMessage(), e);
             }
 
         }
@@ -856,20 +859,22 @@ public class SvrlResource extends
      */
     @Override
     protected long getDataTimeMs(IRscDataObject rscDataObj) {
-        if (rscDataObj == null)
+        if (rscDataObj == null) {
             return 0;
+        }
 
         java.util.Calendar validTimeInCalendar = null;
         DataTime dataTime = rscDataObj.getDataTime();
         if (dataTime != null) {
             validTimeInCalendar = dataTime.getValidTime();
         } else {
-            logger.log(Level.SEVERE,
+            statusHandler.error(
                     "===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!");
         }
         long dataTimeInMs = 0;
-        if (validTimeInCalendar != null)
+        if (validTimeInCalendar != null) {
             dataTimeInMs = validTimeInCalendar.getTimeInMillis();
+        }
         return dataTimeInMs;
     }
 

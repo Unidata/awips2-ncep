@@ -1,5 +1,49 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.warn;
 
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.graphics.RGB;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.io.WKBReader;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.common.time.TimeRange;
+import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
+import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
+import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
+import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
+import com.raytheon.uf.viz.core.drawables.IFont;
+import com.raytheon.uf.viz.core.drawables.IShadedShape;
+import com.raytheon.uf.viz.core.drawables.IWireframeShape;
+import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.map.IMapDescriptor;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.viz.core.rsc.jts.JTSCompiler;
+import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
+
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
@@ -21,84 +65,53 @@ import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.graphics.RGB;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
-import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
-import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
-import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
-import com.raytheon.uf.viz.core.drawables.IFont;
-import com.raytheon.uf.viz.core.drawables.IShadedShape;
-import com.raytheon.uf.viz.core.drawables.IWireframeShape;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.core.rsc.jts.JTSCompiler;
-import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.io.WKBReader;
-
 /**
  * Warn resourceResource - Display WARN from aww data.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer     Description
- * ------------ ---------- -----------  --------------------------
- * 03/17/10              Uma Josyula    Initial creation.
- * 10/01/10       #307   Greg Hull      implement processRecords and change to 
- *                                      process WarnData as the IRscDataObj
- * 07/28/11       #450   Greg Hull      NcPathManager    
- * 08/31/11		  #456	 Gang Zhang	    AWW fix	   
- * 02/16/2012     #555   S. Gurung      Added call to setAllFramesAsPopulated() in queryRecords().                               
- * 05/23/2012      785   Q. Zhou        Added getName for legend.
- * 08/17/2012      655   B. Hebbard     Added paintProps as parameter to IDisplayable draw
- * 09/11/2012      854   Q. Zhou        Modified time string and alignment in drawLabel().
- * 07/24/2013     1028   G. Hull        rm IRenderableDisplayChangedListener; override project()
- * 08/12/2013     1021   G. Hull        rm CountyResultJob; change to save map of wireframes for each
- *                                      county/fips instead of collection for each unique warning/uri.
- * 08/14/2013     1028   G. Hull        Move to aww project. Use AwwReportType enum.
- * 12/14                 B. Yin         Remove ScriptCreator, use Thrift Client.
- * 11/05/2015     5070     randerso     Adjust font sizes for dpi scaling
- * 03/15/2016   R15560   K. Bugenhagen  Refactored common code into AwwQueryResult 
- *                                      class, removing need for WarnCountyResult 
- *                                      class.  Also cleanup.
+ *
+ * Date          Ticket#  Engineer       Description
+ * ------------- -------- -------------- ---------------------------------------
+ * Mar 17, 2010           Uma Josyula    Initial creation.
+ * Oct 01, 2010  307      Greg Hull      implement processRecords and change to
+ *                                       process WarnData as the IRscDataObj
+ * Jul 28, 2011  450      Greg Hull      NcPathManager
+ * Aug 31, 2011  456      Gang Zhang     AWW fix
+ * Feb 16, 2012  555      S. Gurung      Added call to setAllFramesAsPopulated()
+ *                                       in queryRecords().
+ * May 23, 2012  785      Q. Zhou        Added getName for legend.
+ * Aug 17, 2012  655      B. Hebbard     Added paintProps as parameter to
+ *                                       IDisplayable draw
+ * Sep 11, 2012  854      Q. Zhou        Modified time string and alignment in
+ *                                       drawLabel().
+ * Jul 24, 2013  1028     G. Hull        rm IRenderableDisplayChangedListener;
+ *                                       override project()
+ * Aug 12, 2013  1021     G. Hull        rm CountyResultJob; change to save map
+ *                                       of wireframes for each county/fips
+ *                                       instead of collection for each unique
+ *                                       warning/uri.
+ * Aug 14, 2013  1028     G. Hull        Move to aww project. Use AwwReportType
+ *                                       enum.
+ * 12/14                  B. Yin         Remove ScriptCreator, use Thrift
+ *                                       Client.
+ * Nov 05, 2015  5070     randerso       Adjust font sizes for dpi scaling
+ * Mar 15, 2016  15560    K. Bugenhagen  Refactored common code into
+ *                                       AwwQueryResult class, removing need for
+ *                                       WarnCountyResult class.  Also cleanup.
+ * Jul 15, 2020  8191     randerso       Updated for changes to LatLonPoint
+ *
  * </pre>
- * 
+ *
  * @author ujosyula
- * @version 1.0
  */
 
-public class WarnResource extends
-        AbstractNatlCntrsResource<WarnResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IStationField {
+public class WarnResource
+        extends AbstractNatlCntrsResource<WarnResourceData, NCMapDescriptor>
+        implements INatlCntrsResource, IStationField {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(WarnResource.class);
 
     private IFont font;
 
@@ -108,14 +121,11 @@ public class WarnResource extends
 
     private boolean areaChangeFlag = false;
 
-    private static final Logger logger = Logger.getLogger(WarnResource.class
-            .getCanonicalName());
+    private static final String QUERY_PREFIX = "select AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1, state,countyname,fips from mapdata.countylowres where ";
 
-    private final static String QUERY_PREFIX = "select AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1, state,countyname,fips from mapdata.countylowres where ";
+    private static final String QUERY_COLUMN_NAME = "fips";
 
-    private final static String QUERY_COLUMN_NAME = "fips";
-
-    private Map<String, TreeMap<Calendar, WarnRscDataObj>> wrdoExtActMap = new HashMap<String, TreeMap<Calendar, WarnRscDataObj>>();
+    private Map<String, TreeMap<Calendar, WarnRscDataObj>> wrdoExtActMap = new HashMap<>();
 
     private AwwQueryResult countyResult = new AwwQueryResult();
 
@@ -124,34 +134,47 @@ public class WarnResource extends
     private CountyResultJob crjob = new CountyResultJob("");
 
     public class WarnRscDataObj implements IRscDataObject {
-        DataTime issueTime; // issue time from bulletin
+        /** issue time from bulletin */
+        private DataTime issueTime;
 
-        // Event start/end time of Vtec
-        DataTime eventTime, eStartTime, eEndTime;
+        /** Event start/end time of Vtec */
+        private DataTime eventTime;
 
-        AwwReportType reportType;
+        private DataTime eStartTime;
 
-        String actionType;
+        private DataTime eEndTime;
 
-        String officeId;
+        private AwwReportType reportType;
 
-        String eTrackingNo, phenomena, significance;// last five
+        private String actionType;
 
-        int polyNumPoints, countyNumPoints;
+        private String officeId;
 
-        float[] polyLat;
+        // last five
+        private String eTrackingNo;
 
-        float[] polyLon;
+        private String phenomena;
 
-        LatLonPoint[] polygonPoints;
+        private String significance;
 
-        List<Coordinate> countyLatLonCoords; // replace countyLat, countyLon
+        private int polyNumPoints;
 
-        String ugcLine;
+        private int countyNumPoints;
 
-        List<String> countyNames;
+        private float[] polyLat;
 
-        List<String> countyFips;
+        private float[] polyLon;
+
+        private LatLonPoint[] polygonPoints;
+
+        /** replace countyLat, countyLon */
+        private List<Coordinate> countyLatLonCoords;
+
+        private String ugcLine;
+
+        private List<String> countyNames;
+
+        private List<String> countyFips;
 
         // the dataTime will have the startTime as the refTime and a valid
         // period of start/end
@@ -162,11 +185,11 @@ public class WarnResource extends
     }
 
     protected class FrameData extends AbstractFrameData {
-        HashMap<String, WarnRscDataObj> warnDataMap;
+        private Map<String, WarnRscDataObj> warnDataMap;
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
-            warnDataMap = new HashMap<String, WarnRscDataObj>();
+            warnDataMap = new HashMap<>();
         }
 
         @Override
@@ -178,17 +201,19 @@ public class WarnResource extends
 
     /**
      * Create a WARN resource.
-     * 
+     *
      * @throws VizException
      */
     public WarnResource(WarnResourceData rscData, LoadProperties loadProperties)
             throws VizException {
         super(rscData, loadProperties);
-        warnRscData = (WarnResourceData) resourceData;
+        warnRscData = resourceData;
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    @Override
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
     // turn the db record into an WarnRscDataObj which will be timeMatched and
@@ -206,9 +231,9 @@ public class WarnResource extends
     }
 
     private WarnRscDataObj getCountyNameLatLon(WarnRscDataObj wdata) {
-        wdata.countyNames = new ArrayList<String>();
-        wdata.countyFips = new ArrayList<String>();
-        wdata.countyLatLonCoords = new ArrayList<Coordinate>();
+        wdata.countyNames = new ArrayList<>();
+        wdata.countyFips = new ArrayList<>();
+        wdata.countyLatLonCoords = new ArrayList<>();
 
         try {
             for (String ugc : UGCHeaderUtil.getUGCZones(wdata.ugcLine)) {
@@ -217,20 +242,21 @@ public class WarnResource extends
                 if (station != null) {
                     wdata.countyNames.add(station.getStnname());
                     String s = station.getStnnum();
-                    wdata.countyFips.add(s.length() == 4 ? "0" + s : s);// T456:
-                    wdata.countyLatLonCoords.add(new Coordinate(station
-                            .getLongitude(), station.getLatitude()));
+                    wdata.countyFips.add(s.length() == 4 ? "0" + s : s);
+                    wdata.countyLatLonCoords.add(new Coordinate(
+                            station.getLongitude(), station.getLatitude()));
                 }
 
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, " Exception: " + e.getMessage());// T456:
+            statusHandler.warn(e.getMessage(), e);
         }
         wdata.countyNumPoints = wdata.countyNames.size();
         return wdata;
 
     }
 
+    @Override
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
         font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
@@ -245,7 +271,7 @@ public class WarnResource extends
 
         Iterator<IRscDataObject> iter = newRscDataObjsQueue.iterator();
         while (iter.hasNext()) {
-            IRscDataObject dataObject = (IRscDataObject) iter.next();
+            IRscDataObject dataObject = iter.next();
             WarnRscDataObj data = (WarnRscDataObj) dataObject;
             countyResult.buildQueryPart(data.countyFips, QUERY_COLUMN_NAME);
         }
@@ -258,6 +284,7 @@ public class WarnResource extends
 
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -320,16 +347,15 @@ public class WarnResource extends
                 }
                 drawLabel(warnData, target, color);
 
-            } // draw county outline
-            else if (warnRscData.getCountyOutlineEnable() && draw) {
-
+            } else if (warnRscData.getCountyOutlineEnable() && draw) {
+                // draw county outline
                 drawCountyOutline3(warnData, target, color, symbolWidth,
                         lineStyle, paintProps); // T456:
 
                 drawLabel(warnData, target, color);
             } else if (draw) {
-                Color[] colors = new Color[] { new Color(color.red,
-                        color.green, color.blue) };
+                Color[] colors = new Color[] {
+                        new Color(color.red, color.green, color.blue) };
 
                 // draw the line style to be dots and county points
                 try {
@@ -342,7 +368,7 @@ public class WarnResource extends
                                 "Symbol", "DOT");
                         DisplayElementFactory df = new DisplayElementFactory(
                                 target, getNcMapDescriptor());
-                        ArrayList<IDisplayable> displayEls = df
+                        List<IDisplayable> displayEls = df
                                 .createDisplayElements(pointSymbol, paintProps);
                         for (IDisplayable each : displayEls) {
                             each.draw(target, paintProps);
@@ -350,7 +376,7 @@ public class WarnResource extends
                         }
                     }
                 } catch (Exception e) {
-                    logger.log(Level.INFO, "Exception: " + e.getMessage());
+                    statusHandler.info(e.getMessage(), e);
                 }
                 drawLabel(warnData, target, color);
 
@@ -369,17 +395,17 @@ public class WarnResource extends
 
                 if (labelPix != null) {
                     String[] text = new String[2];
-                    List<String> enabledText = new ArrayList<String>();
+                    List<String> enabledText = new ArrayList<>();
 
                     if (warnRscData.getCountyNameEnable()) {
                         enabledText.add(warnData.countyNames.get(i));
                     }
 
                     if (warnRscData.getTimeEnable()) {
-                        DataTime startTime = new DataTime(warnData.eventTime
-                                .getValidPeriod().getStart());
-                        DataTime endTime = new DataTime(warnData.eventTime
-                                .getValidPeriod().getEnd());
+                        DataTime startTime = new DataTime(
+                                warnData.eventTime.getValidPeriod().getStart());
+                        DataTime endTime = new DataTime(
+                                warnData.eventTime.getValidPeriod().getEnd());
                         String temp = startTime.toString().substring(11, 13)
                                 + startTime.toString().substring(14, 16) + "-"
                                 + endTime.toString().substring(11, 13)
@@ -387,8 +413,9 @@ public class WarnResource extends
                         enabledText.add(temp);
                     }
 
-                    for (int j = enabledText.size(); j < 2; j++)
+                    for (int j = enabledText.size(); j < 2; j++) {
                         enabledText.add("");
+                    }
 
                     text = enabledText.toArray(text);
 
@@ -398,7 +425,7 @@ public class WarnResource extends
                 }
             }
         } catch (Exception e) {
-            logger.log(Level.INFO, "Exception: " + e.getMessage());
+            statusHandler.info(e.getMessage(), e);
         }
     }
 
@@ -431,7 +458,7 @@ public class WarnResource extends
     }
 
     public class CountyResultJob extends Job {
-        private Map<String, Result> uriResultMap = new HashMap<String, Result>();
+        private Map<String, Result> uriResultMap = new HashMap<>();
 
         private IGraphicsTarget target;
 
@@ -467,21 +494,17 @@ public class WarnResource extends
             for (AbstractFrameData afd : frameDataMap.values()) {
                 FrameData fd = (FrameData) afd;
                 for (WarnRscDataObj wrdo : fd.warnDataMap.values()) {
-                    Collection<Geometry> gw = new ArrayList<Geometry>();
-                    for (int i = 0; i < wrdo.countyFips.size(); i++) {
+                    Collection<Geometry> gw = new ArrayList<>();
+                    for (String element : wrdo.countyFips) {
 
                         // fips can have multiple rows in maps mapdata.county
                         // table, so another loop needed.
                         for (ArrayList<Object[]> results : countyResult
-                                .getCountyResult(wrdo.countyFips.get(i))) {
+                                .getCountyResult(element)) {
 
                             if (results.isEmpty()) {
-                                logger.log(
-                                        Level.WARNING,
-                                        " Exception: "
-                                                + "Fips code, "
-                                                + wrdo.countyFips.get(i)
-                                                + ", was not found in the list of queried county fips codes");
+                                statusHandler.warn("Fips code, " + element
+                                        + ", was not found in the list of queried county fips codes");
                                 continue;
                             }
 
@@ -495,26 +518,23 @@ public class WarnResource extends
                                 try {
                                     countyGeo = (MultiPolygon) wkbReader
                                             .read(wkb1);
-                                    if (countyGeo != null
-                                            && countyGeo.isValid()
+                                    if (countyGeo != null && countyGeo.isValid()
                                             && (!countyGeo.isEmpty())) {
                                         gw.add(countyGeo);
                                     }
                                 } catch (Exception e) {
-                                    logger.log(Level.WARNING,
-                                            "__Error: " + e.getMessage());
+                                    statusHandler.warn(e.getMessage(), e);
                                 }
                             }
                         }
                     }
-                    if (gw.size() == 0) {
-                        continue;
-                    } else {
-                        uriResultMap
-                                .put(get4StringConcat(wrdo.officeId,
+                    if (!gw.isEmpty()) {
+                        uriResultMap.put(
+                                get4StringConcat(wrdo.officeId,
                                         wrdo.eTrackingNo, wrdo.phenomena,
-                                        wrdo.significance), new Result(
-                                        getEachWrdoShape(gw), null, null, null));
+                                        wrdo.significance),
+                                new Result(getEachWrdoShape(gw), null, null,
+                                        null));
                     }
                 }
 
@@ -524,8 +544,8 @@ public class WarnResource extends
 
         public IWireframeShape getEachWrdoShape(Collection<Geometry> gw) {
 
-            IWireframeShape newOutlineShape = target.createWireframeShape(
-                    false, descriptor, 0.0f);
+            IWireframeShape newOutlineShape = target.createWireframeShape(false,
+                    descriptor, 0.0f);
 
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
@@ -541,7 +561,7 @@ public class WarnResource extends
                 newOutlineShape.compile();
 
             } catch (Exception e) {
-                logger.log(Level.WARNING, "_____Error: " + e.getMessage());
+                statusHandler.warn(e.getMessage(), e);
             }
 
             return newOutlineShape;
@@ -554,9 +574,10 @@ public class WarnResource extends
     @Override
     protected boolean postProcessFrameUpdate() {
 
-        crjob.setRequest(NcDisplayMngr.getActiveNatlCntrsEditor()
-                .getActiveDisplayPane().getTarget(), getNcMapDescriptor(),
-                null, false, false, null);
+        crjob.setRequest(
+                NcDisplayMngr.getActiveNatlCntrsEditor().getActiveDisplayPane()
+                        .getTarget(),
+                getNcMapDescriptor(), null, false, false, null);
 
         return true;
     }
@@ -575,7 +596,7 @@ public class WarnResource extends
         if (dataTime != null) {
             validTimeInCalendar = dataTime.getValidTime();
         } else {
-            logger.log(Level.INFO,
+            statusHandler.info(
                     "===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!");
         }
         long dataTimeInMs = 0;
@@ -602,7 +623,8 @@ public class WarnResource extends
         String key = get4StringConcat(wrdo.officeId, wrdo.eTrackingNo,
                 wrdo.phenomena, wrdo.significance);
 
-        if (wrdoExtActMap.containsKey(key)) {// this is an EXT
+        if (wrdoExtActMap.containsKey(key)) {
+            // this is an EXT
 
             java.util.TreeMap<Calendar, WarnRscDataObj> map = wrdoExtActMap
                     .get(key);
@@ -611,10 +633,13 @@ public class WarnResource extends
                 // latest issue time prevail
                 WarnRscDataObj extWrdo = map.get(map.lastKey());
 
-                if (extWrdo != null)
-                    warnDataMap.put(key, extWrdo);// key can be re-used
+                if (extWrdo != null) {
+                    // key can be re-used
+                    warnDataMap.put(key, extWrdo);
+                }
             }
-        } else {// this is a NEW or COR
+        } else {
+            // this is a NEW or COR
             warnDataMap.put(key, wrdo);
 
         }
@@ -634,15 +659,15 @@ public class WarnResource extends
     }
 
     /**
-     * 
+     *
      * 1). add WarnRscDataObj to a List if NEW or COR action; 2). put into the
      * EXT Map: wrdoExtActMap if EXT action.
-     * 
+     *
      */
     public List<WarnRscDataObj> addWarnRscDataObj(WarnRscDataObj wrdObj,
             AwwRecord awwRecord, AwwUgc awwugcs) {
 
-        List<WarnRscDataObj> wrdoList = new ArrayList<WarnRscDataObj>();
+        List<WarnRscDataObj> wrdoList = new ArrayList<>();
 
         int vtechNumber = awwugcs.getAwwVtecLine().size();
         if (vtechNumber > 0) {
@@ -660,7 +685,7 @@ public class WarnResource extends
                  * or purged.
                  */
                 if (esTime == null) {
-                    logger.log(java.util.logging.Level.SEVERE,
+                    statusHandler.error(
                             "___ setWarnRscDataObj(): AwwVtec eventStartTime is NULL !");
                     continue;
                 } else {
@@ -669,7 +694,7 @@ public class WarnResource extends
 
                 // same as event start time
                 if (eeTime == null) {
-                    logger.log(java.util.logging.Level.SEVERE,
+                    statusHandler.error(
                             "___ setWarnRscDataObj(): AwwVtec eventEndTime is NULL !");
                     continue;
                 } else {
@@ -703,23 +728,23 @@ public class WarnResource extends
                 // EXT for a specific UGC,
                 if ("EXT".equalsIgnoreCase(wrdo.actionType)) {
                     String key = get4StringConcat(wrdo.officeId,
-                            wrdo.eTrackingNo, wrdo.phenomena, wrdo.significance);
+                            wrdo.eTrackingNo, wrdo.phenomena,
+                            wrdo.significance);
                     if (wrdoExtActMap.containsKey(key)) {
                         // in a TreeMap, better use Calendar as the key,
                         // DataTime may change in the future.
                         wrdoExtActMap.get(key).put(awwRecord.getIssueTime(),
                                 wrdo);
                     } else {
-                        java.util.TreeMap<java.util.Calendar, WarnRscDataObj> tmap = new java.util.TreeMap<java.util.Calendar, WarnRscDataObj>();
+                        java.util.TreeMap<java.util.Calendar, WarnRscDataObj> tmap = new java.util.TreeMap<>();
                         tmap.put(awwRecord.getIssueTime(), wrdo);
                         wrdoExtActMap.put(key, tmap);
                     }
                 }
 
                 wrdoList.add(wrdo);
-
-            }// end: for-loop
-        }// end: if(vtechNumber>0)
+            }
+        }
 
         return wrdoList;
     }
@@ -729,18 +754,18 @@ public class WarnResource extends
      */
     private List<WarnRscDataObj> getAwwtData2(AwwRecord awwRecord) {
 
-        List<WarnRscDataObj> wrdoList = new ArrayList<WarnRscDataObj>();// 2011-08-29
+        List<WarnRscDataObj> wrdoList = new ArrayList<>();// 2011-08-29
         WarnRscDataObj warnStatusData = new WarnRscDataObj();
         warnStatusData.issueTime = new DataTime(awwRecord.getIssueTime());
 
         try {
-            warnStatusData.reportType = AwwReportType.getReportType(awwRecord
-                    .getReportType());
+            warnStatusData.reportType = AwwReportType
+                    .getReportType(awwRecord.getReportType());
 
             Set<AwwUgc> awwUgc = awwRecord.getAwwUGC();
             for (AwwUgc awwugcs : awwUgc) {
                 String ugcline = awwugcs.getUgc();
-                if (ugcline != null && ugcline != "") {
+                if (ugcline != null && !ugcline.isEmpty()) {
                     warnStatusData.ugcLine = ugcline;
                     warnStatusData = getCountyNameLatLon(warnStatusData);
                 }
@@ -752,7 +777,7 @@ public class WarnResource extends
                     int index;
                     for (AwwLatlons awwLatLon : awwugcs.getAwwLatLon()) {
                         LatLonPoint point = new LatLonPoint(awwLatLon.getLat(),
-                                awwLatLon.getLon(), LatLonPoint.INDEGREES);
+                                awwLatLon.getLon());
                         index = awwLatLon.getIndex();
                         warnStatusData.polyLat[index - 1] = awwLatLon.getLat();
                         warnStatusData.polyLon[index - 1] = awwLatLon.getLon();
@@ -761,12 +786,12 @@ public class WarnResource extends
                 }
                 // put the vtec-block into the below method after counties &
                 // polygons are already done.
-                wrdoList = addWarnRscDataObj(warnStatusData, awwRecord, awwugcs);
+                wrdoList = addWarnRscDataObj(warnStatusData, awwRecord,
+                        awwugcs);
 
             }
         } catch (Exception e) {
-            logger.log(java.util.logging.Level.SEVERE, "___ getAwwtData2(): "
-                    + e.getMessage());
+            statusHandler.error(e.getMessage(), e);
         }
 
         return wrdoList;

@@ -1,53 +1,47 @@
-/**
- *  LatLonLocTbl - A Java class to define some known VORs and Intlsig talbes
- *  used to define convective/nonconvective/airmet/intl SIGMET locations.
- *
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 12 Jun 2009  95/132     B. Hebbard  Initial creation.
- * 10 Sep 2009  39/87/114  L. Lin	   Remove the temporary enum
- *                                     and add xml for VORs and 
- *                                     Intlsig gempak tables.
- * 30 Sep 2009       3102  jkorman     Changed printlns to logging statements.
- * 07 Jan 2014             njensen     Better error messages
- * 
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
 package gov.noaa.nws.ncep.edex.tools.decoder;
 
-import static com.raytheon.uf.common.localization.LocalizationContext.LocalizationType.EDEX_STATIC;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.raytheon.uf.common.localization.IPathManager;
+import com.raytheon.uf.common.localization.LocalizationFile;
+import com.raytheon.uf.common.localization.LocalizationUtil;
+import com.raytheon.uf.common.localization.PathManagerFactory;
+import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField.StationField;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
 import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
 
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.raytheon.uf.common.localization.IPathManager;
-import com.raytheon.uf.common.localization.LocalizationContext;
-import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
-import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.PathManagerFactory;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
-
+/**
+ * LatLonLocTbl - A Java class to define some known VORs and Intlsig talbes used
+ * to define convective/nonconvective/airmet/intl SIGMET locations.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#    Engineer    Description
+ * ------------- ---------- ----------- ----------------------------------------
+ * Jun 12, 2009  95/132     B. Hebbard  Initial creation.
+ * Sep 10, 2009  39/87/114  L. Lin      Remove the temporary enum and add xml
+ *                                      for VORs and Intlsig gempak tables.
+ * Sep 30, 2009  3102       jkorman     Changed printlns to logging statements.
+ * Jan 07, 2014             njensen     Better error messages
+ * Jul 15, 2020  8191       randerso    Updated for changes to LatLonPoint
+ *
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ *
+ * @author L. Lin
+ */
 public class LatLonLocTbl {
-    private static Log logger = LogFactory.getLog(LatLonLocTbl.class);
+    private static Logger logger = LoggerFactory.getLogger(LatLonLocTbl.class);
 
-    static StationTable vorsloc = null;
-
-    static StationTable intlsigloc = null;
-
-    static StationTable myloc = null;
+    private static StationTable myloc = null;
 
     private double latitude;
 
@@ -60,25 +54,18 @@ public class LatLonLocTbl {
 
     public static void readLocTable(String tableName) throws Exception {
 
-//        final String NCEP_DIR = "ncep";
-//        final String stnsDir = "stns";
-//        final String vorsLocTableName = "vors.xml";
-
-        final String VORS_TABLE = "ncep" + File.separator + "stns" + File.separator + "vors.xml";
+        final String VORS_TABLE = LocalizationUtil.join("ncep", "stns",
+                "vors.xml");
         IPathManager manager = PathManagerFactory.getPathManager();
 
-        LocalizationContext baseContext = null;
-
-        baseContext = manager.getContext(
-                LocalizationContext.LocalizationType.EDEX_STATIC,
-                LocalizationContext.LocalizationLevel.BASE);
         LocalizationFile file = null;
-        if (tableName == "vors") {
-              file = manager.getStaticLocalizationFile(VORS_TABLE); 
+        if ("vors".equals(tableName)) {
+            file = manager.getStaticLocalizationFile(VORS_TABLE);
         }
 
-        if ( file != null )
-        myloc = new StationTable(file.getFile().getAbsolutePath());
+        if (file != null) {
+            myloc = new StationTable(file.getFile().getAbsolutePath());
+        }
 
     }
 
@@ -91,22 +78,21 @@ public class LatLonLocTbl {
     }
 
     public LatLonPoint getLatLonPoint() {
-        return new LatLonPoint(latitude, longitude, LatLonPoint.INDEGREES);
+        return new LatLonPoint(latitude, longitude);
     }
 
     private enum Direction {
         N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW;
+
         public double getDegrees() {
             return ordinal() * 22.5;
         }
     }
 
-    private static final double ONE_NM_RADIANS = Math.toRadians(1.0 / 60.0);
-
     /**
      * Given a relative reference string, returns a LatLonPoint
      * (com.raytheon.uf.edex.decodertools.core.LatLonPoint).
-     * 
+     *
      * @param location
      *            A String such as... "BOS" "20S EMI" "30 WNW BUM" " 40ENE HUH "
      *            ...referencing a VOR listed in AC 00-45F (Appendix F),
@@ -117,7 +103,7 @@ public class LatLonLocTbl {
      *            "intlsig" referring to intl location table
      * @return The decoded location as a LatLonPoint; null on error (such as
      *         unrecognized VOR identifier or direction string).
-     * 
+     *
      */
     public static LatLonPoint getLatLonPoint(String location, String locTable) {
         LatLonPoint point = null;
@@ -146,10 +132,10 @@ public class LatLonLocTbl {
 
             // Get LatLonPoint from lat/lon
             if (vor != null) {
-                point = new LatLonPoint(vor.getLatitude(), vor.getLongitude(),
-                        LatLonPoint.INDEGREES);
+                point = new LatLonPoint(vor.getLatitude(), vor.getLongitude());
             } else {
-                logger.warn(" - DID NOT find station ID " + navaid + " in vors.xml");
+                logger.warn(" - DID NOT find station ID " + navaid
+                        + " in vors.xml");
             }
 
             // If there's an offset direction/bearing, process it
@@ -165,12 +151,10 @@ public class LatLonLocTbl {
 
                     int distanceNM = Integer.parseInt(distanceStr);
 
-                    double distanceRad = distanceNM * ONE_NM_RADIANS;
                     // LatLonPoint.positionOf thinks bearing is CCW, not CW...
-                    double bearingDeg = 360.0 - Direction.valueOf(bearingStr)
+                    double bearingDeg = Direction.valueOf(bearingStr)
                             .getDegrees();
-                    double bearingRad = Math.toRadians(bearingDeg);
-                    point = point.positionOf(bearingRad, distanceRad);
+                    point = point.positionOf(bearingDeg, distanceNM);
                     logger.debug(" - get a good latlon point");
                 }
             }

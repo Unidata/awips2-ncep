@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.locationtech.jts.geom.Coordinate;
@@ -25,6 +24,8 @@ import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
@@ -76,44 +77,57 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * FFA resourceResource - Display Flash Flood data from aww data.
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer         Description
- * ------------ ---------- -----------      --------------------------
- * 21 June 2010  254    M. Gao  	    Initial creation.
- * 04 Oct  2010  307    G. Hull         timeMatch FfaRscDataObjs
- * 10 Jan. 2011  N/A    M. Gao          Event Time display includes date + time now since some 
- *                                      events start and then end in different dates    
- * 16 Feb 2012    555   S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()                                 
- * 05/23/12       785   Q. Zhou         Added getName for legend.
- * 17 Aug 2012    655   B. Hebbard      Added paintProps as parameter to IDisplayable draw
- * 09/11/12      852    Q. Zhou         Modified time string and alignment in drawLabel().
- * 02/01/13      972    G. Hull         define on NcMapDescriptor instead of IMapDescriptor
- * 08/14/13     1028    G. Hull         Move to aww project. Use AwwReportType enum.
- * 12/14                B. Yin          Remove ScriptCreator, use Thrift Client.
- * 1/15/2015     5770   Kris K          Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
- * 11/05/2015    5070       randerso    Adjust font sizes for dpi scaling
- * 03/15/2016   R15560  K. Bugenhagen   Refactored common code into AwwQueryResult 
- *                                      class, removing need for FfaZoneQueryResult 
- *                                      class.  Also cleanup.
+ *
+ * Date          Ticket#  Engineer       Description
+ * ------------- -------- -------------- ---------------------------------------
+ * Jun 21, 2010  254      M. Gao         Initial creation.
+ * Oct 04, 2010  307      G. Hull        timeMatch FfaRscDataObjs
+ * 10 Jan. 2011  N/A      M. Gao         Event Time display includes date + time
+ *                                       now since some events start and then
+ *                                       end in different dates
+ * Feb 16, 2012  555      S. Gurung      Added call to setAllFramesAsPopulated()
+ *                                       in queryRecords()
+ * May 23, 2012  785      Q. Zhou        Added getName for legend.
+ * Aug 17, 2012  655      B. Hebbard     Added paintProps as parameter to
+ *                                       IDisplayable draw
+ * Sep 11, 2012  852      Q. Zhou        Modified time string and alignment in
+ *                                       drawLabel().
+ * Feb 01, 2013  972      G. Hull        define on NcMapDescriptor instead of
+ *                                       IMapDescriptor
+ * Aug 14, 2013  1028     G. Hull        Move to aww project. Use AwwReportType
+ *                                       enum.
+ * Dec 2014               B. Yin         Remove ScriptCreator, use Thrift
+ *                                       Client.
+ * Jan 15, 2015  5770     Kris K         Code cleaned and FFA display issues
+ *                                       with issuestime, start tiem and end
+ *                                       times are fixed.
+ * Nov 05, 2015  5070     randerso       Adjust font sizes for dpi scaling
+ * Mar 15, 2016  15560    K. Bugenhagen  Refactored common code into
+ *                                       AwwQueryResult class, removing need for
+ *                                       FfaZoneQueryResult class.  Also
+ *                                       cleanup.
+ * Jul 15, 2020  8191     randerso       Updated for changes to LatLonPoint
+ *
  * </pre>
- * 
+ *
  * @author mgao
- * @version 1.0
  */
 
-public class FFAResource extends
-        AbstractNatlCntrsResource<FFAResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IStationField {
+public class FFAResource
+        extends AbstractNatlCntrsResource<FFAResourceData, NCMapDescriptor>
+        implements INatlCntrsResource, IStationField {
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(FFAResource.class);
 
-    private final static String QUERY_PREFIX = "select AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1, state,name,state_zone from mapdata.zonelowres where ";
+    private static final String QUERY_PREFIX = "select AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1, state,name,state_zone from mapdata.zonelowres where ";
 
-    private final static String QUERY_COLUMN_NAME = "state_zone";
+    private static final String QUERY_COLUMN_NAME = "state_zone";
 
     private IFont font;
 
@@ -135,37 +149,48 @@ public class FFAResource extends
 
     public class FfaRscDataObj implements IRscDataObject {
 
-        String dataUri, vtecline; // used as a key string
+        /** used as a key string */
+        private String dataUri;
 
-        DataTime issueTime; // issue time from bulletin
+        /** issue time from bulletin */
+        private DataTime issueTime;
 
-        DataTime eventTime; // Event start time of Vtec with validPeriod
+        /** Event start time of Vtec with validPeriod */
+        private DataTime eventTime;
 
-        DataTime endTime; // Event end time of of Vtec
+        /** Event end time of of Vtec */
+        private DataTime endTime;
 
-        String reportType, actionType, officeId, eTrackingNo, phenomena,
-                significance;
+        private String reportType;
 
-        int polyNumPoints;
+        private int polyNumPoints;
 
-        int ugcIndicator;
+        private int ugcIndicator;
 
-        float[] polyLatArray, countyOrZoneOrStateOrLakeLatArray;
+        private float[] polyLatArray;
 
-        float[] polyLonArray, countyOrZoneOrStateOrLakeLonArray;
+        private float[] countyOrZoneOrStateOrLakeLatArray;
 
-        LatLonPoint[] polygonLatLonPointArray;
+        private float[] polyLonArray;
 
-        List<LatLonPoint> countyOrZoneOrStateOrLakeLatLonPointList;
+        private float[] countyOrZoneOrStateOrLakeLonArray;
 
-        Set<String> ugcCodeStringSet, allStateAbbreviationSet,
-                greatLakeNameSet;
+        private LatLonPoint[] polygonLatLonPointArray;
 
-        List<String> countyOrZoneOrStateOrLakeNameList; // last one;
+        private List<LatLonPoint> countyOrZoneOrStateOrLakeLatLonPointList;
+
+        private Set<String> ugcCodeStringSet;
+
+        private Set<String> allStateAbbreviationSet;
+
+        private Set<String> greatLakeNameSet;
+
+        /** last one; */
+        private List<String> countyOrZoneOrStateOrLakeNameList;
 
         public List<String> fips;
 
-        String immediateCause;
+        private String immediateCause;
 
         @Override
         public DataTime getDataTime() {
@@ -179,19 +204,20 @@ public class FFAResource extends
     }
 
     protected class FrameData extends AbstractFrameData {
-        HashMap<String, FfaRscDataObj> ffaDataMap;
+        private Map<String, FfaRscDataObj> ffaDataMap;
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
-            ffaDataMap = new HashMap<String, FfaRscDataObj>();
+            ffaDataMap = new HashMap<>();
         }
 
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof FfaRscDataObj)) {
-                logger.error("FFAResource:updateFrameData() processing.....\n"
-                        + "Data belongs to a different class :"
-                        + rscDataObj.getClass().toString());
+                statusHandler
+                        .error("FFAResource:updateFrameData() processing.....\n"
+                                + "Data belongs to a different class :"
+                                + rscDataObj.getClass().getName());
                 return false;
             }
             FfaRscDataObj ffaRscDataObj = (FfaRscDataObj) rscDataObj;
@@ -209,12 +235,11 @@ public class FFAResource extends
          * ffaRscDataObj is added to the map only when the issueTime of the
          * imported ffaRscDataObj is newer than the issueTime of the existing
          * FfaRscDataObj be skipped
-         * 
+         *
          * @param ffaDataMap
          * @param ffaRscDataObj
          */
-        private void updateFfaDataMap(
-                HashMap<String, FfaRscDataObj> ffaDataMap,
+        private void updateFfaDataMap(Map<String, FfaRscDataObj> ffaDataMap,
                 FfaRscDataObj ffaRscDataObj) {
             if (isFfaRscDataObjValid(ffaRscDataObj)) {
                 FfaRscDataObj existingFFAData = ffaDataMap
@@ -232,16 +257,19 @@ public class FFAResource extends
                 DataTime newIssueTime, DataTime existingIssueTime) {
             boolean isNewIssueTimeGreaterThanExistingIssueTime = false;
             if (newIssueTime != null && existingIssueTime != null) {
-                if (newIssueTime.greaterThan(existingIssueTime))
+                if (newIssueTime.greaterThan(existingIssueTime)) {
                     isNewIssueTimeGreaterThanExistingIssueTime = true;
+                }
             }
             return isNewIssueTimeGreaterThanExistingIssueTime;
         }
 
         private boolean isFfaRscDataObjValid(FfaRscDataObj newFfaRscDataObj) {
             boolean isFfaRscDataObjValid = false;
-            if (newFfaRscDataObj != null && newFfaRscDataObj.eventTime != null)
+            if (newFfaRscDataObj != null
+                    && newFfaRscDataObj.eventTime != null) {
                 isFfaRscDataObjValid = true;
+            }
             return isFfaRscDataObjValid;
         }
 
@@ -258,7 +286,7 @@ public class FFAResource extends
     @Override
     public IRscDataObject[] processRecord(Object awwObj) {
         if (!(awwObj instanceof AwwRecord)) {
-            logger.error("FFAResource.processRecord: object is not a "
+            statusHandler.error("FFAResource.processRecord: object is not a "
                     + "AwwRecord: " + awwObj.getClass().getName());
             return new IRscDataObject[] {};
         }
@@ -277,8 +305,9 @@ public class FFAResource extends
      */
     private boolean isRetrievedFfaRscDataObjValid(FfaRscDataObj ffaRscDataObj) {
         boolean isFfaRscDataObjValid = false;
-        if (ffaRscDataObj != null && ffaRscDataObj.eventTime != null)
+        if (ffaRscDataObj != null && ffaRscDataObj.eventTime != null) {
             isFfaRscDataObjValid = true;
+        }
         return isFfaRscDataObjValid;
     }
 
@@ -311,8 +340,8 @@ public class FFAResource extends
 
             String ugcLine = eachAwwUgc.getUgc();
             if (!StringUtil.isStringEmpty(ugcLine)) {
-                ffaData.ugcCodeStringSet = getCountyUgcSet(eachAwwUgc
-                        .getAwwFIPS());
+                ffaData.ugcCodeStringSet = getCountyUgcSet(
+                        eachAwwUgc.getAwwFIPS());
                 ffaData = populateCountyOrZoneOrStateOrLakeInfo(ffaData);
             }
 
@@ -324,11 +353,12 @@ public class FFAResource extends
                 int index;
                 for (AwwLatlons awwLatLon : eachAwwUgc.getAwwLatLon()) {
                     LatLonPoint point = new LatLonPoint(awwLatLon.getLat(),
-                            awwLatLon.getLon(), LatLonPoint.INDEGREES);
+                            awwLatLon.getLon());
                     index = awwLatLon.getIndex();
                     ffaData.polyLatArray[index - 1] = awwLatLon.getLat();
                     ffaData.polyLonArray[index - 1] = awwLatLon.getLon();
-                    logger.debug("the index of this lat lon is " + index);
+                    statusHandler
+                            .debug("the index of this lat lon is " + index);
 
                     ffaData.polygonLatLonPointArray[index - 1] = point;
                 }
@@ -351,38 +381,41 @@ public class FFAResource extends
          * substitute it This solution may not be 100% accurate for some
          * scenarios.
          */
-        if (eventStartCalendar == null && awwRecord.getIssueTime() != null)
+        if (eventStartCalendar == null && awwRecord.getIssueTime() != null) {
             eventStartCalendar = awwRecord.getIssueTime();
+        }
 
         Calendar issueTime = awwRecord.getIssueTime();
 
         if (issueTime != null && eventEndCalendar != null) {
             ffaData.endTime = new DataTime(eventEndCalendar);
-            ffaData.eventTime = new DataTime(eventStartCalendar, new TimeRange(
-                    issueTime, eventEndCalendar));
+            ffaData.eventTime = new DataTime(eventStartCalendar,
+                    new TimeRange(issueTime, eventEndCalendar));
         }
     }
 
     private Calendar getEventStartTimeFromAwwVtec(AwwVtec awwVtec) {
         Calendar startTime = null;
-        if (awwVtec != null)
+        if (awwVtec != null) {
             startTime = awwVtec.getEventStartTime();
+        }
         return startTime;
     }
 
     private Calendar getEventEndTimeFromAwwVtec(AwwVtec awwVtec) {
         Calendar endTime = null;
-        if (awwVtec != null)
+        if (awwVtec != null) {
             endTime = awwVtec.getEventEndTime();
+        }
         return endTime;
     }
 
     private Set<String> getCountyUgcSet(Set<AwwFips> awwFipsSet) {
         Set<String> countyUgcSet = null;
-        if (awwFipsSet == null)
-            countyUgcSet = new HashSet<String>();
-        else {
-            countyUgcSet = new HashSet<String>(awwFipsSet.size());
+        if (awwFipsSet == null) {
+            countyUgcSet = new HashSet<>();
+        } else {
+            countyUgcSet = new HashSet<>(awwFipsSet.size());
             for (AwwFips eachAwwFips : awwFipsSet) {
                 String eachFips = eachAwwFips.getFips();
                 countyUgcSet.add(eachFips);
@@ -396,9 +429,10 @@ public class FFAResource extends
         StringBuilder causeBuilder = new StringBuilder();
         if (awwVtec.getAwwHVtecLine() != null) {
             for (AwwHVtec eachHVtec : awwVtec.getAwwHVtecLine()) {
-                if (!StringUtil.isStringEmpty(eachHVtec.getImmediateCause()))
-                    causeBuilder.append(eachHVtec.getImmediateCause()).append(
-                            "; ");
+                if (!StringUtil.isStringEmpty(eachHVtec.getImmediateCause())) {
+                    causeBuilder.append(eachHVtec.getImmediateCause())
+                            .append("; ");
+                }
             }
         }
         return causeBuilder.toString();
@@ -406,10 +440,10 @@ public class FFAResource extends
 
     private FfaRscDataObj populateCountyOrZoneOrStateOrLakeInfo(
             FfaRscDataObj ffaData) {
-        ffaData.countyOrZoneOrStateOrLakeLatLonPointList = new ArrayList<LatLonPoint>();
-        ffaData.countyOrZoneOrStateOrLakeNameList = new ArrayList<String>();
-        ffaData.allStateAbbreviationSet = new HashSet<String>();
-        ffaData.greatLakeNameSet = new HashSet<String>();
+        ffaData.countyOrZoneOrStateOrLakeLatLonPointList = new ArrayList<>();
+        ffaData.countyOrZoneOrStateOrLakeNameList = new ArrayList<>();
+        ffaData.allStateAbbreviationSet = new HashSet<>();
+        ffaData.greatLakeNameSet = new HashSet<>();
         ffaData.countyOrZoneOrStateOrLakeLatArray = new float[ffaData.ugcCodeStringSet
                 .size()];
         ffaData.countyOrZoneOrStateOrLakeLonArray = new float[ffaData.ugcCodeStringSet
@@ -425,24 +459,24 @@ public class FFAResource extends
                 String greatLakeAbbreviation = eachCountyOrZoneOrStateOrLakeUgcString
                         .substring(0, 2);
                 if (!ffaData.greatLakeNameSet.contains(greatLakeAbbreviation)) {
-                    List<Object[]> objectArrayList = getGreatLakeInfo(greatLakeAbbreviation);
+                    List<Object[]> objectArrayList = getGreatLakeInfo(
+                            greatLakeAbbreviation);
                     if (!objectArrayList.isEmpty()) {
                         Object[] objectArray = objectArrayList.get(0);
                         String lakeAreaName = (String) objectArray[0];
                         String greatLakeName = getGreatLakeName(lakeAreaName);
-                        Double[] latLonArrayOfLake = getLatLonArrayOfLake((String) objectArray[1]);
+                        Double[] latLonArrayOfLake = getLatLonArrayOfLake(
+                                (String) objectArray[1]);
                         if (latLonArrayOfLake != null) {
                             ffaData.greatLakeNameSet.add(greatLakeAbbreviation);
 
                             LatLonPoint greatLakePoint = new LatLonPoint(
-                                    latLonArrayOfLake[0], latLonArrayOfLake[1],
-                                    LatLonPoint.INDEGREES);
+                                    latLonArrayOfLake[0], latLonArrayOfLake[1]);
 
                             ffaData.countyOrZoneOrStateOrLakeLatLonPointList
                                     .add(greatLakePoint);
-                            ffaData.countyOrZoneOrStateOrLakeNameList
-                                    .add(getCountyOrZoneAndStateName(
-                                            greatLakeName,
+                            ffaData.countyOrZoneOrStateOrLakeNameList.add(
+                                    getCountyOrZoneAndStateName(greatLakeName,
                                             "",
                                             FFAConstant.UGC_GREAT_LAKE_INDICATOR));
                             ffaData.countyOrZoneOrStateOrLakeLatArray[arrayIndex] = latLonArrayOfLake[0]
@@ -459,7 +493,8 @@ public class FFAResource extends
                         .substring(0, 2);
                 if (!ffaData.allStateAbbreviationSet
                         .contains(stateAbbreviation)) {
-                    List<Object[]> objectArrayList = getStateInfo(stateAbbreviation);
+                    List<Object[]> objectArrayList = getStateInfo(
+                            stateAbbreviation);
                     if (!objectArrayList.isEmpty()) {
                         ffaData.allStateAbbreviationSet.add(stateAbbreviation);
 
@@ -470,15 +505,12 @@ public class FFAResource extends
                         BigDecimal stateLongitude = (BigDecimal) objectArray[2];
                         LatLonPoint statePoint = new LatLonPoint(
                                 stateLatitude.doubleValue(),
-                                stateLongitude.doubleValue(),
-                                LatLonPoint.INDEGREES);
+                                stateLongitude.doubleValue());
 
                         ffaData.countyOrZoneOrStateOrLakeLatLonPointList
                                 .add(statePoint);
-                        ffaData.countyOrZoneOrStateOrLakeNameList
-                                .add(getCountyOrZoneAndStateName(
-                                        stateFullName,
-                                        "",
+                        ffaData.countyOrZoneOrStateOrLakeNameList.add(
+                                getCountyOrZoneAndStateName(stateFullName, "",
                                         FFAConstant.UGC_ALL_STATE_ZONE_INDICATOR));
                         ffaData.countyOrZoneOrStateOrLakeLatArray[arrayIndex] = stateLatitude
                                 .floatValue();
@@ -500,8 +532,7 @@ public class FFAResource extends
                             .contains(zoneAndStateName)) {
                         LatLonPoint point = new LatLonPoint(
                                 zoneStation.getLatitude(),
-                                zoneStation.getLongitude(),
-                                LatLonPoint.INDEGREES);
+                                zoneStation.getLongitude());
                         ffaData.countyOrZoneOrStateOrLakeLatLonPointList
                                 .add(point);
                         ffaData.countyOrZoneOrStateOrLakeNameList
@@ -515,7 +546,9 @@ public class FFAResource extends
                 }
                 break;
             case FFAConstant.UGC_NEW_PATTERN_INDICATOR:
-                eachCountyOrZoneOrStateOrLakeUgcString = convertToOldUgcStringPattern(eachCountyOrZoneOrStateOrLakeUgcString);
+                eachCountyOrZoneOrStateOrLakeUgcString = convertToOldUgcStringPattern(
+                        eachCountyOrZoneOrStateOrLakeUgcString);
+                // intentional fall through?
             case FFAConstant.UGC_COUNTY_INDICATOR:
                 Station countyStation = countyStationTable.getStation(
                         StationField.STID,
@@ -529,8 +562,7 @@ public class FFAResource extends
                             .contains(countyAndStateName)) {
                         LatLonPoint point = new LatLonPoint(
                                 countyStation.getLatitude(),
-                                countyStation.getLongitude(),
-                                LatLonPoint.INDEGREES);
+                                countyStation.getLongitude());
                         ffaData.countyOrZoneOrStateOrLakeLatLonPointList
                                 .add(point);
                         ffaData.countyOrZoneOrStateOrLakeNameList
@@ -544,7 +576,7 @@ public class FFAResource extends
                 }
                 break;
             default:
-                logger.error("Unknown ugc string pattern, UGC string ="
+                statusHandler.error("Unknown ugc string pattern, UGC string ="
                         + eachCountyOrZoneOrStateOrLakeUgcString);
                 break;
             }
@@ -558,14 +590,14 @@ public class FFAResource extends
         StringBuilder query = new StringBuilder(
                 "select name, lat, lon from mapdata.states where state ='");
         query.append(stateAbbreviation).append("';");
-        List<Object[]> results = new ArrayList<Object[]>();
+        List<Object[]> results = new ArrayList<>();
         try {
             results = DirectDbQuery.executeQuery(query.toString(), "maps",
                     QueryLanguage.SQL);
         } catch (VizException e1) {
-            logger.debug("VizException is thrown when trying to do DirectDbQuery.executeQuery to query mapdata.states table, error="
-                    + e1.getMessage());
-            e1.printStackTrace();
+            statusHandler.debug(
+                    "VizException is thrown when trying to do DirectDbQuery.executeQuery to query mapdata.states table",
+                    e1);
         }
         return results;
     }
@@ -574,14 +606,14 @@ public class FFAResource extends
         StringBuilder query = new StringBuilder(
                 "select area, ctrloc from bounds.greatlakesbnds where id ='");
         query.append(greatLakeAbbreviation).append("';");
-        List<Object[]> results = new ArrayList<Object[]>();
+        List<Object[]> results = new ArrayList<>();
         try {
             results = DirectDbQuery.executeQuery(query.toString(), "ncep",
                     QueryLanguage.SQL);
         } catch (VizException e1) {
-            logger.debug("VizException is thrown when trying to do DirectDbQuery.executeQuery to query bounds.greatlakesbnds table, error="
-                    + e1.getMessage());
-            e1.printStackTrace();
+            statusHandler.debug(
+                    "VizException is thrown when trying to do DirectDbQuery.executeQuery to query bounds.greatlakesbnds table"
+                            + e1);
         }
         return results;
     }
@@ -618,19 +650,22 @@ public class FFAResource extends
 
     /**
      * Create a FFA resource.
-     * 
+     *
      * @throws VizException
      */
     public FFAResource(FFAResourceData rscData, LoadProperties loadProperties)
             throws VizException {
         super(rscData, loadProperties);
-        ffaRscData = (FFAResourceData) resourceData;
+        ffaRscData = resourceData;
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    @Override
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
+    @Override
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
         font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
@@ -648,7 +683,7 @@ public class FFAResource extends
 
         Iterator<IRscDataObject> iter = newRscDataObjsQueue.iterator();
         while (iter.hasNext()) {
-            IRscDataObject dataObject = (IRscDataObject) iter.next();
+            IRscDataObject dataObject = iter.next();
             FfaRscDataObj ffaRscDataObj = (FfaRscDataObj) dataObject;
             queryResult.buildQueryPart(ffaRscDataObj.fips, QUERY_COLUMN_NAME);
         }
@@ -661,6 +696,7 @@ public class FFAResource extends
 
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -671,7 +707,7 @@ public class FFAResource extends
         if (areaChangeFlag) {
             areaChangeFlag = false;
             postProcessFrameUpdate();
-        } // TODO: dispose old outlineShape
+        }
 
         FrameData currFrameData = (FrameData) frameData;
 
@@ -710,12 +746,15 @@ public class FFAResource extends
             PaintProperties paintProps, FfaRscDataObj ffaData,
             Boolean drawingEnabled, RGB rgbColor, int outlineWidth,
             LineStyle lineStyle, int symbolSize) throws VizException {
-        if (!drawingEnabled)
+        if (!drawingEnabled) {
             return;
-        if (ffaRscData.getOutlineEnable())
+        }
+        if (ffaRscData.getOutlineEnable()) {
             drawOutline(ffaData, target, rgbColor, outlineWidth, lineStyle,
                     paintProps);
-        drawLabel(ffaData, target, paintProps, rgbColor, symbolSize, symbolSize);
+        }
+        drawLabel(ffaData, target, paintProps, rgbColor, symbolSize,
+                symbolSize);
     }
 
     public void drawOutline(FfaRscDataObj ffaData, IGraphicsTarget target,
@@ -740,13 +779,14 @@ public class FFAResource extends
 
     }
 
-    public void drawLabel(FfaRscDataObj ffaData,
-            IGraphicsTarget graphicsTarget, PaintProperties paintProps,
-            RGB color, float symbolLineWidth, double symbolSizeScale) {
+    public void drawLabel(FfaRscDataObj ffaData, IGraphicsTarget graphicsTarget,
+            PaintProperties paintProps, RGB color, float symbolLineWidth,
+            double symbolSizeScale) {
         try {
             int index = 0;
             for (String eachCountyOrZoneAndStateNameWithMaker : ffaData.countyOrZoneOrStateOrLakeNameList) {
-                String eachCountyOrZoneAndStateName = removeMarker(eachCountyOrZoneAndStateNameWithMaker);
+                String eachCountyOrZoneAndStateName = removeMarker(
+                        eachCountyOrZoneAndStateNameWithMaker);
                 double[] labelLatLon = {
                         ffaData.countyOrZoneOrStateOrLakeLonArray[index],
                         ffaData.countyOrZoneOrStateOrLakeLatArray[index] };
@@ -764,11 +804,11 @@ public class FFAResource extends
                     }
 
                     String[] text = new String[3];
-                    List<String> enabledText = new ArrayList<String>();
+                    List<String> enabledText = new ArrayList<>();
 
                     if (ffaRscData.getCountyOrZoneNameEnable()) {
-                        enabledText
-                                .add(getCountyOrZoneAndStateNameValue(eachCountyOrZoneAndStateName));
+                        enabledText.add(getCountyOrZoneAndStateNameValue(
+                                eachCountyOrZoneAndStateName));
                     }
 
                     if (ffaRscData.getTimeEnable()) {
@@ -777,12 +817,13 @@ public class FFAResource extends
                     }
 
                     if (ffaRscData.getImmediateCauseEnable()) {
-                        enabledText
-                                .add(getImmediateCauseDesc(ffaData.immediateCause));
+                        enabledText.add(
+                                getImmediateCauseDesc(ffaData.immediateCause));
                     }
 
-                    for (int j = enabledText.size(); j < 3; j++)
+                    for (int j = enabledText.size(); j < 3; j++) {
                         enabledText.add("");
+                    }
 
                     text = enabledText.toArray(text);
 
@@ -799,8 +840,9 @@ public class FFAResource extends
                 index++;
             }
         } catch (VizException vize) {
-            logger.error("VizException is thrown when trying to drawLabel, error="
-                    + vize.getMessage());
+            statusHandler
+                    .error("Exception thrown when trying to drawLabel, error="
+                            + vize.getMessage(), vize);
         }
     }
 
@@ -811,10 +853,8 @@ public class FFAResource extends
             StringBuilder builder = new StringBuilder(
                     immediateCauseAbbreviation.length());
             for (String eachAbbreviation : abbreviationArray) {
-                builder.append(
-                        AwwImmediateCauseUtil
-                                .getImmediateCauseDesc(eachAbbreviation))
-                        .append("  ");
+                builder.append(AwwImmediateCauseUtil
+                        .getImmediateCauseDesc(eachAbbreviation)).append("  ");
             }
             desc = builder.toString();
         }
@@ -825,16 +865,16 @@ public class FFAResource extends
             PaintProperties paintProps, double[] latLonArray, RGB color,
             float symbolLineWidth, double symbolSizeScale) {
         Color symbolColor = new Color(color.red, color.green, color.blue);
-        Coordinate coordinate = new Coordinate(
-                latLonArray[0], latLonArray[1]);
+        Coordinate coordinate = new Coordinate(latLonArray[0], latLonArray[1]);
         Symbol symbol = new Symbol(null, new Color[] { symbolColor },
-                symbolLineWidth,// lineWidth, same as arrow's
-                symbolSizeScale, true, coordinate, "Symbol", symbolType);
+                // lineWidth, same as arrow's
+                symbolLineWidth, symbolSizeScale, true, coordinate, "Symbol",
+                symbolType);
 
         DisplayElementFactory df = new DisplayElementFactory(graphicsTarget,
                 getNcMapDescriptor());
-        ArrayList<IDisplayable> displayElsPoint = df.createDisplayElements(
-                symbol, paintProps);
+        List<IDisplayable> displayElsPoint = df.createDisplayElements(symbol,
+                paintProps);
         for (IDisplayable each : displayElsPoint) {
             each.draw(graphicsTarget, paintProps);
             each.dispose();
@@ -877,27 +917,30 @@ public class FFAResource extends
             DataTime eventEndTime) {
         StringBuilder builder = new StringBuilder(16);
 
-        if (eventStartTime != null)
+        if (eventStartTime != null) {
             builder.append(eventStartTime.toString().substring(8, 10) + "/"
                     + eventStartTime.toString().substring(11, 13)
                     + eventStartTime.toString().substring(14, 16));
-        else
+        } else {
             builder.append("-");
+        }
         builder.append("-");
-        if (eventEndTime != null)
+        if (eventEndTime != null) {
             builder.append(eventEndTime.toString().substring(8, 10) + "/"
                     + eventEndTime.toString().substring(11, 13)
                     + eventEndTime.toString().substring(14, 16));
-        else
+        } else {
             builder.append("-");
+        }
         return builder.toString();
     }
 
     private String getGreatLakeName(String lakeAreaName) {
         String greatLakeName = "Unknown great lake name";
-        if (!StringUtil.isStringEmpty(lakeAreaName))
+        if (!StringUtil.isStringEmpty(lakeAreaName)) {
             greatLakeName = lakeAreaName.trim().replace(FFAConstant.UNDERSTORE,
                     " ");
+        }
         return greatLakeName;
     }
 
@@ -906,8 +949,8 @@ public class FFAResource extends
         if (isLakeAreaStringValid(lakeAreaStringValue)) {
             String trimmedString = lakeAreaStringValue.trim();
             int stringLength = trimmedString.length();
-            String[] latLonStringArray = trimmedString.substring(1,
-                    stringLength - 1).split(",");
+            String[] latLonStringArray = trimmedString
+                    .substring(1, stringLength - 1).split(",");
             if (latLonStringArray != null && latLonStringArray.length == 2) {
                 try {
                     latLonDoubleArray = new Double[2];
@@ -926,11 +969,12 @@ public class FFAResource extends
     private boolean isLakeAreaStringValid(String lakeAreaStringValue) {
         boolean isValid = false;
         if (!StringUtil.isStringEmpty(lakeAreaStringValue)) {
-            int strLength = lakeAreaStringValue.trim().length();
-            if (lakeAreaStringValue.trim().indexOf('(') == 0
-                    && lakeAreaStringValue.indexOf(')') == (strLength - 1)
-                    && lakeAreaStringValue.indexOf(',') > 0)
+            lakeAreaStringValue = lakeAreaStringValue.trim();
+            if (lakeAreaStringValue.startsWith("(")
+                    && lakeAreaStringValue.endsWith(")")
+                    && lakeAreaStringValue.contains(",")) {
                 isValid = true;
+            }
         }
         return isValid;
     }
@@ -947,22 +991,24 @@ public class FFAResource extends
     }
 
     public String getFfaRscDataObjKey(FfaRscDataObj f) {
-        if (f == null)
+        if (f == null) {
             return "";
+        }
         return f.dataUri;
 
     }
 
     public List<String> getFips(AwwUgc eachAwwUgc) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
 
-        if (eachAwwUgc == null || eachAwwUgc.getAwwFIPS() == null)
+        if (eachAwwUgc == null || eachAwwUgc.getAwwFIPS() == null) {
             return list;
+        }
 
         for (AwwFips afips : eachAwwUgc.getAwwFIPS()) {
-            StringBuilder sb = new StringBuilder(afips.getFips()
-                    .substring(0, 2));
-            list.add(sb.append(afips.getFips().substring(3)).toString());//
+            StringBuilder sb = new StringBuilder(
+                    afips.getFips().substring(0, 2));
+            list.add(sb.append(afips.getFips().substring(3)).toString());
         }
 
         return list;
@@ -970,10 +1016,11 @@ public class FFAResource extends
 
     // see comment in the else block for the Map values
     public boolean updateFrameData2(IRscDataObject rscDataObj,
-            Map<String, ArrayList<FfaRscDataObj>> fDataMap) {
+            Map<String, List<FfaRscDataObj>> fDataMap) {
 
-        if (!(rscDataObj instanceof FfaRscDataObj))
+        if (!(rscDataObj instanceof FfaRscDataObj)) {
             return false;
+        }
 
         FfaRscDataObj frdo = (FfaRscDataObj) rscDataObj;
 
@@ -984,24 +1031,23 @@ public class FFAResource extends
             fDataMap.get(key).add(frdo);
         } else {
 
-            ArrayList<FfaRscDataObj> list = new ArrayList<FfaRscDataObj>();
+            List<FfaRscDataObj> list = new ArrayList<>();
             list.add(frdo);
-            fDataMap.put(key, list);// NOT datauri
+            // NOT datauri
+            fDataMap.put(key, list);
         }
-
-        // }
 
         return true;
     }
 
     /**
      * handles the IWireframeShape pre-calculation
-     * 
+     *
      * @author gzhang
      */
     private class ZoneResultJob extends org.eclipse.core.runtime.jobs.Job {
 
-        private Map<String, Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<String, Result>();
+        private Map<String, Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<>();
 
         private IGraphicsTarget target;
 
@@ -1049,12 +1095,13 @@ public class FFAResource extends
                  * they are just different action types: NEW, EXA/EXB
                  */
                 for (FfaRscDataObj frdo : fd.ffaDataMap.values()) {// list){
-                    Collection<Geometry> gw = new ArrayList<Geometry>();
-                    for (int i = 0; i < frdo.fips.size(); i++) {
+                    Collection<Geometry> gw = new ArrayList<>();
+                    for (String element : frdo.fips) {
                         for (ArrayList<Object[]> zones : queryResult
-                                .getZoneResult(frdo.fips.get(i))) {
-                            if (zones == null)
+                                .getZoneResult(element)) {
+                            if (zones == null) {
                                 continue;
+                            }
                             WKBReader wkbReader = new WKBReader();
                             for (Object[] result : zones) {
                                 int k = 0;
@@ -1068,17 +1115,16 @@ public class FFAResource extends
                                         gw.add(countyGeo);
                                     }
                                 } catch (Exception e) {
-                                    logger.info("Exception: " + e.getMessage());
+                                    statusHandler.info(e.getMessage(), e);
                                 }
                             }
                         }
 
                     }
-                    if (gw.size() == 0)
-                        continue;
-                    else
+                    if (!gw.isEmpty()) {
                         keyResultMap.put(frdo.getKey(), new Result(
                                 getEachWrdoShape(gw), null, null, null));
+                    }
                 }
             }
 
@@ -1087,8 +1133,8 @@ public class FFAResource extends
 
         public IWireframeShape getEachWrdoShape(Collection<Geometry> gw) {
 
-            IWireframeShape newOutlineShape = target.createWireframeShape(
-                    false, descriptor, 0.0f);
+            IWireframeShape newOutlineShape = target.createWireframeShape(false,
+                    descriptor, 0.0f);
 
             JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
                     descriptor, PointStyle.CROSS);
@@ -1104,25 +1150,24 @@ public class FFAResource extends
                 newOutlineShape.compile();
 
             } catch (Exception e) {
-                logger.info("_____Error: " + e.getMessage());
+                statusHandler.info(e.getMessage(), e);
             }
 
             return newOutlineShape;
         }
     }
 
-    private void drawZoneOutline2(FfaRscDataObj ffaData,
-            IGraphicsTarget target, RGB color, int outlineWidth,
-            LineStyle lineStyle, PaintProperties paintProps, Envelope env) {
+    private void drawZoneOutline2(FfaRscDataObj ffaData, IGraphicsTarget target,
+            RGB color, int outlineWidth, LineStyle lineStyle,
+            PaintProperties paintProps, Envelope env) {
 
         ZoneResultJob.Result result = zrJob.keyResultMap.get(ffaData.getKey());
 
         if (result != null) {
-            if (outlineShape == null) {
-                outlineShape = result.outlineShape;
-            } else {
-                outlineShape = result.outlineShape;
+            if (outlineShape != null) {
+                outlineShape.dispose();
             }
+            outlineShape = result.outlineShape;
         } else {
             return;
         }
@@ -1132,7 +1177,9 @@ public class FFAResource extends
                 target.drawWireframeShape(outlineShape, color, outlineWidth,
                         lineStyle);
             } catch (VizException e) {
-                logger.info("VizException in drawCountyOutline2() of FFAResource");
+                statusHandler.info(
+                        "VizException in drawCountyOutline2() of FFAResource",
+                        e);
             }
 
         }
@@ -1149,8 +1196,9 @@ public class FFAResource extends
     @Override
     protected long getDataTimeMs(IRscDataObject rscDataObj) {
 
-        if (rscDataObj == null)
+        if (rscDataObj == null) {
             return 0;
+        }
 
         java.util.Calendar validTimeInCalendar = null;
         DataTime dataTime = rscDataObj.getDataTime();
@@ -1158,11 +1206,13 @@ public class FFAResource extends
             validTimeInCalendar = dataTime.getValidTime();
 
         } else {
-            logger.info("===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!");
+            statusHandler.info(
+                    "===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!");
         }
         long dataTimeInMs = 0;
-        if (validTimeInCalendar != null)
+        if (validTimeInCalendar != null) {
             dataTimeInMs = validTimeInCalendar.getTimeInMillis();
+        }
         return dataTimeInMs;
     }
 

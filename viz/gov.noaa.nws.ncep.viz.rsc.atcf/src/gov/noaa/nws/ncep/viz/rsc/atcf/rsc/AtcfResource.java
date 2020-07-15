@@ -1,34 +1,29 @@
 /**
  * AtcfResource
- * 
+ *
  * Date created 10 Aug 2010
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 package gov.noaa.nws.ncep.viz.rsc.atcf.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.atcf.request.RetrieveCyclonesRequest;
-import gov.noaa.nws.ncep.edex.uengine.tasks.atcf.AtcfCyclone;
-import gov.noaa.nws.ncep.edex.uengine.tasks.atcf.AtcfTrack;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.geom.Rectangle2D;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import org.eclipse.swt.graphics.RGB;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
@@ -44,33 +39,48 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.geom.PixelCoordinate;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import org.locationtech.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.common.dataplugin.atcf.request.RetrieveCyclonesRequest;
+import gov.noaa.nws.ncep.edex.uengine.tasks.atcf.AtcfCyclone;
+import gov.noaa.nws.ncep.edex.uengine.tasks.atcf.AtcfTrack;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * Displays the Automated Tropical Cyclone Forecast ( ATCF - MISC resource)
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer     Description
- * ------------ ---------- -----------  --------------------------
- * 10-Aug-2010    284      Archana      Initial creation.
- * 30-Sep-2010    307      Greg Hull    created AtcfCycloneRscDataObject wrapper 
- * 19-Oct-2010    307      Archana      updated queryRecords() and createQueryScriptForPython(String, String)
- *                                                        for time-matching 
- * 11-Nov-2010    307      Greg Hull    Use data with best timeMatch. adjust startTime in query.  
- * 01-Mar-2011             Greg Hull    frameInterval -> frameSpan
- * 16 Feb 2012    555      S. Gurung    Added call to setAllFramesAsPopulated() in queryRecords()
- * 05/23/12       785      Q. Zhou      Added getName for legend.                                               
- * 11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
- * 08/11/2016    R9715     kbugenhagen  Remove micro-engine python script query 
- *                                      implementation and replace with Thriftclient 
- *                                      implementation.  Also, cleaned up code. 
- * @author archana
+ *
+ * Date          Ticket#  Engineer     Description
+ * ------------- -------- ------------ -----------------------------------------
+ * 10-Aug-2010   284      Archana      Initial creation.
+ * 30-Sep-2010   307      Greg Hull    created AtcfCycloneRscDataObject wrapper
+ * 19-Oct-2010   307      Archana      updated queryRecords() and
+ *                                     createQueryScriptForPython(String,
+ *                                     String) for time-matching
+ * 11-Nov-2010   307      Greg Hull    Use data with best timeMatch. adjust
+ *                                     startTime in query.
+ * 01-Mar-2011            Greg Hull    frameInterval -> frameSpan
+ * Feb 16, 2012  555      S. Gurung    Added call to setAllFramesAsPopulated()
+ *                                     in queryRecords()
+ * May 23, 2012  785      Q. Zhou      Added getName for legend.
+ * Nov 05, 2015  5070     randerso     Adjust font sizes for dpi scaling
+ * Aug 11, 2016  9715     kbugenhagen  Remove micro-engine python script query
+ *                                     implementation and replace with
+ *                                     Thriftclient implementation.  Also,
+ *                                     cleaned up code.
+ * Jul 15, 2020  8191     randerso     Updated for changes to LatLonPoint
+ *
  * </pre>
+ *
+ * @author archana
  */
-public class AtcfResource extends
-        AbstractNatlCntrsResource<AtcfResourceData, NCMapDescriptor> implements
-        INatlCntrsResource {
+public class AtcfResource
+        extends AbstractNatlCntrsResource<AtcfResourceData, NCMapDescriptor>
+        implements INatlCntrsResource {
 
     private AtcfResourceData atcfResourceDataObj;
 
@@ -79,29 +89,45 @@ public class AtcfResource extends
 
     private SimpleDateFormat sdf = new SimpleDateFormat("ddHH");
 
-    private final String[] FORECAST_MODEL_NAMES = new String[] { "OHPC",
+    private static final String[] FORECAST_MODEL_NAMES = new String[] { "OHPC",
             "CLIP", "AVNO", "MRFO", "UKM", "AVNI", "NAMI", "EMX2", "EGRI",
             "NGPI", "UKM2", "HWFI", "GHMI", "GFNI", "AEMI", "TCON", "GUNA",
             "TVCN", "EMXI", "FSSE", "UKMI", "BAMM", "BAMD", "BAMS", "EGR2" };
 
-    private Map<CycloneForecastTechniqueType, Boolean> modelLegendEnabledMap = new HashMap<>(
-            0);
+    private EnumMap<CycloneForecastTechniqueType, Boolean> modelLegendEnabledMap = new EnumMap<>(
+            CycloneForecastTechniqueType.class);
 
-    private Map<CycloneForecastTechniqueType, RGB> modelLegendColorMap = new HashMap<>(
-            0);
-
-    private IFont font = null;
-
-    float baseFontSize = 14;
-
-    private Rectangle2D charSize;
-
-    private double charHeight;
-
-    private double charWidth;
+    private EnumMap<CycloneForecastTechniqueType, RGB> modelLegendColorMap = new EnumMap<>(
+            CycloneForecastTechniqueType.class);
 
     private enum CycloneForecastTechniqueType {
-        OHPC_01, CLIP_02, AVNO_03, MRFO_04, UKM_5, AVNI_06, NAMI_07, EMX2_08, EGRI_09, NGPI_10, UKM2_11, HWFI_12, GHMI_13, GFNI_14, AEMI_15, TCON_16, GUNA_17, TVCN_18, EMXI_19, FSSE_20, UKMI_21, BAMM_22, BAMD_23, BAMS_24, EGR2_25, CARQ_26, UNKNOWN
+        OHPC_01,
+        CLIP_02,
+        AVNO_03,
+        MRFO_04,
+        UKM_5,
+        AVNI_06,
+        NAMI_07,
+        EMX2_08,
+        EGRI_09,
+        NGPI_10,
+        UKM2_11,
+        HWFI_12,
+        GHMI_13,
+        GFNI_14,
+        AEMI_15,
+        TCON_16,
+        GUNA_17,
+        TVCN_18,
+        EMXI_19,
+        FSSE_20,
+        UKMI_21,
+        BAMM_22,
+        BAMD_23,
+        BAMS_24,
+        EGR2_25,
+        CARQ_26,
+        UNKNOWN
     }
 
     private CycloneForecastTechniqueType getEnumForModelName(
@@ -216,8 +242,7 @@ public class AtcfResource extends
             break;
         case UKM_5:
             forecastModelAttributes = new ForecastModelAttributes<>(
-                    atcfResourceDataObj.ukmEnable,
-                    atcfResourceDataObj.ukmColor,
+                    atcfResourceDataObj.ukmEnable, atcfResourceDataObj.ukmColor,
                     atcfResourceDataObj.ukmLineWidth,
                     atcfResourceDataObj.ukmSymbolWidth,
                     atcfResourceDataObj.ukmSymbolSize);
@@ -422,16 +447,18 @@ public class AtcfResource extends
         }
     }
 
-    protected AtcfResource(AtcfResourceData resourceData, LoadProperties props) {
+    protected AtcfResource(AtcfResourceData resourceData,
+            LoadProperties props) {
         super(resourceData, props);
-        atcfResourceDataObj = (AtcfResourceData) resourceData;
+        atcfResourceDataObj = resourceData;
         QUERY_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
     @Override
@@ -442,21 +469,25 @@ public class AtcfResource extends
     @Override
     public void queryRecords() {
 
-        ArrayList<DataTime> frameTimes = getFrameTimes();
+        List<DataTime> frameTimes = getFrameTimes();
         Collections.sort(frameTimes);
         Calendar frameStartTime = Calendar.getInstance();
         Calendar frameEndTime = Calendar.getInstance();
-        if (frameTimes != null && frameTimes.size() > 0) {
+        if (frameTimes != null && !frameTimes.isEmpty()) {
             int frameTimeListSize = frameTimes.size();
-            long frameIntrvlMs = (long) resourceData.getFrameSpan() * 60 * 1000;
+            long frameIntrvlMs = resourceData.getFrameSpan()
+                    * Duration.ofMinutes(1).toMillis();
 
-            // call thriftclient for each frame to avoid blowing out
-            // thriftclient
-            // data limit.
+            /*
+             * call thriftclient for each frame to avoid blowing out
+             * thriftclient data limit.
+             */
             for (int i = 0; i < frameTimeListSize; i++) {
-                // adjust the start and end times to include the
-                // frameIntervals. If this isn't dominant, we need to query
-                // everything that may match the first/last frames.
+                /*
+                 * adjust the start and end times to include the frameIntervals.
+                 * If this isn't dominant, we need to query everything that may
+                 * match the first/last frames.
+                 */
                 long validTime = frameTimes.get(i).getValidTime().getTime()
                         .getTime();
                 frameStartTime.setTime(new Date(validTime - frameIntrvlMs));
@@ -470,8 +501,8 @@ public class AtcfResource extends
                         }
                     }
                 } catch (VizException e) {
-                    statusHandler.error(
-                            "Error retrieving ATCF cyclone records", e);
+                    statusHandler.error("Error retrieving ATCF cyclone records",
+                            e);
                 }
 
                 frameStartTime.clear();
@@ -483,7 +514,7 @@ public class AtcfResource extends
 
     /**
      * Retrieves AtcfCyclone records via ThriftClient
-     * 
+     *
      * @param startTime
      *            Starting time for request
      * @param endTime
@@ -532,18 +563,18 @@ public class AtcfResource extends
     /***
      * Converts the input Latitude and Longitude values into a PixelCoordinate
      * object.
-     * 
+     *
      * @param aLat
      *            - input Latitude
      * @param aLon
      *            - input Longitude
      * @return the PixelCoordiante equivalent of the input Lat/Lon values
      */
-    public PixelCoordinate convertFloatToPixelCoordinate(float aLat, float aLon) {
-        LatLonPoint llp = new LatLonPoint(aLat, aLon, LatLonPoint.INDEGREES);
-        Coordinate worldCoord = new Coordinate(
-                llp.getLongitude(LatLonPoint.INDEGREES),
-                llp.getLatitude(LatLonPoint.INDEGREES));
+    public PixelCoordinate convertFloatToPixelCoordinate(float aLat,
+            float aLon) {
+        LatLonPoint llp = new LatLonPoint(aLat, aLon);
+        Coordinate worldCoord = new Coordinate(llp.getLongitude(),
+                llp.getLatitude());
         double[] thisWorldPixDblArray = { worldCoord.x, worldCoord.y };
         double[] pixelArr = descriptor.worldToPixel(thisWorldPixDblArray);
 
@@ -553,7 +584,7 @@ public class AtcfResource extends
     /***
      * Converts each Lat/Lon point in the array to an equivalent PixelCoordinate
      * object.
-     * 
+     *
      * @param latPointArray
      *            - the input array of latitude points
      * @param lonPointArray
@@ -579,7 +610,7 @@ public class AtcfResource extends
     /***
      * Repaints the ATCF tracks each time the cursor is moved across the window
      * displaying the ATCF resource
-     * 
+     *
      * @param frameData
      *            - the frame to be rendered
      * @param graphicsTarget
@@ -594,13 +625,11 @@ public class AtcfResource extends
         /*
          * Calculate vertical/horizontal offset parameters
          */
-        if (font == null) {
-            font = graphicsTarget.initializeFont("Monospace", 12,
-                    new IFont.Style[] { IFont.Style.BOLD });
-            charSize = graphicsTarget.getStringBounds(font, "N");
-            charHeight = charSize.getHeight();
-            charWidth = charSize.getWidth();
-        }
+        IFont font = graphicsTarget.initializeFont("Monospace", 12,
+                new IFont.Style[] { IFont.Style.BOLD });
+        Rectangle2D charSize = graphicsTarget.getStringBounds(font, "N");
+        double charHeight = charSize.getHeight();
+        double charWidth = charSize.getWidth();
 
         double screenToWorldRatio = paintProps.getCanvasBounds().width
                 / paintProps.getView().getExtent().getWidth();
@@ -628,16 +657,18 @@ public class AtcfResource extends
                 for (AtcfCyclone thisAtcfCyclone : atcfCycloneCollection) {
 
                     String legendTime = "";
-                    float leftMostLocation = 180.0f; // invalid value
-                                                     // initialization
-                    float lowestLocation = 90.0f; // invalid value
-                                                  // initialization
+
+                    // invalid value initialization
+                    float leftMostLocation = 180.0f;
+
+                    // invalid value initialization
+                    float lowestLocation = 90.0f;
                     PixelCoordinate textLoc = null;
 
                     thisAtcfTrackList = new ArrayList<>(
                             thisAtcfCyclone.getTrackList());
                     if (thisAtcfTrackList != null
-                            && thisAtcfTrackList.size() > 0) {
+                            && !thisAtcfTrackList.isEmpty()) {
 
                         /*
                          * Get the legend time to be displayed - the warning
@@ -678,19 +709,20 @@ public class AtcfResource extends
                                  * If the technique (model name) is not unknown
                                  * - process it...
                                  */
-                                if (cftt.compareTo(CycloneForecastTechniqueType.UNKNOWN) != 0) {
+                                if (cftt.compareTo(
+                                        CycloneForecastTechniqueType.UNKNOWN) != 0) {
 
                                     /*
                                      * For a CARQ track, if the storm name is
                                      * not already set, store it
                                      */
-                                    if (cftt.compareTo(CycloneForecastTechniqueType.CARQ_26) == 0) {
+                                    if (cftt.compareTo(
+                                            CycloneForecastTechniqueType.CARQ_26) == 0) {
                                         if (thisAtcfTrack.getStormName()
                                                 .isEmpty()) {
-                                            thisAtcfCyclone
-                                                    .setCyclone(new String(
-                                                            thisAtcfTrack
-                                                                    .getStormName()));
+                                            thisAtcfCyclone.setCyclone(
+                                                    new String(thisAtcfTrack
+                                                            .getStormName()));
                                         }
                                     }
 
@@ -699,9 +731,12 @@ public class AtcfResource extends
                                      * each technique
                                      */
                                     ForecastModelAttributes<RGB, Integer, Float, Boolean> trackAttributes = this
-                                            .getForecastModelAttributesForEnum(cftt);
+                                            .getForecastModelAttributesForEnum(
+                                                    cftt);
 
-                                    /* If the technique/model is enabled plot it */
+                                    /*
+                                     * If the technique/model is enabled plot it
+                                     */
                                     if (trackAttributes.getModelEnable()) {
 
                                         int windSpeedIndex = 0;
@@ -719,7 +754,8 @@ public class AtcfResource extends
                                         for (PixelCoordinate currLoc : pixCoordArray) {
                                             if (prevLoc != null) {
 
-                                                if (cftt.compareTo(CycloneForecastTechniqueType.CARQ_26) == 0
+                                                if (cftt.compareTo(
+                                                        CycloneForecastTechniqueType.CARQ_26) == 0
                                                         && fcstHourArray[fcstHourIndex] > 0) {
                                                     lineStyle = LineStyle.DASHED;
                                                     /*
@@ -731,7 +767,9 @@ public class AtcfResource extends
                                                     lineStyle = LineStyle.SOLID;
                                                 }
 
-                                                /* draw the track point by point */
+                                                /*
+                                                 * draw the track point by point
+                                                 */
                                                 graphicsTarget.drawLine(
                                                         prevLoc.getX(),
                                                         prevLoc.getY(),
@@ -798,9 +836,9 @@ public class AtcfResource extends
                                                         currLoc);
                                                 windSpeedLoc.addToX(offsetX);
                                                 windSpeedLoc.addToY(offsetY);
-                                                String theWindSpeedStrArr[] = new String[] { new Float(
-                                                        windArr[windSpeedIndex])
-                                                        .toString() };
+                                                String theWindSpeedStrArr[] = new String[] {
+                                                        Float.toString(
+                                                                windArr[windSpeedIndex]) };
                                                 DrawableString ds = new DrawableString(
                                                         theWindSpeedStrArr,
                                                         trackAttributes
@@ -824,12 +862,10 @@ public class AtcfResource extends
                                         if (this.modelLegendColorMap != null) {
                                             RGB colorOfLegend = trackAttributes
                                                     .getColorOfModel();
-                                            this.modelLegendColorMap
-                                                    .put(cftt,
-                                                            new RGB(
-                                                                    colorOfLegend.red,
-                                                                    colorOfLegend.green,
-                                                                    colorOfLegend.blue));
+                                            this.modelLegendColorMap.put(cftt,
+                                                    new RGB(colorOfLegend.red,
+                                                            colorOfLegend.green,
+                                                            colorOfLegend.blue));
                                         }
 
                                         /*
@@ -864,8 +900,8 @@ public class AtcfResource extends
                                          * point across all tracks is finally
                                          * used to render the model names)
                                          */
-                                        textLoc = new PixelCoordinate(
-                                                this.convertFloatToPixelCoordinate(
+                                        textLoc = new PixelCoordinate(this
+                                                .convertFloatToPixelCoordinate(
                                                         leftMostLocation,
                                                         lowestLocation));
 
@@ -874,7 +910,7 @@ public class AtcfResource extends
                                          * wind-speed of the next track
                                          */
                                         windSpeedIndex = 0;
-                                    }// if (trackAttributes.getModelEnable())
+                                    }
 
                                     /*
                                      * Add the following key-value pair to a
@@ -883,14 +919,13 @@ public class AtcfResource extends
                                      * (corresponding value)
                                      */
                                     if (this.modelLegendEnabledMap != null) {
-                                        this.modelLegendEnabledMap.put(
-                                                cftt,
+                                        this.modelLegendEnabledMap.put(cftt,
                                                 new Boolean(trackAttributes
                                                         .getModelEnable()));
                                     }
 
                                 }
-                            }// if(picCoordArray != null)
+                            }
                         }
 
                         if (textLoc != null) {
@@ -902,8 +937,9 @@ public class AtcfResource extends
                             for (String thisLegendName : this.FORECAST_MODEL_NAMES) {
                                 CycloneForecastTechniqueType theEnumForModelName = this
                                         .getEnumForModelName(thisLegendName);
-                                if (this.modelLegendEnabledMap.get(
-                                        theEnumForModelName).booleanValue()) {
+                                if (this.modelLegendEnabledMap
+                                        .get(theEnumForModelName)
+                                        .booleanValue()) {
                                     RGB thisLegendColorFromMap = this.modelLegendColorMap
                                             .get(theEnumForModelName);
                                     graphicsTarget.drawString(font,
@@ -922,7 +958,9 @@ public class AtcfResource extends
 
                     if (textLoc != null) {
 
-                        /* If the storm name display is enabled, render it.... */
+                        /*
+                         * If the storm name display is enabled, render it....
+                         */
                         if (atcfResourceDataObj.getNameEnable()) {
                             graphicsTarget.drawString(font,
                                     thisAtcfCyclone.getCyclone(),
@@ -949,6 +987,7 @@ public class AtcfResource extends
                 }
             }
         }
+        font.dispose();
     }
 
     private class FrameData extends AbstractFrameData {
@@ -964,8 +1003,8 @@ public class AtcfResource extends
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof AtcfCycloneRscDataObject)) {
-                statusHandler
-                        .error("AtcfResource:updateFrameData() processing.....\n"
+                statusHandler.error(
+                        "AtcfResource:updateFrameData() processing.....\n"
                                 + "Data belongs to a different class :"
                                 + rscDataObj.getClass().toString());
                 return false;
@@ -1003,9 +1042,9 @@ public class AtcfResource extends
     /***
      * Private class to capture the attributes (such as the color, line width,
      * symbol width etc) of each model from the AtcfResourceData class.
-     * 
+     *
      * @author archana
-     * 
+     *
      * @param <RGB>
      *            - the color of the model
      * @param <Integer>
@@ -1018,15 +1057,15 @@ public class AtcfResource extends
      *            - flag to check if the model is enabled
      */
     private class ForecastModelAttributes<RGB, Integer, Float, Boolean> {
-        Boolean modelEnable;
+        private Boolean modelEnable;
 
-        Integer symbolWidth;
+        private Integer symbolWidth;
 
-        Float symbolSize;
+        private Float symbolSize;
 
-        Integer lineWidth;
+        private Integer lineWidth;
 
-        RGB colorOfModel;
+        private RGB colorOfModel;
 
         public ForecastModelAttributes(Boolean mdlEnable, RGB modelColor,
                 Integer lineWidth, Integer symbolWidth, Float symbolSize) {

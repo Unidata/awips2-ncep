@@ -1,41 +1,32 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.wou;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
-import gov.noaa.nws.ncep.edex.common.stationTables.Station;
-import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
@@ -55,51 +46,74 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.edex.common.stationTables.IStationField;
+import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
+import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
+import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * Wou resourceResource - Display WOU from aww data.
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 4 May 2010           Uma Josyula    Initial creation.
- * 01/10/11				Uma Josyula	   Made changes to preprocess update and event date
- * 07/28/11      #450   Greg Hull      NcPathManager   
- * 09/28/11             Xilin Guo      Made changes to create IWireframeShape for watch number 
- * 12/27/11             Xilin Guo      Checked available watch data                          
- * 05/23/2012    785    Q. Zhou        Added getName for legend.
- * 08/17/12      655    B. Hebbard     Added paintProps as parameter to IDisplayable draw
- * 09/05/12      857    Q. Zhou        Displayed watch number. Modified time string and alignment in drawTimeLabelWatchNumber().
- *                                     Added label/time for union.  Fixed a bug for querying county. Modified fill alpha to 0.5.
- * 09/13/12      857    Q. Zhou        Remove constraint & metamap in initResource().   
- * 08/14/13     1028    G. Hull        Move to aww project. Use AwwReportType enum.
- * 9/15/14      4637    J. Huber       Added fipsRangeReparse to handle "character" in UGC line. Also added logic on when to use it.
- *                                     Also fixed a clean up error for the county list array which prevented some counties from being
- *                                     displayed.
- * 11/05/2015   5070    randerso     Adjust font sizes for dpi scaling
- * 03/15/2016   R15560  K. Bugenhagen  Cleanup and local refactoring.
- * 
+ *
+ * Date          Ticket#  Engineer       Description
+ * ------------- -------- -------------- ---------------------------------------
+ * May 04, 2010           Uma Josyula    Initial creation.
+ * Jan 10, 2011           Uma Josyula    Made changes to preprocess update and
+ *                                       event date
+ * Jul 28, 2011  450      Greg Hull      NcPathManager
+ * Sep 28, 2011           Xilin Guo      Made changes to create IWireframeShape
+ *                                       for watch number
+ * Dec 27, 2011           Xilin Guo      Checked available watch data
+ * May 23, 2012  785      Q. Zhou        Added getName for legend.
+ * Aug 17, 2012  655      B. Hebbard     Added paintProps as parameter to
+ *                                       IDisplayable draw
+ * Sep 05, 2012  857      Q. Zhou        Displayed watch number. Modified time
+ *                                       string and alignment in
+ *                                       drawTimeLabelWatchNumber(). Added
+ *                                       label/time for union.  Fixed a bug for
+ *                                       querying county. Modified fill alpha to
+ *                                       0.5.
+ * Sep 13, 2012  857      Q. Zhou        Remove constraint & metamap in
+ *                                       initResource().
+ * Aug 14, 2013  1028     G. Hull        Move to aww project. Use AwwReportType
+ *                                       enum.
+ * Sep 15, 2014  4637     J. Huber       Added fipsRangeReparse to handle
+ *                                       "character" in UGC line. Also added
+ *                                       logic on when to use it. Also fixed a
+ *                                       clean up error for the county list
+ *                                       array which prevented some counties
+ *                                       from being displayed.
+ * Nov 05, 2015  5070     randerso       Adjust font sizes for dpi scaling
+ * Mar 15, 2016  15560    K. Bugenhagen  Cleanup and local refactoring.
+ * Jul 15, 2020  8191     randerso       Updated for changes to LatLonPoint
+ *
  * </pre>
- * 
+ *
  * @author ujosyula
- * @version 1.0
  */
 
-public class WouResource extends
-        AbstractNatlCntrsResource<WouResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IStationField {
+public class WouResource
+        extends AbstractNatlCntrsResource<WouResourceData, NCMapDescriptor>
+        implements INatlCntrsResource, IStationField {
 
     private IFont font;
 
@@ -112,57 +126,64 @@ public class WouResource extends
     // Area change flag
     private boolean areaChangeFlag = false;
 
-    private final static String QUERY_PREFIX = "select countyname, state, ST_AsBinary(the_geom) G, ST_AsBinary(the_geom_0_001) G1 from mapdata.countylowres where (";
+    private static final String QUERY_PREFIX = "select countyname, state, ST_AsBinary(the_geom) G, ST_AsBinary(the_geom_0_001) G1 from mapdata.countylowres where (";
 
-    private final static String QUERY_PREFIX_MZ_LATLONS = "select wfo,name,id, lat, lon from mapdata.mzlowres";
+    private static final String QUERY_PREFIX_MZ_LATLONS = "select wfo,name,id, lat, lon from mapdata.mzlowres";
 
-    private final static String ENDTIME_REGEX = "([0-9]{6})";
+    private static final String ENDTIME_REGEX = "([0-9]{6})";
 
-    private final static Pattern ENDTIME_PATTERN = Pattern
+    private static final Pattern ENDTIME_PATTERN = Pattern
             .compile(ENDTIME_REGEX);
 
-    private static java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(WouResource.class.getCanonicalName());
+    private static IUFStatusHandler statusHandler = UFStatus
+            .getHandler(WouResource.class);
 
     private class WouRscDataObj implements IRscDataObject {
 
-        String datauri; // used as a key string
+        /** used as a key string */
+        private String datauri;
 
-        DataTime issueTime; // issue time from bulletin
+        /** issue time from bulletin */
+        private DataTime issueTime;
 
-        DataTime eventTime;
+        private DataTime eventTime;
 
-        AwwReportType reportType;
+        private AwwReportType reportType;
 
-        int countyNumPoints;
+        private int countyNumPoints;
 
-        float[] countyLat;
+        private float[] countyLat;
 
-        float[] countyLon;
+        private float[] countyLon;
 
-        List<LatLonPoint> countyPoints;
+        private List<LatLonPoint> countyPoints;
 
-        List<String> countyUgc, countyNames, stateNames;
+        private List<String> countyUgc;
 
-        String eventType;
+        private List<String> countyNames;
 
-        String watchNumber; // watch number to be displayed
+        private List<String> stateNames;
 
-        String evTrack;
+        private String eventType;
 
-        DataTime evEndTime;
+        /** watch number to be displayed */
+        private String watchNumber;
 
-        String evOfficeId;
+        private String evTrack;
 
-        String evPhenomena;
+        private DataTime evEndTime;
 
-        String evProductClass;
+        private String evOfficeId;
 
-        String evSignificance;
+        private String evPhenomena;
 
-        boolean isCounty;
+        private String evProductClass;
 
-        List<String> countyFips = new ArrayList<String>();
+        private String evSignificance;
+
+        private boolean isCounty;
+
+        private List<String> countyFips = new ArrayList<>();
 
         @Override
         public DataTime getDataTime() {
@@ -171,31 +192,36 @@ public class WouResource extends
     }
 
     private class WouCntyRscData implements IRscDataObject {
-        String keyStr; // used as a key string countyName/stateName
+        /** used as a key string countyName/stateName */
+        private String keyStr;
 
-        DataTime issueTime; // issue time from bulletin
+        /** issue time from bulletin */
+        private DataTime issueTime;
 
-        DataTime eventTime;
+        private DataTime eventTime;
 
-        AwwReportType reportType;
+        private AwwReportType reportType;
 
-        float countyLat;
+        private float countyLat;
 
-        float countyLon;
+        private float countyLon;
 
-        LatLonPoint countyPoints;
+        private LatLonPoint countyPoints;
 
-        String countyName, stateName;
+        private String countyName;
 
-        String eventType;
+        private String stateName;
 
-        String watchNumber; // watch number to be displayed
+        private String eventType;
 
-        DataTime evEndTime;
+        /** watch number to be displayed */
+        private String watchNumber;
 
-        List<byte[]> g;
+        private DataTime evEndTime;
 
-        List<byte[]> countyGeo;
+        private List<byte[]> g;
+
+        private List<byte[]> countyGeo;
 
         @Override
         public DataTime getDataTime() {
@@ -204,31 +230,32 @@ public class WouResource extends
     }
 
     private class WouData {
-        String key;// watchnumber
+        /** watchnumber */
+        private String key;
 
-        AwwReportType reportType;
+        private AwwReportType reportType;
 
-        HashMap<String, WouCntyRscData> data;
+        private Map<String, WouCntyRscData> data;
 
-        int numOfActCnties;
+        private int numOfActCnties;
 
-        IWireframeShape outlineShape;
+        private IWireframeShape outlineShape;
 
-        IShadedShape shadedShape;
+        private IShadedShape shadedShape;
 
-        IWireframeShape unionShape;
+        private IWireframeShape unionShape;
 
-        Boolean rebuild;
+        private boolean rebuild;
 
-        Boolean colorCode;
+        private boolean colorCode;
 
-        RGB color;
+        private RGB color;
 
-        RGB symbolColor;
+        private RGB symbolColor;
 
-        int symbolWidth;
+        private int symbolWidth;
 
-        int symbolSize;
+        private int symbolSize;
     }
 
     @Override
@@ -237,18 +264,19 @@ public class WouResource extends
     }
 
     protected class FrameData extends AbstractFrameData {
-        HashMap<String, WouData> wouFrameData;
+        private Map<String, WouData> wouFrameData;
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
-            wouFrameData = new HashMap<String, WouData>();
+            wouFrameData = new HashMap<>();
         }
 
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof WouRscDataObj)) {
-                logger.warning("WouResource.updateFrameData: expecting objects "
-                        + " of type WouRscDataObj???");
+                statusHandler
+                        .warn("WouResource.updateFrameData: expecting objects "
+                                + " of type WouRscDataObj???");
                 return false;
             }
 
@@ -260,7 +288,7 @@ public class WouResource extends
         private void updateEachWatchNumberData(WouRscDataObj wouRscDataObj) {
             String keyStr;
 
-            if (wouRscDataObj.countyNames.size() <= 0) {
+            if (wouRscDataObj.countyNames.isEmpty()) {
                 return;
             }
             WouData wData = wouFrameData.get(wouRscDataObj.watchNumber);
@@ -278,7 +306,7 @@ public class WouResource extends
                 if (existingCntyWouData != null) {
                     if (wouRscDataObj.issueTime
                             .greaterThan(existingCntyWouData.issueTime)) {
-                        Boolean oldStatus = isDisplay(existingCntyWouData);
+                        boolean oldStatus = isDisplay(existingCntyWouData);
 
                         existingCntyWouData.issueTime = wouRscDataObj.issueTime;
                         existingCntyWouData.eventTime = wouRscDataObj.eventTime;
@@ -289,7 +317,7 @@ public class WouResource extends
                                 .get(i);
                         existingCntyWouData.eventType = wouRscDataObj.eventType;
                         existingCntyWouData.evEndTime = wouRscDataObj.evEndTime;
-                        Boolean newStatus = isDisplay(existingCntyWouData);
+                        boolean newStatus = isDisplay(existingCntyWouData);
                         if ((oldStatus != newStatus)
                                 && (wData.outlineShape != null)) {
                             wData.rebuild = true;
@@ -319,7 +347,7 @@ public class WouResource extends
             WouData wData = new WouData();
             wData.key = wouRscDataObj.watchNumber;
             wData.reportType = wouRscDataObj.reportType;
-            wData.data = new HashMap<String, WouCntyRscData>();
+            wData.data = new HashMap<>();
             wData.numOfActCnties = 0;
             wData.colorCode = false;
             wData.rebuild = false;
@@ -346,11 +374,12 @@ public class WouResource extends
             cntyWouData.watchNumber = wouRscDataObj.watchNumber;
             cntyWouData.evEndTime = new DataTime();
             cntyWouData.evEndTime = wouRscDataObj.evEndTime;
-            cntyWouData.g = new ArrayList<byte[]>();
-            cntyWouData.countyGeo = new ArrayList<byte[]>();
+            cntyWouData.g = new ArrayList<>();
+            cntyWouData.countyGeo = new ArrayList<>();
             return cntyWouData;
         }
 
+        @Override
         public void dispose() {
             clearFrameShapes(this);
         }
@@ -360,12 +389,14 @@ public class WouResource extends
     public WouResource(WouResourceData rscData, LoadProperties loadProperties)
             throws VizException {
         super(rscData, loadProperties);
-        wouRscData = (WouResourceData) resourceData;
-        modifyList = new ArrayList<WouRscDataObj>();
+        wouRscData = resourceData;
+        modifyList = new ArrayList<>();
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    @Override
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
     // turn the db record into an WouRscDataObj which will be timeMatched and
@@ -375,7 +406,7 @@ public class WouResource extends
     public IRscDataObject[] processRecord(Object pdo) {
 
         AwwRecord awwRecord = (AwwRecord) pdo;
-        ArrayList<WouRscDataObj> wouDataList = getAwwtData(awwRecord);
+        List<WouRscDataObj> wouDataList = getAwwtData(awwRecord);
         if (wouDataList == null) {
             return new IRscDataObject[] {};
         } else {
@@ -383,15 +414,16 @@ public class WouResource extends
         }
     }
 
-    private ArrayList<WouRscDataObj> getAwwtData(AwwRecord awwRecord) {
+    private List<WouRscDataObj> getAwwtData(AwwRecord awwRecord) {
         WouRscDataObj wouStatusData = null;
-        List<WouRscDataObj> wouDataList = new ArrayList<WouRscDataObj>();
+        List<WouRscDataObj> wouDataList = new ArrayList<>();
 
         try {
             Set<AwwUgc> awwUgc = awwRecord.getAwwUGC();
             for (AwwUgc awwugcs : awwUgc) {
                 wouStatusData = new WouRscDataObj();
-                wouStatusData.issueTime = new DataTime(awwRecord.getIssueTime());
+                wouStatusData.issueTime = new DataTime(
+                        awwRecord.getIssueTime());
                 wouStatusData.reportType = AwwReportType
                         .getReportType(awwRecord.getReportType());
                 wouStatusData.datauri = awwRecord.getDataURI();
@@ -400,12 +432,12 @@ public class WouResource extends
                     setMarineZonesFips(awwugcs.getAwwFIPS(), wouStatusData);
                 }
 
-                String ugcline = awwugcs.getUgc();// get the ugc line to find
-                                                  // the counties
-                if (ugcline != null && ugcline != "") {
+                // get the ugc line to find the counties
+                String ugcline = awwugcs.getUgc();
+                if (ugcline != null && !ugcline.isEmpty()) {
                     wouStatusData.watchNumber = awwugcs
                             .getEventTrackingNumber();
-                    wouStatusData.countyUgc = new ArrayList<String>();
+                    wouStatusData.countyUgc = new ArrayList<>();
                     int i = 0;
                     String temp;
                     String countyname = ugcline.substring(0, 3);
@@ -429,14 +461,12 @@ public class WouResource extends
                             if (temp.contains(countyname)) {
 
                                 if (temp.length() == 6) {
-                                    if ((0 == Character.getNumericValue(temp
-                                            .toCharArray()[3]))
-                                            && (0 == Character
-                                                    .getNumericValue(temp
-                                                            .toCharArray()[4]))
-                                            && (0 == Character
-                                                    .getNumericValue(temp
-                                                            .toCharArray()[5]))) {
+                                    if ((0 == Character.getNumericValue(
+                                            temp.toCharArray()[3]))
+                                            && (0 == Character.getNumericValue(
+                                                    temp.toCharArray()[4]))
+                                            && (0 == Character.getNumericValue(
+                                                    temp.toCharArray()[5]))) {
                                         // not in mapdata.marinezones yet, keep
                                         // parsing
                                     } else {
@@ -451,9 +481,8 @@ public class WouResource extends
                                         (wouStatusData.countyUgc));
 
                             } else {
-                                if (!"".equalsIgnoreCase(temp)
-                                        && Character.isLetter(temp
-                                                .toCharArray()[0])) {
+                                if (!"".equalsIgnoreCase(temp) && Character
+                                        .isLetter(temp.toCharArray()[0])) {
                                     countyname = temp.substring(0, 3);
                                     String temp2 = countyname.substring(0, 3)
                                             + temp.substring(3);
@@ -464,8 +493,8 @@ public class WouResource extends
                                         + temp;
                                 if (temp2.length() > 6) {
                                     if (9 == temp2.length()) {
-                                        (wouStatusData.countyUgc).add(temp2
-                                                .substring(3, 9));
+                                        (wouStatusData.countyUgc)
+                                                .add(temp2.substring(3, 9));
                                     } else {
                                         fipsRangeReparse(temp2.substring(0, 6),
                                                 countyname,
@@ -473,15 +502,12 @@ public class WouResource extends
                                     }
                                 } else {
                                     if (!(6 > temp2.length())
-                                            && (0 == Character
-                                                    .getNumericValue(temp2
-                                                            .toCharArray()[3]))
-                                            && (0 == Character
-                                                    .getNumericValue(temp2
-                                                            .toCharArray()[4]))
-                                            && (0 == Character
-                                                    .getNumericValue(temp2
-                                                            .toCharArray()[5]))) {
+                                            && (0 == Character.getNumericValue(
+                                                    temp2.toCharArray()[3]))
+                                            && (0 == Character.getNumericValue(
+                                                    temp2.toCharArray()[4]))
+                                            && (0 == Character.getNumericValue(
+                                                    temp2.toCharArray()[5]))) {
                                         // not in mapdata.marinezones yet, keep
                                         // parsing
                                     } else {
@@ -494,8 +520,8 @@ public class WouResource extends
                         }
                     }
                     if (i > 1) {
-                        wouStatusData.countyUgc.remove(wouStatusData.countyUgc
-                                .size() - 1);// cleanup
+                        wouStatusData.countyUgc
+                                .remove(wouStatusData.countyUgc.size() - 1);// cleanup
                     }
 
                     wouStatusData = getCountyNameLatLon(wouStatusData);
@@ -516,15 +542,8 @@ public class WouResource extends
                         wouStatusData.evSignificance = awwVtech
                                 .getSignificance();
 
-                        if ((awwVtech.getAction().equalsIgnoreCase("COR"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("CAN"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("NEW"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("EXT"))
-                                || (awwVtech.getAction()
-                                        .equalsIgnoreCase("EXP"))) {
+                        if (Set.of("COR", "CAN", "NEW", "EXT", "EXP")
+                                .contains(awwVtech.getAction().toUpperCase())) {
                             modifyList.add(wouStatusData);
                         }
 
@@ -538,9 +557,10 @@ public class WouResource extends
                             wouStatusData.eventTime = new DataTime(
                                     wouStatusData.issueTime
                                             .getRefTimeAsCalendar(),
-                                    new TimeRange(wouStatusData.issueTime
-                                            .getRefTimeAsCalendar(), awwVtech
-                                            .getEventEndTime()));
+                                    new TimeRange(
+                                            wouStatusData.issueTime
+                                                    .getRefTimeAsCalendar(),
+                                            awwVtech.getEventEndTime()));
                         } else if (awwVtech.getEventStartTime() != null) {
                             wouStatusData.eventTime = new DataTime(
                                     awwVtech.getEventStartTime(),
@@ -555,33 +575,28 @@ public class WouResource extends
                 wouDataList.add(wouStatusData);
             }
         } catch (Exception e) {
-            logger.warning("In getCountyNameLatLon(WouRscDataObj wdata)\n"
-                    + e.getClass().getCanonicalName() + ":"
-                    + e.getLocalizedMessage());
+            statusHandler.warn(e.getLocalizedMessage(), e);
         }
 
-        return (ArrayList<WouRscDataObj>) wouDataList;
+        return wouDataList;
     }
 
     private WouRscDataObj getCountyNameLatLon(WouRscDataObj wdata) {
-        wdata.countyPoints = new ArrayList<LatLonPoint>();
-        wdata.countyNames = new ArrayList<String>();
-        wdata.stateNames = new ArrayList<String>();
+        wdata.countyPoints = new ArrayList<>();
+        wdata.countyNames = new ArrayList<>();
+        wdata.stateNames = new ArrayList<>();
         wdata.countyLat = new float[wdata.countyUgc.size()];
         wdata.countyLon = new float[wdata.countyUgc.size()];
 
         try {
             int i = 0;
-            for (Iterator<String> iterator = wdata.countyUgc.iterator(); iterator
-                    .hasNext();) {
-
-                String theKey = iterator.next();
+            for (String theKey : wdata.countyUgc) {
 
                 Station station = stationTable.getStation(StationField.STID,
                         theKey);
                 if (station != null) {
                     LatLonPoint point = new LatLonPoint(station.getLatitude(),
-                            station.getLongitude(), LatLonPoint.INDEGREES);
+                            station.getLongitude());
                     wdata.countyPoints.add(point);
                     wdata.countyNames.add(station.getStnname());
                     wdata.stateNames.add(station.getState());
@@ -593,35 +608,30 @@ public class WouResource extends
                         wdata.countyFips.add(s.length() == 4 ? "0" + s : s);
                     }
                 } else {
-                    List<Object[]> results = DirectDbQuery.executeQuery(
-                            QUERY_PREFIX_MZ_LATLONS.toString()
-                                    + " where id = '" + theKey + "'", "maps",
-                            QueryLanguage.SQL);
+                    List<Object[]> results = DirectDbQuery
+                            .executeQuery(
+                                    QUERY_PREFIX_MZ_LATLONS + " where id = '"
+                                            + theKey + "'",
+                                    "maps", QueryLanguage.SQL);
 
                     LatLonPoint point = new LatLonPoint(
                             Float.parseFloat(results.get(0)[3].toString()),
-                            Float.parseFloat(results.get(0)[4].toString()),
-                            LatLonPoint.INDEGREES);
+                            Float.parseFloat(results.get(0)[4].toString()));
                     wdata.countyPoints.add(point);
                     wdata.countyNames.add(results.get(0)[1].toString());
                     wdata.stateNames.add("");
-                    wdata.countyLat[i] = Float.parseFloat(results.get(0)[3]
-                            .toString());
-                    wdata.countyLon[i] = Float.parseFloat(results.get(0)[4]
-                            .toString());
+                    wdata.countyLat[i] = Float
+                            .parseFloat(results.get(0)[3].toString());
+                    wdata.countyLon[i] = Float
+                            .parseFloat(results.get(0)[4].toString());
                     wdata.countyFips.add(results.get(0)[2].toString());
                 }
                 i++;
             }
         } catch (IndexOutOfBoundsException idxOobEx) {
-            logger.log(Level.FINEST,
-                    "In getCountyNameLatLon(WouRscDataObj wdata)\n"
-                            + idxOobEx.getClass().getCanonicalName() + ":"
-                            + idxOobEx.getLocalizedMessage());
+            statusHandler.debug(idxOobEx.getLocalizedMessage(), idxOobEx);
         } catch (Exception e) {
-            logger.warning("In getCountyNameLatLon(WouRscDataObj wdata)\n"
-                    + e.getClass().getCanonicalName() + ":"
-                    + e.getLocalizedMessage());
+            statusHandler.warn(e.getLocalizedMessage(), e);
         }
         wdata.countyNumPoints = wdata.countyNames.size();
         return wdata;
@@ -648,25 +658,32 @@ public class WouResource extends
                                     .equalsIgnoreCase(candidate.evPhenomena)
                             && modify.evProductClass
                                     .equalsIgnoreCase(candidate.evProductClass)
-                            && modify.evSignificance
-                                    .equalsIgnoreCase(candidate.evSignificance)) {
-                        if (candidate.eventType.equalsIgnoreCase("CAN")
-                                || candidate.eventType.equalsIgnoreCase("EXP")) {
+                            && modify.evSignificance.equalsIgnoreCase(
+                                    candidate.evSignificance)) {
+
+                        switch (candidate.eventType.toUpperCase()) {
+                        case "CAN":
+                        case "EXP":
                             candidate.evEndTime = modify.issueTime;
-                        } else if (candidate.eventType.equalsIgnoreCase("COR")
-                                || candidate.eventType.equalsIgnoreCase("EXT")
-                                || candidate.eventType.equalsIgnoreCase("CON")) {
+                            break;
+                        case "COR":
+                        case "EXT":
+                        case "CON":
                             candidate.evEndTime = modify.evEndTime;
-                        } else if (candidate.eventType.equalsIgnoreCase("NEW")) {
+                            break;
+                        case "NEW":
                             candidate.eventTime = modify.eventTime;
                             candidate.evEndTime = modify.evEndTime;
-                        } else {
+                            break;
+                        default:
                             candidate.evEndTime = modify.evEndTime; // issueTime
                         }
+
                         candidate.eventTime = new DataTime(
                                 candidate.eventTime.getRefTimeAsCalendar(),
-                                new TimeRange(candidate.eventTime
-                                        .getRefTimeAsCalendar(),
+                                new TimeRange(
+                                        candidate.eventTime
+                                                .getRefTimeAsCalendar(),
                                         candidate.evEndTime
                                                 .getRefTimeAsCalendar()));
 
@@ -677,6 +694,7 @@ public class WouResource extends
         }
     }
 
+    @Override
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
         font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
@@ -694,7 +712,7 @@ public class WouResource extends
     private void clearFrameShapes(FrameData currFrameData) {
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
         for (WouData wouData : wouCntyDataValues) {
@@ -717,6 +735,7 @@ public class WouResource extends
         }
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -738,7 +757,7 @@ public class WouResource extends
 
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
@@ -851,8 +870,10 @@ public class WouResource extends
             wouData.symbolWidth = symbolWidth;
             wouData.symbolSize = symbolSize;
 
-            if ((wouData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH && wouRscData.thunderstormEnable)
-                    || (wouData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE && wouRscData.tornadoEnable)) {
+            if ((wouData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH
+                    && wouRscData.thunderstormEnable)
+                    || (wouData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE
+                            && wouRscData.tornadoEnable)) {
 
                 if (wouRscData.getWatchBoxOutlineEnable()
                         || wouRscData.getWatchBoxFillEnable()
@@ -872,8 +893,8 @@ public class WouResource extends
                     }
                 }
             }
-
-        }// if draw = true
+            // if draw = true
+        }
 
         if (wouRscData.getWatchBoxFillEnable()) {
             if (wouRscData.thunderstormEnable) {
@@ -908,8 +929,8 @@ public class WouResource extends
         }
 
         if ((wouRscData.getWatchBoxTimeEnable()
-                || wouRscData.getWatchBoxLabelEnable() || wouRscData
-                    .getWatchBoxNumberEnable())
+                || wouRscData.getWatchBoxLabelEnable()
+                || wouRscData.getWatchBoxNumberEnable())
                 && (!wouRscData.getWatchBoxUnionEnable())) {
             drawTimeLabelWatchNumber(currFrameData, target);
         }
@@ -920,12 +941,12 @@ public class WouResource extends
             throws VizException {
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
         for (WouData wouData : wouCntyDataValues) {
             Collection<WouCntyRscData> wouDataValues = wouData.data.values();
-            if (wouDataValues.size() <= 0) {
+            if (!wouDataValues.isEmpty()) {
                 continue;
             }
             try {
@@ -940,9 +961,9 @@ public class WouResource extends
                     Symbol pointSymbol = new Symbol(null, colors,
                             wouData.symbolWidth, wouData.symbolSize * 0.4,
                             false, coord, "Symbol", "FILLED_BOX");
-                    DisplayElementFactory df = new DisplayElementFactory(
-                            target, getNcMapDescriptor());
-                    ArrayList<IDisplayable> displayEls = df
+                    DisplayElementFactory df = new DisplayElementFactory(target,
+                            getNcMapDescriptor());
+                    List<IDisplayable> displayEls = df
                             .createDisplayElements(pointSymbol, paintProps);
                     for (IDisplayable each : displayEls) {
                         each.draw(target, paintProps);
@@ -950,9 +971,7 @@ public class WouResource extends
                     }
                 }
             } catch (Exception e) {
-                logger.warning("In getCountyNameLatLon(WouRscDataObj wdata)\n"
-                        + e.getClass().getCanonicalName() + ":"
-                        + e.getLocalizedMessage());
+                statusHandler.warn(e.getLocalizedMessage(), e);
             }
         }
     }
@@ -964,7 +983,7 @@ public class WouResource extends
         String keyStr;
 
         Collection<WouCntyRscData> wouCntyDataValues = wouData.data.values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
@@ -986,13 +1005,15 @@ public class WouResource extends
         StringBuilder query = new StringBuilder(QUERY_PREFIX);
         int i = 0;
         for (WouCntyRscData wData : wouCntyDataValues) {
-            if (!isDisplay(wData) || wData.g.size() > 0)
+            if (!isDisplay(wData) || !wData.g.isEmpty()) {
                 continue;
+            }
             if (i != 0) {
                 query.append(" OR ");
             }
             query.append("(countyname LIKE '%");
-            query.append(wData.countyName.replace("_", " ").replace("'", "\\'"));
+            query.append(
+                    wData.countyName.replace("_", " ").replace("'", "\\'"));
             query.append("%' AND  state ='");
             query.append(wData.stateName);
             query.append("')");
@@ -1010,8 +1031,9 @@ public class WouResource extends
         WKBReader wkbReader = new WKBReader();
 
         for (Object[] result : results) {
-            String cntyName = getCountyName(wouCntyDataValues, result[0]
-                    .toString().replace(" ", "_"), result[1].toString());
+            String cntyName = getCountyName(wouCntyDataValues,
+                    result[0].toString().replace(" ", "_"),
+                    result[1].toString());
             if (cntyName == null) {
                 keyStr = result[0].toString().replace(" ", "_") + "/"
                         + result[1].toString();
@@ -1027,20 +1049,16 @@ public class WouResource extends
             Geometry g;
             Geometry countyGeo = null;
             try {
-                g = (Geometry) wkbReader.read(wkb);
+                g = wkbReader.read(wkb);
                 if (!(g instanceof Point)) {
                     wouCntyData.g.add(wkb);
                 }
-                countyGeo = (Geometry) wkbReader.read(wkb1);
+                countyGeo = wkbReader.read(wkb1);
                 if (countyGeo != null) {
                     wouCntyData.countyGeo.add(wkb1);
                 }
             } catch (ParseException e) {
-                logger.log(
-                        Level.SEVERE,
-                        "Error parsing county geometry: "
-                                + e.getClass().getCanonicalName() + ":"
-                                + e.getLocalizedMessage());
+                statusHandler.error("Error parsing county geometry: ", e);
             }
         }
     }
@@ -1072,29 +1090,24 @@ public class WouResource extends
             if (!isDisplay(wData)) {
                 continue;
             }
-            if (wData.g.size() == 0 || wData.countyGeo.size() == 0) {
+            if (wData.g.isEmpty() || wData.countyGeo.isEmpty()) {
                 continue;
             }
             Geometry g;
 
             try {
                 for (int j = 0; j < wData.g.size(); j++) {
-                    g = (Geometry) wkbReader.read(wData.g.get(j));
+                    g = wkbReader.read(wData.g.get(j));
                     if (!(g instanceof Point)) {
                         jtsCompiler.handle(g, wouData.symbolColor);
                     }
 
-                    gunion[i] = (Geometry) wkbReader.read(wData.countyGeo
-                            .get(j));
+                    gunion[i] = wkbReader.read(wData.countyGeo.get(j));
                     i++;
                 }
 
             } catch (ParseException e) {
-                logger.log(
-                        Level.SEVERE,
-                        "Error parsing county geometry: "
-                                + e.getClass().getCanonicalName() + ":"
-                                + e.getLocalizedMessage());
+                statusHandler.error("Error parsing county geometry:", e);
             }
         }
         wouData.outlineShape.compile();
@@ -1110,11 +1123,7 @@ public class WouResource extends
             jts.handle(geometryCollection.union(), wouData.color);
             wouData.unionShape.compile();
         } catch (Exception e) {
-            logger.log(
-                    Level.SEVERE,
-                    "Error building wireframe: "
-                            + e.getClass().getCanonicalName() + ":"
-                            + e.getLocalizedMessage());
+            statusHandler.error("Error building wireframe:", e);
         }
 
     }
@@ -1123,13 +1132,13 @@ public class WouResource extends
             IGraphicsTarget target) {
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
         for (WouData wouData : wouCntyDataValues) {
             Collection<WouCntyRscData> wouDataValues = wouData.data.values();
-            if (wouDataValues.size() <= 0) {
+            if (!wouDataValues.isEmpty()) {
                 continue;
             }
             try {
@@ -1143,7 +1152,7 @@ public class WouResource extends
 
                     if (labelPix != null) {
                         String[] text = new String[3];
-                        List<String> enabledText = new ArrayList<String>();
+                        List<String> enabledText = new ArrayList<>();
 
                         if (wouRscData.getWatchBoxNumberEnable()) {
                             enabledText.add(wData.watchNumber);
@@ -1156,13 +1165,11 @@ public class WouResource extends
                         if (wouRscData.getWatchBoxTimeEnable()) {
                             DataTime startTime = new DataTime(wData.eventTime
                                     .getValidPeriod().getStart());
-                            DataTime endTime = new DataTime(wData.eventTime
-                                    .getValidPeriod().getEnd());
-                            String temp = startTime.toString()
-                                    .substring(11, 13)
+                            DataTime endTime = new DataTime(
+                                    wData.eventTime.getValidPeriod().getEnd());
+                            String temp = startTime.toString().substring(11, 13)
                                     + startTime.toString().substring(14, 16)
-                                    + "-"
-                                    + endTime.toString().substring(11, 13)
+                                    + "-" + endTime.toString().substring(11, 13)
                                     + endTime.toString().substring(14, 16);
                             enabledText.add(temp);
                         }
@@ -1172,19 +1179,16 @@ public class WouResource extends
                         }
                         text = enabledText.toArray(text);
 
-                        target.drawStrings(font, text, labelPix[0],
-                                labelPix[1], 0.0, TextStyle.NORMAL, new RGB[] {
-                                        wouData.color, wouData.color,
+                        target.drawStrings(font, text, labelPix[0], labelPix[1],
+                                0.0, TextStyle.NORMAL,
+                                new RGB[] { wouData.color, wouData.color,
                                         wouData.color },
-                                HorizontalAlignment.LEFT, VerticalAlignment.TOP);
+                                HorizontalAlignment.LEFT,
+                                VerticalAlignment.TOP);
                     }
                 }
             } catch (Exception e) {
-                logger.log(
-                        Level.SEVERE,
-                        "In drawTimeLabelWatchNumber \n"
-                                + e.getClass().getCanonicalName() + ":"
-                                + e.getLocalizedMessage());
+                statusHandler.error(e.getLocalizedMessage(), e);
             }
         }
     }
@@ -1195,7 +1199,7 @@ public class WouResource extends
         LineStyle lineStyle = LineStyle.SOLID;
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
@@ -1229,7 +1233,7 @@ public class WouResource extends
         LineStyle lineStyle = LineStyle.SOLID;
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
@@ -1237,14 +1241,14 @@ public class WouResource extends
             if (wouData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH) {
                 Collection<WouCntyRscData> wouDataValues = wouData.data
                         .values();
-                if (wouDataValues.size() <= 0) {
+                if (!wouDataValues.isEmpty()) {
                     continue;
                 }
                 if (wouData.unionShape != null
                         && wouData.unionShape.isDrawable()) {
 
-                    List<Coordinate> xyCloseList = new ArrayList<Coordinate>();
-                    List<String> timeList = new ArrayList<String>();
+                    List<Coordinate> xyCloseList = new ArrayList<>();
+                    List<String> timeList = new ArrayList<>();
                     String[] label = new String[2];
                     DataTime startTime = null;
                     DataTime endTime = null;
@@ -1258,24 +1262,23 @@ public class WouResource extends
                         xyCloseList.add(new Coordinate(wData.countyLon,
                                 wData.countyLat));
 
-                        startTime = new DataTime(wData.eventTime
-                                .getValidPeriod().getStart());
-                        endTime = new DataTime(wData.eventTime.getValidPeriod()
-                                .getEnd());
+                        startTime = new DataTime(
+                                wData.eventTime.getValidPeriod().getStart());
+                        endTime = new DataTime(
+                                wData.eventTime.getValidPeriod().getEnd());
                         temp = startTime.toString().substring(11, 13)
                                 + startTime.toString().substring(14, 16) + "-"
                                 + endTime.toString().substring(11, 13)
                                 + endTime.toString().substring(14, 16);
 
-                        if (time.equalsIgnoreCase("")
-                                || !time.equalsIgnoreCase(temp)) {
+                        if (time.isEmpty() || !time.equalsIgnoreCase(temp)) {
                             timeList.add(temp);
                             time = temp;
                         }
                     }
 
-                    if (!xyCloseList.get(0).equals(
-                            xyCloseList.get(xyCloseList.size() - 1))) {
+                    if (!xyCloseList.get(0)
+                            .equals(xyCloseList.get(xyCloseList.size() - 1))) {
                         xyCloseList.add(xyCloseList.size(), xyCloseList.get(0));
                     }
 
@@ -1315,12 +1318,13 @@ public class WouResource extends
                     double[] labelPix = descriptor.worldToPixel(labelLatLon);
 
                     target.drawStrings(font, label, labelPix[0], labelPix[1],
-                            0.0, TextStyle.NORMAL, new RGB[] { wouData.color,
-                                    wouData.color, wouData.color },
+                            0.0, TextStyle.NORMAL,
+                            new RGB[] { wouData.color, wouData.color,
+                                    wouData.color },
                             HorizontalAlignment.LEFT, VerticalAlignment.TOP);
 
-                    target.drawWireframeShape(wouData.unionShape,
-                            wouData.color, wouData.symbolWidth, lineStyle);
+                    target.drawWireframeShape(wouData.unionShape, wouData.color,
+                            wouData.symbolWidth, lineStyle);
 
                 }
             }
@@ -1333,7 +1337,7 @@ public class WouResource extends
         LineStyle lineStyle = LineStyle.SOLID;
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
 
@@ -1367,21 +1371,21 @@ public class WouResource extends
         LineStyle lineStyle = LineStyle.SOLID;
         Collection<WouData> wouCntyDataValues = currFrameData.wouFrameData
                 .values();
-        if (wouCntyDataValues.size() <= 0) {
+        if (!wouCntyDataValues.isEmpty()) {
             return;
         }
         for (WouData wouData : wouCntyDataValues) {
             if (wouData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE) {
                 Collection<WouCntyRscData> wouDataValues = wouData.data
                         .values();
-                if (wouDataValues.size() <= 0) {
+                if (!wouDataValues.isEmpty()) {
                     continue;
                 }
                 if (wouData.unionShape != null
                         && wouData.unionShape.isDrawable()) {
 
-                    List<Coordinate> xyCloseList = new ArrayList<Coordinate>();
-                    List<String> timeList = new ArrayList<String>();
+                    List<Coordinate> xyCloseList = new ArrayList<>();
+                    List<String> timeList = new ArrayList<>();
                     String[] label = new String[2];
                     DataTime startTime = null;
                     DataTime endTime = null;
@@ -1395,24 +1399,23 @@ public class WouResource extends
                         xyCloseList.add(new Coordinate(wData.countyLon,
                                 wData.countyLat));
 
-                        startTime = new DataTime(wData.eventTime
-                                .getValidPeriod().getStart());
-                        endTime = new DataTime(wData.eventTime.getValidPeriod()
-                                .getEnd());
+                        startTime = new DataTime(
+                                wData.eventTime.getValidPeriod().getStart());
+                        endTime = new DataTime(
+                                wData.eventTime.getValidPeriod().getEnd());
                         temp = startTime.toString().substring(11, 13)
                                 + startTime.toString().substring(14, 16) + "-"
                                 + endTime.toString().substring(11, 13)
                                 + endTime.toString().substring(14, 16);
 
-                        if (time.equalsIgnoreCase("")
-                                || !time.equalsIgnoreCase(temp)) {
+                        if (time.isEmpty() || !time.equalsIgnoreCase(temp)) {
                             timeList.add(temp);
                             time = temp;
                         }
                     }
 
-                    if (!xyCloseList.get(0).equals(
-                            xyCloseList.get(xyCloseList.size() - 1))) {
+                    if (!xyCloseList.get(0)
+                            .equals(xyCloseList.get(xyCloseList.size() - 1))) {
                         xyCloseList.add(xyCloseList.size(), xyCloseList.get(0));
                     }
 
@@ -1452,26 +1455,22 @@ public class WouResource extends
 
                     double[] labelPix = descriptor.worldToPixel(labelLatLon);
                     target.drawStrings(font, label, labelPix[0], labelPix[1],
-                            0.0, TextStyle.NORMAL, new RGB[] { wouData.color,
-                                    wouData.color, wouData.color },
+                            0.0, TextStyle.NORMAL,
+                            new RGB[] { wouData.color, wouData.color,
+                                    wouData.color },
                             HorizontalAlignment.LEFT, VerticalAlignment.TOP);
 
-                    target.drawWireframeShape(wouData.unionShape,
-                            wouData.color, wouData.symbolWidth, lineStyle);
+                    target.drawWireframeShape(wouData.unionShape, wouData.color,
+                            wouData.symbolWidth, lineStyle);
 
                 }
             }
         }
     }
 
-    private Boolean isDisplay(WouCntyRscData wData) {
-        Boolean display = true;
-        if (wData.eventType.equalsIgnoreCase("CAN")
-                || wData.eventType.equalsIgnoreCase("COR")
-                || wData.eventType.equalsIgnoreCase("EXP")) {
-            display = false;
-        }
-        return display;
+    private boolean isDisplay(WouCntyRscData wData) {
+        return !Set.of("CAN", "COR", "EXP")
+                .contains(wData.eventType.toUpperCase());
     }
 
     private int getAvailableData(Collection<WouCntyRscData> wouCntyDataValues) {
@@ -1481,7 +1480,7 @@ public class WouResource extends
             if (!isDisplay(wData)) {
                 continue;
             }
-            if (wData.g.size() == 0 || wData.countyGeo.size() == 0) {
+            if (wData.g.isEmpty() || wData.countyGeo.isEmpty()) {
                 continue;
             }
             num += wData.g.size();
@@ -1592,7 +1591,7 @@ public class WouResource extends
         String legendString = super.getName();
         FrameData fd = (FrameData) getCurrentFrame();
         if (fd == null || fd.getFrameTime() == null
-                || fd.wouFrameData.size() == 0) {
+                || fd.wouFrameData.isEmpty()) {
             return legendString + "-No Data";
         }
         return legendString + " "

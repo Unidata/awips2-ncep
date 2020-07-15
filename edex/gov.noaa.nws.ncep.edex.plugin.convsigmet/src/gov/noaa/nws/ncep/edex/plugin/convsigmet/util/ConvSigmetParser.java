@@ -1,39 +1,11 @@
-/**
- * Convective Significant Meteorological Information DecoderUtil
- * 
- * This java class intends to serve as a decoder utility for Convsigmet.
- * 
- * HISTORY
- *
- * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 03/2009      87/114			L. Lin     	Initial coding
- * 06/2009		87/114			L. Lin		Generalize the method processLocation.
- * 07/2009		87/114			L. Lin		Migration to TO11
- * 09/2009		87/114			L. Lin		Add latitude/longitude to location table
- * 07/2011		87/114			F. J. Yen	Fix the day of the end time when it is 
- * 											not the same as the day of the start time.
- * Jan 07, 2014                     njensen	Handle if one or more locations not found in LatLonLocTbl	
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage			
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
 
 package gov.noaa.nws.ncep.edex.plugin.convsigmet.util;
 
-import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetLocation;
-import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord;
-import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetSection;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +15,40 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
+import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetLocation;
+import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord;
+import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetSection;
+import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ * Convective Significant Meteorological Information DecoderUtil
+ *
+ * This java class intends to serve as a decoder utility for Convsigmet.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Mar 2009      87/114   L. Lin     Initial coding
+ * Jun 2009      87/114   L. Lin     Generalize the method processLocation.
+ * Jul 2009      87/114   L. Lin     Migration to TO11
+ * Sep 2009      87/114   L. Lin     Add latitude/longitude to location table
+ * Jul 2011      87/114   F. J. Yen  Fix the day of the end time when it is not
+ *                                   the same as the day of the start time.
+ * Jan 07, 2014           njensen    Handle if one or more locations not found
+ *                                   in LatLonLocTbl
+ * May 14, 2014  2536     bclement   moved WMO Header to common, removed
+ *                                   TimeTools usage
+ * Jul 15, 2020  8191     randerso   Updated for changes to LatLonPoint
+ *
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ *
+ * @author L. Lin
+ */
 public class ConvSigmetParser {
 
     /**
@@ -54,10 +60,10 @@ public class ConvSigmetParser {
     /**
      * Parse the WMO line and store WMO header, OfficeID, issue time,
      * designatorBBB,...
-     * 
+     *
      * @param wmoline
      *            The bulletin message
-     * 
+     *
      * @return a ConvsigmetRecord
      */
     public static ConvSigmetRecord processWMO(String wmoline, Headers headers) {
@@ -81,8 +87,8 @@ public class ConvSigmetParser {
 
             // Decode the issue time.
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = WMOTimeParser.findDataTime(theMatcher.group(3),
+                    fileName);
             record.setIssueTime(issueTime);
 
             DataTime dataTime = new DataTime(issueTime);
@@ -93,7 +99,7 @@ public class ConvSigmetParser {
 
     /**
      * Obtains forecast region as: SIGW, SIGC, or SIGE from a report
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for forecast region
@@ -116,7 +122,7 @@ public class ConvSigmetParser {
 
     /**
      * process regular section of a convective sigmet report
-     * 
+     *
      * @param theSection
      *            The section lines from bulletin message
      * @param issueTime
@@ -148,7 +154,7 @@ public class ConvSigmetParser {
 
         // Decode the sequence ID
         String sequenceID = ConvSigmetParser.processSequenceID(theSection);
-        if (sequenceID.equals(" ")) {
+        if (" ".equals(sequenceID)) {
             // Default as: 0W, 0C, or 0E if no sequenceID has been found.
             sequenceID = "0".concat(forecastRegion);
         }
@@ -190,7 +196,7 @@ public class ConvSigmetParser {
 
     /**
      * process the outlook section of a convective sigmet report.
-     * 
+     *
      * @param theOutlook
      *            The outlook section lines from bulletin message
      * @param forecastRegion
@@ -239,12 +245,13 @@ public class ConvSigmetParser {
 
     /**
      * Obtains start time from input report
-     * 
+     *
      * @param theSection
      *            The bulletin message
      * @return a calendar for start time
      */
-    public static Calendar processStartTime(String theSection, Headers headers) {
+    public static Calendar processStartTime(String theSection,
+            Headers headers) {
 
         // Regular expression for start time
         final String STARTTIME_EXP = "(\\x1e)([A-Z]{4}) ([A-Z]{3}) ([0-9]{6})( [A-Z]{3})?";
@@ -267,7 +274,7 @@ public class ConvSigmetParser {
 
     /**
      * Obtains correction flag
-     * 
+     *
      * @param theSection
      *            The bulletin message
      * @return true if finds a correction flag
@@ -285,22 +292,21 @@ public class ConvSigmetParser {
         Matcher theMatcher = corflagPattern.matcher(theSection);
 
         if (theMatcher.find()) {
-            Scanner scCorrection = new Scanner(theMatcher.group(0));
-
             // check if this contains a correction flag
-            while (scCorrection.hasNext()) {
-                if (scCorrection.next().equals("COR")) {
-                    correctionFlag = true;
+            try (Scanner scCorrection = new Scanner(theMatcher.group(0))) {
+                while (scCorrection.hasNext()) {
+                    if ("COR".equals(scCorrection.next())) {
+                        correctionFlag = true;
+                    }
                 }
             }
-
         }
         return correctionFlag;
     }
 
     /**
      * Obtains the sequence ID
-     * 
+     *
      * @param inSegment
      *            The segment which contains this sequence ID
      * @return a string for sequence ID
@@ -323,7 +329,7 @@ public class ConvSigmetParser {
 
     /**
      * Get the end time
-     * 
+     *
      * @param theSegment
      *            The segment which contains end time
      * @param section
@@ -345,10 +351,10 @@ public class ConvSigmetParser {
 
         if (theMatcher.find()) {
             Calendar startTime = section.getStartTime();
-            
-            String endTimeGroup = Integer.toString(
-                    startTime.get(Calendar.DAY_OF_MONTH)).concat(
-                    theMatcher.group(1));
+
+            String endTimeGroup = Integer
+                    .toString(startTime.get(Calendar.DAY_OF_MONTH))
+                    .concat(theMatcher.group(1));
             if (startTime.get(Calendar.DAY_OF_MONTH) < 10) {
                 // add a "0" if the day of month less than 10
                 endTimeGroup = "0".concat(endTimeGroup);
@@ -357,12 +363,12 @@ public class ConvSigmetParser {
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
             Calendar endTime = WMOTimeParser.findDataTime(endTimeGroup,
                     fileName);
-            int startHrMn = startTime.get(Calendar.HOUR_OF_DAY) * 100 +
-            				startTime.get(Calendar.MINUTE);
+            int startHrMn = startTime.get(Calendar.HOUR_OF_DAY) * 100
+                    + startTime.get(Calendar.MINUTE);
             int endHrMn = Integer.parseInt(theMatcher.group(1));
             if (endHrMn < startHrMn) {
-            	/*   Increment for the next day */
-            	endTime.add(Calendar.DATE,1); 
+                /* Increment for the next day */
+                endTime.add(Calendar.DATE, 1);
             }
             return endTime;
         } else {
@@ -372,7 +378,7 @@ public class ConvSigmetParser {
 
     /**
      * Parse the phenomena...
-     * 
+     *
      * @param theFlight
      *            The flight level line
      * @return a section record
@@ -414,7 +420,7 @@ public class ConvSigmetParser {
             currentSection.setIntensity(intensity);
             currentSection.setCloudTop(flightLevelTop);
 
-            if (classType.equals("LINE")) {
+            if ("LINE".equals(classType)) {
                 final String DISTANCE_EXP = "LINE (EMBD )?(SEV )?TS ([0-9]{2})";
                 final Pattern distancePattern = Pattern.compile(DISTANCE_EXP);
                 Matcher disMatcher = distancePattern.matcher(theFlight);
@@ -422,7 +428,7 @@ public class ConvSigmetParser {
                     int distance = Integer.parseInt(disMatcher.group(3));
                     currentSection.setDistance(distance);
                 }
-            } else if (classType.equals("ISOL")) {
+            } else if ("ISOL".equals(classType)) {
                 final String ISOLDISTANCE_EXP = "ISOL (\\S|\\s)* TS D([0-9]{2})";
                 final Pattern isoldistancePattern = Pattern
                         .compile(ISOLDISTANCE_EXP);
@@ -447,7 +453,7 @@ public class ConvSigmetParser {
             currentSection.setIntensity(intensity);
             currentSection.setCloudTop(flightLevelTop);
 
-            if (classType.equals("LINE")) {
+            if ("LINE".equals(classType)) {
                 final String DISTANCE_EXP = "LINE (EMBD )?(SEV )?TS ([0-9]{2})";
                 final Pattern distancePattern = Pattern.compile(DISTANCE_EXP);
                 Matcher disMatcher = distancePattern.matcher(theFlight);
@@ -455,7 +461,7 @@ public class ConvSigmetParser {
                     int distance = Integer.parseInt(disMatcher.group(3));
                     currentSection.setDistance(distance);
                 }
-            } else if (classType.equals("ISOL")) {
+            } else if ("ISOL".equals(classType)) {
                 final String ISOLDISTANCE_EXP = "ISOL (\\S|\\s)* TS D([0-9]{2})";
                 final Pattern isoldistancePattern = Pattern
                         .compile(ISOLDISTANCE_EXP);
@@ -479,7 +485,7 @@ public class ConvSigmetParser {
 
     /**
      * Obtains the start time and end time
-     * 
+     *
      * @param theSection
      *            The outlook section contains the valid times group
      */
@@ -526,7 +532,7 @@ public class ConvSigmetParser {
 
     /**
      * Obtains the location information for ISOL.
-     * 
+     *
      * @param theSection
      *            The section lines from bulletin message
      * @param sectionTable
@@ -552,10 +558,8 @@ public class ConvSigmetParser {
             currentLocation.setIndex(1);
             // Get a latLonPoint for this station ID from "vors" location table
             point = LatLonLocTbl.getLatLonPoint(line, "vors");
-            currentLocation.setLatitude(point
-                    .getLatitude(LatLonPoint.INDEGREES));
-            currentLocation.setLongitude(point
-                    .getLongitude(LatLonPoint.INDEGREES));
+            currentLocation.setLatitude(point.getLatitude());
+            currentLocation.setLongitude(point.getLongitude());
             sectionTable.addConvSigmetLocation(currentLocation);
         }
     }
@@ -563,7 +567,7 @@ public class ConvSigmetParser {
     /**
      * Parse the location lines and add location table to the section table if
      * any
-     * 
+     *
      * @param theSection
      *            The section lines from bulletin message
      * @param sectionTable
@@ -576,88 +580,88 @@ public class ConvSigmetParser {
         Boolean hasLocationLine = true;
         String locationDelimiter = "-";
 
-        ArrayList<String> terminationList = new ArrayList<String>();
-        terminationList.addAll(Arrays
-                .asList(new String[] { "WST", "REF", "LINE", "AREA", "ISOL",
-                        "DMSHG", "DVLPG", "DSIPTG", "INTSFYG" }));
+        Set<String> terminationList = Set.of("WST", "REF", "LINE", "AREA",
+                "ISOL", "DMSHG", "DVLPG", "DSIPTG", "INTSFYG");
 
         LatLonPoint point = null;
 
-        Scanner sclocations = new Scanner(theSection).useDelimiter("FROM");
-
         // throws away the first section which is not the "FROM" location
-        String locationSection = sclocations.next();
+        try (Scanner sclocations = new Scanner(theSection)
+                .useDelimiter("FROM")) {
+            String locationSection = sclocations.next();
 
-        if (sclocations.hasNext()) {
-            locationSection = sclocations.next();
+            if (sclocations.hasNext()) {
+                locationSection = sclocations.next();
 
-            Scanner scLocationLine = new Scanner(locationSection)
-                    .useDelimiter("\\x0d\\x0d\\x0a");
-            String lines = " ";
-            String curLine = null;
-            ArrayList<String> locationList = new ArrayList<String>();
-            locationList.clear();
-            Boolean notBreak = true;
+                String lines = " ";
+                String curLine = null;
+                List<String> locationList = new ArrayList<>();
+                locationList.clear();
+                Boolean notBreak = true;
 
-            while (scLocationLine.hasNext() && notBreak) {
-                // Get next location line
-                curLine = scLocationLine.next();
+                try (Scanner scLocationLine = new Scanner(locationSection)
+                        .useDelimiter("\\x0d\\x0d\\x0a")) {
+                    while (scLocationLine.hasNext() && notBreak) {
+                        // Get next location line
+                        curLine = scLocationLine.next();
 
-                Scanner scLocationToken = new Scanner(curLine);
-                if (scLocationToken.hasNext()) {
-                    // Check the first token from each line
-                    String firstToken = scLocationToken.next();
-                    if (terminationList.contains(firstToken)) {
-                        // terminate
-                        notBreak = false;
-                        break;
+                        try (Scanner scLocationToken = new Scanner(curLine)) {
+                            if (scLocationToken.hasNext()) {
+                                // Check the first token from each line
+                                String firstToken = scLocationToken.next();
+                                if (terminationList.contains(firstToken)) {
+                                    // terminate
+                                    notBreak = false;
+                                    break;
+                                }
+                            }
+                        }
+                        lines = lines.concat(" ").concat(curLine);
                     }
                 }
-                lines = lines.concat(" ").concat(curLine);
-            }
 
-            // Clean up the leading space
-            lines = UtilN.removeLeadingWhiteSpaces(lines);
-            // Parse the location lines by a "-"
-            Scanner scLocation = new Scanner(lines)
-                    .useDelimiter(locationDelimiter);
-            locationList.clear();
-            // Get all locations
-            while (scLocation.hasNext()) {
-                locationList.add(scLocation.next());
-            }
-
-            // set locations to data base
-            if (locationList.size() > 1) {
-                Integer idxLocation = 0;
-                for (String Location : locationList) {
-
-                    ConvSigmetLocation currentLocation = new ConvSigmetLocation();
-                    currentLocation.setLocationLine(lines);
-                    currentLocation.setLocation(Location);
-
-                    // Get a latLonPoint for this station ID from "vors"
-                    // location table
-                    point = LatLonLocTbl.getLatLonPoint(Location, "vors");
-                    if(point != null) {
-                       currentLocation.setLatitude(point
-                            .getLatitude(LatLonPoint.INDEGREES));
-                       currentLocation.setLongitude(point
-                            .getLongitude(LatLonPoint.INDEGREES));
-
-                       currentLocation.setIndex(idxLocation + 1);
-                       idxLocation++;
-
-                       sectionTable.addConvSigmetLocation(currentLocation);
+                // Clean up the leading space
+                lines = UtilN.removeLeadingWhiteSpaces(lines);
+                // Parse the location lines by a "-"
+                locationList.clear();
+                // Get all locations
+                try (Scanner scLocation = new Scanner(lines)
+                        .useDelimiter(locationDelimiter)) {
+                    while (scLocation.hasNext()) {
+                        locationList.add(scLocation.next());
                     }
                 }
-                hasLocationLine = (idxLocation > 0);
+
+                // set locations to data base
+                if (locationList.size() > 1) {
+                    Integer idxLocation = 0;
+                    for (String Location : locationList) {
+
+                        ConvSigmetLocation currentLocation = new ConvSigmetLocation();
+                        currentLocation.setLocationLine(lines);
+                        currentLocation.setLocation(Location);
+
+                        // Get a latLonPoint for this station ID from "vors"
+                        // location table
+                        point = LatLonLocTbl.getLatLonPoint(Location, "vors");
+                        if (point != null) {
+                            currentLocation.setLatitude(point.getLatitude());
+                            currentLocation.setLongitude(point.getLongitude());
+
+                            currentLocation.setIndex(idxLocation + 1);
+                            idxLocation++;
+
+                            sectionTable.addConvSigmetLocation(currentLocation);
+                        }
+                    }
+                    hasLocationLine = (idxLocation > 0);
+                } else {
+                    hasLocationLine = false;
+                }
+
             } else {
                 hasLocationLine = false;
             }
-
-        } else {
-            hasLocationLine = false;
         }
 
         return hasLocationLine;

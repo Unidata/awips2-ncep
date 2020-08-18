@@ -98,6 +98,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 11/04/2019   70576       smanoj      Update to allow forecaster change/update alphanumeric labels.
  * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
  * 06/26/2020   79977       pbutler     Added code to add data editableAttrFromLine: states, lakes, coastal waters
+ * 08/18/2020   81809       mroos       Remove States list duplication
  * </pre>
  *
  * @author gzhang
@@ -161,8 +162,6 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     private Text txtInfo = null;
 
     private String relatedState = "";
-
-    public String editableAttrFromLineDataAppend = "";
 
     protected SigmetCommAttrDlg(Shell parShell) {
         super(parShell);
@@ -886,8 +885,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             gData.heightHint = size.height;
             gData.widthHint = size.width;
             txtInfo.setLayoutData(gData);
-            txtInfo.setText(
-                    getEditableAttrFromLineDataAppend() + getFileContent());
+            txtInfo.setText(getFileContent());
             txtInfo.addDisposeListener((e) -> {
                 txtFont.dispose();
             });
@@ -907,9 +905,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 s = "";
             }
 
-            if (PgenConstant.TYPE_NCON_SIGMET
-                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || PgenConstant.TYPE_AIRM_SIGMET
+            if (PgenConstant.TYPE_AIRM_SIGMET
                             .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
                     || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(
                             SigmetCommAttrDlg.this.pgenType)) {
@@ -984,11 +980,6 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         List<String> coastalWaters = getAreaStringList(cSigPoly, mapDescriptor,
                 "id", "bounds.adjcstlbnds");
 
-        // update editableAttrFromLine to add states, lakes and coastal waters
-        String appendData = "";
-        appendData = getStates(states, lakes, coastalWaters);
-        this.editableAttrFromLineDataAppend = appendData + "\r FROM ";
-
         return getStates(states, lakes, coastalWaters);
     }
 
@@ -996,8 +987,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         List<AbstractDrawableComponent> adcList = null;
         List<AbstractDrawableComponent> newList = new ArrayList<>();
 
-        String newEditableLine = this.editableAttrFromLineDataAppend
-                + this.getEditableAttrFromLine();
+        String newEditableLine = this.getEditableAttrFromLine();
 
         if (PgenConstant.TYPE_NCON_SIGMET
                 .equals(this.asig.getPgenType().trim())) {
@@ -1332,14 +1322,5 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         this.setEditableAttrSequence(sig.getEditableAttrSeqNum());
         this.setLineType(sig.getType());
         this.setWidth("" + (sig.getWidth()));
-    }
-
-    public String getEditableAttrFromLineDataAppend() {
-        return editableAttrFromLineDataAppend;
-    }
-
-    public void setEditableAttrFromLineDataAppend(
-            String editableAttrFromLineDataAppend) {
-        this.editableAttrFromLineDataAppend = editableAttrFromLineDataAppend;
     }
 }

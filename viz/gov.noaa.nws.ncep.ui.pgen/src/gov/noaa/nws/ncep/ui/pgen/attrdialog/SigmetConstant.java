@@ -30,6 +30,7 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 16, 2020  79243     smanoj      Initial creation
+ * Aug 19, 2020  81314     smanoj      Additional constants for Volc Ash GUI.
  * 
  * </pre>
  * 
@@ -95,6 +96,8 @@ public final class SigmetConstant {
 
     public static final String BLW = "BLW";
 
+    public static final String BTN = "BTN";
+
     public static final String FL = "FL";
 
     public static final String WI_AREA_BOUNDED_BY_LINE_FM = "WI AREA BOUNDED BY LINE FM";
@@ -103,7 +106,7 @@ public final class SigmetConstant {
 
     public static final String LINE_FM = "LINE FM";
 
-    public static final String Z_VA_CLD_WI = "Z VA CLD WI";
+    public static final String VA_CLD_WI = "VA CLD WI";
 
     public static final String EITHER_SIDE_OF_LINE = "EITHER SIDE OF LINE";
 

@@ -161,12 +161,17 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddPoint"
           name="Pgen Add Point">
-      </command>       
+      </command>     
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddPointAlt"
           name="Pgen Add Point Alt">
       </command>       
+      <command
+          categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
+          id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddNewLabel"
+          name="Pgen Add New Label">
+      </command>
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDistance"
@@ -467,7 +472,11 @@
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenAddPointAlt"
             commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddPointAlt">
-       </handler>       
+       </handler>     
+       <handler
+            class="gov.noaa.nws.ncep.ui.pgen.tools.PgenAddNewLabel"
+            commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddNewLabel">
+       </handler>  
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenDistanceOptions"
             commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDistance">
@@ -883,7 +892,14 @@
              name="Clip"
              label="Clip"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenClip"
-             icon="icons/clip.gif" />  
+             icon="icons/clip.gif" />
+         <action
+             name="Add New Label"
+             label="Add New Label"
+             alwaysVisible="false"
+             commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddNewLabel"
+             actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenAddNewLabelHandler"
+             icon=""/>
 
          <class
              name="Front"
@@ -919,7 +935,7 @@
          <class
              name="Lines"
              label="Lines"
-             actions="Add Point,Add Point Alt,Delete Point,Delete"
+             actions="Add Point,Add Point Alt,Delete Point,Delete,Add New Label"
              icon="icons/line.gif" />
          <class
              name="Vector"

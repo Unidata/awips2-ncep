@@ -47,7 +47,8 @@ import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 * Date          Ticket#  Engineer  Description
 * ------------- -------- --------- -----------------
 * Sep 01, 2020   81798    smanoj    Initial creation
-* 
+* Sep 17, 2020   81798    smanoj    Fixed label count issue when drawing
+*                                   more than one contour
 * 
 * </pre>
 *
@@ -103,31 +104,18 @@ public class PgenAddNewLabelHandler extends InputHandlerDefaultImpl {
 
         if (button == 1) {
 
-            AbstractDrawableComponent nearestComp = drawingLayer
-                    .getNearestComponent(loc);
-            if (nearestComp != null) {
+            // Find selected element
+            DrawableElement de = drawingLayer.getSelectedDE();
+            if (de != null) {
 
-                // find nearest contour line
-                Iterator<AbstractDrawableComponent> it = ((Contours) nearestComp)
-                        .getComponentIterator();
-
-                while (it.hasNext()) {
-                    AbstractDrawableComponent adc = it.next();
-
-                    if (adc instanceof ContourLine) {
-                        List<Text> texts = ((ContourLine) adc).getLabels();
-                        DrawableElement selElem = ((ContourLine) adc).getLine();
-
-                        // Update labels in the contour line.
-                        ContourLine cline = (ContourLine) selElem.getParent();
-                        Text lbl = (Text) (texts.get(0).copy());
-
-                        addNewLabel(loc, lbl, cline);
-
-                        // update the number of labels on the contour line
-                        cline.updateNumOfLabels(cline.getNumOfLabels());
-                    }
+                // if selected element is ContourLine add new label
+                if (de.getParent() instanceof ContourLine) {
+                    ContourLine cline = (ContourLine) de.getParent();
+                    List<Text> texts = cline.getLabels();
+                    Text lbl = (Text) (texts.get(0).copy());
+                    addNewLabel(loc, lbl, cline);
                 }
+
             }
             return true;
 

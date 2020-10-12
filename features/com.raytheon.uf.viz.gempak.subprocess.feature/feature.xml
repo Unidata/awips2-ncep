@@ -559,7 +559,7 @@
          id="com.sun.jna"
          download-size="0"
          install-size="0"
-         version="4.1.0"/>
+         version="4.5.1"/>
 
    <plugin
          id="gov.noaa.nws.ncep.viz.gempak.nativelib"
@@ -628,6 +628,13 @@
          download-size="0"
          install-size="0"
          version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.sun.jna.platform"
+         download-size="0"
+         install-size="0"
+         version="4.5.1"
          unpack="false"/>
 
 </feature>

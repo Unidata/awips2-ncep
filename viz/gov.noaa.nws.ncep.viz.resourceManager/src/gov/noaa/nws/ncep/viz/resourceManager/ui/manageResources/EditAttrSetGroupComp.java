@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.text.StringMatcher;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ListViewer;
@@ -23,8 +24,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.internal.misc.StringMatcher;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
@@ -41,74 +43,79 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 06/09/10		  #273		Greg Hull	 Created
- * 07/22/11       #450      Greg Hull    Save to User Localization
- * 06/03/12       #816      Greg Hull    Add Filter for attr set list
- * 06/07/12       #816      Greg Hull    Add ability to apply to other resources
- * 09/16/2015     R8824     A. Su        Modified to preserve display aliases
- *                                       after the Manage Resources dialog changes attribute list.
- * Jun 4, 2019    ????      tgurney      Remove use of no longer existent Eclipse API
- *
+ * 
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Jun 09, 2010  273      Greg Hull  Created
+ * Jul 22, 2011  450      Greg Hull  Save to User Localization
+ * Jun 03, 2012  816      Greg Hull  Add Filter for attr set list
+ * Jun 07, 2012  816      Greg Hull  Add ability to apply to other resources
+ * Sep 16, 2015  8824     A. Su      Modified to preserve display aliases after
+ *                                   the Manage Resources dialog changes
+ *                                   attribute list.
+ * Jun 04, 2019  7886     tgurney    Remove use of no longer existent Eclipse
+ *                                   API
+ * Oct 12, 2020  8241     randerso   Eclipse 4.17 moved StringMatcher class
+ * 
  * </pre>
  *
  * @author
- * @version 1
  */
 class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(EditAttrSetGroupComp.class);
 
-    public static final String OK = "OK";
+    private static final String OK = "OK";
 
-    public static final String DONE = "Done";
+    private static final String DONE = "Done";
 
-    public static final String ERROR = "Error";
+    private ResourceDefnsMngr rscDefnMngr;
 
-    ResourceDefnsMngr rscDefnMngr;
+    // the parent composite
+    private ManageResourceControl mngrControl;
 
-    ManageResourceControl mngrControl; // the parent composite
+    private ResourceName seldRscName = null;
 
-    ResourceName seldRscName = null;
+    private ResourceDefinition seldRscDefn;
 
-    ResourceDefinition seldRscDefn;
+    private AttrSetGroup seldAttrSetGroup;
 
-    AttrSetGroup seldAttrSetGroup;
+    private Text attrSetGroupNameTxt;
 
-    Text attrSetGroupNameTxt;
+    private Text resourceTxt;
 
-    Text resourceTxt;
+    private ListViewer applyForRscsLViewer;
 
-    ListViewer applyForRscsLViewer;
+    private Button applyForAllRscsBtn;
 
-    Button applyForAllRscsBtn;
+    private Text filterTxt;
 
-    Text filterTxt;
+    private Button addAttrSetBtn;
 
-    Button addAttrSetBtn;
+    private Button removeAttrSetBtn;
 
-    Button removeAttrSetBtn;
+    private ListViewer availAttrSetsLViewer;
 
-    ListViewer availAttrSetsLViewer;
+    private ListViewer seldAttrSetsLViewer;
 
-    ListViewer seldAttrSetsLViewer;
+    private Button saveAttrSetGroupBtn;
 
-    Button saveAttrSetGroupBtn;
+    private Button newAttrSetGroupBtn;
 
-    Button newAttrSetGroupBtn;
+    private Button cancelBtn;
 
-    Button cancelBtn;
+    private List<String> availRscsForGroup;
 
-    ArrayList<String> availRscsForGroup;
+    private List<String> availAttrSets;
 
-    ArrayList<String> availAttrSets;
-
-    ArrayList<String> seldAttrSets;
+    private List<String> seldAttrSets;
 
     // used for all 3 of the ListViewers
-    IStructuredContentProvider stringArrayListContentProvider = new IStructuredContentProvider() {
+    private IStructuredContentProvider stringArrayListContentProvider = new IStructuredContentProvider() {
         @Override
         public Object[] getElements(Object inputElement) {
-            ArrayList<String> stringArrayList = (ArrayList<String>) inputElement;
+            @SuppressWarnings("unchecked")
+            List<String> stringArrayList = (List<String>) inputElement;
             return stringArrayList.toArray();
         }
 
@@ -148,7 +155,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         Composite top_form = this;
 
         FormData fd = new FormData();
-        fd.top = new FormAttachment(0, 12); // offset so the title shows up
+        // offset so the title shows up
+        fd.top = new FormAttachment(0, 12);
         fd.left = new FormAttachment(0, 0);
         fd.right = new FormAttachment(100, 0);
         fd.bottom = new FormAttachment(100, 0);
@@ -180,8 +188,9 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         resourceTxt = new Text(top_form,
                 SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         resourceTxt.setText("");
-        resourceTxt.setBackground(getParent().getBackground()); // indicate
-                                                                // readonly
+        // indicate readonly
+        resourceTxt.setBackground(getParent().getBackground());
+
         fd = new FormData();
         fd.width = 120;
         fd.top = new FormAttachment(attrSetGroupNameTxt, 35, SWT.BOTTOM);
@@ -422,7 +431,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
 
                 availAttrSetsLViewer.refresh();
             } catch (IllegalArgumentException iaex) {
-                System.out.println("StringMatcherSyntaxError: " + filterExpr);
+                statusHandler.error("StringMatcherSyntaxError: " + filterExpr,
+                        iaex);
             }
         });
 
@@ -584,7 +594,7 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
         seldAttrSetGroup = rscDefnMngr.getAttrSetGroupForResource(seldRscName);
 
         if (seldAttrSetGroup == null) {
-            System.out.println("sanity check: can't find AttrSetGroup for "
+            statusHandler.debug("sanity check: can't find AttrSetGroup for "
                     + seldRscName.toString());
             return;
         }
@@ -655,8 +665,6 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
             // explicitly (if in the USER level)
             // if we are removing this group from the currently selected
             // resource
-            AttrSetGroup asg = null;
-
             for (String rscName : applyToRscsList) {
 
                 // create the new AttrSetGroup from the GUI selections.
@@ -741,12 +749,8 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
             saveMsgDlg.open();
 
             return;
-        } catch (VizException ve) {
-            MessageDialog errDlg = new MessageDialog(getShell(), ERROR, null,
-                    "Error Saving AttrSetGroup:\n" + ve.getMessage() + "\n"
-                            + ve.getCause(),
-                    MessageDialog.ERROR, new String[] { OK }, 0);
-            errDlg.open();
+        } catch (VizException e) {
+            statusHandler.error("Error Saving AttrSetGroup", e);
         }
     }
 }

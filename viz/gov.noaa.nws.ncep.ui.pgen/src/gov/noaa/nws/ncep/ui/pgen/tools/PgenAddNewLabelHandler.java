@@ -21,10 +21,12 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import java.util.Iterator;
 import java.util.List;
+import java.awt.Color;
 
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
@@ -35,6 +37,11 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+
+import gov.noaa.nws.ncep.ui.pgen.display.IText.DisplayType;
+import gov.noaa.nws.ncep.ui.pgen.display.IText.FontStyle;
+import gov.noaa.nws.ncep.ui.pgen.display.IText.TextJustification;
+import gov.noaa.nws.ncep.ui.pgen.display.IText.TextRotation;
 
 /**
 *
@@ -49,7 +56,8 @@ import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 * Sep 01, 2020   81798    smanoj    Initial creation
 * Sep 17, 2020   81798    smanoj    Fixed label count issue when drawing
 *                                   more than one contour
-* 
+* Oct 30, 2020   84101    smanoj    Create a default contour label for the
+*                                   case of empty labels in the contour line.
 * </pre>
 *
 * @author smanoj
@@ -111,8 +119,21 @@ public class PgenAddNewLabelHandler extends InputHandlerDefaultImpl {
                 // if selected element is ContourLine add new label
                 if (de.getParent() instanceof ContourLine) {
                     ContourLine cline = (ContourLine) de.getParent();
+
+                    // Create a default contour label
+                    Text lbl = new Text(null, "Courier", 14.0f,
+                            TextJustification.CENTER, cline.getPoints().get(0),
+                            0.0, TextRotation.SCREEN_RELATIVE,
+                            new String[] { "0" }, FontStyle.REGULAR, Color.RED,
+                            0, 0, true, DisplayType.NORMAL,
+                            PgenConstant.CATEGORY_TEXT,
+                            PgenConstant.TYPE_GENERAL_TEXT);
+
                     List<Text> texts = cline.getLabels();
-                    Text lbl = (Text) (texts.get(0).copy());
+                    if (!texts.isEmpty()) {
+                        lbl = (Text) (texts.get(0).copy());
+                    }
+
                     addNewLabel(loc, lbl, cline);
                 }
 

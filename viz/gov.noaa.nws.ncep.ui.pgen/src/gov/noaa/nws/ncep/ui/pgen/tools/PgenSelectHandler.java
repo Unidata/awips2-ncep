@@ -101,7 +101,8 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 09/23/2019   68970       KSunil      Make sure the symbol text moves with the symbol.
  * 12/19/2019   71072       smanoj      Fixed some run time errors.
  * 02/27/2020   75479       smanoj      Fixed an issue with moving Contour line with multiple labels.
- *
+ * 10/30/2020   84101       smanoj      Add "Snap Labels to ContourLine" option on the 
+ *                                      Contours Attributes dialog.
  * </pre>
  *
  * @author sgilbert
@@ -1279,6 +1280,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     private void editContoursLineNCircle(DrawableElement el,
             ArrayList<Coordinate> points) {
 
+        boolean moveContourLbls = false;
+        if (el.getParent() instanceof ContourLine) {
+            if (attrDlg != null) {
+                if (((ContoursAttrDlg) attrDlg).getToggleSnapLblChecked()) {
+                    moveContourLbls = true;
+                }
+            }
+        }
+
         if (el.getParent() instanceof ContourLine
                 || el.getParent() instanceof ContourCircle) {
 
@@ -1314,21 +1324,26 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                             //Update labels in the contour line.
                             ContourLine cline = (ContourLine) selElem.getParent();
                             if (nlabels > 0) {
-                                Text oldLabel = (Text) (texts.get(0).copy());
 
-                                for (Text lbl : texts) {
-                                    cline.removeElement(lbl);
-                                }
+                                if (moveContourLbls) {
 
-                                for (int ii = 0; ii < nlabels; ii++) {
+                                    Text oldLabel = (Text) (texts.get(0)
+                                            .copy());
 
-                                    Text lbl = (Text) (oldLabel.copy());
+                                    for (Text lbl : texts) {
+                                        cline.removeElement(lbl);
+                                    }
 
-                                    lbl.setAuto(true);
-                                    lbl.setParent(cline);
-                                    lbl.setHide(false);
+                                    for (int ii = 0; ii < nlabels; ii++) {
 
-                                    cline.add(lbl);
+                                        Text lbl = (Text) (oldLabel.copy());
+
+                                        lbl.setAuto(true);
+                                        lbl.setParent(cline);
+                                        lbl.setHide(false);
+
+                                        cline.add(lbl);
+                                    }
                                 }
                             }
 

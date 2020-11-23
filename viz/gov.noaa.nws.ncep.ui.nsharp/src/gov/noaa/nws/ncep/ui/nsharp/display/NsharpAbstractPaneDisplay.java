@@ -12,6 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 04/30/2012	229			Chin Chen	Initial coding for multiple display panes implementation
  * 03/11/2013   972         Greg Hull   rm paneNum and editorNum
+ * 01/15/2018   6746        bsteffen    Override getGlobalsMap()
  *
  * </pre>
  * 
@@ -24,12 +25,14 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpAbstractPaneResourceData;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.PixelExtent;
+import com.raytheon.uf.viz.core.VizConstants;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
@@ -47,59 +50,61 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 public class NsharpAbstractPaneDisplay extends AbstractRenderableDisplay {
     public static GeometryFactory gf = new GeometryFactory();
  // TODO : I'm reasonably sure these are not needed anymore. Remove with EditorManager code
-//  protected  int paneNum =0;
-//  protected  int editorNum =0;
-//  protected String paneName;
-  
-//  public int getEditorNum() {
-//		return editorNum;
-//	}
-//	public void setEditorNum(int editorNum) {
-//		this.editorNum = editorNum;
+    // protected int paneNum =0;
+    // protected int editorNum =0;
+    // protected String paneName;
+
+    // public int getEditorNum() {
+    // return editorNum;
+    // }
+    // public void setEditorNum(int editorNum) {
+    // this.editorNum = editorNum;
 //		//System.out.println("NsharpAbstractPaneDisplay setEditorNnum " + editorNum );
-//	   	 
-//	}
+    //
+    // }
 
     public NsharpAbstractPaneDisplay() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-    public NsharpAbstractPaneDisplay(PixelExtent pixelExtent,int paneNumber) {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    public NsharpAbstractPaneDisplay(PixelExtent pixelExtent, int paneNumber) {
         this (pixelExtent,paneNumber, "AbstractPane", new NsharpAbstractPaneDescriptor(pixelExtent, paneNumber));
     }
 	public NsharpAbstractPaneDisplay(PixelExtent pixelExtent,int paneNumber, String name, NsharpAbstractPaneDescriptor desc) {
         super(pixelExtent, desc);
-//        paneNum = paneNumber;
-//        paneName = name;
+        // paneNum = paneNumber;
+        // paneName = name;
     }
-    
+
     @Override
     public void dispose() {
     	// if it turns out that we still need reference counts for the editor, move the
     	// EditorManager methods to NsharpEditor or replace with a simple reference count 
-    	// 
-//    	if( getContainer() instanceof NsharpEditor ) {
+        //
+        // if( getContainer() instanceof NsharpEditor ) {
 //    		int editorInstanceNum = ((NsharpEditor)getContainer()).getNumOfEditorInstance(editorNum);
-//
+        //
 ////    		int editorInstanceNum = EditorManager.getNumOfEditorInstance(editorNum);
 //    		//System.out.println("NsharpAbstractPaneDisplay disposed  "+ this.toString());
-//    		if (this.descriptor != null && editorInstanceNum <= 1) {
-    			super.dispose();
-//    		}
-//        }
+        // if (this.descriptor != null && editorInstanceNum <= 1) {
+        super.dispose();
+        // }
+        // }
     }
+
     @Override
     public NsharpAbstractPaneDescriptor getDescriptor() {
         return (NsharpAbstractPaneDescriptor) super.getDescriptor();
     }
-    
+
     @Override
     public void paint(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
         super.paint(target, paintProps);
 
-        //descriptor.checkDrawTime(paintProps.getLoopProperties());
-        
+        // descriptor.checkDrawTime(paintProps.getLoopProperties());
+
         drawTheData(target, paintProps);
     }
 
@@ -112,7 +117,7 @@ public class NsharpAbstractPaneDisplay extends AbstractRenderableDisplay {
             PaintProperties paintProps) throws VizException {
         ArrayList<ResourcePair> resourceList = new ArrayList<ResourcePair>(
                 descriptor.getResourceList());
-        
+
         PaintProperties myProps = new PaintProperties(paintProps);
         for (ResourcePair pair : resourceList) {
             if (pair.getProperties().isVisible()) {
@@ -124,30 +129,40 @@ public class NsharpAbstractPaneDisplay extends AbstractRenderableDisplay {
             }
         }
     }
+
     public GeometryFactory getGeometry() {
         return gf;
     }
 
-	@Override
+    @Override
     protected void customizeResourceList(ResourceList resourceList) {
-    	AbstractResourceData resourceData = new NsharpAbstractPaneResourceData();
-    	// get a load properties
-    	LoadProperties loadProperties = new LoadProperties();
-    	ColorableCapability colorableCapability = new ColorableCapability();
-    	colorableCapability.setColor(NsharpConstants.backgroundColor);
-    	loadProperties.getCapabilities().addCapability(colorableCapability);
-    	// get some resource properties
-    	ResourceProperties resourceProperties = new ResourceProperties();
-    	resourceProperties.setVisible(true);
-    	resourceProperties.setMapLayer(true);
-    	resourceProperties.setSystemResource(true);
-    	// Make a resource pair
-    	ResourcePair resourcePair = new ResourcePair();
-    	resourcePair.setResourceData(resourceData);
-    	resourcePair.setLoadProperties(loadProperties);
-    	resourcePair.setProperties(resourceProperties);
-    	// add it to the resource list.
-    	resourceList.add(resourcePair);           
+        AbstractResourceData resourceData = new NsharpAbstractPaneResourceData();
+        // get a load properties
+        LoadProperties loadProperties = new LoadProperties();
+        ColorableCapability colorableCapability = new ColorableCapability();
+        colorableCapability.setColor(NsharpConstants.backgroundColor);
+        loadProperties.getCapabilities().addCapability(colorableCapability);
+        // get some resource properties
+        ResourceProperties resourceProperties = new ResourceProperties();
+        resourceProperties.setVisible(true);
+        resourceProperties.setMapLayer(true);
+        resourceProperties.setSystemResource(true);
+        // Make a resource pair
+        ResourcePair resourcePair = new ResourcePair();
+        resourcePair.setResourceData(resourceData);
+        resourcePair.setLoadProperties(loadProperties);
+        resourcePair.setProperties(resourceProperties);
+        // add it to the resource list.
+        resourceList.add(resourcePair);
+    }
+
+    @Override
+    public Map<String, Object> getGlobalsMap() {
+        Map<String, Object> globals = super.getGlobalsMap();
+        globals.put(VizConstants.FRAME_COUNT_ID,
+                getDescriptor().getRscHandler().getFrameCount());
+        globals.put(VizConstants.FRAMES_ID, descriptor.getNumberOfFrames());
+        return globals;
     }
 
 }

@@ -1769,7 +1769,7 @@ public class MergeSounding {
      * better performance, the conversion order is RH first, if RH not available
      * then SH, and then DpD. This design choice is based on the observation
      * from database that RH is most common provided by most grid models. Only
-     * few models use SH, e.g NAM at x25 and x75 levels, and DpD, e.g RUC130 at
+     * few models use SH, e.g NAM at x25 and x75 levels, and DpD, e.g RAP13 at
      * surface level.
      * 
      * @param List

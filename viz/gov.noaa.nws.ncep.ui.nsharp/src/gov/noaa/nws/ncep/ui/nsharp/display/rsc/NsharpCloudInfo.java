@@ -15,6 +15,9 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and 
+ *                                      the "modified SHERBE" parameter,..etc.
  *
  * </pre>
  * 
@@ -302,16 +305,19 @@ public class NsharpCloudInfo {
                                     LayerParameters lyParam = NsharpLibThermo
                                             .drylift(layerS1.getPressure(),
                                                     temp1, dewPoint1);
-                                    startpres = lyParam.getPressure();
-                                    if (startpres < endpres) {
-                                        startpres = layerS1.getPressure();
+                                    if(lyParam!=null){
+                                        startpres = lyParam.getPressure();
+
+                                        if (startpres < endpres) {
+                                            startpres = layerS1.getPressure();
+                                        }
+                                        top = false;
+                                        basefound = true;
+                                        CloudLayer cloudLy = new CloudLayer(
+                                                startpres, endpres,
+                                                CloudType.UNDEFINED);
+                                        ceCloudLys.add(cloudLy);
                                     }
-                                    top = false;
-                                    basefound = true;
-                                    CloudLayer cloudLy = new CloudLayer(
-                                            startpres, endpres,
-                                            CloudType.UNDEFINED);
-                                    ceCloudLys.add(cloudLy);
                                 }
                             }
                         }

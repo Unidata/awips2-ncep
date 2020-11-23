@@ -188,6 +188,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                          no Y data, such as directional arrows.
  * 12/05/2016    R26247     A. Su           Removed the setting of NcGridDataProxy object to currentFrame 
  *                                          in updateFrameData().
+ * 11/29/2017    5863       bsteffen        Change dataTimes to a NavigableSet
+ *
  * </pre>
  * 
  * @author mli
@@ -964,8 +966,6 @@ public class NcgridResource
                     logger.debug("==init contour took:" + (t12 - t11));
                 }
             } // end of for loop
-
-            Collections.sort(NcgridResource.this.dataTimes);
 
             frameLoaded = true;
             long t1 = System.currentTimeMillis();

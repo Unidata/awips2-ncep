@@ -1,41 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system. 
- * 
- * All methods developed in this class are based on the algorithm developed in BigSharp 
- * native C file, basics.c , by John A. Hart/SPC.
- * All methods name are defined with same name as the C function name defined in native code.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- * 
- *
- *
- * Nsharp sup.txt file contains previous weather data with "super cell" history.
- * It is used for SARS (Sounding Analog Retrieval System) computations. The file
- * is formatted like the following.
- * FILENAME CAT MLMIXR MLCAPE MLCIN MLCL(MAGL) 0-1SRH 0-6KT STPC 500T(C) 500DIR 7-5LR 0-3(KT) 0-9(KT) 0-3KMSRH(M2/S2)
- * 00042320.TXK    2   12.9    1702    -1  657    134 61.7    2.3 -14.0   250 6.5 32.8    76.6    166
- * 00042001.PPF    2   13.5    2614    -50 1216   227 59.9    4.7 -12.9   234 7.5 39.7    73.5    244
- * ................
- * Note that wrong formatted file will cause file reading error.
- */
-
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,13 +12,41 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 
-public class NsharpSupFile {
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(NsharpSupFile.class);
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 
-    private static List<SupLineInfo> supLineList = new ArrayList<>();
+/**
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * All methods developed in this class are based on the algorithm developed in
+ * BigSharp native C file, basics.c , by John A. Hart/SPC. All methods name are
+ * defined with same name as the C function name defined in native code.
+ *
+ * Nsharp historicSupercellData.txt file contains previous weather data with
+ * "super cell" history. It is used for SARS (Sounding Analog Retrieval System)
+ * computations.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * May 22, 2018 20492   mgamazaychikov  Renamed from NsharpSupFile.
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ *
+ */
+public class NsharpSupercellDataFile {
+    private static final transient IUFStatusHandler statusHandler = UFStatus.getHandler(NsharpSupercellDataFile.class);
 
-    public class SupLineInfo {
+    private static List<SupercellDataLineInfo> supLineList = new ArrayList<>();
+
+    public class SupercellDataLineInfo {
         private String dateStnStr;
 
         private int tornadoType;
@@ -166,14 +158,13 @@ public class NsharpSupFile {
         }
     }
 
-    public static List<SupLineInfo> readSupFile() {
+    public static List<SupercellDataLineInfo> readSupercellDataFile() {
         if (supLineList.size() <= 0) {
             NsharpConfigManager configMgr = NsharpConfigManager.getInstance();
-            String supFilePath = configMgr
-                    .getBigNsharpFlPath(NcPathConstants.NSHARP_SUPERCELLDATA_FILE);
+            String supFilePath = configMgr.getBigNsharpFlPath(NcPathConstants.NSHARP_SUPERCELLDATA_FILE);
             if (supFilePath != null) {
                 try {
-                    NsharpSupFile supFile = new NsharpSupFile();
+                    NsharpSupercellDataFile supFile = new NsharpSupercellDataFile();
                     InputStream is = new FileInputStream(supFilePath);
                     StringBuilder strContent = new StringBuilder("");
                     int byteread;
@@ -183,17 +174,17 @@ public class NsharpSupFile {
                     is.close();
 
                     String headerEndStr = "(M2/S2)";
-                    int headerEndIndex = strContent.indexOf(headerEndStr)
-                            + headerEndStr.length();
+                    int headerEndIndex = strContent.indexOf(headerEndStr) + headerEndStr.length();
                     String dataString = strContent.substring(headerEndIndex);
                     dataString = dataString.trim();
                     StringTokenizer st = new StringTokenizer(dataString);
                     /*
-                     * sup.txt file contains n lines of previous super cell
-                     * information. Each line contains 15 parameters: FILENAME
-                     * CAT MLMIXR MLCAPE MLCIN MLCL(MAGL) 0-1SRH 0-6KT STPC
-                     * 500T(C) 500DIR 7-5LR 0-3(KT) 0-9(KT) 0-3KMSRH(M2/S2)
-                     * 
+                     * historicSupercellData.txt file contains n lines of
+                     * previous super cell information. Each line contains 15
+                     * parameters: FILENAME CAT MLMIXR MLCAPE MLCIN MLCL(MAGL)
+                     * 0-1SRH 0-6KT STPC 500T(C) 500DIR 7-5LR 0-3(KT) 0-9(KT)
+                     * 0-3KMSRH(M2/S2)
+                     *
                      * We only use the following for SARS computations.
                      * FILENAME(0), CAT(1), MLCAPE(3), MLCL(MAGL)(5), 0-1SRH(6),
                      * 0-6KT(7), 500T(C)(9), 7-5LR(11), 0-3(KT)(12),
@@ -201,13 +192,13 @@ public class NsharpSupFile {
                      */
                     int dataCount = 0;
                     int dataCycleLength = 15;
-                    SupLineInfo line = null;
+                    SupercellDataLineInfo line = null;
                     while (st.hasMoreTokens()) {
                         String tok = st.nextToken();
                         int paramIndex = dataCount % dataCycleLength;
                         switch (paramIndex) {
                         case 0: // FILENAME
-                            line = supFile.new SupLineInfo();
+                            line = supFile.new SupercellDataLineInfo();
                             supLineList.add(line);
                             line.setDateStnStr(tok);
                             break;
@@ -257,11 +248,9 @@ public class NsharpSupFile {
                     }
 
                 } catch (FileNotFoundException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
+                    statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
                 } catch (IOException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
+                    statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
                 }
             }
         }

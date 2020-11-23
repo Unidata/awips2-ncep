@@ -140,6 +140,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     add FrameStatus state tracking (instead of just processing-in-progress boolean)
  *  11/17/2015   R9579     B. Hebbard  Tell DisplayElementFactory to allow filled symbols; move Station class to separate file; cleanups
  *  12/14/2015   R9579     B. Hebbard  In populateStationsForTheFcstPointRscFrames(), prevent array-out-of-bounds condition if getFrameTimes() returns empty
+ *  11/29/2017   5863      bsteffen    Change dataTimes to a NavigableSet
  * 
  * </pre>
  * 
@@ -857,8 +858,6 @@ public class NcPlotResource2 extends
         if (plotRscData.getPlotInfoRetriever() == null) {
             plotRscData.setPlotInfoRetriever(new PointDataPlotInfoRetriever());
         }
-
-        this.dataTimes = new ArrayList<DataTime>();
 
         timeLogger = TimeLogger.getInstance();
         frameRetrievalPool = new JobPool("Querying stations all frames...", 8,

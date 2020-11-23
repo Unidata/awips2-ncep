@@ -1,39 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system. 
- * 
- * All methods developed in this class are based on the algorithm developed in BigSharp 
- * native C file, basics.c , by John A. Hart/SPC.
- * All methods name are defined with same name as the C function name defined in native code.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- * 
- *
- *
- * Nsharp nlist.txt file contains previous weather data with hail history. It is used for SARS (Sounding Analog 
- * Retrieval System) computations. The file is formatted like the following.
- * DATE/RAOB ELEV REPORT  MUCAPE  MUMR  500TEMP 300T 7-5LR  5-3LR  0-3SH  0-6SH 0-9SH  SRH3  SHIP MODELb
- * 95052300.DDC  791 6.00  4181  15.3    -9.6    -36.2   7.5 7.1 23.4    19.4    26.8    325 1.9 3.0
- * 91051100.MAF  873 6.00  4692  14.9    -10.8   -37.3   8.8 7.2 14.2    13.2    18.1    -37 1.9 2.7
- * .............
- * 
- */
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,13 +12,40 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 
-public class NsharpNlistFile {
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(NsharpNlistFile.class);
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 
-    private static List<NlistLineInfo> nlistLineList = new ArrayList<>();
+/**
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * All methods developed in this class are based on the algorithm developed in
+ * BigSharp native C file, basics.c , by John A. Hart/SPC. All methods name are
+ * defined with same name as the C function name defined in native code.
+ *
+ * Nsharp historicHailData.txt file contains previous weather data with hail
+ * history. It is used for SARS (Sounding Analog Retrieval System) computations.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * May 22, 2018 20492   mgamazaychikov  Renamed from NsharpNlistFile.
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ *
+ */
+public class NsharpHailDataFile {
+    private static final transient IUFStatusHandler statusHandler = UFStatus.getHandler(NsharpHailDataFile.class);
 
-    public class NlistLineInfo {
+    private static List<HailDataLineInfo> hailDataLineList = new ArrayList<>();
+
+    public class HailDataLineInfo {
         private String dateStnStr;
 
         private float size;
@@ -165,16 +158,15 @@ public class NsharpNlistFile {
 
     }
 
-    public static List<NlistLineInfo> readNlistFile() {
-        if (nlistLineList.size() <= 0) {
+    public static List<HailDataLineInfo> readHailDataFile() {
+        if (hailDataLineList.size() <= 0) {
             NsharpConfigManager configMgr = NsharpConfigManager.getInstance();
-            String nlistFilePath = configMgr
-                    .getBigNsharpFlPath(NcPathConstants.NSHARP_HAILDATA_FILE);
-            if (nlistFilePath != null) {
+            String filePath = configMgr.getBigNsharpFlPath(NcPathConstants.NSHARP_HAILDATA_FILE);
+            if (filePath != null) {
                 try {
 
-                    NsharpNlistFile nlistFile = new NsharpNlistFile();
-                    InputStream is = new FileInputStream(nlistFilePath);
+                    NsharpHailDataFile hailDataFile = new NsharpHailDataFile();
+                    InputStream is = new FileInputStream(filePath);
                     StringBuilder strContent = new StringBuilder("");
                     int byteread;
                     while ((byteread = is.read()) != -1) {
@@ -183,31 +175,30 @@ public class NsharpNlistFile {
                     is.close();
 
                     String headerEndStr = "MODELb";
-                    int headerEndIndex = strContent.indexOf(headerEndStr)
-                            + headerEndStr.length();
+                    int headerEndIndex = strContent.indexOf(headerEndStr) + headerEndStr.length();
                     String dataString = strContent.substring(headerEndIndex);
                     dataString = dataString.trim();
                     StringTokenizer st = new StringTokenizer(dataString);
                     /*
-                     * nlist.txt file contains n lines of previous hail
-                     * information. Each line contains 15 parameters: DATE/RAOB
-                     * ELEV REPORT MUCAPE MUMR 500TEMP 300T 7-5LR 5-3LR 0-3SH
-                     * 0-6SH 0-9SH SRH3 SHIP MODELb
-                     * 
+                     * historicHailData.txt file contains n lines of previous
+                     * hail information. Each line contains 15 parameters:
+                     * DATE/RAOB ELEV REPORT MUCAPE MUMR 500TEMP 300T 7-5LR
+                     * 5-3LR 0-3SH 0-6SH 0-9SH SRH3 SHIP MODELb
+                     *
                      * We only use the following for sars computations.
                      * DATE/RAOB, REPORT, MUCAPE, MUMR, 500TEMP, 7-5LR, 0-3SH,
                      * 0-6SH, 0-9SH, SRH3
                      */
                     int dataCount = 0;
                     int dataCycleLength = 15;
-                    NlistLineInfo line = null;
+                    HailDataLineInfo line = null;
                     while (st.hasMoreTokens()) {
                         String tok = st.nextToken();
                         int paramIndex = dataCount % dataCycleLength;
                         switch (paramIndex) {
                         case 0: // DATE/RAOB
-                            line = nlistFile.new NlistLineInfo();
-                            nlistLineList.add(line);
+                            line = hailDataFile.new HailDataLineInfo();
+                            hailDataLineList.add(line);
                             line.setDateStnStr(tok);
                             break;
                         case 2: // REPORT i.e. size
@@ -258,14 +249,12 @@ public class NsharpNlistFile {
                     }
 
                 } catch (FileNotFoundException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
+                    statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
                 } catch (IOException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
+                    statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
                 }
             }
         }
-        return nlistLineList;
+        return hailDataLineList;
     }
 }

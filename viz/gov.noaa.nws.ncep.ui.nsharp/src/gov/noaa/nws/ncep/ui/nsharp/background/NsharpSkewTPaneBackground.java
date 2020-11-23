@@ -11,6 +11,9 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 05/02/2012	229			Chin Chen	Initial coding for multiple display panes implementation
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  * 									    
  *
  * </pre>
@@ -837,7 +840,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         double windBarbSizfactor = graphConfigProperty.getWindBarbSize()/1.6f;
         if(windBarbSizfactor < 1)
         	windBarbSizfactor=1;
-        double dispX = xmax - 40 * currentZoomLevel * xRatio * windBarbSizfactor;
+        double dispX = xmax - ext.getWidth()/30;
         Coordinate cumap = world.unMap(dispX,ymax);
         
         return cumap.x;

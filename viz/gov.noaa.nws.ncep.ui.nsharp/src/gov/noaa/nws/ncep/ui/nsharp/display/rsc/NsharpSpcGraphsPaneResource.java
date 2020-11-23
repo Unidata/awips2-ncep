@@ -75,6 +75,9 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
     private NsharpConstants.SPCGraph leftGraph = NsharpConstants.SPCGraph.EBS;
 
     private NsharpConstants.SPCGraph rightGraph = NsharpConstants.SPCGraph.STP;
+    
+    // set default user vrot value as 0
+    private float userVrotValue = 0;
 
     private static int left = 0;
 
@@ -139,7 +142,626 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
             xend = spcRightXOrig + spcFrameWidth;
         }
     }
+    /**
+     * This method is converted from C function show_cond_tor() of xwvid3.c from "March 2017 bigSharp version" 
+     * Original C function Author: Rich Thompson of SPC   
+     */
+    private void plotCondTor(int side) throws VizException {
+    	List<DrawableLine> lineList = new ArrayList<>();
+        List<DrawableString> strList = new ArrayList<>();
+        this.font11.setSmoothing(false);
+        this.font11.setScaleFont(false);
+        setXyStartingPosition(side);
+        DrawableString titleStr = new DrawableString(
+        		"Conditional Tornado Probs based on STP",
+                NsharpConstants.color_white);
+        titleStr.font = font11;
+        titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
+        xpos = xstart;
+        ypos = ystart;
+        titleStr.setCoordinates(xpos, ypos);
+        strList.add(titleStr);
+        DrawableString subTStr1 = new DrawableString(
+        		"EF0+",
+                NsharpConstants.color_darkgreen);
+        ypos = ypos +  charHeight;
+        xpos = xstart + spcFrameWidth/4;
+        subTStr1.font = font10;
+        subTStr1.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr1.verticalAlignment = VerticalAlignment.TOP;
+        subTStr1.setCoordinates(xpos, ypos);
+        strList.add(subTStr1);
+        
+        DrawableString subTStr2 = new DrawableString(
+        		"EF2+",
+                NsharpConstants.color_gold);
+        xpos = xstart + 2* spcFrameWidth/4;
+        subTStr2.font = font10;
+        subTStr2.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr2.verticalAlignment = VerticalAlignment.TOP;
+        subTStr2.setCoordinates(xpos, ypos);
+        strList.add(subTStr2);
+        
+        DrawableString subTStr3 = new DrawableString(
+        		"EF4+",
+                NsharpConstants.color_magenta);
+        xpos = xstart + 3* spcFrameWidth/4;
+        subTStr3.font = font10;
+        subTStr3.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr3.verticalAlignment = VerticalAlignment.TOP;
+        subTStr3.setCoordinates(xpos, ypos);
+        strList.add(subTStr3);
+        
+        ypos = ypos + 1.5 * charHeight;
+        // ----- Plot Y-Coordinate hash marks, 0 - 70  -----
+        int maxval = 70;
+        double knotDist = (spcYEnd - 2 * charHeight - ypos) / 70.0;
+        for (int i = maxval; i >= 0; i = i - 10) {
+            DrawableString lb = new DrawableString(Integer.toString(i),
+                    NsharpConstants.color_vanilla);
+            lb.font = font10;
+            lb.horizontalAlignment = HorizontalAlignment.LEFT;
+            lb.verticalAlignment = VerticalAlignment.MIDDLE;
+            xpos = xstart;
+            lb.setCoordinates(xpos, ypos);
+            strList.add(lb);
+            DrawableLine line = new DrawableLine();
+            line.lineStyle = LineStyle.DASHED;
+            line.basics.color = NsharpConstants.color_dodgerblue4;
+            line.width = 1;
+            xpos = xpos + 2 * charWidth;
+            line.setCoordinates(xpos, ypos);
+            line.addPoint(xend, ypos);
+            lineList.add(line);
+            ypos = ypos + 10 * knotDist;
+        }
+        //  plotting area starting 5 characters from the left frame boundary. 
+        double xgap = (spcFrameWidth - 5 * charWidth) / 8;
+        ypos = spcYEnd - 0.5 * charHeight;
+        double cellYPosStart = spcYEnd - 2 * charHeight;
+        /*  
+         * Original EF0+, Ef2+, EF4+ raw value from C code.
+         * EF0+ conditional tor probs by STPC bins 
+         */
+        float condTorF0[] = {12.4f, 15.3f, 21.1f, 27.2f, 37.3f, 40.8f, 40.8f, 40.8f};
+        /* 
+         * EF2+ conditional tor probs by STPC bins 
+         */
+        float condTorF2[] = {0.6f, 1.2f, 3.7f, 4.7f, 10f, 10.6f, 12.9f, 18.8f};
+        /* 
+         * EF4+ conditional tor probs by STPC bins 
+         */
+        float condTorF4[] = {0f, 0f, 0.1f, 0.2f, 1.4f, 1.4f, 1.6f, 6.3f};
+        
+        // EF0+ line
+        DrawableLine ef0SolidLine = new DrawableLine();
+        ef0SolidLine.lineStyle = LineStyle.SOLID;
+        ef0SolidLine.basics.color = NsharpConstants.color_darkgreen;
+        ef0SolidLine.width = 2;
+        // EF2+ line
+        DrawableLine ef2SolidLine = new DrawableLine();
+        ef2SolidLine.lineStyle = LineStyle.SOLID;
+        ef2SolidLine.basics.color = NsharpConstants.color_gold;
+        ef2SolidLine.width = 2;
+        
+        // EF4+ line
+        DrawableLine ef4SolidLine = new DrawableLine();
+        ef4SolidLine.lineStyle = LineStyle.SOLID;
+        ef4SolidLine.basics.color = NsharpConstants.color_magenta;
+        ef4SolidLine.width = 2;
+        
+        // x-axis labels
+        String xLabel[] = {".01-.25", ".25-1", "1-2", "2-3", "3-4", "4-6", "6-8", ">8"}; 
+        
+        // plot x-axis labels and EF0+ - EF4+ lines
+        xpos = xstart +  5* charWidth;
+        for (int i = 0; i < 8; i++) {
+        	// label for x-axis number
+        	DrawableString lb = new DrawableString(xLabel[i],
+        			NsharpConstants.color_white);
 
+        	lb.font = font9;
+        	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+        	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+        	lb.setCoordinates(xpos, ypos);
+        	strList.add(lb);
+
+        	ef0SolidLine.addPoint(xpos, cellYPosStart
+        				- condTorF0[i]* knotDist);
+        	ef2SolidLine.addPoint(xpos, cellYPosStart
+        				- condTorF2[i] * knotDist);
+        	ef4SolidLine.addPoint(xpos, cellYPosStart
+        				- condTorF4[i] * knotDist);
+        	xpos = xpos + xgap;
+        	
+        }
+        lineList.add(ef0SolidLine);
+        lineList.add(ef2SolidLine);
+        lineList.add(ef4SolidLine);
+        
+        // plot vertical stp line
+        float stpc = weatherDataStore.getStpCin();
+        DrawableLine stpcLine = new DrawableLine();
+		stpcLine.lineStyle = LineStyle.DOTS;
+		stpcLine.basics.color = NsharpConstants.color_white;
+		stpcLine.width = 2;
+		xpos = xstart;
+        if (stpc >= 8.0){
+        	xpos = xpos + 8* xgap;
+        }
+        else if (stpc >= 6.0){
+        	xpos = xpos + 7* xgap;
+        }
+        else if (stpc >= 4.0){
+        	xpos = xpos + 6* xgap;
+        }
+        else if (stpc >= 3.0){
+        	xpos = xpos + 5* xgap;
+        }
+        else if (stpc >= 2.0){
+        	xpos = xpos + 4* xgap;
+        }
+        else if (stpc >= 1.0){
+        	xpos = xpos + 3* xgap;
+        }
+        else if (stpc >= .25){
+        	xpos = xpos + 2 * xgap;
+        }
+        else if (stpc >= .01){
+        	xpos = xpos + 1* xgap;
+        }
+        else if(stpc >= 0){
+        	xpos = xpos + 0.4* xgap;
+        }
+        // plot vertical stpc line only if stpc >= 0 
+        if(stpc >= 0 ){
+        	stpcLine.addPoint(xpos, cellYPosStart);
+        	stpcLine.addPoint(xpos, cellYPosStart -  70 * knotDist);
+        	lineList.add(stpcLine);
+        }
+
+        target.drawStrings(strList.toArray(new DrawableString[strList.size()]));
+        target.drawLine(lineList.toArray(new DrawableLine[lineList.size()]));
+    }
+    
+    /**
+     * This method is converted from C function show_vrot() of xwvid3.c from "March 2017 bigSharp version" 
+     * Original C function Author: Bryan Smith and Rich Thompson of SPC   
+     */
+    private void plotVrot(int side) throws VizException {
+    	List<DrawableLine> lineList = new ArrayList<>();
+        List<DrawableString> strList = new ArrayList<>();
+        this.font11.setSmoothing(false);
+        this.font11.setScaleFont(false);
+        setXyStartingPosition(side);
+        DrawableString titleStr = new DrawableString(
+        		"EF-scale Probs based on Vrot with RM",
+                NsharpConstants.color_white);
+        titleStr.font = font11;
+        titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
+        xpos = xstart;
+        ypos = ystart;
+        titleStr.setCoordinates(xpos, ypos);
+        strList.add(titleStr);
+        
+        DrawableString subTStr1 = new DrawableString(
+        		"EF0+",
+                NsharpConstants.color_brown);
+        ypos = ypos +  charHeight;
+        xpos = xstart + spcFrameWidth/6;
+        subTStr1.font = font10;
+        subTStr1.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr1.verticalAlignment = VerticalAlignment.TOP;
+        subTStr1.setCoordinates(xpos, ypos);
+        strList.add(subTStr1);
+        
+        DrawableString subTStr2 = new DrawableString(
+        		"EF1+",
+                NsharpConstants.color_darkgreen);
+        xpos = xstart + 2* spcFrameWidth/6;
+        subTStr2.font = font10;
+        subTStr2.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr2.verticalAlignment = VerticalAlignment.TOP;
+        subTStr2.setCoordinates(xpos, ypos);
+        strList.add(subTStr2);
+        
+        DrawableString subTStr3 = new DrawableString(
+        		"EF2+",
+                NsharpConstants.color_gold);
+        xpos = xstart + 3* spcFrameWidth/6;
+        subTStr3.font = font10;
+        subTStr3.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr3.verticalAlignment = VerticalAlignment.TOP;
+        subTStr3.setCoordinates(xpos, ypos);
+        strList.add(subTStr3);
+        
+        DrawableString subTStr4 = new DrawableString(
+        		"EF3+",
+                NsharpConstants.color_red);
+        xpos = xstart + 4* spcFrameWidth/6;
+        subTStr4.font = font10;
+        subTStr4.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr4.verticalAlignment = VerticalAlignment.TOP;
+        subTStr4.setCoordinates(xpos, ypos);
+        strList.add(subTStr4);
+        
+        DrawableString subTStr5 = new DrawableString(
+        		"EF4+",
+                NsharpConstants.color_magenta);
+        xpos = xstart + 5* spcFrameWidth/6;
+        subTStr5.font = font10;
+        subTStr5.horizontalAlignment = HorizontalAlignment.LEFT;
+        subTStr5.verticalAlignment = VerticalAlignment.TOP;
+        subTStr5.setCoordinates(xpos, ypos);
+        strList.add(subTStr5);
+        
+        ypos = ypos + 1.5 * charHeight;
+        // ----- Plot Y-Coordinate hash marks, 0 - 70  -----
+        int maxval = 70;
+        double knotDist = (spcYEnd - 2 * charHeight - ypos) / 70.0;
+        for (int i = maxval; i >= 0; i = i - 10) {
+            DrawableString lb = new DrawableString(Integer.toString(i),
+                    NsharpConstants.color_vanilla);
+            lb.font = font10;
+            lb.horizontalAlignment = HorizontalAlignment.LEFT;
+            lb.verticalAlignment = VerticalAlignment.MIDDLE;
+            xpos = xstart;
+            lb.setCoordinates(xpos, ypos);
+            strList.add(lb);
+            DrawableLine line = new DrawableLine();
+            line.lineStyle = LineStyle.DASHED;
+            line.basics.color = NsharpConstants.color_dodgerblue4;
+            line.width = 1;
+            xpos = xpos + 2 * charWidth;
+            line.setCoordinates(xpos, ypos);
+            line.addPoint(xend, ypos);
+            lineList.add(line);
+            ypos = ypos + 10 * knotDist;
+        }
+        //  plotting area starting 5 characters from the left frame boundary. 
+        double xgap = (spcFrameWidth - 5 * charWidth) / 11;
+        ypos = spcYEnd - 0.5 * charHeight;
+        xpos = xstart;
+        double cellYPosStart = spcYEnd - 2 * charHeight;
+
+        /* original raw values from Thompson et al. (2017; Fig. 8) by 10 kt bins -> vrot_f1_0 = 0-9.9, vrot_f1_1 = 10-19.9, etc.) */
+        /* used Smith et al. (2015) conditional tor probs for vrot values >70 kt since all such cases were tornadic 2014-2015 */
+        /* EF0+ conditional tor probs by VROT bins, value was defined as " 0.0f, 11.9f, 16.5f, 26.3f,46.6f, 63.4f,  86.3f, 100.0f, 100.0f,  100.0f, 100.0f" */
+        /* However, original C code modified plot to cap values at 70%, therefore for easy implementation, defined first value above 70 as 70 and the rest as -1. */
+        float vrotF0[] = { 0.0f, 11.9f, 16.5f, 26.3f,46.6f, 63.4f,  70f, -1f, -1f,-1f,-1f};
+        /* Same rules apply to EF1+, EF2+, EF3+, EF4+ */
+        /* EF1+ conditional tor probs by VROT bins, value was defined as " 0f, 1.2f, 4.2f, 11.5f, 26.1f, 49.6f, 71.3f, 90.3f, 93.2f, 100f, 100f" */
+        float vrotF1[] = { 0f, 1.2f, 4.2f, 11.5f, 26.1f, 49.6f,  70f, -1f, -1f,-1f,-1f};
+        /* EF2+ conditional tor probs by VROT bins, value was defined as "0f, 0f, 0.4f, 1.5f, 4.4f, 20.7f, 43.8f, 71f, 84.1f, 94.4f, 100f" */
+        float vrotF2[] = { 0f, 0f, 0.4f, 1.5f, 4.4f, 20.7f, 43.8f, 70f, -1f,-1f,-1f};
+        /* EF3+ conditional tor probs by VROT bins, value was defined as "0f, 0f, 0f, 0.3f, 0.6f, 5.3f, 16.3f, 46.2f, 70f, 88.9f, 91.7f" */
+        float vrotF3[] = { 0f, 0f, 0f, 0.3f, 0.6f, 5.3f, 16.3f, 46.2f,70f,-1f,-1f};
+        /* EF4+ conditional tor probs by VROT bins, value was defined as "0f, 0f, 0f, 0f, 0.2f, 0.4f, 2.5f, 10.8f, 20.5f, 44.4f, 66.7f" */
+        /* since all EF4+ values are below 70, no modification needed */
+        float vrotF4[] = { 0f, 0f, 0f, 0f, 0.2f, 0.4f, 2.5f, 10.8f, 20.5f, 44.4f, 66.7f};
+
+        // EF0+ line
+        DrawableLine ef0SolidLine = new DrawableLine();
+        ef0SolidLine.lineStyle = LineStyle.SOLID;
+        ef0SolidLine.basics.color = NsharpConstants.color_brown;
+        ef0SolidLine.width = 2;
+        DrawableLine ef0DashLine = new DrawableLine();
+        ef0DashLine.lineStyle = LineStyle.DASHED;
+        ef0DashLine.basics.color = NsharpConstants.color_brown;
+        ef0DashLine.width = 2;
+        // EF1+ line
+        DrawableLine ef1SolidLine = new DrawableLine();
+        ef1SolidLine.lineStyle = LineStyle.SOLID;
+        ef1SolidLine.basics.color = NsharpConstants.color_darkgreen;
+        ef1SolidLine.width = 2;
+        DrawableLine ef1DashLine = new DrawableLine();
+        ef1DashLine.lineStyle = LineStyle.DASHED;
+        ef1DashLine.basics.color = NsharpConstants.color_darkgreen;
+        ef1DashLine.width = 2;
+        // EF2+ line
+        DrawableLine ef2SolidLine = new DrawableLine();
+        ef2SolidLine.lineStyle = LineStyle.SOLID;
+        ef2SolidLine.basics.color = NsharpConstants.color_gold;
+        ef2SolidLine.width = 2;
+        DrawableLine ef2DashLine = new DrawableLine();
+        ef2DashLine.lineStyle = LineStyle.DASHED;
+        ef2DashLine.basics.color = NsharpConstants.color_gold;
+        ef2DashLine.width = 2;
+        // EF3+ line
+        DrawableLine ef3SolidLine = new DrawableLine();
+        ef3SolidLine.lineStyle = LineStyle.SOLID;
+        ef3SolidLine.basics.color = NsharpConstants.color_red;
+        ef3SolidLine.width = 2;
+        DrawableLine ef3DashLine = new DrawableLine();
+        ef3DashLine.lineStyle = LineStyle.DASHED;
+        ef3DashLine.basics.color = NsharpConstants.color_red;
+        ef3DashLine.width = 2;
+        // EF4+ line
+        DrawableLine ef4SolidLine = new DrawableLine();
+        ef4SolidLine.lineStyle = LineStyle.SOLID;
+        ef4SolidLine.basics.color = NsharpConstants.color_magenta;
+        ef4SolidLine.width = 2;
+        //Note:  since all EF4+ values are below 70, no capped 70% dash line are needed for EF4+ */
+        
+        // plot x-axis labels and EF0+ - EF5+ lines
+        xpos = xpos +  2* charWidth;
+        for (int i = 10; i <= 110; i = i + 10) {
+        	// label for x-axis number
+        	DrawableString lb = new DrawableString(Integer.toString(i-10),
+        			NsharpConstants.color_white);
+
+        	lb.font = font10;
+        	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+        	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+        	lb.setCoordinates(xpos, ypos);
+        	strList.add(lb);
+
+        	int cellIndex = i / 10 - 1;
+        	if(vrotF0[cellIndex] >= 0){
+        		ef0SolidLine.addPoint(xpos, cellYPosStart
+        				- vrotF0[cellIndex] * knotDist);
+        	}
+        	else {
+        		ef0DashLine.addPoint(xpos, cellYPosStart
+        				- 70 * knotDist);
+        	}
+        	if(vrotF1[cellIndex] >= 0){
+        		ef1SolidLine.addPoint(xpos, cellYPosStart
+        				- vrotF1[cellIndex] * knotDist);
+        	}
+        	else {
+        		ef1DashLine.addPoint(xpos, cellYPosStart 
+        				- 70 * knotDist);
+        	}
+        	if(vrotF2[cellIndex] >= 0){
+        		ef2SolidLine.addPoint(xpos, cellYPosStart
+        				- vrotF2[cellIndex] * knotDist);
+        	}
+        	else {
+        		ef2DashLine.addPoint(xpos, cellYPosStart
+        				- 70 * knotDist);
+
+        	}
+        	if(vrotF3[cellIndex] >= 0){
+        		ef3SolidLine.addPoint(xpos, cellYPosStart
+        				- vrotF3[cellIndex] * knotDist);
+        	}
+        	else {
+        		ef3DashLine.addPoint(xpos, cellYPosStart
+        				- 70 * knotDist);
+
+        	}
+        	if(vrotF4[cellIndex] >= 0){
+        		ef4SolidLine.addPoint(xpos, cellYPosStart
+        				- vrotF4[cellIndex] * knotDist);
+        	}
+        	// Note that EF4+ does not have negativbe value defined.
+        	xpos = xpos + xgap;
+        	
+        }
+        lineList.add(ef0SolidLine);
+        lineList.add(ef0DashLine);
+        lineList.add(ef1SolidLine);
+        lineList.add(ef1DashLine);
+        lineList.add(ef2SolidLine);
+        lineList.add(ef2DashLine);
+        lineList.add(ef3SolidLine);
+        lineList.add(ef3DashLine);
+        lineList.add(ef4SolidLine);
+        
+        if (userVrotValue > 0) {
+        	// note: original C code, hard coded display values without explanation. Therefore
+        	// we are doing the same thing here.
+        	xpos = xstart + 0.3 *xgap;
+        	DrawableLine vrotDashLine = new DrawableLine();
+    		vrotDashLine.lineStyle = LineStyle.DASHED;
+    		vrotDashLine.basics.color = NsharpConstants.color_white;
+    		vrotDashLine.width = 2;
+        	if (userVrotValue < 10.0){
+        		DrawableString lb = new DrawableString("0",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  5 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if  (userVrotValue < 20.0){
+        		xpos = xpos+ xgap;
+         		DrawableString lb = new DrawableString("12",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  15 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("1",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  5 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if  (userVrotValue < 30.0){
+        		xpos = xpos+ 2 * xgap;
+        		DrawableString lb = new DrawableString("17",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  20 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("4",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos  -2* charWidth, cellYPosStart -  10 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if (userVrotValue < 40.0){
+        		xpos = xpos+ 3 * xgap;
+        		DrawableString lb = new DrawableString("26",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  30 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("12",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  15 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("2",NsharpConstants.color_gold);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  5 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if (userVrotValue < 50.0){
+        		xpos = xpos+ 4.1 * xgap;
+        		DrawableString lb = new DrawableString("47",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos+ 2* charWidth, cellYPosStart -  45 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("26",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  25 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("4",NsharpConstants.color_gold);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  5 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if (userVrotValue < 60.0){
+        		xpos = xpos+ 5.1 * xgap;
+        		DrawableString lb = new DrawableString("63",NsharpConstants.color_brown);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart -  60 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("50",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  50 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("21",NsharpConstants.color_gold);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  20 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("5",NsharpConstants.color_red);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  5 * knotDist);
+            	strList.add(lb);
+        	}
+        	else if (userVrotValue < 70.0){
+        		xpos = xpos+ 6.1 * xgap;
+        		DrawableString lb = new DrawableString("71",NsharpConstants.color_darkgreen);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  70 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("44",NsharpConstants.color_gold);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  40 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("16",NsharpConstants.color_red);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  15 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("3",NsharpConstants.color_magenta);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart );
+            	strList.add(lb);       	
+        	}
+        	else if (userVrotValue < 80.0){
+        		xpos = xpos+ 7.1 * xgap;
+        		DrawableString lb = new DrawableString("71",NsharpConstants.color_gold);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  70 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("46",NsharpConstants.color_red);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  40 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("11",NsharpConstants.color_magenta);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart -  10 * knotDist );
+            	strList.add(lb);	
+        	}
+        	else if (userVrotValue < 90.0){
+        		xpos = xpos+ 8.1 * xgap;
+        		DrawableString lb = new DrawableString("68",NsharpConstants.color_red);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  68 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("21",NsharpConstants.color_magenta);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart -  20 * knotDist );
+            	strList.add(lb);      	
+        	}
+        	else if (userVrotValue < 100.0){
+        		xpos = xpos+ 9.1 * xgap;
+        		DrawableString lb = new DrawableString("89",NsharpConstants.color_red);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos -2* charWidth, cellYPosStart -  68 * knotDist);
+            	strList.add(lb);
+            	lb = new DrawableString("44",NsharpConstants.color_magenta);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.BOTTOM;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart -  40 * knotDist );
+            	strList.add(lb);      	
+        	}
+        	else {
+        		xpos = xpos+ 10.1 * xgap;
+        		DrawableString lb = new DrawableString("67",NsharpConstants.color_magenta);
+            	lb.font = font10;
+            	lb.horizontalAlignment = HorizontalAlignment.CENTER;
+            	lb.verticalAlignment = VerticalAlignment.TOP;
+            	lb.setCoordinates(xpos- 2* charWidth, cellYPosStart -  68 * knotDist );
+            	strList.add(lb);      	
+        	}
+        	vrotDashLine.addPoint(xpos, cellYPosStart);
+    		vrotDashLine.addPoint(xpos, cellYPosStart -  70 * knotDist);
+        	lineList.add(vrotDashLine);
+        }
+        target.drawStrings(strList.toArray(new DrawableString[strList.size()]));
+        target.drawLine(lineList.toArray(new DrawableLine[lineList.size()]));
+        
+    }
+    
     /*
      * This function is based on show_sars() in xwvid3.c of BigNsharp
      */
@@ -1576,7 +2198,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         this.font11.setScaleFont(false);
         setXyStartingPosition(side);
         DrawableString titleStr = new DrawableString(
-                "Effective Bulk Wind Difference (kt,y axis)",
+                "Effective Bulk Wind Difference(kt,Yaxis)",
                 NsharpConstants.color_white);
         titleStr.font = font11;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -1612,7 +2234,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         double knotDist = (spcYEnd - 2 * charHeight - ypos) / 70.0;
         for (int i = maxval; i >= 0; i = i - 10) {
             DrawableString lb = new DrawableString(Integer.toString(i),
-                    NsharpConstants.color_white);
+                    NsharpConstants.color_vanilla);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.LEFT;
             lb.verticalAlignment = VerticalAlignment.MIDDLE;
@@ -1621,7 +2243,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
             strList.add(lb);
             DrawableLine line = new DrawableLine();
             line.lineStyle = LineStyle.DASHED;
-            line.basics.color = NsharpConstants.temperatureColor;
+            line.basics.color = NsharpConstants.color_dodgerblue4;
             line.width = 1;
             xpos = xpos + 2 * charWidth;
             line.setCoordinates(xpos, ypos);
@@ -1746,6 +2368,15 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         case SARS:
             plotSars(left);
             break;
+        case VROT:
+        	plotVrot(left);
+            break;
+        case CONDTOR:
+            plotCondTor(left);
+            break;
+        default:
+        	plotEBS(left);
+            break;
         }
         switch (rightGraph) {
         case EBS:
@@ -1769,6 +2400,15 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         case SARS:
             plotSars(right);
             break;
+        case VROT:
+        	plotVrot(right);
+            break;
+        case CONDTOR:
+        	plotCondTor(right);
+            break;
+        default:
+        	plotEBS(right);
+            break;
         }
 
     }
@@ -1788,9 +2428,10 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
     }
 
     public void setGraphs(NsharpConstants.SPCGraph leftGraph,
-            NsharpConstants.SPCGraph rightGraph) {
+            NsharpConstants.SPCGraph rightGraph, float userVrot) {
         this.leftGraph = leftGraph;
         this.rightGraph = rightGraph;
+        this.userVrotValue=userVrot;
         rscHandler.refreshPane();
     }
 

@@ -21,6 +21,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
  * 01/13/2015   DR#17008,
  *              task#5930   Chin Chen   NSHARP Hodograph Does Not Loop in D2D Lite Configuration
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
+ * 01/15/2018   6746        bsteffen    Do not replace incoming display on swap.
  *
  * </pre>
  * 
@@ -75,6 +76,7 @@ import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
+import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.editor.EditorInput;
@@ -1223,10 +1225,22 @@ public class NsharpEditor extends AbstractEditor implements
         }
     }
 
+    @Override
     public void registerMouseHandler(IInputHandler handler,
             IInputHandler.InputPriority priority) {
-        if (skewtInputManager != null)
+        if (skewtInputManager != null){
+            if(handler instanceof NsharpSkewTPaneMouseHandler){
+                if(skewtPaneMouseHandler != null){
+                    skewtInputManager.unregisterMouseHandler(skewtPaneMouseHandler);
+                    skewtPaneMouseHandler.disposeCursor();
+                }
+                skewtPaneMouseHandler = (NsharpSkewTPaneMouseHandler) handler;
+                skewtPaneMouseHandler.setEditor(this);
+                skewtPaneMouseHandler.setCurrentPane(displayPane[DISPLAY_SKEWT]);
+                
+            }
             skewtInputManager.registerMouseHandler(handler, priority);
+        }
     }
 
     /**
@@ -1237,8 +1251,18 @@ public class NsharpEditor extends AbstractEditor implements
      */
     @Override
     public void registerMouseHandler(IInputHandler handler) {
-        if (skewtInputManager != null)
+        if (skewtInputManager != null){
+            if(handler instanceof NsharpSkewTPaneMouseHandler){
+                if(skewtPaneMouseHandler != null){
+                    skewtInputManager.unregisterMouseHandler(skewtPaneMouseHandler);
+                    skewtPaneMouseHandler.disposeCursor();
+                }
+                skewtPaneMouseHandler = (NsharpSkewTPaneMouseHandler) handler;
+                skewtPaneMouseHandler.setEditor(this);
+                skewtPaneMouseHandler.setCurrentPane(displayPane[DISPLAY_SKEWT]);
+            }
             skewtInputManager.registerMouseHandler(handler);
+        }
     }
 
     /**
@@ -2030,76 +2054,33 @@ public class NsharpEditor extends AbstractEditor implements
     public void renderableDisplayChanged(IDisplayPane pane,
             IRenderableDisplay newRenderableDisplay, DisplayChangeType type) {
 
-        if (type == DisplayChangeType.ADD) {
-             boolean swapping = false;
-            for (int i = 0; i < displayPane.length; i += 1) {
+        if (type == DisplayChangeType.ADD
+                && newRenderableDisplay instanceof NsharpAbstractPaneDisplay) {
+            for (int i = 0; i < displayArray.length; i += 1) {
                 if (displayPane[i] == pane) {
-                    /*
-                     * Chin Note: For the scenarios of 2 instance of Nsharps.
-                     * One in Main and one in side pane. In order to handle pane
-                     * swapping in D2D. When this renderableDisplayChanged event
-                     * happened with change type of ADD. It indicates that
-                     * current nsharp in main pane is about to be swapped with
-                     * Nsharp in side pane. Current D2D architecture will not
-                     * dispose this NsharpEditor (in main pane) but will reuse
-                     * it for the existing Nsharp coming from side pane. In
-                     * other words, we only swap "NsharpResourceHandler" and
-                     * keep editor. Therefore, rscHandler (at this moment) is
-                     * about to be moved out. Before it is moved out, we raise
-                     * "justMoveToSidePane" flag to be used by skewTPaneRsc at
-                     * side pane.
-                     */
-                    if (rscHandler.getSkewtPaneRsc() != null)
-                        rscHandler.getSkewtPaneRsc()
-                                .setJustMoveToSidePane(true);
-                    if (rscHandler.getWitoPaneRsc() != null)
-                        rscHandler.getWitoPaneRsc().setInSidePane(true);
-                    if (rscHandler.getDataPaneRsc() != null)
-                        rscHandler.getDataPaneRsc().setSidePaneMode(true);
-                    swapping = true;
+                    displayArray[i] = newRenderableDisplay;
                 }
-
             }
-            /*
-             * Chin Note: We only have to handle the following procedures once,
-             * either during swapping or NshaepEditor is created. Since, in any
-             * case, we will have NsharpSkewTPane, therefore we are checking
-             * NsharpSkewTPaneDescriptor to avoid multiple access of the
-             * following code.
-             */
-            if (newRenderableDisplay.getDescriptor() instanceof NsharpSkewTPaneDescriptor) {
-                NsharpAbstractPaneDescriptor desc = (NsharpAbstractPaneDescriptor) newRenderableDisplay
-                        .getDescriptor();
-                NsharpResourceHandler handler = desc.getRscHandler();
-                if (handler != null) {
-                    rscHandler = handler;
-                    if (swapping) {
-                        /*
-                         * Chin Note: If swapping happened, rscHandler is the
-                         * newly swapping nsharp's. We will have to restart
-                         * editor to construct all graphs and displays for this
-                         * nsharp instance. We also have to re-store nsharp to
-                         * its previous status (when it was in main pane).
-                         */
-                        restartEditor(paneConfigurationName);
-                        if (rscHandler.getSkewtPaneRsc() != null)
-                            rscHandler.getSkewtPaneRsc().setJustBackToMainPane(
-                                    true);
-                        if (rscHandler.getWitoPaneRsc() != null)
-                            rscHandler.getWitoPaneRsc().setInSidePane(false);
-                        if (rscHandler.getDataPaneRsc() != null)
-                            rscHandler.getDataPaneRsc().setSidePaneMode(false);
-
-                    } else {
-                        // Chin Note: This is when NsharpEditor is created case.
-                        // Note that, in D2D when only one Nsharp instance is in
-                        // side pane, then when it
-                        // is swapped back to main pane, NsharpEditor also is
-                        // created.
+            NsharpAbstractPaneDisplay newNsharpDisplay = (NsharpAbstractPaneDisplay) newRenderableDisplay;
+            NsharpResourceHandler newHandler = newNsharpDisplay.getDescriptor()
+                    .getRscHandler();
+            if (newHandler != null && newHandler != rscHandler) {
+                rscHandler = newHandler;
+                for (int i = 0; i < displayArray.length; i += 1) {
+                    if (displayPane[i] != pane) {
+                        ResourceList resources = displayArray[i].getDescriptor()
+                                .getResourceList();
+                        List<NsharpAbstractPaneResource> nsharpResources = resources
+                                .getResourcesByTypeAsType(
+                                        NsharpAbstractPaneResource.class);
+                        for (NsharpAbstractPaneResource nsharpResource : nsharpResources) {
+                            nsharpResource.setRscHandler(rscHandler);
+                        }
                     }
-                    return;
                 }
             }
+            rscHandler.updateDisplay(displayArray, paneConfigurationName);
+            rscHandler.resetData();
         }
     }
 

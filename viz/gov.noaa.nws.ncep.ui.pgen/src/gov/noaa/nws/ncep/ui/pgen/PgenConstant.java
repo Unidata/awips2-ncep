@@ -24,6 +24,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * Feb 26, 2020  75024    smanoj    Added constants for Front Types and Labels
  * Mar 13, 2020  76151    tjensen   Added TYPE_TROPICAL_CYCLONE and
  *                                  TYPE_VOLCANIC_ASH
+ * Dec 09, 2020  85217    smanoj    Added ADD_NEW_LABEL
  *
  * </pre>
  *
@@ -39,6 +40,8 @@ public final class PgenConstant {
     public static final String DELETE_LABEL = "Delete Label";
 
     public static final String ADD_LABEL = "Add Label";
+
+    public static final String ADD_NEW_LABEL = "Add New Label";
 
     public static final String EDIT_LABEL = "Edit Label";
 

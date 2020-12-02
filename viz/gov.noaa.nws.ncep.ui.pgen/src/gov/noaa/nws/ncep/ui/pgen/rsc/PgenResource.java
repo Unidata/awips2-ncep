@@ -186,6 +186,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * Apr 06, 2020 77420       tjensen     Allow delete of specific contour labels
  * Oct 07, 2020 81798       smanoj      Add New Label option should stop showing up
  *                                      if 10 labels already exist on the Contour.
+ * Dec 09, 2020 85217       smanoj      Moving ADD_NEW_LABEL to PgenConstant.
  *
  * </pre>
  *
@@ -236,8 +237,6 @@ public class PgenResource
     private static final int LABEL_DIALOG_OFFSET_Y = 100;
 
     private boolean needsDisplay = false;
-
-    private static final String ADD_NEW_LABEL = "Add New Label";
 
     /**
      * Default constructor
@@ -2283,11 +2282,11 @@ public class PgenResource
         if (nlabels >= 10) {
             int menuItemIndex = 0;
             List<String> actList = getActionList(
-                    this.getSelectedDE().getPgenType(), ADD_NEW_LABEL);
+                    this.getSelectedDE().getPgenType(), PgenConstant.ADD_NEW_LABEL);
 
             if (actList != null) {
                 for (String act : actList) {
-                    if (ADD_NEW_LABEL.equalsIgnoreCase(act)) {
+                    if (PgenConstant.ADD_NEW_LABEL.equalsIgnoreCase(act)) {
                         IContributionItem[] items = menuManager.getItems();
                         IContributionItem item = items[menuItemIndex];
                         menuManager.remove(item);

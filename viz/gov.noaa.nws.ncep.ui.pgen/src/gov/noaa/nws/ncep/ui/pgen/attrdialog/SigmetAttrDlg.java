@@ -147,7 +147,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Jun 11, 2020  79243      smanoj       Added Caribbean and South American FIRs.
  * Jul 01, 2020  79980      smanoj       Tropical Cyclone FCST Center enhancement.
  * Aug 19, 2020  81314      smanoj       INTL Sigmet Volcanic Ash GUI enhancement.
- * 
+ * Jan 28, 2021  86821      achalla      Refactored width attribute in International SIGMET Edit GUI,
+ *                                       SIGMET Save output and International SIGMET message to show Integer.
  * </pre>
  *
  * @author gzhang
@@ -787,7 +788,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         if (isSigmetActive()) {
                             Sigmet sigmet = (Sigmet) getSigmet();
                             try {
-                                sigmetCnlDlg = new SigmetCancelDlg(getShell(), sigmet);
+                                sigmetCnlDlg = new SigmetCancelDlg(getShell(),
+                                        sigmet);
                             } catch (Exception ee) {
                                 statusHandler
                                         .warn("Unable to create SIGMET Cancellation Dialog: "
@@ -2234,8 +2236,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         GC gc = new GC(txtInfo);
         int charWidth = gc.getFontMetrics().getAverageCharWidth();
         int charHeight = txtInfo.getLineHeight();
-        Rectangle size = txtInfo.computeTrim(0, 0, charWidth * 125,
-                5);
+        Rectangle size = txtInfo.computeTrim(0, 0, charWidth * 125, 5);
         gc.dispose();
         txtInfo.setLayoutData(GridDataFactory.defaultsFor(txtInfo).span(8, 1)
                 .hint(size.width, size.height).create());
@@ -2682,7 +2683,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void setEditableAttrFcstAvail(String editableAttrFcstAvail) {
         this.editableAttrFcstAvail = editableAttrFcstAvail;
-        ((Sigmet) this.getSigmet()).setEditableAttrFcstAvail(editableAttrFcstAvail);
+        ((Sigmet) this.getSigmet())
+                .setEditableAttrFcstAvail(editableAttrFcstAvail);
     }
 
     public String getEditableAttrFcstTime() {
@@ -2691,7 +2693,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void setEditableAttrFcstTime(String editableAttrFcstTime) {
         this.editableAttrFcstTime = editableAttrFcstTime;
-        ((Sigmet) this.getSigmet()).setEditableAttrFcstTime(editableAttrFcstTime);
+        ((Sigmet) this.getSigmet())
+                .setEditableAttrFcstTime(editableAttrFcstTime);
     }
 
     public String getEditableAttrFcstCntr() {
@@ -3437,7 +3440,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             if (SigmetAttrDlg.ISOLATED.equals(lineType)) {
                 if (isTropCyc) {
                     sb.append(" ").append(SigmetConstant.WITHIN).append(" ");
-                    sb.append(SigmetAttrDlg.this.getWidth());
+                    sb.append((int) SigmetAttrDlg.this.getWidth());
                     sb.append(" ").append(SigmetConstant.NM_CENTER).append(".");
                 } else {
                     sb.append(" ").append(SigmetConstant.WI).append(" ");
@@ -3593,7 +3596,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     String ral = SigmetAttrDlg.this
                             .getEditableAttrRALSelection();
                     if (ral != null) {
-                        sb.append(" ").append(SigmetConstant.VA_CLD_WI).append(" ");
+                        sb.append(" ").append(SigmetConstant.VA_CLD_WI)
+                                .append(" ");
 
                         if (LINE.equals(ral)) {
                             sb.append(SigmetConstant.EITHER_SIDE_OF_LINE)
@@ -4571,7 +4575,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             this.setSideOfLine(lineType.split(SigmetInfo.LINE_SEPERATER)[1]);
         }
 
-        this.setWidthStr("" + (sig.getWidth()));// NM
+        this.setWidthStr("" + (Math.round(sig.getWidth())));// NM
         this.setLatLonFormatFlagAndText(sig.getEditableAttrFromLine());
 
         /*

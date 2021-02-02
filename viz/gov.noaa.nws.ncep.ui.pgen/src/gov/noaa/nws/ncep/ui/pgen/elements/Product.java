@@ -1,6 +1,6 @@
 /*
  * Product
- * 
+ *
  * Date created: 15 January 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -12,23 +12,25 @@ import java.util.List;
 
 /**
  * Define a Product Class - containing a list of Layers and properties.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/08					J. Wu   	Initial Creation.
- * 07/09		#131		J. Wu   	Added clear().
- * 09/09		#191		J. Wu   	Added more attributes.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 10/08                    J. Wu       Initial Creation.
+ * 07/09        #131        J. Wu       Added clear().
+ * 09/09        #191        J. Wu       Added more attributes.
  * 03/15        R6872       J. Wu       Added "status" in Product.
- * 
+ * 01/19/2021   86162       S. Russell  Added code to handle a collection of
+ *                                      child Product objs.
+ *
  * </pre>
- * 
+ *
  * @author J. Wu
  * @version 0.0.1
- * 
+ *
  * @author J. Wu
- * 
+ *
  */
 public class Product {
 
@@ -61,6 +63,8 @@ public class Product {
 
     private boolean saveLayers;
 
+    private List<Product> childProducts = new ArrayList<>();
+
     public Product() {
         super();
         name = "Default";
@@ -70,7 +74,7 @@ public class Product {
         status = "UNKNOWN";
         info = new ProductInfo();
         time = new ProductTime();
-        layers = new ArrayList<Layer>();
+        layers = new ArrayList<>();
         onOff = true;
         inUse = true;
         inputFile = null;
@@ -180,7 +184,7 @@ public class Product {
 
     /**
      * Removes the specified layer from this product
-     * 
+     *
      * @param lyr
      *            The Layer to remove
      */
@@ -199,6 +203,7 @@ public class Product {
         return "Make Product .......... " + name;
     }
 
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder("\n");
         result.append("name:\t\t" + name + "\n");
@@ -227,7 +232,7 @@ public class Product {
 
     /**
      * Checks if this product contains the specified Layer
-     * 
+     *
      * @param lyr
      *            - Layer to check
      * @return true, if lyr exists in this product
@@ -238,7 +243,7 @@ public class Product {
 
     /**
      * Test if this product contains any layers
-     * 
+     *
      * @return true, if layer is empty
      */
     public boolean isEmpty() {
@@ -328,6 +333,14 @@ public class Product {
 
     public boolean isUseFile() {
         return useFile;
+    }
+
+    public void setChildProducts(List<Product> childProducts) {
+        this.childProducts = childProducts;
+    }
+
+    public List<Product> getChildProducts() {
+        return this.childProducts;
     }
 
     /**

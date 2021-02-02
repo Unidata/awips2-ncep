@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.dom4j.Node;
@@ -33,15 +34,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
 import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 /**
  * Implementation of a dialog to display information of an outlook product.
@@ -57,6 +58,13 @@ import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
  * 08/13        TTR 770     B. Yin      Handle no outlook, fixed the file name.
  * 2021 Jan 14  86162       S. Russell  Updated storeProduct() to use current
  *                                      date and time for refTime in PGEN tbl
+ * 2021 Jan 19  86162       S. Russell  Updated storeProduct() to save an
+ *                                      OutLook(Product) to a parent Product
+ *                                      (PGEN Activity) instead of saving it
+ *                                      directly to the database(pgen table)
+ *                                      If an OutLook has no polygons, but there
+ *                                      is a Text product on the screen, it
+ *                                      is saved to the Outlook
  *
  * </pre>
  *
@@ -189,23 +197,7 @@ public class OutlookFormatMsgDlg extends Dialog {
             fileName = dlg.getValue();
             if (!fileName.isEmpty()) {
                 ofd.issueOutlook(otlk);
-
-                String dataURI = storeProduct(getFileName(otlk) + ".xml");
-                if (dataURI == null) {
-                    return;
-                }
-
-                try {
-                    StorageUtils.storeDerivedProduct(dataURI, fileName, "TEXT",
-                            message, true);
-                } catch (PgenStorageException e) {
-                    StorageUtils.showError(e);
-                    return;
-                }
-                // FileTools.writeFile(fileName, message);
-                // otlk.saveToFile( dirPath + getFileName(otlk)+".xml");
-
-                // clean up
+                storeProduct(getFileName(otlk) + ".xml");
                 this.close();
             }
         }
@@ -363,50 +355,64 @@ public class OutlookFormatMsgDlg extends Dialog {
     }
 
     /**
-     * Save this element to EDEX
+     * - Save this element to the encompassing active PGEN Activity
      *
      * @param filename
+     *
      */
-    private String storeProduct(String label) {
-
-        String dataURI;
+    private void storeProduct(String label) {
 
         Layer defaultLayer = new Layer();
         if (otlk != null) {
             defaultLayer.addElement(otlk);
         }
-        ArrayList<Layer> layerList = new ArrayList<Layer>();
+        ArrayList<Layer> layerList = new ArrayList<>();
         layerList.add(defaultLayer);
 
-        ProductTime refTime = null;
         String forecaster = "";
-        Calendar currentGMTDtAndTime = Calendar
+
+        ProductTime refTime = null;
+        Calendar currentDtAndTime = Calendar
                 .getInstance(TimeZone.getTimeZone("GMT"));
-        currentGMTDtAndTime.set(Calendar.MILLISECOND, 0);
-        refTime = new ProductTime(currentGMTDtAndTime);
+        refTime = new ProductTime(currentDtAndTime);
+
         if (otlk != null) {
             forecaster = otlk.getForecaster();
         } else {
             forecaster = ofd.getForecaster();
         }
 
+        Product activePgenActivity = PgenSession.getInstance().getPgenResource()
+                .getActiveProduct();
+
+        if (layerList.size() == 1) {
+            int iDrawables = 0;
+            iDrawables = defaultLayer.getDrawables().size();
+
+            // If there are no polygons in the OutLook
+            if (iDrawables == 0) {
+                // Get all of the Drawables in enclosing PGEN Activity
+                Layer layer = activePgenActivity.getLayer(0);
+                List<AbstractDrawableComponent> adcs = layer.getDrawables();
+                for (AbstractDrawableComponent adc : adcs) {
+                    // If the PGEN Activity has a Text object
+                    if (adc instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
+                        // Add it to the layer that will get put into the
+                        // OutLook
+                        defaultLayer.addElement(adc);
+                    }
+
+                }
+            }
+        }
+
         Product defaultProduct = new Product("", "OUTLOOK", forecaster, null,
                 refTime, layerList);
-
-        // Product defaultProduct = new Product();
-        // defaultProduct.addLayer(defaultLayer);
-
         defaultProduct.setOutputFile(label);
         defaultProduct.setCenter(PgenUtil.getCurrentOffice());
 
-        try {
-            dataURI = StorageUtils.storeProduct(defaultProduct);
-        } catch (PgenStorageException e) {
-            StorageUtils.showError(e);
-            return null;
-        }
+        activePgenActivity.getChildProducts().add(defaultProduct);
 
-        return dataURI;
     }
 
 }

@@ -30,6 +30,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
  * 03/12        #676        Q. Zhu      Added Issue Office field.
  * 04/28/20     77994       ksunil      new fields for TC.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
+ * Feb 05, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -44,14 +46,18 @@ public class Sigmet extends AbstractSigmet {
 
     public final static String SIGMET_PGEN_TYPE = "INTL_SIGMET";
 
+    // public for DisplayElementFactory/others use
     public static final String AREA = "Area", LINE = "Line",
-            ISOLATED = "Isolated";// public for DisplayElementFactory/others use
+            ISOLATED = "Isolated";
 
-    private String editableAttrStatus; // new,amend...
+    // new,amend...
+    private String editableAttrStatus;
 
-    private String editableAttrStartTime; // start valid
+    // valid start time
+    private String editableAttrStartTime;
 
-    private String editableAttrEndTime; // end valid
+    // valid end time
+    private String editableAttrEndTime;
 
     private String editableAttrRemarks;
 
@@ -96,6 +102,10 @@ public class Sigmet extends AbstractSigmet {
     private String editableAttrFcstTime;
 
     private String editableAttrFcstCntr;
+
+    private String editableAttrFcstPhenomLat;
+
+    private String editableAttrFcstPhenomLon;
 
     private String editableAttrFcstVADesc;
 
@@ -148,6 +158,8 @@ public class Sigmet extends AbstractSigmet {
         this.editableAttrFcstAvail = fSig.getEditableAttrFcstAvail();
         this.editableAttrFcstTime = fSig.getEditableAttrFcstTime();
         this.editableAttrFcstCntr = fSig.getEditableAttrFcstCntr();
+        this.editableAttrFcstPhenomLat = fSig.getEditableAttrFcstPhenomLat();
+        this.editableAttrFcstPhenomLon = fSig.getEditableAttrFcstPhenomLon();
         this.editableAttrFcstVADesc = fSig.getEditableAttrFcstVADesc();
         this.editableAttrRALSelection = fSig.getEditableAttrRALSelection();
         this.editableAttrAltLevelText = fSig.getEditableAttrAltLevelText();
@@ -203,6 +215,8 @@ public class Sigmet extends AbstractSigmet {
         // CCFP
         newSigmet.setEditableAttrFreeText(this.getEditableAttrFreeText());
         newSigmet.setEditableAttrFcstCntr(this.getEditableAttrFcstCntr());
+        newSigmet.setEditableAttrFcstPhenomLat(this.getEditableAttrFcstPhenomLat());
+        newSigmet.setEditableAttrFcstPhenomLon(this.getEditableAttrFcstPhenomLon());
         newSigmet.setEditableAttrFcstTime(this.getEditableAttrEndTime());
         newSigmet.setEditableAttrFcstAvail(this.getEditableAttrFcstAvail());
 
@@ -438,6 +452,22 @@ public class Sigmet extends AbstractSigmet {
 
     public void setEditableAttrFcstCntr(String editableAttrFcstCntr) {
         this.editableAttrFcstCntr = editableAttrFcstCntr;
+    }
+
+    public String getEditableAttrFcstPhenomLat() {
+        return editableAttrFcstPhenomLat;
+    }
+
+    public void setEditableAttrFcstPhenomLat(String editableAttrFcstPhenomLat) {
+        this.editableAttrFcstPhenomLat = editableAttrFcstPhenomLat;
+    }
+
+    public String getEditableAttrFcstPhenomLon() {
+        return editableAttrFcstPhenomLon;
+    }
+
+    public void setEditableAttrFcstPhenomLon(String editableAttrFcstPhenomLon) {
+        this.editableAttrFcstPhenomLon = editableAttrFcstPhenomLon;
     }
 
     public String getEditableAttrFcstVADesc() {

@@ -149,6 +149,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Aug 19, 2020  81314      smanoj       INTL Sigmet Volcanic Ash GUI enhancement.
  * Jan 28, 2021  86821      achalla      Refactored width attribute in International SIGMET Edit GUI,
  *                                       SIGMET Save output and International SIGMET message to show Integer.
+ * Feb 05, 2021  87538      smanoj       Added FCST Lat/Lon for Tropical Cyclone, also fixed some issues.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -318,6 +320,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private String editableAttrFcstTime;
 
     private String editableAttrFcstCntr;
+
+    private String editableAttrFcstPhenomLat;
+
+    private String editableAttrFcstPhenomLon;
 
     private String editableAttrFcstVADesc;
 
@@ -688,12 +694,13 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         createDetailsAreaGeneral(detailsComposite);
 
-        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(editableAttrPhenom)
-                || PgenConstant.TYPE_VOLCANIC_ASH.equals(editableAttrPhenom)) {
-            createDetailsAreaPhenomDetails(detailsComposite, gdText);
-            if (PgenConstant.TYPE_VOLCANIC_ASH.equals(editableAttrPhenom)) {
-                createDetailsAreaLevel(detailsComposite);
-            }
+        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(editableAttrPhenom)) {
+            createDetailsAreaPhenomDetailsTropCyclone(detailsComposite, gdText);
+        }
+
+        if (PgenConstant.TYPE_VOLCANIC_ASH.equals(editableAttrPhenom)) {
+            createDetailsAreaPhenomDetailsVolc(detailsComposite, gdText);
+            createDetailsAreaLevel(detailsComposite);
         }
 
         // ------------------------ Phenom Attributes
@@ -993,7 +1000,193 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
     }
 
-    private void createDetailsAreaPhenomDetails(Composite detailsComposite,
+    private void createDetailsAreaPhenomDetailsTropCyclone(
+            Composite detailsComposite, GridData gdText) {
+        Group topPhenom = new Group(detailsComposite, SWT.LEFT);
+        topPhenom.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
+        topPhenom.setLayout(new GridLayout(8, false));
+
+        Shell shell = getShell();
+        Label lblSEPhenomName = new Label(topPhenom, SWT.LEFT);
+        lblSEPhenomName.setText("Select / Enter\nPhenom Name: ");
+
+        final Text txtSEPhenomName = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
+        attrControlMap.put(EDITABLE_ATTR_PHENOM_NAME, txtSEPhenomName);
+        txtSEPhenomName.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, false, 6, 1));
+        txtSEPhenomName.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                setEditableAttrPhenomName(txtSEPhenomName.getText());
+                setPhenomLatLon(txtSEPhenomName.getText());
+            }
+        });
+
+        final ToolBar tb = new ToolBar(topPhenom, SWT.HORIZONTAL);
+        final ToolItem ti = new ToolItem(tb, SWT.DROP_DOWN);
+        final Menu mu = new Menu(shell, SWT.POP_UP);
+
+        for (int i = 0; i < SigmetInfo.VOL_NAME_BUCKET_ARRAY.length; i++) {
+            // first option is entering name
+            if (i == 0) {
+                MenuItem mi1 = new MenuItem(mu, SWT.PUSH);
+                mi1.setText(SigmetInfo.VOL_NAME_BUCKET_ARRAY[i]);
+            } else {
+                MenuItem mi1 = new MenuItem(mu, SWT.CASCADE);
+                mi1.setText(SigmetInfo.VOL_NAME_BUCKET_ARRAY[i]);
+                Menu mi1Menu = new Menu(shell, SWT.DROP_DOWN);
+                mi1.setMenu(mi1Menu);
+
+                List<String> list = SigmetInfo.VOLCANO_BUCKET_MAP
+                        .get(SigmetInfo.VOL_NAME_BUCKET_ARRAY[i]);
+                int size = list.size();
+                for (int j = 0; j < size; j++) {
+                    final MenuItem mi1MenuMi1 = new MenuItem(mi1Menu, SWT.PUSH);
+                    mi1MenuMi1.setText(list.get(j));
+                    mi1MenuMi1.addListener(SWT.Selection, new Listener() {
+                        @Override
+                        public void handleEvent(Event e) {
+                            txtSEPhenomName.setText(mi1MenuMi1.getText());
+                            setPhenomLatLon(mi1MenuMi1.getText());
+                        }
+                    });
+                }
+            }
+        }
+
+        ti.addListener(SWT.Selection, new Listener() {
+            /*
+             * Main button clicked: Pop up the menu showing all the symbols.
+             */
+            @Override
+            public void handleEvent(Event event) {
+                Rectangle bounds = ti.getBounds();
+                Point point = tb.toDisplay(bounds.x, bounds.y + bounds.height);
+                mu.setLocation(point);
+                mu.setVisible(true);
+            }
+        });
+
+        Label lblPheLat = new Label(topPhenom, SWT.LEFT);
+        lblPheLat.setText("Observed Phenom\nLat: ");
+        txtPheLat = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
+        attrControlMap.put("editableAttrPhenomLat", txtPheLat);
+
+        txtPheLat.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                String phenomLat = getPhenomLatLon(txtPheLat.getText().trim(),
+                        true);
+                if (!"".equals(phenomLat)) {
+                    setEditableAttrPhenomLat(phenomLat);
+                } else {
+                    setEditableAttrPhenomLat(null);
+                }
+            }
+        });
+        txtPheLat.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrPhenomLat() != null) {
+                    txtPheLat.setText(getEditableAttrPhenomLat());
+                    setBackgroundColor(txtPheLat, rightFormatColor);
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    txtPheLat.setText("");
+                    setBackgroundColor(txtPheLat, wrongFormatColor);
+                }
+            }
+        });
+
+        txtPheLat.setLayoutData(gdText);
+
+        Label lblPheLon = new Label(topPhenom, SWT.LEFT);
+        lblPheLon.setText("Observed Phenom\nLon: ");
+        txtPheLon = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
+        attrControlMap.put("editableAttrPhenomLon", txtPheLon);
+
+        txtPheLon.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                String phenomLon = getPhenomLatLon(txtPheLon.getText().trim(),
+                        false);
+                if (!"".equals(phenomLon)) {
+                    setEditableAttrPhenomLon(phenomLon);
+                } else {
+                    setEditableAttrPhenomLon(null);
+                }
+            }
+        });
+        txtPheLon.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrPhenomLon() != null) {
+                    txtPheLon.setText(getEditableAttrPhenomLon());
+                    setBackgroundColor(txtPheLon, rightFormatColor);
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    txtPheLon.setText("");
+                    setBackgroundColor(txtPheLon, wrongFormatColor);
+                }
+            }
+        });
+
+        txtPheLon.setLayoutData(gdText);
+
+        Label lblPressure = new Label(topPhenom, SWT.LEFT);
+        lblPressure.setEnabled(tropCycFlag);
+        lblPressure.setText("Pressure\nHPA: ");
+        Text txtPressure = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
+        txtPressure.setEnabled(tropCycFlag);
+
+        txtPressure.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                if (validateNumInput(txtPressure.getText())) {
+                    setEditableAttrPhenomPressure(txtPressure.getText());
+                }
+            }
+        });
+        txtPressure.setLayoutData(gdText);
+        attrControlMap.put("editableAttrPhenomPressure", txtPressure);
+
+        Label lblMaxWinds = new Label(topPhenom, SWT.LEFT);
+        lblMaxWinds.setEnabled(tropCycFlag);
+        lblMaxWinds.setText("Max\nWinds: ");
+        Text txtMaxWinds = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
+        txtMaxWinds.setEnabled(tropCycFlag);
+        this.setEditableAttrPhenomMaxWind(txtMaxWinds.getText());
+
+        txtMaxWinds.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                if (validateNumInput(txtMaxWinds.getText())) {
+                    setEditableAttrPhenomMaxWind(txtMaxWinds.getText());
+                }
+            }
+        });
+        txtMaxWinds.setLayoutData(gdText);
+        attrControlMap.put("editableAttrPhenomMaxWind", txtMaxWinds);
+    }
+
+    private void createDetailsAreaPhenomDetailsVolc(Composite detailsComposite,
             GridData gdText) {
         Group topPhenom = new Group(detailsComposite, SWT.LEFT);
         topPhenom.setLayoutData(
@@ -1018,10 +1211,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         final ToolBar tb = new ToolBar(topPhenom, SWT.HORIZONTAL);
         final ToolItem ti = new ToolItem(tb, SWT.DROP_DOWN);
-        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(editableAttrPhenom)) {
-            ti.setEnabled(false);
-        }
-
         final Menu mu = new Menu(shell, SWT.POP_UP);
 
         for (int i = 0; i < SigmetInfo.VOL_NAME_BUCKET_ARRAY.length; i++) {
@@ -1587,6 +1776,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             return editableFirID;
         }
 
+        if (editableAttrFir != null) {
+            editableFirID = editableAttrFir;
+        }
+
+        if (SigmetAttrDlg.this.drawingLayer == null) {
+            return editableFirID;
+        }
+
         StringBuilder fir = new StringBuilder();
 
         AbstractDrawableComponent elSelected = SigmetAttrDlg.this.drawingLayer
@@ -1594,10 +1791,17 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         Coordinate[] coors = (elSelected == null) ? null
                 : elSelected.getPoints().toArray(new Coordinate[] {});
 
-        String lineType = ((Sigmet) SigmetAttrDlg.this.drawingLayer
-                .getSelectedDE()).getType();
+        String lineType = null;
+        if (SigmetAttrDlg.this.drawingLayer.getSelectedDE() != null) {
+            lineType = ((Sigmet) SigmetAttrDlg.this.drawingLayer
+                    .getSelectedDE()).getType();
+        }
 
-        if (coors != null) {
+        if (coors == null || lineType == null) {
+            return editableFirID;
+        }
+
+        if (coors != null && lineType != null) {
             IMapDescriptor mapDescriptor = SigmetAttrDlg.this.drawingLayer
                     .getDescriptor();
             double width = Double.parseDouble(widthStr);
@@ -1749,6 +1953,59 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
         });
 
+        createForecastLatLonSection(detailsComposite);
+    }
+
+    private void createForecastLatLonSection(Composite detailsComposite) {
+
+        Group topSecPhenom = new Group(detailsComposite, SWT.LEFT);
+        topSecPhenom.setLayoutData(
+                new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
+        topSecPhenom.setLayout(new GridLayout(8, false));
+
+        Label lblFcstPheLat = new Label(topSecPhenom, SWT.LEFT);
+        lblFcstPheLat.setText("Fcst Phenom\nLat: ");
+        Text txtFcstPheLat = new Text(topSecPhenom, SWT.LEFT | SWT.BORDER);
+        if (SigmetAttrDlg.this.getEditableAttrFcstPhenomLat() != null) {
+            txtFcstPheLat
+                    .setText(SigmetAttrDlg.this.getEditableAttrFcstPhenomLat());
+        }
+
+        txtFcstPheLat.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                String fcstPhenomLat = getPhenomLatLon(
+                        txtFcstPheLat.getText().trim(), true);
+                if (!"".equals(fcstPhenomLat)) {
+                    SigmetAttrDlg.this
+                            .setEditableAttrFcstPhenomLat(fcstPhenomLat);
+                } else {
+                    SigmetAttrDlg.this.setEditableAttrFcstPhenomLat(null);
+                }
+            }
+        });
+
+        Label lblFcstPheLon = new Label(topSecPhenom, SWT.LEFT);
+        lblFcstPheLon.setText("Fcst Phenom\nLon: ");
+        Text txtFcstPheLon = new Text(topSecPhenom, SWT.LEFT | SWT.BORDER);
+        if (SigmetAttrDlg.this.getEditableAttrFcstPhenomLon() != null) {
+            txtFcstPheLon
+                    .setText(SigmetAttrDlg.this.getEditableAttrFcstPhenomLon());
+        }
+
+        txtFcstPheLon.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                String fcstPhenomLon = getPhenomLatLon(
+                        txtFcstPheLon.getText().trim(), false);
+                if (!"".equals(fcstPhenomLon)) {
+                    SigmetAttrDlg.this
+                            .setEditableAttrFcstPhenomLon(fcstPhenomLon);
+                } else {
+                    SigmetAttrDlg.this.setEditableAttrFcstPhenomLon(null);
+                }
+            }
+        });
     }
 
     private void createDetailsAreaForecastSectionVolcanic(
@@ -2705,6 +2962,22 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.editableAttrFcstCntr = editableAttrFcstCntr;
     }
 
+    public String getEditableAttrFcstPhenomLat() {
+        return editableAttrFcstPhenomLat;
+    }
+
+    public void setEditableAttrFcstPhenomLat(String editableAttrFcstPhenomLat) {
+        this.editableAttrFcstPhenomLat = editableAttrFcstPhenomLat;
+    }
+
+    public String getEditableAttrFcstPhenomLon() {
+        return editableAttrFcstPhenomLon;
+    }
+
+    public void setEditableAttrFcstPhenomLon(String editableAttrFcstPhenomLon) {
+        this.editableAttrFcstPhenomLon = editableAttrFcstPhenomLon;
+    }
+
     public String getEditableAttrFcstVADesc() {
         return editableAttrFcstVADesc;
     }
@@ -2937,6 +3210,11 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             setReturnCode(OK);
             close();
 
+        }
+
+        @Override
+        public void handleShellCloseEvent() {
+            close();
         }
 
         @Override
@@ -3264,7 +3542,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     sb.append(SigmetConstant.VA_ERUPTION).append(" ");
                 } else {
                     SigmetAttrDlg.this.setEditableAttrPhenom(pString);
-                    sb.append(pString.replace('_', ' ')).append(" ");
+                    sb.append(pString.replace('_', ' '));
                 }
             } else {
                 isTropCyc = true;
@@ -3273,7 +3551,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 sb.append(SigmetConstant.TC);
 
                 if (phenName != null) {
-                    sb.append(" ").append(phenName.trim()).append(" ");
+                    sb.append(" ").append(phenName.trim());
                 }
 
                 sb.append(" ").append(SigmetConstant.OBS_AT).append(" ");
@@ -3296,7 +3574,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .getEditableAttrPhenomPressure();
                 if (presHPA != null) {
                     sb.append(" ").append(presHPA.trim())
-                            .append(SigmetConstant.HPA).append(". ");
+                            .append(SigmetConstant.HPA).append(".");
                 }
 
                 // --------------- max winds
@@ -3305,7 +3583,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .getEditableAttrPhenomMaxWind();
                 if (maxWinds != null && !"".equals(maxWinds.trim())) {
                     sb.append(" ").append(SigmetConstant.MAX_WINDS).append(" ");
-                    sb.append(maxWinds).append(SigmetConstant.KT).append(". ");
+                    sb.append(maxWinds).append(SigmetConstant.KT).append(".");
                 }
 
                 // --------------- movement
@@ -3317,28 +3595,28 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
 
                 if (STNRY.equals(movement)) {
-                    sb.append(" ").append(SigmetConstant.STNR).append(". ");
+                    sb.append(" ").append(SigmetConstant.STNR).append(".");
                 } else if (SigmetConstant.MVG.equals(movement)) {
                     sb.append(" ").append(SigmetConstant.MOV);
                     sb.append(" ").append(SigmetAttrDlg.this
                             .getEditableAttrPhenomDirection());
                     sb.append(" ").append(
                             SigmetAttrDlg.this.getEditableAttrPhenomSpeed());
-                    sb.append(SigmetConstant.KT).append(". ");
+                    sb.append(SigmetConstant.KT).append(".");
                 }
 
                 // ---------------- trend
 
                 String trend = getEditableAttrTrend();
                 if (!NONE.equals(trend)) {
-                    sb.append(trend).append(".");
+                    sb.append(" ").append(trend).append(".");
                 }
 
                 // ---------------- second phenom
 
                 String phen2 = SigmetAttrDlg.this.getEditableAttrPhenom2();
                 if (phen2 != null && !"".equals(phen2.trim())) {
-                    sb.append(" ").append(phen2.replace('_', ' ')).append(" ");
+                    sb.append(" ").append(phen2.replace('_', ' '));
                 }
             }
 
@@ -3382,7 +3660,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
                     sb.append(" ").append(SigmetConstant.FCST);
                 } else {
-                    sb.append(NONE.equals(tops) ? "" : tops).append(" ");
+                    sb.append(NONE.equals(tops) ? "" : " " + tops);
                 }
             }
 
@@ -3485,16 +3763,15 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                                 sb.append(text2 == null ? "" : text2);
 
                             }
-                            sb.append(" ");
                         }
 
                     } else {
-                        sb.append(SigmetConstant.OBS_AT).append(" ")
+                        sb.append(" ").append(SigmetConstant.OBS_AT).append(" ")
                                 .append(getTimeStringPlusHourInHMS(0)
                                         .substring(2, 6))
-                                .append(SigmetConstant.Z).append(" ");
+                                .append(SigmetConstant.Z);
                     }
-                    sb.append(SigmetConstant.WI);
+                    sb.append(" ").append(SigmetConstant.WI);
                 } else {
                     if (!fromLineWithFormat.contains(SigmetConstant.VOR)) {
                         sb.append(" ").append(SigmetConstant.WI);
@@ -3653,7 +3930,18 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                             .append(SigmetConstant.Z).append(" ");
                     sb.append(SigmetConstant.TC_CENTER);
                     sb.append(" " + SigmetAttrDlg.this.getEditableAttrFcstCntr()
-                            .toUpperCase()).append(".");
+                            .toUpperCase());
+                    if (!StringUtils.isEmpty(SigmetAttrDlg.this
+                            .getEditableAttrFcstPhenomLat())) {
+                        sb.append(" " + SigmetAttrDlg.this
+                                .getEditableAttrFcstPhenomLat().toUpperCase());
+                    }
+                    if (!StringUtils.isEmpty(SigmetAttrDlg.this
+                            .getEditableAttrFcstPhenomLon())) {
+                        sb.append(" " + SigmetAttrDlg.this
+                                .getEditableAttrFcstPhenomLon().toUpperCase());
+                    }
+                    sb.append(".");
                 } else {
                     sb.append(" ").append("NA").append(".");
                 }
@@ -3917,7 +4205,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String attr = f.getName();
             String typeValue = "";
             try {
-                typeValue = (String) f.get(this);
+                typeValue = String.valueOf(f.get(this));
             } catch (Exception e) {
                 statusHandler.debug(e.getLocalizedMessage(), e);
             }
@@ -4550,6 +4838,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         this.setEditableAttrFcstTime(sig.getEditableAttrFcstTime());
         this.setEditableAttrFcstCntr(sig.getEditableAttrFcstCntr());
+        this.setEditableAttrFcstPhenomLat(sig.getEditableAttrFcstPhenomLat());
+        this.setEditableAttrFcstPhenomLon(sig.getEditableAttrFcstPhenomLon());
         this.setEditableAttrFcstVADesc(sig.getEditableAttrFcstVADesc());
         this.setEditableAttrFcstAvail(sig.getEditableAttrFcstAvail());
 

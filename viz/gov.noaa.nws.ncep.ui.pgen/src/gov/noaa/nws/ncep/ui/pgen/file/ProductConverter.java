@@ -143,6 +143,8 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * 07/28/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
+ * Feb 08, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
+ * 
  * </pre>
  * 
  * @author J. Wu
@@ -1188,6 +1190,10 @@ public class ProductConverter {
                                 ((Sigmet) de).getEditableAttrFreeText());
                         sigmet.setEditableAttrFcstCntr(
                                 ((Sigmet) de).getEditableAttrFcstCntr());
+                        sigmet.setEditableAttrFcstPhenomLat(
+                                ((Sigmet) de).getEditableAttrFcstPhenomLat());
+                        sigmet.setEditableAttrFcstPhenomLon(
+                                ((Sigmet) de).getEditableAttrFcstPhenomLon());
                         sigmet.setEditableAttrFcstTime(
                                 ((Sigmet) de).getEditableAttrFcstTime());
                         sigmet.setEditableAttrFcstAvail(

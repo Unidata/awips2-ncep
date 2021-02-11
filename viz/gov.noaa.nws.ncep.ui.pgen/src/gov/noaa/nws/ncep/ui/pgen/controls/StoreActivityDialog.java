@@ -72,10 +72,8 @@ import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
  *                                      Added a drop down list for reference time.
  * 05/02/2016   R16076      J. Wu       change type/subtype/site/desk to pulldown menu.
  * 07/28/2016   R17954      B. Yin      return CANCEL when Cancel button is pressed.
- * 01/19/2021   86162       S. Russell  Updated storeProducts() to save child
- *                                      Product objects. Updated setDialogFields()
- *                                      so Ref Time menu uses the GMT time zone.
- *
+ * 01/19/2021   86162       S. Russell  Updated setDialogFields() to use GMT
+ *                                      for the reftime.
  * </pre>
  *
  * @author
@@ -651,35 +649,13 @@ public class StoreActivityDialog extends CaveJFACEDialog {
             confirmDlg.open();
             labelCombo.forceFocus();
             return;
+
         }
 
-        ActivityInfo info = getActivityInfo();
-
-        // Save child Product Objects, If Any
-        if (activity.getChildProducts().size() > 0) {
-            for (Product childProduct : activity.getChildProducts()) {
-
-                ActivityInfo childInfo = new ActivityInfo();
-                childInfo.setActivityName(info.getActivityName());
-                childInfo.setActivitySubtype(info.getActivitySubtype());
-                childInfo.setActivityLabel(childProduct.getOutputFile());
-                childInfo.setActivityType(childProduct.getType());
-                childInfo.setSite(info.getSite());
-                Calendar childRefTime = childProduct.getTime().getStartTime();
-                childRefTime.set(Calendar.MILLISECOND, 0);
-                childInfo.setRefTime(childRefTime);
-
-                try {
-                    StorageUtils.storeProduct(childInfo, childProduct, true);
-                } catch (PgenStorageException e) {
-                    StorageUtils.showError(e);
-                }
-            }
-        }
-
-        // Save Product
         rsc.setAutosave(autoSaveOnBtn.getSelection());
         rsc.setAutoSaveFilename(activityLabel);
+
+        ActivityInfo info = getActivityInfo();
         activity.setInputFile(info.getActivityLabel());
         activity.setOutputFile(info.getActivityLabel());
         activity.setCenter(info.getSite());
@@ -691,7 +667,6 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         activity.setType(
                 getFullType(info.getActivityType(), info.getActivitySubtype()));
 
-        // Save the current product
         try {
             StorageUtils.storeProduct(info, activity, true);
         } catch (PgenStorageException e) {

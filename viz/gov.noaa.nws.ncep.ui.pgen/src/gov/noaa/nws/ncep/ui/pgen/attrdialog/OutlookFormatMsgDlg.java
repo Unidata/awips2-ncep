@@ -43,6 +43,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
 import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 /**
  * Implementation of a dialog to display information of an outlook product.
@@ -58,13 +60,14 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
  * 08/13        TTR 770     B. Yin      Handle no outlook, fixed the file name.
  * 2021 Jan 14  86162       S. Russell  Updated storeProduct() to use current
  *                                      date and time for refTime in PGEN tbl
- * 2021 Jan 19  86162       S. Russell  Updated storeProduct() to save an
- *                                      OutLook(Product) to a parent Product
- *                                      (PGEN Activity) instead of saving it
- *                                      directly to the database(pgen table)
- *                                      If an OutLook has no polygons, but there
+ * 2021 Jan 19  86162       S. Russell  Updated storeProduct() to use the
+ *                                      current time for reftime. Also updated
+ *                                      to set the OUTLOOK to have the subtype
+ *                                      and activityname as the parent PGen
+ *                                      activity active on the screen. If an
+ *                                      OutLook has no polygons, but there
  *                                      is a Text product on the screen, it
- *                                      is saved to the Outlook
+ *                                      is now saved to the OUTLOOK
  *
  * </pre>
  *
@@ -197,7 +200,21 @@ public class OutlookFormatMsgDlg extends Dialog {
             fileName = dlg.getValue();
             if (!fileName.isEmpty()) {
                 ofd.issueOutlook(otlk);
-                storeProduct(getFileName(otlk) + ".xml");
+
+                String dataURI = storeProduct(getFileName(otlk) + ".xml");
+                if (dataURI == null) {
+                    return;
+                }
+
+                try {
+                    StorageUtils.storeDerivedProduct(dataURI, fileName, "TEXT",
+                            message, true);
+                } catch (PgenStorageException e) {
+                    StorageUtils.showError(e);
+                    return;
+                }
+
+                // clean up
                 this.close();
             }
         }
@@ -355,12 +372,13 @@ public class OutlookFormatMsgDlg extends Dialog {
     }
 
     /**
-     * - Save this element to the encompassing active PGEN Activity
+     * Save this element to EDEX
      *
      * @param filename
-     *
      */
-    private void storeProduct(String label) {
+    private String storeProduct(String label) {
+
+        String dataURI;
 
         Layer defaultLayer = new Layer();
         if (otlk != null) {
@@ -369,12 +387,13 @@ public class OutlookFormatMsgDlg extends Dialog {
         ArrayList<Layer> layerList = new ArrayList<>();
         layerList.add(defaultLayer);
 
-        String forecaster = "";
-
         ProductTime refTime = null;
         Calendar currentDtAndTime = Calendar
                 .getInstance(TimeZone.getTimeZone("GMT"));
+        currentDtAndTime.set(Calendar.MILLISECOND, 0);
         refTime = new ProductTime(currentDtAndTime);
+
+        String forecaster = "";
 
         if (otlk != null) {
             forecaster = otlk.getForecaster();
@@ -406,13 +425,28 @@ public class OutlookFormatMsgDlg extends Dialog {
             }
         }
 
+        String activityName = activePgenActivity.getName();
+        String type = activePgenActivity.getType();
+        int p1, p2 = 0;
+        p1 = type.indexOf('(');
+        p2 = type.indexOf(')');
+        String activitySubType = type.substring(++p1, p2);
+
         Product defaultProduct = new Product("", "OUTLOOK", forecaster, null,
                 refTime, layerList);
         defaultProduct.setOutputFile(label);
         defaultProduct.setCenter(PgenUtil.getCurrentOffice());
+        defaultProduct.setName(activityName);
+        defaultProduct.setSubType(activitySubType);
 
-        activePgenActivity.getChildProducts().add(defaultProduct);
+        try {
+            dataURI = StorageUtils.storeProduct(defaultProduct);
+        } catch (PgenStorageException e) {
+            StorageUtils.showError(e);
+            return null;
+        }
 
+        return dataURI;
     }
 
 }

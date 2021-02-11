@@ -21,8 +21,8 @@ import java.util.List;
  * 07/09        #131        J. Wu       Added clear().
  * 09/09        #191        J. Wu       Added more attributes.
  * 03/15        R6872       J. Wu       Added "status" in Product.
- * 01/19/2021   86162       S. Russell  Added code to handle a collection of
- *                                      child Product objs.
+ * 02/11/2021   86162       S. Russell  Added the field subtype
+ *
  *
  * </pre>
  *
@@ -38,6 +38,8 @@ public class Product {
     private String name;
 
     private String type;
+
+    private String subtype;
 
     private String forecaster;
 
@@ -62,8 +64,6 @@ public class Product {
     private boolean useFile;
 
     private boolean saveLayers;
-
-    private List<Product> childProducts = new ArrayList<>();
 
     public Product() {
         super();
@@ -115,6 +115,14 @@ public class Product {
 
     public String getType() {
         return type;
+    }
+
+    public void setSubType(String subtype) {
+        this.subtype = subtype;
+    }
+
+    public String getSubType() {
+        return subtype;
     }
 
     public String getForecaster() {
@@ -333,14 +341,6 @@ public class Product {
 
     public boolean isUseFile() {
         return useFile;
-    }
-
-    public void setChildProducts(List<Product> childProducts) {
-        this.childProducts = childProducts;
-    }
-
-    public List<Product> getChildProducts() {
-        return this.childProducts;
     }
 
     /**

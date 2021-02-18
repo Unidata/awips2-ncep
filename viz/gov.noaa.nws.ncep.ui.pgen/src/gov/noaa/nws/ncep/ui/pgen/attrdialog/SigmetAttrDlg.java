@@ -150,7 +150,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Jan 28, 2021  86821      achalla      Refactored width attribute in International SIGMET Edit GUI,
  *                                       SIGMET Save output and International SIGMET message to show Integer.
  * Feb 05, 2021  87538      smanoj       Added FCST Lat/Lon for Tropical Cyclone, also fixed some issues.
- * 
+ * Feb 18, 2021  86828      achalla      Created updateFirBtn() method to check the correct FIR Region buttons
  * </pre>
  *
  * @author gzhang
@@ -355,6 +355,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     private final Map<String, Button[]> attrButtonMap = new HashMap<>();
 
+    private final Map<String, Button[]> firButtonMap = new HashMap<>();
+
     /**
      * Colors to indicate if Phenom lat/lon input is in correct format.
      */
@@ -373,6 +375,15 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private String editableAttrAltitudeSelection;
 
     private SigmetCancelDlg sigmetCnlDlg = null;
+
+    // Fir Regions selection buttons
+    private Button btnPacific;
+
+    private Button btnAtlantic;
+
+    private Button btnMexico;
+
+    private Button btnOther;
 
     /**
      * Constructor.
@@ -401,6 +412,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 sb.append(strings[i] + "  ");
             }
         }
+
         txtInfo.setText(sb.toString());
 
     }
@@ -1596,6 +1608,25 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
     }
 
+    public void setNewFirID(Button btn) {
+        editableFirID = getFirs();
+        String newFir = btn.getText();
+        if (btn.getSelection()) {
+            if (!editableFirID.contains(newFir)) {
+                if (editableFirID.length() == 0) {
+                    editableFirID = editableFirID.concat(newFir);
+                } else {
+                    editableFirID = editableFirID.concat(" " + newFir);
+                }
+            }
+        } else {
+            if (editableFirID.contains(newFir)) {
+                editableFirID = editableFirID.replaceFirst(newFir, "");
+            }
+        }
+        editableFirID.trim();
+    }
+
     private void createFirRegion(Composite detailsComposite) {
         editableFirID = getFirs();
         setEditableAttrFir(editableFirID);
@@ -1611,37 +1642,23 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         top8.setLayout(new GridLayout(8, false));
         top8.setText(SigmetConstant.PACIFIC);
         for (String s : SigmetInfo.FIR_PACIFIC) {
-            final Button btn = new Button(top8, SWT.CHECK);
-            btn.setText(s);
-            btn.addSelectionListener(new SelectionAdapter() {
+            btnPacific = new Button(top8, SWT.CHECK);
+            btnPacific.setText(s);
+            // map all fir buttons with their name as keys
+            firButtonMap.put(s, new Button[] { btnPacific });
+            btnPacific.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
-                    editableFirID = getFirs();
-                    String newFir = btn.getText();
-                    if (btn.getSelection()) {
-                        if (!editableFirID.contains(newFir)) {
-                            if (editableFirID.length() == 0) {
-                                editableFirID = editableFirID.concat(newFir);
-                            } else {
-                                editableFirID = editableFirID
-                                        .concat(" " + newFir);
-                            }
-                        }
-                    } else {
-                        if (editableFirID.contains(newFir)) {
-                            editableFirID = editableFirID.replaceFirst(newFir,
-                                    "");
-                        }
-                    }
-                    editableFirID.trim();
+                    setNewFirID(btnPacific);
                 }
             });
 
             if (editableFirID != null) {
                 if (editableFirID.contains(s)) {
-                    btn.setSelection(true);
+                    btnPacific.setSelection(true);
                 }
             }
+
         }
 
         Group top9 = new Group(top7, SWT.TOP);
@@ -1650,37 +1667,21 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         top9.setLayout(new GridLayout(8, false));
         top9.setText(SigmetConstant.ATLANTIC);
         for (String s : SigmetInfo.FIR_ATLANTIC) {
-            final Button btn = new Button(top9, SWT.CHECK);
-            btn.setText(s);
-            btn.addSelectionListener(new SelectionAdapter() {
-
+            btnAtlantic = new Button(top9, SWT.CHECK);
+            btnAtlantic.setText(s);
+            // map all fir buttons with their name as keys
+            firButtonMap.put(s, new Button[] { btnAtlantic });
+            btnAtlantic.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
-                    editableFirID = getFirs();
-                    String newFir = btn.getText();
-                    if (btn.getSelection()) {
-                        if (!editableFirID.contains(newFir)) {
-                            if (editableFirID.length() == 0) {
-                                editableFirID = editableFirID.concat(newFir);
-                            } else {
-                                editableFirID = editableFirID
-                                        .concat(" " + newFir);
-                            }
-                        }
-                    } else {
-                        if (editableFirID.contains(newFir)) {
-                            editableFirID = editableFirID.replaceFirst(newFir,
-                                    "");
-                        }
-                    }
-                    editableFirID.trim();
+                    setNewFirID(btnAtlantic);
                 }
 
             });
 
             if (editableFirID != null) {
                 if (editableFirID.contains(s)) {
-                    btn.setSelection(true);
+                    btnAtlantic.setSelection(true);
                 }
             }
         }
@@ -1696,36 +1697,20 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         firMexicoGrp.setLayout(new GridLayout(8, false));
         firMexicoGrp.setText(SigmetConstant.MEXICO);
         for (String s : SigmetInfo.FIR_MEXICO) {
-            final Button btn = new Button(firMexicoGrp, SWT.CHECK);
-            btn.setText(s);
-
-            btn.addSelectionListener(new SelectionAdapter() {
+            btnMexico = new Button(firMexicoGrp, SWT.CHECK);
+            btnMexico.setText(s);
+            // map all fir buttons with their name as keys
+            firButtonMap.put(s, new Button[] { btnMexico });
+            btnMexico.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
-                    editableFirID = getFirs();
-                    String newFir = btn.getText();
-                    if (btn.getSelection()) {
-                        if (!editableFirID.contains(newFir)) {
-                            if (editableFirID.length() == 0) {
-                                editableFirID = editableFirID.concat(newFir);
-                            } else {
-                                editableFirID = editableFirID
-                                        .concat(" " + newFir);
-                            }
-                        }
-                    } else {
-                        if (editableFirID.contains(newFir)) {
-                            editableFirID = editableFirID.replaceFirst(newFir,
-                                    "");
-                        }
-                    }
-                    editableFirID.trim();
+                    setNewFirID(btnMexico);
                 }
             });
 
             if (editableFirID != null) {
                 if (editableFirID.contains(s)) {
-                    btn.setSelection(true);
+                    btnMexico.setSelection(true);
                 }
             }
         }
@@ -1736,39 +1721,24 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         firOtherGrp.setLayout(new GridLayout(8, false));
         firOtherGrp.setText(SigmetConstant.OTHER_SITES);
         for (String s : SigmetInfo.FIR_OTHER) {
-            final Button btn = new Button(firOtherGrp, SWT.CHECK);
-            btn.setText(s);
-
-            btn.addSelectionListener(new SelectionAdapter() {
+            btnOther = new Button(firOtherGrp, SWT.CHECK);
+            btnOther.setText(s);
+            // map all fir buttons with their name as keys
+            firButtonMap.put(s, new Button[] { btnOther });
+            btnOther.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
-                    editableFirID = getFirs();
-                    String newFir = btn.getText();
-                    if (btn.getSelection()) {
-                        if (!editableFirID.contains(newFir)) {
-                            if (editableFirID.length() == 0) {
-                                editableFirID = editableFirID.concat(newFir);
-                            } else {
-                                editableFirID = editableFirID
-                                        .concat(" " + newFir);
-                            }
-                        }
-                    } else {
-                        if (editableFirID.contains(newFir)) {
-                            editableFirID = editableFirID.replaceFirst(newFir,
-                                    "");
-                        }
-                    }
-                    editableFirID.trim();
+                    setNewFirID(btnOther);
                 }
             });
 
             if (editableFirID != null) {
                 if (editableFirID.contains(s)) {
-                    btn.setSelection(true);
+                    btnOther.setSelection(true);
                 }
             }
         }
+
     }
 
     public String getFirs() {
@@ -4160,6 +4130,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     public void setSigmet(
             gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement sigmet) {
         this.sigmet = sigmet;
+
         Button[] buttons = attrButtonMap.get(EDITABLE_ATTR_FROM_LINE);
         Coordinate[] coors = ((Sigmet) sigmet).getLinePoints();
         String s = "";
@@ -4176,11 +4147,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             }
         }
-
         if (txtInfo != null && !txtInfo.isDisposed() && s != null) {
             this.resetText(s, txtInfo);
         }
-
         // TTR 974 - "editableAttrFromLine" needs update as well.
         if (s != null) {
             ((Sigmet) sigmet).setEditableAttrFromLine(s);
@@ -4813,10 +4782,70 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             }
         }
+        // update Fir-Region buttons
+        updateFirBtn();
+
         if (txtInfo != null && !txtInfo.isDisposed()) {
             this.resetText(s.toString(), txtInfo);
         }
 
+    }
+
+    public void updateFirBtn() {
+
+        // save the previous FIR Region ID
+        String oldEditableFirID = editableAttrFir;
+        if (oldEditableFirID.equals(null) || oldEditableFirID.equals("")) {
+            return;
+        }
+        String[] loopFIR = null;
+
+        if (oldEditableFirID.contains("PAZA")
+                || oldEditableFirID.contains("KZAK")) {
+
+            loopFIR = SigmetInfo.FIR_PACIFIC.clone();
+
+        } else if (oldEditableFirID.contains("MMFO")
+                || oldEditableFirID.contains("MMFR")) {
+
+            loopFIR = SigmetInfo.FIR_MEXICO.clone();
+
+        } else if (oldEditableFirID.contains("KZHU")
+                || oldEditableFirID.contains("KZWY")
+                || oldEditableFirID.contains("KZMA")
+                || oldEditableFirID.contains("TJZS")
+                || oldEditableFirID.contains("KZNY")) {
+
+            loopFIR = SigmetInfo.FIR_ATLANTIC.clone();
+
+        } else {
+
+            loopFIR = SigmetInfo.FIR_OTHER.clone();
+
+        }
+
+        // editableFirID has to be empty in order to invoke getFirs()
+        editableFirID = "";
+        String newEditableFirID = getFirs();
+
+        Button[] firButt = null;
+
+        for (String str : loopFIR) {
+
+            firButt = firButtonMap.get(str);
+
+            for (int i = 0; firButt != null && i < firButt.length; i++) {
+
+                if (newEditableFirID.contains(str)) {
+
+                    firButt[i].setSelection(true);
+
+                } else {
+                    firButt[i].setSelection(false);
+                }
+            }
+
+        }
     }
 
     public void copyEditableAttrToSigmetAttrDlg(Sigmet sig) {

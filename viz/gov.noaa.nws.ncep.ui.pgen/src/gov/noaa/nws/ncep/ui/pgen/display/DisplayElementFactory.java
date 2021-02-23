@@ -1,6 +1,6 @@
 /*
  * DisplayElementFactory
- * 
+ *
  * Date created: 03 DECEMBER 2008
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -119,12 +119,12 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * This factory class is used to create IDisplayable elements from IMultiPoint
  * objects. PGEN Resource can use this factory to create the elements it needs
  * to display without knowing the details of how.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 03/10        #223        M.Laryukhin Gfa added. 
+ * 03/10        #223        M.Laryukhin Gfa added.
  * 11/10        ?           B. Yin      Added an option to draw one column mid-level cloud text
  * 11/10        #345        J. Wu       Added an option to not drawing a Text element
  * 12/10        #321        J. Wu       Auto-adjust label positions for Contours.
@@ -133,9 +133,9 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 04/11        ?           B. Yin      Use Geometry instead of MultiPolygon for county shapes
  * 04/11        #?          B. Yin      Re-factor IAttribute, changed ISinglePoint to ISymbol
  * 07/11        #?          J. Wu       Allow more than 1 labels for closed contour lines.
- * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
- * 03/12        #697        Q. Zhou     Fixed line arrow head size for line & gfa  
- * 07/12        #834        J. Wu       Fixed fuzzy text display. 
+ * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo.
+ * 03/12        #697        Q. Zhou     Fixed line arrow head size for line & gfa
+ * 07/12        #834        J. Wu       Fixed fuzzy text display.
  * 08/12        #760        B. Yin      Modify line factory to apply world wrap.
  * 09/12                    B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
  * 11/12        #901/917    J. Wu       Set the symbol in GFA text box in proper location/size
@@ -162,19 +162,22 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * Apr 28, 2016 5542       tgurney      Performance improvement in createDisplayElements(ILine, ...)
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
- * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.  
+ * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.
  *                                      Moved world wrap code and smoothing code to its own function.
  * 04/05/2016   R17006      J. Wu       Correct the drawing of five-knot wind barb.
  * 11/07/2016   R23252      S. Russell  Updated createArrows() to support OPEN
  *                                      arrowheads.
  * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
- * 02/12/2020   74776       smanoj      Fixed a NullPointerException when deleting MET Contour Label 
+ * 02/12/2020   74776       smanoj      Fixed a NullPointerException when deleting MET Contour Label
  *                                      using keyboard delete key.
- * 
+ * 02/24/2021   86827       srussell    Updated createDisplayElements() to
+ *                                      account for update of units in
+ *                                      SigmetInfo.getIsolated()
+ *
  * </pre>
- * 
+ *
  * @author sgilbert
- * 
+ *
  */
 
 /*
@@ -289,7 +292,7 @@ public class DisplayElementFactory {
 
     /**
      * Constructor used to set initial Graphics Target and MapDescriptor
-     * 
+     *
      * @param target
      *            The Graphics Target
      * @param mapDescriptor
@@ -316,7 +319,7 @@ public class DisplayElementFactory {
     /**
      * Creates a list of IDisplayable Objects from an IMultiPoint object and
      * applies world wrap if applicable
-     * 
+     *
      * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
@@ -339,7 +342,7 @@ public class DisplayElementFactory {
 
     /**
      * Applies the World Wrap function to LatLon coordinates
-     * 
+     *
      * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
@@ -348,7 +351,7 @@ public class DisplayElementFactory {
     private ArrayList<IDisplayable> createWorldWrappedDisplayElements(
             ILine drawableElement, PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> list = new ArrayList<>();
         WorldWrapCorrector corrector = new WorldWrapCorrector(
                 iDescriptor.getGridGeometry());
         elem = drawableElement;
@@ -360,19 +363,16 @@ public class DisplayElementFactory {
         if (drawableElement.isClosedLine()) {
             coord = new Coordinate[deLinePoints.length + 1];
             for (int ii = 0; ii < deLinePoints.length; ii++) {
-                coord[ii] = new Coordinate(
-                        deLinePoints[ii].x,
+                coord[ii] = new Coordinate(deLinePoints[ii].x,
                         deLinePoints[ii].y);
             }
-            coord[deLinePoints.length] = new Coordinate(
-                    deLinePoints[0].x,
+            coord[deLinePoints.length] = new Coordinate(deLinePoints[0].x,
                     deLinePoints[0].y);
         } else {
             coord = new Coordinate[deLinePoints.length];
 
             for (int ii = 0; ii < deLinePoints.length; ii++) {
-                coord[ii] = new Coordinate(
-                        deLinePoints[ii].x,
+                coord[ii] = new Coordinate(deLinePoints[ii].x,
                         deLinePoints[ii].y);
             }
 
@@ -416,15 +416,15 @@ public class DisplayElementFactory {
 
     /**
      * Applies parametric smoothing on pixel coordinates, if required
-     * 
+     *
      * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
-     * 
+     *
      * @param pixelsCordinates
      *            The screen coordinates associated with the target
-     * 
+     *
      * @return The smoothed screen coordinates associated with the target
-     * 
+     *
      */
     private double[][] applyParametricSmoothing(ILine drawableElement,
             double[][] pixelsCordinates) {
@@ -448,7 +448,7 @@ public class DisplayElementFactory {
      * attributes, such as colors from the input elements, then apply these
      * attributes on the smoothed(if needed) points to create a list of
      * displayable.
-     * 
+     *
      * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param smoothpts
@@ -466,12 +466,12 @@ public class DisplayElementFactory {
 
         /*
          * R6520 - Adjust line width/pattern size for fronts.
-         * 
+         *
          * If line width is 1,2 or 3, it is weak front, draw with line width 1.
          * If line width is 4,5 or 6, it is moderate front, draw with line width
          * 4. If line width is 7,8 or 9, it is strong front, draw with line
          * width 7.
-         * 
+         *
          * Also, the pip size (sizeScale) needs to be adjusted to match NMAP2.
          */
         float drawLineWidth = drawableElement.getLineWidth();
@@ -522,8 +522,9 @@ public class DisplayElementFactory {
         /*
          * Flip the side of the pattern along the spine
          */
-        if ((elem instanceof Line) && ((Line) elem).isFlipSide())
+        if ((elem instanceof Line) && ((Line) elem).isFlipSide()) {
             pattern = pattern.flipSide();
+        }
 
         /*
          * If a LinePattern is found for the object, apply it. Otherwise, just
@@ -538,21 +539,22 @@ public class DisplayElementFactory {
                 // segments are scaled.
                 // This is done so that size of front pips don't vary with
                 // length of front.
-                if (line.getPgenCategory().equalsIgnoreCase("Front"))
+                if (line.getPgenCategory().equalsIgnoreCase("Front")) {
                     scaleType = ScaleType.SCALE_BLANK_LINE_ONLY;
+                }
             }
         }
 
         boolean isCCFP = false;
         AbstractDrawableComponent adc = ((Line) drawableElement).getParent();
         isCCFP = (adc != null && (PgenConstant.TYPE_CCFP_SIGMET
-                    .equalsIgnoreCase(adc.getPgenType())));
+                .equalsIgnoreCase(adc.getPgenType())));
         DECollection ccfp = null;
         if (isCCFP) {
             ccfp = (DECollection) adc;
         }
 
-        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> list = new ArrayList<>();
 
         list.addAll(createDisplayElementsFromPts(smoothpts, displayColor,
                 pattern, scaleType,
@@ -569,7 +571,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates displayable from the input attributes and points of the line
-     * 
+     *
      * @param pts
      * @param dspClr
      * @param pattern
@@ -586,7 +588,7 @@ public class DisplayElementFactory {
             Boolean isFilled, float lineWidth, boolean isCCFP,
             DECollection ccfp, PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> list = new ArrayList<>();
         wfs = new IWireframeShape[dspClr.length];
         for (int i = 0; i < dspClr.length; i++) {
             wfs[i] = target.createWireframeShape(false, iDescriptor);
@@ -611,8 +613,9 @@ public class DisplayElementFactory {
                 scale *= frontPatternFactor;
             }
 
-            if (scale <= 0.0)
+            if (scale <= 0.0) {
                 scale = 1.0;
+            }
             double sfactor = deviceScale * scale;
 
             double pointAngle = 60.0; // Angle of arrow point - defining
@@ -624,8 +627,9 @@ public class DisplayElementFactory {
             // Currently we only have extent 1 and 2 available.
             // 3.5 is what we want the size to be.
             double height = sfactor * 3.5;
-            if (extent * 1.5 > 3.5)
+            if (extent * 1.5 > 3.5) {
                 height = sfactor * extent * 1.5;
+            }
 
             int n = pts.length - 1;
             // calculate direction of arrow head
@@ -636,9 +640,10 @@ public class DisplayElementFactory {
                     pointAngle, slope, height, pattern.getArrowHeadType());
             Coordinate[] ahead = arrow.getArrowHeadShape();
 
-            if (pattern.getArrowHeadType() == ArrowHeadType.OPEN)
+            if (pattern.getArrowHeadType() == ArrowHeadType.OPEN) {
                 // Add to wireframe
                 wfs[0].addLineSegment(toDouble(ahead));
+            }
             if (pattern.getArrowHeadType() == ArrowHeadType.FILLED) {
                 // Add to shadedshape
 
@@ -691,7 +696,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an IMultiPoint object
-     * 
+     *
      * @param de
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
@@ -716,7 +721,7 @@ public class DisplayElementFactory {
          * Create the List to be returned, some wireframe shapes and a shaded
          * shape to be used for the IDisplayables
          */
-        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> list = new ArrayList<>();
 
         /*
          * Get lat/lon coordinates from drawable element
@@ -744,7 +749,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an IWatchBox object
-     * 
+     *
      * @param de
      *            A PGEN Drawable Element of a WatchBox object
      * @param paintProps
@@ -764,7 +769,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        dlisti = new ArrayList<IDisplayable>();
+        dlisti = new ArrayList<>();
 
         List<SPCCounty> counties = watchBox.getOriginalCountyList();
         if (counties == null || counties.isEmpty()) { // if the watch is not
@@ -781,7 +786,7 @@ public class DisplayElementFactory {
                 ;
                 Color[] colors = null;
 
-                Collection<Geometry> gCollection = new ArrayList<Geometry>();
+                Collection<Geometry> gCollection = new ArrayList<>();
 
                 GeometryFactory gf = new GeometryFactory();
 
@@ -800,7 +805,7 @@ public class DisplayElementFactory {
                                 ((Polygon) countyGeo.getGeometryN(ii))
                                         .getExteriorRing().getCoordinates());
 
-                        List<Coordinate> pts = new ArrayList<Coordinate>(
+                        List<Coordinate> pts = new ArrayList<>(
                                 Arrays.asList(poly.getCoordinates()));
                         Line cntyBorder = new Line(null, colors, .5f, .5, true,
                                 false, pts, 0, FillPattern.FILL_PATTERN_6,
@@ -822,8 +827,9 @@ public class DisplayElementFactory {
                             .buildGeometry(gCollection);
 
                     cntyUnion = geometryCollection.union();
-                } else
+                } else {
                     cntyUnion = gf.buildGeometry(gCollection);
+                }
 
                 IShadedShape theShadedShape = target.createShadedShape(false,
                         iDescriptor, true);
@@ -882,7 +888,7 @@ public class DisplayElementFactory {
         }
 
         Coordinate[] points = watchBox.getLinePoints();
-        ArrayList<Coordinate> ptsList = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> ptsList = new ArrayList<>();
 
         for (int ii = 0; ii < points.length; ii++) {
             ptsList.add(points[ii]);
@@ -942,8 +948,8 @@ public class DisplayElementFactory {
                     0., TextRotation.SCREEN_RELATIVE, wtext, FontStyle.REGULAR,
                     watchBox.getColors()[0], 0, 0, true, DisplayType.NORMAL,
                     "Text", "Text");
-            ArrayList<IDisplayable> tList = createDisplayElements(
-                    (IText) wNumber, paintProps);
+            ArrayList<IDisplayable> tList = createDisplayElements(wNumber,
+                    paintProps);
 
             dlisti.addAll(tList);
         }
@@ -955,7 +961,7 @@ public class DisplayElementFactory {
     /**
      * Method to add ALL symbols of the same color into a single wire-frame.
      * Designed to increase efficiency in rendering symbols.
-     * 
+     *
      * @param paintProps
      * @param listOfSymbolLocSets
      *            - A list of symbols - each of which will be rendered at
@@ -964,13 +970,13 @@ public class DisplayElementFactory {
      */
     public List<IDisplayable> createDisplayElements(PaintProperties paintProps,
             List<SymbolLocationSet> listOfSymbolLocSets) {
-        List<IDisplayable> listOfDisplayables = new ArrayList<IDisplayable>(0);
+        List<IDisplayable> listOfDisplayables = new ArrayList<>(0);
         setScales(paintProps);
 
-        Map<Color, IWireframeShape> mapOfWireFrames = new HashMap<Color, IWireframeShape>();
-        Map<Color, IWireframeShape> mapOfMasks = new HashMap<Color, IWireframeShape>();
-        Map<Color, IShadedShape> mapOfShadedShapes = new HashMap<Color, IShadedShape>();
-        Map<Color, Float> mapOfLineWidths = new HashMap<Color, Float>();
+        Map<Color, IWireframeShape> mapOfWireFrames = new HashMap<>();
+        Map<Color, IWireframeShape> mapOfMasks = new HashMap<>();
+        Map<Color, IShadedShape> mapOfShadedShapes = new HashMap<>();
+        Map<Color, Float> mapOfLineWidths = new HashMap<>();
         // this assumes that all symbols of the same color have the same
         // lineWidth
         SymbolPatternManager symbolPatternManager = SymbolPatternManager
@@ -978,8 +984,9 @@ public class DisplayElementFactory {
 
         for (ISymbolSet eachSymbolSet : listOfSymbolLocSets) {
             Symbol symbol = eachSymbolSet.getSymbol();
-            if (symbol == null)
+            if (symbol == null) {
                 continue;
+            }
             double sfactor = deviceScale * symbol.getSizeScale() * 0.5;
             Float lineWidth = symbol.getLineWidth();
             Color symbolColor = symbol.getColors()[0];
@@ -1028,8 +1035,9 @@ public class DisplayElementFactory {
                  * rendered
                  */
                 for (Coordinate currWorldCoord : symbolLocArray) {
-                    if (currWorldCoord == null)
+                    if (currWorldCoord == null) {
                         continue;
+                    }
                     double[] symbolLocWorldCoord = new double[] {
                             currWorldCoord.x, currWorldCoord.y };
                     double[] pixCoord = iDescriptor
@@ -1097,10 +1105,11 @@ public class DisplayElementFactory {
             Float theLineWidth = mapOfLineWidths.get(color);
             float lineWidth = 1.0f;
 
-            if (theLineWidth != null)
+            if (theLineWidth != null) {
                 lineWidth = theLineWidth.floatValue() * lineWidthScaleFactor;
+            }
             listOfDisplayables.add(new LineDisplayElement(maskWireframeShape,
-                    color, (float) (lineWidth + 25)));
+                    color, lineWidth + 25));
         }
 
         for (Color color : wireFrameColorSet) {
@@ -1108,10 +1117,11 @@ public class DisplayElementFactory {
             symbolWireframeShape.compile();
             Float theLineWidth = mapOfLineWidths.get(color);
             float lineWidth = 1.0f;
-            if (theLineWidth != null)
+            if (theLineWidth != null) {
                 lineWidth = theLineWidth.floatValue() * lineWidthScaleFactor;
+            }
             listOfDisplayables.add(new LineDisplayElement(symbolWireframeShape,
-                    color, (float) (lineWidth)));
+                    color, (lineWidth)));
         }
 
         for (Color color : shadedShapesColorSet) {
@@ -1134,7 +1144,7 @@ public class DisplayElementFactory {
      * and rounded endcaps. Use createDisplayElements(ISinglePoint,
      * PaintProperties) instead, as this method may become deprecated soon, if
      * it is not needed.
-     * 
+     *
      * @param de
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
@@ -1146,7 +1156,7 @@ public class DisplayElementFactory {
         setScales(paintProps);
         double sfactor = deviceScale * de.getSizeScale();
 
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         sym = target.createWireframeShape(false, iDescriptor);
         ss = target.createShadedShape(false, iDescriptor, true);
         IWireframeShape mask = target.createWireframeShape(false, iDescriptor);
@@ -1180,8 +1190,9 @@ public class DisplayElementFactory {
                 path[j][1] = center[1] + (-sfactor * coords[j].y);
             }
             sym.addLineSegment(path);
-            if (de.isClear())
+            if (de.isClear()) {
                 mask.addLineSegment(path);
+            }
 
             /*
              * This part of the symbol requires a filled Shadedshape
@@ -1236,7 +1247,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of a line with a "Kink" in it.
-     * 
+     *
      * @param kline
      *            A PGEN Drawable Element of a Kink Line
      * @param paintProps
@@ -1251,7 +1262,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape kinkLine = target.createWireframeShape(false,
                 iDescriptor);
 
@@ -1308,9 +1319,10 @@ public class DisplayElementFactory {
                 pointAngle, slope, 1.5 * offset, kline.getArrowHeadType());
         Coordinate[] ahead = arrow.getArrowHeadShape();
 
-        if (kline.getArrowHeadType() == ArrowHeadType.OPEN)
+        if (kline.getArrowHeadType() == ArrowHeadType.OPEN) {
             // Add to wireframe
             kinkLine.addLineSegment(toDouble(ahead));
+        }
         if (kline.getArrowHeadType() == ArrowHeadType.FILLED) {
             /*
              * create new ShadedShape and FillDisplayElement for the filled
@@ -1338,7 +1350,7 @@ public class DisplayElementFactory {
     /**
      * Create IDisplayable of a "wind" drawable element. Can create displayables
      * of wind speed and direction as wind barbs, arrows, or hash marks.
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -1371,7 +1383,7 @@ public class DisplayElementFactory {
             /*
              * Unrecognized vector type; return empty list
              */
-            return new ArrayList<IDisplayable>();
+            return new ArrayList<>();
 
         }
 
@@ -1383,7 +1395,7 @@ public class DisplayElementFactory {
      * Aggregates into relatively few IDisplayables, for (much) faster
      * performance esp. with large numbers of vectors. Can create displayables
      * of speed and direction as wind barbs, arrows, or hash marks.
-     * 
+     *
      * @param vectors
      *            A list of PGEN Drawable Elements of Vector (e.g., wind barb or
      *            arrow) objects
@@ -1406,21 +1418,21 @@ public class DisplayElementFactory {
 
             case ARROW:
                 if (arrowVectors == null) {
-                    arrowVectors = new ArrayList<IVector>();
+                    arrowVectors = new ArrayList<>();
                 }
                 arrowVectors.add(vector);
                 break;
 
             case WIND_BARB:
                 if (barbVectors == null) {
-                    barbVectors = new ArrayList<IVector>();
+                    barbVectors = new ArrayList<>();
                 }
                 barbVectors.add(vector);
                 break;
 
             case HASH_MARK:
                 if (hashVectors == null) {
-                    hashVectors = new ArrayList<IVector>();
+                    hashVectors = new ArrayList<>();
                 }
                 hashVectors.add(vector);
                 break;
@@ -1436,7 +1448,7 @@ public class DisplayElementFactory {
          * displayables, and add to combined list for return
          */
 
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         if (arrowVectors != null) {
             slist.addAll(createArrows(arrowVectors));
@@ -1453,7 +1465,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of a text string.
-     * 
+     *
      * @param txt
      *            A PGEN Drawable Element of a text string
      * @param paintProps
@@ -1467,7 +1479,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         /*
          * Skip if the "hide" is true
@@ -1575,8 +1587,9 @@ public class DisplayElementFactory {
          * calculate the rotation for "Screen" relative.
          */
         double rotation = txt.getRotation();
-        if (txt.getRotationRelativity() == TextRotation.NORTH_RELATIVE)
+        if (txt.getRotationRelativity() == TextRotation.NORTH_RELATIVE) {
             rotation += northOffsetAngle(txt.getPosition());
+        }
 
         /*
          * create drawableString and calculate its bounds
@@ -1642,7 +1655,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of PGEN TCM element.
-     * 
+     *
      * @param tcm
      *            A PGEN TCM Element
      * @param paintProps
@@ -1651,9 +1664,9 @@ public class DisplayElementFactory {
      */
     public ArrayList<IDisplayable> createDisplayElements(ITcm tcm,
             PaintProperties paintProps) {
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
-        ArrayList<Coordinate> trackPts = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> trackPts = new ArrayList<>();
 
         // draw wind forecast quarters and labels
         for (TcmFcst tcmFcst : tcm.getTcmFcst()) {
@@ -1699,7 +1712,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of PGEN TCM forecast
-     * 
+     *
      * @param tcmFcst
      *            A PGEN TCM forecast
      * @param paintProps
@@ -1708,7 +1721,7 @@ public class DisplayElementFactory {
      */
     private ArrayList<IDisplayable> createDisplayElements(ITcmFcst tcmFcst,
             PaintProperties paintProps, String[] txt) {
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         for (ITcmWindQuarter qua : tcmFcst.getQuarters()) {
             slist.addAll(createDisplayElements(qua, paintProps));
         }
@@ -1736,7 +1749,7 @@ public class DisplayElementFactory {
     /**
      * Returns the TCM symbol according to the wind speed. Hurricane >= 64
      * knots, TS >= 34 knots, TD < 34 knots
-     * 
+     *
      * @param tcmFcst
      * @return
      */
@@ -1755,8 +1768,9 @@ public class DisplayElementFactory {
                 double[] radius = qtr.getQuarters();
                 for (double r : radius) {
                     if (r > 0) {
-                        if (qtr.getWindSpeed() > maxWind)
+                        if (qtr.getWindSpeed() > maxWind) {
                             maxWind = qtr.getWindSpeed();
+                        }
                         break;
                     }
                 }
@@ -1765,15 +1779,17 @@ public class DisplayElementFactory {
 
         double lat = quarters[0].getLocation().y;
         if (maxWind >= 64) {
-            if (lat > 0)
+            if (lat > 0) {
                 ret = "HURRICANE_NH";
-            else
+            } else {
                 ret = "HURRICANE_SH";
+            }
         } else if (maxWind >= 34) {
-            if (lat > 0)
+            if (lat > 0) {
                 ret = "TROPICAL_STORM_NH";
-            else
+            } else {
                 ret = "TROPICAL_STORM_SH";
+            }
         } else {
             ret = "TROPICAL_DEPRESSION";
         }
@@ -1783,7 +1799,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of PGEN TCM wind/wave quarters
-     * 
+     *
      * @param quatros
      *            - PGEN TCM wind/wave quarters
      * @param paintProps
@@ -1792,7 +1808,7 @@ public class DisplayElementFactory {
      */
     private ArrayList<IDisplayable> createDisplayElements(
             ITcmWindQuarter quatros, PaintProperties paintProps) {
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         Coordinate center = quatros.getLocation();
         Color color = Color.GREEN;
@@ -1820,10 +1836,10 @@ public class DisplayElementFactory {
                     this.calculateDestinationPointMap(center, 0,
                             quatros.getQuarters()[3]),
                     "Arc", 1, 270, 360);
-            slist.addAll(createDisplayElements((IArc) quatro1, paintProps, 3));
-            slist.addAll(createDisplayElements((IArc) quatro2, paintProps, 3));
-            slist.addAll(createDisplayElements((IArc) quatro3, paintProps, 3));
-            slist.addAll(createDisplayElements((IArc) quatro4, paintProps, 3));
+            slist.addAll(createDisplayElements(quatro1, paintProps, 3));
+            slist.addAll(createDisplayElements(quatro2, paintProps, 3));
+            slist.addAll(createDisplayElements(quatro3, paintProps, 3));
+            slist.addAll(createDisplayElements(quatro4, paintProps, 3));
 
             Line ln1 = getWindQuatroLine(getPointOnArc(quatro1, 0),
                     getPointOnArc(quatro2, 0), color);
@@ -1841,10 +1857,10 @@ public class DisplayElementFactory {
                     getPointOnArc(quatro1, 270), color);
             ln4.setPgenType("LINE_DASHED_4");
 
-            slist.addAll(createDisplayElements((ILine) ln1, paintProps));
-            slist.addAll(createDisplayElements((ILine) ln2, paintProps));
-            slist.addAll(createDisplayElements((ILine) ln3, paintProps));
-            slist.addAll(createDisplayElements((ILine) ln4, paintProps));
+            slist.addAll(createDisplayElements(ln1, paintProps));
+            slist.addAll(createDisplayElements(ln2, paintProps));
+            slist.addAll(createDisplayElements(ln3, paintProps));
+            slist.addAll(createDisplayElements(ln4, paintProps));
 
             return slist;
         case 34:
@@ -1896,10 +1912,10 @@ public class DisplayElementFactory {
         Line ln4 = getWindQuatroLine(getPointOnArc(quatro4, 270),
                 getPointOnArc(quatro1, 270), color);
 
-        slist.addAll(createDisplayElements((ILine) ln1, paintProps));
-        slist.addAll(createDisplayElements((ILine) ln2, paintProps));
-        slist.addAll(createDisplayElements((ILine) ln3, paintProps));
-        slist.addAll(createDisplayElements((ILine) ln4, paintProps));
+        slist.addAll(createDisplayElements(ln1, paintProps));
+        slist.addAll(createDisplayElements(ln2, paintProps));
+        slist.addAll(createDisplayElements(ln3, paintProps));
+        slist.addAll(createDisplayElements(ln4, paintProps));
 
         return slist;
     }
@@ -1907,7 +1923,7 @@ public class DisplayElementFactory {
     /**
      * Creates a list of IDisplayable Objects from an IArc object using
      * dashed-line.
-     * 
+     *
      * @param arc
      *            A PGEN Drawable Element of an arc object
      * @param paintProps
@@ -1923,7 +1939,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape arcpts = target.createWireframeShape(false,
                 iDescriptor);
 
@@ -1960,8 +1976,9 @@ public class DisplayElementFactory {
         // calculate length of a single dash segment in degree.
         double deltaAngle = (dashlength / (major / this.screenToExtent)) * 180;
         int deltaA = (int) Math.round(deltaAngle);
-        if (deltaA <= 1)
+        if (deltaA <= 1) {
             deltaA = 2;
+        }
 
         /*
          * Calculate points along the arc
@@ -2016,7 +2033,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an IArc object
-     * 
+     *
      * @param arc
      *            A PGEN Drawable Element of an arc object
      * @param paintProps
@@ -2031,7 +2048,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape arcpts = target.createWireframeShape(false,
                 iDescriptor);
 
@@ -2096,7 +2113,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an ITrack drawable object
-     * 
+     *
      * @param track
      *            A PGEN Drawable Element of a storm track object
      * @param paintProps
@@ -2108,7 +2125,7 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> temps;
 
-        ArrayList<Coordinate> points = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> points = new ArrayList<>();
         setScales(paintProps);
 
         SimpleDateFormat sdf = new SimpleDateFormat("HHmm");
@@ -2116,7 +2133,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         /*
          * Get color for creating displayable elements.
@@ -2159,7 +2176,7 @@ public class DisplayElementFactory {
                         new String[] { dtime }, track.getFontStyle(), iniDspClr,
                         0, 3, false, DisplayType.NORMAL, "Text",
                         "General Text");
-                temps = createDisplayElements((IText) txt, paintProps);
+                temps = createDisplayElements(txt, paintProps);
                 slist.addAll(temps);
             }
         }
@@ -2219,7 +2236,7 @@ public class DisplayElementFactory {
                         new String[] { dtime }, track.getFontStyle(), expDspClr,
                         0, 3, false, DisplayType.NORMAL, "Text",
                         "General Text");
-                temps = createDisplayElements((IText) txt, paintProps);
+                temps = createDisplayElements(txt, paintProps);
                 slist.addAll(temps);
             }
             m++;
@@ -2240,7 +2257,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an Point object
-     * 
+     *
      * @param de
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
@@ -2255,7 +2272,7 @@ public class DisplayElementFactory {
             SymbolLocationSet sym = new SymbolLocationSet((Symbol) de, loc);
             return createDisplayElements(sym, paintProps);
         } else {
-            return new ArrayList<IDisplayable>();
+            return new ArrayList<>();
         }
 
     }
@@ -2263,7 +2280,7 @@ public class DisplayElementFactory {
     /**
      * Creates a list of IDisplayable Objects from an ISymbolSet object, used to
      * draw one symbol at one or more locations.
-     * 
+     *
      * @param symbolSet
      *            A symbol with associated lat/lon coordinates
      * @param paintProps
@@ -2281,7 +2298,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         // get Symbol
         Symbol sym = symbolSet.getSymbol();
@@ -2326,7 +2343,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable raster Objects from an ICombo object
-     * 
+     *
      * @param de
      *            A PGEN Drawable Element of a ICombo object
      * @param paintProps
@@ -2402,14 +2419,14 @@ public class DisplayElementFactory {
             stuff.addAll(createDisplayElements(sym3, paintProps));
             return stuff;
         } else {
-            return new ArrayList<IDisplayable>();
+            return new ArrayList<>();
         }
 
     }
 
     /**
      * Create IDisplayable of a TCA element.
-     * 
+     *
      * @param tca
      *            A PGEN Drawable Element of a TCA element
      * @param paintProps
@@ -2419,7 +2436,7 @@ public class DisplayElementFactory {
     public ArrayList<IDisplayable> createDisplayElements(ITca tca,
             PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> rlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> rlist = new ArrayList<>();
 
         List<TropicalCycloneAdvisory> advisories = tca.getAdvisories();
 
@@ -2440,7 +2457,7 @@ public class DisplayElementFactory {
                     getDisplayColor(Color.YELLOW), 0, 0, false, DisplayType.BOX,
                     "Text", "General Text");
 
-            rlist = createDisplayElements((IText) display, paintProps);
+            rlist = createDisplayElements(display, paintProps);
             return rlist;
         }
 
@@ -2463,7 +2480,7 @@ public class DisplayElementFactory {
     /**
      * Creates displayables for a specific watch/warning type from the advisory
      * information
-     * 
+     *
      * @param advisories
      *            List of current tropical cyclone advisories
      * @param severe
@@ -2482,7 +2499,7 @@ public class DisplayElementFactory {
             List<TropicalCycloneAdvisory> advisories, String severe,
             String type, Color clr, float lw, PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> alist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> alist = new ArrayList<>();
 
         /*
          * loop through each advisory and determine if it is of the given
@@ -2500,16 +2517,18 @@ public class DisplayElementFactory {
                 for (Coordinate[] coords : segment.getPaths()) {
 
                     // convert Coordinate[] to ArrayList<Coordinate>
-                    ArrayList<Coordinate> pts = new ArrayList<Coordinate>();
-                    for (Coordinate c : coords)
+                    ArrayList<Coordinate> pts = new ArrayList<>();
+                    for (Coordinate c : coords) {
                         pts.add(c);
+                    }
 
                     // if the segment is a Waterway, and the segment is closed,
                     // create a filled displayable
                     boolean fill = false;
                     if (coords[0].equals2D(coords[coords.length - 1])
-                            && (segment instanceof WaterBreakpoint))
+                            && (segment instanceof WaterBreakpoint)) {
                         fill = true;
+                    }
 
                     // create a line for each segment and then create its
                     // displayable
@@ -2529,7 +2548,7 @@ public class DisplayElementFactory {
 
     /**
      * Create IDisplayable of an aviation text element.
-     * 
+     *
      * @param avntxt
      *            A PGEN Drawable Element of an aviation text element
      * @param paintProps
@@ -2539,7 +2558,7 @@ public class DisplayElementFactory {
     public ArrayList<IDisplayable> createDisplayElements(IAvnText avntxt,
             PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> rlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> rlist = new ArrayList<>();
         // Set up scale factors
         setScales(paintProps);
 
@@ -2553,8 +2572,8 @@ public class DisplayElementFactory {
                 avntxt.getStyle(), getDisplayColor(avntxt.getTextColor()), 0, 0,
                 bgmask, outline, "Text", "General Text");
 
-        ArrayList<IDisplayable> txtdable = createDisplayElements(
-                (IText) display, paintProps);
+        ArrayList<IDisplayable> txtdable = createDisplayElements(display,
+                paintProps);
 
         if (avntxt.getAvnTextType() == AviationTextType.HIGH_LEVEL_TURBULENCE
                 || avntxt.getAvnTextType() == AviationTextType.CLOUD_LEVEL
@@ -2590,7 +2609,7 @@ public class DisplayElementFactory {
 
         // double imgscale = deviceScale * avntxt..getSizeScale() *
         // INITIAL_IMAGE_SIZE;
-        ArrayList<IDisplayable> rlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> rlist = new ArrayList<>();
 
         /*
          * get pixel size of text string
@@ -2624,8 +2643,9 @@ public class DisplayElementFactory {
 
         pixel[1] -= (1.5 * vertRatio * bounds.getHeight());
         double shift = 0.5; // shift symbol 1 and one half characters
-        if (avntxt.getAvnTextType() == AviationTextType.LOW_LEVEL_TURBULENCE)
+        if (avntxt.getAvnTextType() == AviationTextType.LOW_LEVEL_TURBULENCE) {
             shift = 1.1667; // shift 3 and half characters
+        }
         // Adjust position based on justification
         if (avntxt.getJustification() == TextJustification.LEFT_JUSTIFY) {
             pixel[0] += (bounds.getWidth() * horizRatio * shift);
@@ -2650,7 +2670,7 @@ public class DisplayElementFactory {
              */
             Symbol sym = new Symbol(null, clrs, 1.0f, symSize, false, loc1,
                     "Symbol", ids[0]);
-            rlist.addAll(createDisplayElements((ISymbol) sym, paintProps));
+            rlist.addAll(createDisplayElements(sym, paintProps));
         } else if (ids.length > 1) { // add two symbols
 
             double newX = pixel[0] - (0.3333 * bounds.getWidth() * horizRatio);
@@ -2664,7 +2684,7 @@ public class DisplayElementFactory {
              */
             Symbol sym = new Symbol(null, clrs, 1.0f, symSize, false, loc1,
                     "Symbol", ids[0]);
-            rlist.addAll(createDisplayElements((ISymbol) sym, paintProps));
+            rlist.addAll(createDisplayElements(sym, paintProps));
 
             newX = pixel[0] + (0.3333 * bounds.getWidth() * horizRatio);
             // convert pixel back to map coordinates
@@ -2677,7 +2697,7 @@ public class DisplayElementFactory {
              */
             Symbol sym2 = new Symbol(null, clrs, 1.0f, symSize, false, loc2,
                     "Symbol", ids[1]);
-            rlist.addAll(createDisplayElements((ISymbol) sym2, paintProps));
+            rlist.addAll(createDisplayElements(sym2, paintProps));
 
         }
 
@@ -2691,7 +2711,7 @@ public class DisplayElementFactory {
             PaintProperties paintProps) {
 
         // list of displayables to return;
-        ArrayList<IDisplayable> dlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> dlist = new ArrayList<>();
 
         /*
          * calculate pixel size of text
@@ -2873,15 +2893,17 @@ public class DisplayElementFactory {
 
         String defaultString = "XXX";
         String top = addLeadingZero(avntxt.getTopValue());
-        if (top == null)
+        if (top == null) {
             top = defaultString;
+        }
 
         String bottom = null;
         if (avntxt.hasBottomValue()) {
             bottom = addLeadingZero(avntxt.getBottomValue());
         }
-        if (bottom == null)
+        if (bottom == null) {
             bottom = defaultString;
+        }
 
         switch (avntxt.getAvnTextType()) {
 
@@ -2930,17 +2952,18 @@ public class DisplayElementFactory {
      * Add leading zeros to a string
      */
     private String addLeadingZero(String value) {
-        if (value.length() == 1)
+        if (value.length() == 1) {
             return new String("00" + value);
-        else if (value.length() == 2)
+        } else if (value.length() == 2) {
             return new String("0" + value);
-        else
+        } else {
             return value;
+        }
     }
 
     /**
      * Create IDisplayable of an mid cloud level text element.
-     * 
+     *
      * @param midtxt
      *            A PGEN Drawable Element of an aviation mid level cloud text
      *            element
@@ -2963,13 +2986,13 @@ public class DisplayElementFactory {
 
         double turblocation = 0, icelocation = 0;
 
-        ArrayList<IDisplayable> mlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> mlist = new ArrayList<>();
         // Set up scale factors
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
         // per line; in descending row order.
-        List<String> contents = new ArrayList<String>();
+        List<String> contents = new ArrayList<>();
 
         // Add all cloud types and amounts to the list
         contents.addAll(getTokens(midtxt.getCloudAmounts()));
@@ -2981,16 +3004,18 @@ public class DisplayElementFactory {
                     midtxt.getTurbulenceLevels(), "/");
 
             // top
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
 
             // bottom
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
 
             // contents.addAll( getLevels( midtxt.getTurbulenceLevels(), null )
             // );
@@ -3003,16 +3028,18 @@ public class DisplayElementFactory {
                     "/");
 
             // top
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
 
             // bottom
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
             icelocation = contents.size() - 1.0;
         }
 
@@ -3025,20 +3052,23 @@ public class DisplayElementFactory {
                     "/");
 
             // top
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
 
             // bottom
-            if (tok.hasMoreTokens())
+            if (tok.hasMoreTokens()) {
                 contents.add(tok.nextToken());
-            else
+            } else {
                 contents.add("XXX");
+            }
         }
 
-        if (contents.isEmpty())
+        if (contents.isEmpty()) {
             return mlist; // return empty list
+        }
 
         /*
          * Format the strings in the list to two per line
@@ -3066,7 +3096,7 @@ public class DisplayElementFactory {
                 midtxt.getTextColor(), 0, 0, true, DisplayType.BOX, "Text",
                 "General Text");
 
-        mlist.addAll(createDisplayElements((IText) txt, paintProps));
+        mlist.addAll(createDisplayElements(txt, paintProps));
 
         // Add turbulence sysmbol
         if (midtxt.hasTurbulence()) {
@@ -3091,13 +3121,13 @@ public class DisplayElementFactory {
         final String BLANK = new String(" ");
         double turblocation = 0, icelocation = 0;
 
-        ArrayList<IDisplayable> mlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> mlist = new ArrayList<>();
         // Set up scale factors
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
         // per line; in descending row order.
-        List<String> contents = new ArrayList<String>();
+        List<String> contents = new ArrayList<>();
 
         // Add all cloud types and amounts to the list
         contents.addAll(getTokens(midtxt.getCloudAmounts()));
@@ -3105,32 +3135,37 @@ public class DisplayElementFactory {
 
         // Add turbulence levels, if given
         if (midtxt.hasTurbulence()) {
-            if (contents.size() % 2 == 1)
+            if (contents.size() % 2 == 1) {
                 contents.add(BLANK);
+            }
             contents.addAll(getLevels(midtxt.getTurbulenceLevels(), null));
             turblocation = (contents.size() / 2.0) - 1.0;
         }
 
         // Add icing levels, if given
         if (midtxt.hasIcing()) {
-            if (contents.size() % 2 == 1)
+            if (contents.size() % 2 == 1) {
                 contents.add(BLANK);
+            }
             contents.addAll(getLevels(midtxt.getIcingLevels(), null));
             icelocation = (contents.size() / 2.0) - 1.0;
         }
 
         // Add tstorm strings, if given
         if (midtxt.hasTstorm()) {
-            if (contents.size() % 2 == 1)
+            if (contents.size() % 2 == 1) {
                 contents.add(BLANK);
+            }
             contents.addAll(getTokens(midtxt.getTstormTypes()));
-            if (contents.size() % 2 == 1)
+            if (contents.size() % 2 == 1) {
                 contents.add(BLANK);
+            }
             contents.addAll(getLevels(midtxt.getTstormLevels(), "CB"));
         }
 
-        if (contents.isEmpty())
+        if (contents.isEmpty()) {
             return mlist; // return empty list
+        }
 
         /*
          * Format the strings in the list to two per line
@@ -3139,8 +3174,9 @@ public class DisplayElementFactory {
         if (contents.size() == 1) {
             txtstr = new String[] { contents.get(0) };
         } else {
-            if (contents.size() % 2 == 1)
+            if (contents.size() % 2 == 1) {
                 contents.add(BLANK);
+            }
             txtstr = new String[contents.size() / 2];
             Iterator<String> iter = contents.iterator();
             for (int n = 0; n < contents.size() / 2; n++) {
@@ -3158,7 +3194,7 @@ public class DisplayElementFactory {
                 midtxt.getTextColor(), 0, 0, true, DisplayType.BOX, "Text",
                 "General Text");
 
-        mlist.addAll(createDisplayElements((IText) txt, paintProps));
+        mlist.addAll(createDisplayElements(txt, paintProps));
 
         // Add turbulence sysmbol
         if (midtxt.hasTurbulence()) {
@@ -3185,25 +3221,28 @@ public class DisplayElementFactory {
      */
     private List<String> getLevels(String str, String note) {
 
-        ArrayList<String> lst = new ArrayList<String>();
+        ArrayList<String> lst = new ArrayList<>();
         StringTokenizer tok = new StringTokenizer(str, "/");
 
-        if (note == null)
+        if (note == null) {
             lst.add(" ");
-        else
+        } else {
             lst.add(note);
+        }
 
-        if (tok.hasMoreTokens())
+        if (tok.hasMoreTokens()) {
             lst.add(tok.nextToken());
-        else
+        } else {
             lst.add("XXX");
+        }
 
         lst.add(" ");
 
-        if (tok.hasMoreTokens())
+        if (tok.hasMoreTokens()) {
             lst.add(tok.nextToken());
-        else
+        } else {
             lst.add("XXX");
+        }
 
         return lst;
     }
@@ -3214,13 +3253,15 @@ public class DisplayElementFactory {
      */
     private List<String> getTokens(String str) {
 
-        ArrayList<String> lst = new ArrayList<String>();
-        if (str == null || str.isEmpty())
+        ArrayList<String> lst = new ArrayList<>();
+        if (str == null || str.isEmpty()) {
             return lst;
+        }
 
         StringTokenizer tok = new StringTokenizer(str, "|");
-        while (tok.hasMoreTokens())
+        while (tok.hasMoreTokens()) {
             lst.add(tok.nextToken());
+        }
         return lst;
 
     }
@@ -3234,7 +3275,7 @@ public class DisplayElementFactory {
             PaintProperties paintProps) {
 
         // return list
-        ArrayList<IDisplayable> rlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> rlist = new ArrayList<>();
 
         /*
          * get pixel size of text string with given font
@@ -3295,7 +3336,7 @@ public class DisplayElementFactory {
              */
             Symbol sym = new Symbol(null, clrs, 1.0f, symSize, false, loc1,
                     "Symbol", ids[0]);
-            rlist.addAll(createDisplayElements((ISymbol) sym, paintProps));
+            rlist.addAll(createDisplayElements(sym, paintProps));
         } else if (ids.length > 1) { // add two symbols
 
             double newX = pixel[0] - (bounds.getWidth() * horizRatio);
@@ -3309,7 +3350,7 @@ public class DisplayElementFactory {
              */
             Symbol sym = new Symbol(null, clrs, 1.0f, symSize, false, loc1,
                     "Symbol", ids[0]);
-            rlist.addAll(createDisplayElements((ISymbol) sym, paintProps));
+            rlist.addAll(createDisplayElements(sym, paintProps));
 
             newX = pixel[0] + (bounds.getWidth() * horizRatio);
             // convert pixel back to map coordinates
@@ -3322,7 +3363,7 @@ public class DisplayElementFactory {
              */
             Symbol sym2 = new Symbol(null, clrs, 1.0f, symSize, false, loc2,
                     "Symbol", ids[1]);
-            rlist.addAll(createDisplayElements((ISymbol) sym2, paintProps));
+            rlist.addAll(createDisplayElements(sym2, paintProps));
 
         }
 
@@ -3331,7 +3372,7 @@ public class DisplayElementFactory {
 
     /**
      * Applies a given line pattern to a line path.
-     * 
+     *
      * @param pattern
      *            Line pattern definition.
      * @param pts
@@ -3343,7 +3384,7 @@ public class DisplayElementFactory {
 
     /**
      * Applies a given line pattern to a line path.
-     * 
+     *
      * @param pattern
      *            Line pattern definition.
      * @param pts
@@ -3367,8 +3408,9 @@ public class DisplayElementFactory {
             scale *= frontPatternFactor;
         }
 
-        if (scale <= 0.0)
+        if (scale <= 0.0) {
             scale = 1.0;
+        }
         double sfactor = deviceScale * scale;
         Color[] clr = getDisplayColors(elem.getColors());
 
@@ -3423,12 +3465,13 @@ public class DisplayElementFactory {
         }
         // Calculate a scale factor that will be used to adjust the size of each
         // segment in the pattern
-        if (stype == ScaleType.SCALE_BLANK_LINE_ONLY)
+        if (stype == ScaleType.SCALE_BLANK_LINE_ONLY) {
             pattern = pattern.scaleBlankLineToLength(
                     totalDist / (numPatterns * sfactor));
-        else
+        } else {
             pattern = pattern
                     .scaleToLength(totalDist / (numPatterns * sfactor));
+        }
 
         /*
          * If size of line is less than size of a full pattern, then default to
@@ -3464,8 +3507,9 @@ public class DisplayElementFactory {
                 int colorNum = seg.getColorLocation();
 
                 // if not enough colors specified, default to first color
-                if (colorNum >= wfs.length)
+                if (colorNum >= wfs.length) {
                     colorNum = 0;
+                }
 
                 // Calculate end location of this segment
                 double seglen = seg.getLength() * sfactor; // size of pattern
@@ -3674,7 +3718,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator box = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    box.setHeight((double) seg.getOffsetSize() * sfactor);
+                    box.setHeight(seg.getOffsetSize() * sfactor);
                     box.setPatternType(CornerPattern.BOX);
                     wfs[colorNum].addLineSegment(box.calculateLines());
                     break;
@@ -3687,7 +3731,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator boxf = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    boxf.setHeight((double) seg.getOffsetSize() * sfactor);
+                    boxf.setHeight(seg.getOffsetSize() * sfactor);
                     boxf.setPatternType(CornerPattern.BOX);
                     Coordinate[] boxarea = boxf.calculateFillArea();
                     LineString[] barea = toLineString(boxarea);
@@ -3704,7 +3748,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator ex = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    ex.setHeight((double) seg.getOffsetSize() * sfactor);
+                    ex.setHeight(seg.getOffsetSize() * sfactor);
                     ex.setPatternType(CornerPattern.X_PATTERN);
                     double[][] exes = ex.calculateLines();
                     double[][] slash1 = new double[][] { exes[0], exes[1] };
@@ -3724,7 +3768,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator ze = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    ze.setHeight((double) seg.getOffsetSize() * sfactor);
+                    ze.setHeight(seg.getOffsetSize() * sfactor);
                     ze.setPatternType(CornerPattern.Z_PATTERN);
                     wfs[colorNum].addLineSegment(ze.calculateLines());
                     break;
@@ -3736,7 +3780,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator dl = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    dl.setHeight((double) seg.getOffsetSize() * sfactor);
+                    dl.setHeight(seg.getOffsetSize() * sfactor);
                     dl.setPatternType(CornerPattern.DOUBLE_LINE);
                     double[][] segs = dl.calculateLines();
                     double[][] top = new double[][] { segs[0], segs[1] };
@@ -3755,7 +3799,7 @@ public class DisplayElementFactory {
                      */
                     CornerPatternApplicator tick = new CornerPatternApplicator(
                             sublil, currDist, endLoc);
-                    tick.setHeight((double) seg.getOffsetSize() * sfactor);
+                    tick.setHeight(seg.getOffsetSize() * sfactor);
                     tick.setPatternType(CornerPattern.TICK);
                     /*
                      * Add tick segment and the line path segment to the
@@ -3811,7 +3855,7 @@ public class DisplayElementFactory {
 
     /**
      * Change format of an array of points from Coordinate[] to double[][]
-     * 
+     *
      * @param coords
      *            - input data points
      * @return data points in new format
@@ -3830,7 +3874,7 @@ public class DisplayElementFactory {
 
     /**
      * Change format of an array of points from Coordinate[] to LineString
-     * 
+     *
      * @param coords
      *            - input data points
      * @return data points in new format
@@ -3843,7 +3887,7 @@ public class DisplayElementFactory {
 
     /**
      * Change format of an array of points from Coordinate[] to LineString
-     * 
+     *
      * @param coords
      *            - input data points
      * @return data points in new format
@@ -3861,7 +3905,7 @@ public class DisplayElementFactory {
 
     /**
      * Makes sure last data point is the same as the first
-     * 
+     *
      * @param data
      *            Input data points
      * @return Same data points with first and last point the same
@@ -3880,8 +3924,9 @@ public class DisplayElementFactory {
              * add first point to end of data, and return new data points
              */
             double[][] newdata = new double[data.length + 1][3];
-            for (int i = 0; i < data.length; i++)
+            for (int i = 0; i < data.length; i++) {
                 newdata[i] = data[i];
+            }
             newdata[data.length] = newdata[0];
             return newdata;
         }
@@ -3889,7 +3934,7 @@ public class DisplayElementFactory {
 
     /**
      * Apply a fill pattern to a Line path.
-     * 
+     *
      * @param area
      *            data points defining the area to fill
      * @return A fill element with a ShadedShape ready for display
@@ -3941,8 +3986,9 @@ public class DisplayElementFactory {
 
         float alpha = 1.0f;
         // TODO - decide where to get alpha - currently hardcoded at 0.5
-        if (elem.getFillPattern() == FillPattern.TRANSPARENCY)
+        if (elem.getFillPattern() == FillPattern.TRANSPARENCY) {
             alpha = 0.5f;
+        }
 
         /*
          * return new FillDisplayElement with new ShadedShape
@@ -3956,7 +4002,7 @@ public class DisplayElementFactory {
      * coordinates of the Displayables. Also sets a screen to pixel ratio for
      * use when needing to convert the size of something from screen relative to
      * pixel relative
-     * 
+     *
      * @param props
      *            The paint properties associated with the target
      */
@@ -3980,7 +4026,7 @@ public class DisplayElementFactory {
     /**
      * Calculates the angle difference of "north" relative to the screen's
      * y-axis at a given lat/lon location.
-     * 
+     *
      * @param loc
      *            - The point location in Lat/Lon coordinates
      * @return The angle difference of "north" versus pixel coordinate's y-axis
@@ -4005,7 +4051,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates IDisplayables of a hash mark representing wind direction
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4016,15 +4062,16 @@ public class DisplayElementFactory {
         double spaceFactor = sfactor * 0.25; // scale factor for spacing between
                                              // hash lines
         double spacing = 1.0 * spaceFactor; // distance between hash lines
-        if (vect.getLineWidth() > 3.0)
+        if (vect.getLineWidth() > 3.0) {
             spacing += (0.25 * spaceFactor * (vect.getLineWidth() - 3));
+        }
 
         double scaleSize = sfactor * vect.getSizeScale(); // hash line length
 
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape hash = target.createWireframeShape(false, iDescriptor);
 
         /*
@@ -4036,7 +4083,7 @@ public class DisplayElementFactory {
         /*
          * calculate the angle and distance to the four points defining the hash
          * mark
-         * 
+         *
          * Note: hash direction is clockwise. Rotate to counter clockwise for
          * display.
          */
@@ -4078,7 +4125,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates IDisplayables of multiple hash marks representing wind direction
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4094,7 +4141,7 @@ public class DisplayElementFactory {
          * Each returned IDisplayable can have only one color, so must build
          * separate IWireframeShape for each color. Keep track in map...
          */
-        Map<Color, IWireframeShape> hashMarkMap = new HashMap<Color, IWireframeShape>();
+        Map<Color, IWireframeShape> hashMarkMap = new HashMap<>();
 
         float lineWidth = vectors.get(0).getLineWidth(); // TODO: Generalize?
                                                          // (Assumes all vectors
@@ -4103,8 +4150,9 @@ public class DisplayElementFactory {
 
         for (IVector vect : vectors) {
 
-            if (vect.getLineWidth() > 3.0)
+            if (vect.getLineWidth() > 3.0) {
                 spacing += (0.25 * spaceFactor * (vect.getLineWidth() - 3));
+            }
 
             double scaleSize = sfactor * vect.getSizeScale(); // hash line
                                                               // length
@@ -4164,7 +4212,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         /*
          * For each color encountered above, compile the accumulated wireframes
@@ -4182,7 +4230,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates IDisplayables of an arrow representing direction (e.g., wind)
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4193,7 +4241,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape arrow = target.createWireframeShape(false, iDescriptor);
 
         /*
@@ -4206,8 +4254,9 @@ public class DisplayElementFactory {
          * calculate the length of the arrow, and its direction
          */
         double speed = 10.;
-        if (!vect.hasDirectionOnly())
+        if (!vect.hasDirectionOnly()) {
             speed = vect.getSpeed();
+        }
         double arrowLength = sfactor * speed;
 
         // Reverse 180 degrees since wind direction is the direction where the
@@ -4290,7 +4339,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates IDisplayables of multiple arrows representing wind direction
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4299,9 +4348,9 @@ public class DisplayElementFactory {
 
         // Each returned IDisplayable can have only one color, so must build
         // separate shapes for each color. Keep track of all this in map...
-        Map<Color, IWireframeShape> arrowShaftMap = new HashMap<Color, IWireframeShape>();
-        Map<Color, IWireframeShape> maskMap = new HashMap<Color, IWireframeShape>();
-        Map<Color, IShadedShape> arrowHeadMap = new HashMap<Color, IShadedShape>();
+        Map<Color, IWireframeShape> arrowShaftMap = new HashMap<>();
+        Map<Color, IWireframeShape> maskMap = new HashMap<>();
+        Map<Color, IShadedShape> arrowHeadMap = new HashMap<>();
 
         // This line of code and higher level code assumes that the line
         // width of arrows will always be uniform across all arrows. It is
@@ -4356,8 +4405,9 @@ public class DisplayElementFactory {
 
             // Calculate the length of the arrow, and its direction
             double speed = 10.;
-            if (!vect.hasDirectionOnly())
+            if (!vect.hasDirectionOnly()) {
                 speed = vect.getSpeed();
+            }
             double arrowLength = sfactor * speed;
             // TODO - orientation issues
 
@@ -4400,7 +4450,7 @@ public class DisplayElementFactory {
         } // end for each vector
 
         // Create the List to be returned
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         // For each color encountered above,
         // compile the shape and add it slist for return.
@@ -4429,7 +4479,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates IDisplayables of a wind barb
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4442,7 +4492,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape barb = target.createWireframeShape(false, iDescriptor);
         IShadedShape flags = target.createShadedShape(false, iDescriptor,
                 false);
@@ -4510,8 +4560,9 @@ public class DisplayElementFactory {
         end[1] = start[1] + (windLength * Math.sin(Math.toRadians(angle)));
         end[2] = 0.0;
         barb.addLineSegment(new double[][] { start, end });
-        if (vect.hasBackgroundMask())
+        if (vect.hasBackgroundMask()) {
             mask.addLineSegment(new double[][] { start, end });
+        }
 
         /*
          * Create a LengthIndexedLine used to reference points along the path at
@@ -4526,8 +4577,9 @@ public class DisplayElementFactory {
         // TODO - orientation issues
         double BARB_ANGLE = 70.0;
         double barbAngle = angle + BARB_ANGLE;
-        if (vect.getLocation().y < 0.0)
+        if (vect.getLocation().y < 0.0) {
             barbAngle = angle - BARB_ANGLE;
+        }
         double cosineBarbAngle = Math.cos(Math.toRadians(barbAngle));
         double sineBarbAngle = Math.sin(Math.toRadians(barbAngle));
 
@@ -4545,8 +4597,9 @@ public class DisplayElementFactory {
             LineString[] oneFlag = toLineString(coords);
             flags.addPolygonPixelSpace(oneFlag, new RGB(dspClr.getRed(),
                     dspClr.getGreen(), dspClr.getBlue()));
-            if (vect.hasBackgroundMask())
+            if (vect.hasBackgroundMask()) {
                 mask.addLineSegment(toDouble(coords));
+            }
             currentLoc -= 2 * segmentSpacing;
         }
 
@@ -4561,14 +4614,15 @@ public class DisplayElementFactory {
             coords[1] = new Coordinate(xtip, ytip);
             double[][] pts = toDouble(coords);
             barb.addLineSegment(pts);
-            if (vect.hasBackgroundMask())
+            if (vect.hasBackgroundMask()) {
                 mask.addLineSegment(pts);
+            }
             currentLoc -= segmentSpacing;
         }
 
         /*
          * Process half barbs
-         * 
+         *
          * Note - for a five-knot wind barb, drawn it at the end of the second
          * segment (counting from the end of the wind barb).
          */
@@ -4584,8 +4638,9 @@ public class DisplayElementFactory {
             coords[1] = new Coordinate(xtip, ytip);
             double[][] pts = toDouble(coords);
             barb.addLineSegment(pts);
-            if (vect.hasBackgroundMask())
+            if (vect.hasBackgroundMask()) {
                 mask.addLineSegment(pts);
+            }
             currentLoc -= segmentSpacing;
         }
 
@@ -4596,7 +4651,7 @@ public class DisplayElementFactory {
         }
 
         /*
-         * 
+         *
         */
         flags.compile();
         FillDisplayElement fde = new FillDisplayElement(flags,
@@ -4614,7 +4669,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates high-efficiency IDisplayables of multiple wind barbs
-     * 
+     *
      * @param vect
      *            A PGEN Drawable Element of a wind object
      * @return A list of IDisplayable elements
@@ -4625,9 +4680,9 @@ public class DisplayElementFactory {
          * Each returned IDisplayable can have only one color, so must build
          * separate shapes for each color. Keep track of all this in map...
          */
-        Map<Color, IWireframeShape> barbMap = new HashMap<Color, IWireframeShape>();
-        Map<Color, IWireframeShape> maskMap = new HashMap<Color, IWireframeShape>();
-        Map<Color, IShadedShape> flagMap = new HashMap<Color, IShadedShape>();
+        Map<Color, IWireframeShape> barbMap = new HashMap<>();
+        Map<Color, IWireframeShape> maskMap = new HashMap<>();
+        Map<Color, IShadedShape> flagMap = new HashMap<>();
 
         float lineWidth = vectors.get(0).getLineWidth(); // TODO: Generalize?
                                                          // (Assumes all vectors
@@ -4716,8 +4771,9 @@ public class DisplayElementFactory {
                         + (windLength * Math.sin(Math.toRadians(angle)));
                 end[2] = 0.0;
                 barbs.addLineSegment(new double[][] { start, end });
-                if (vect.hasBackgroundMask())
+                if (vect.hasBackgroundMask()) {
                     masks.addLineSegment(new double[][] { start, end });
+                }
 
                 /*
                  * Create a LengthIndexedLine used to reference points along the
@@ -4732,8 +4788,9 @@ public class DisplayElementFactory {
                 // TODO - orientation issues
                 double BARB_ANGLE = 70.0;
                 double barbAngle = angle + BARB_ANGLE;
-                if (vect.getLocation().y < 0.0)
+                if (vect.getLocation().y < 0.0) {
                     barbAngle = angle - BARB_ANGLE;
+                }
                 double cosineBarbAngle = Math.cos(Math.toRadians(barbAngle));
                 double sineBarbAngle = Math.sin(Math.toRadians(barbAngle));
 
@@ -4751,8 +4808,9 @@ public class DisplayElementFactory {
                     LineString[] oneFlag = toLineString(coords);
                     flags.addPolygonPixelSpace(oneFlag, new RGB(color.getRed(),
                             color.getGreen(), color.getBlue()));
-                    if (vect.hasBackgroundMask())
+                    if (vect.hasBackgroundMask()) {
                         masks.addLineSegment(toDouble(coords));
+                    }
                     currentLoc -= 2 * segmentSpacing;
                 }
 
@@ -4767,8 +4825,9 @@ public class DisplayElementFactory {
                     coords[1] = new Coordinate(xtip, ytip);
                     double[][] pts = toDouble(coords);
                     barbs.addLineSegment(pts);
-                    if (vect.hasBackgroundMask())
+                    if (vect.hasBackgroundMask()) {
                         masks.addLineSegment(pts);
+                    }
                     currentLoc -= segmentSpacing;
                 }
 
@@ -4785,8 +4844,9 @@ public class DisplayElementFactory {
                     coords[1] = new Coordinate(xtip, ytip);
                     double[][] pts = toDouble(coords);
                     barbs.addLineSegment(pts);
-                    if (vect.hasBackgroundMask())
+                    if (vect.hasBackgroundMask()) {
                         masks.addLineSegment(pts);
+                    }
                     currentLoc -= segmentSpacing;
                 }
 
@@ -4797,7 +4857,7 @@ public class DisplayElementFactory {
         /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         /*
          * For each color encountered above, compile the accumulated wireframes
@@ -4877,7 +4937,7 @@ public class DisplayElementFactory {
 
     /**
      * Set some display attributes for all elements on a layer.
-     * 
+     *
      * @param mono
      * @param clr
      * @param fill
@@ -4947,7 +5007,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an ISigmet object
-     * 
+     *
      * @param isig
      *            : A PGEN Drawable Element of an ISigmet object
      * @param paintProps
@@ -4972,7 +5032,7 @@ public class DisplayElementFactory {
 
     /**
      * Creates a list of IDisplayable Objects from an AbstractSigmet object
-     * 
+     *
      * @param sigmet
      *            : A PGEN Drawable Element of an AbstractSigmet object
      * @param paintProps
@@ -4981,8 +5041,9 @@ public class DisplayElementFactory {
      */
     private ArrayList<IDisplayable> createDisplayElements(AbstractSigmet sigmet,
             PaintProperties paintProps) {
-        double widthInNautical = sigmet.getWidth() * PgenUtil.NM2M;
-        float density;
+        double widthInMeters = sigmet.getWidth() * PgenUtil.NM2M;
+        double widthInNautical = sigmet.getWidth();
+
         double[][] pixels;
         double[][] smoothpts;
 
@@ -4995,7 +5056,7 @@ public class DisplayElementFactory {
         if (fillClr.length > 1) {
             fillClr[1] = fillClr[0];
         }
-        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> list = new ArrayList<>();
         wfs = new IWireframeShape[dspClr.length];
         for (int i = 0; i < dspClr.length; i++) {
             wfs[i] = target.createWireframeShape(false, iDescriptor);
@@ -5037,8 +5098,10 @@ public class DisplayElementFactory {
                                                                       // line
 
             if (sigmet.getPgenType().equalsIgnoreCase(VaaInfo.PGEN_TYEP_CLOUD)
-                    || sigmet.getPgenType().equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
-                if (sigmet.getPgenType().equalsIgnoreCase(VaaInfo.PGEN_TYEP_CLOUD)) {
+                    || sigmet.getPgenType()
+                            .equalsIgnoreCase(PgenConstant.TYPE_CCFP_SIGMET)) {
+                if (sigmet.getPgenType()
+                        .equalsIgnoreCase(VaaInfo.PGEN_TYEP_CLOUD)) {
                     sigmet.setColors(fillClr);
                 }
                 list.add(createFill(smoothpts));
@@ -5050,8 +5113,7 @@ public class DisplayElementFactory {
 
             if ("ESOL".equalsIgnoreCase(lineString[1])) {
 
-                Coordinate[][] sides = SigmetInfo.getSides(pts,
-                        widthInNautical);
+                Coordinate[][] sides = SigmetInfo.getSides(pts, widthInMeters);
                 Coordinate[][] sidesWithArcIntsc = SigmetInfo
                         .getSidesWithArcIntsc((IMapDescriptor) iDescriptor, pts,
                                 sides[0], sides[1]);
@@ -5075,7 +5137,7 @@ public class DisplayElementFactory {
 
             } else {
                 Coordinate[] sides = SigmetInfo.getSOLCoors(pts, lineString[1],
-                        widthInNautical, (IMapDescriptor) iDescriptor);
+                        widthInMeters, (IMapDescriptor) iDescriptor);
                 handleLinePattern(pattern, PgenUtil.latlonToPixel(sides,
                         (IMapDescriptor) iDescriptor));
             }
@@ -5085,7 +5147,7 @@ public class DisplayElementFactory {
             IWireframeShape arcpts = target.createWireframeShape(false,
                     iDescriptor);
             Coordinate[] locs = sigmet.getLinePoints();
-            ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+            ArrayList<IDisplayable> slist = new ArrayList<>();
 
             SymbolLocationSet centerSign = new SymbolLocationSet(null,
                     new Color[] { dspClr[0] }, sigmet.getLineWidth(), 0.5,
@@ -5110,14 +5172,14 @@ public class DisplayElementFactory {
         } else if (lineType.contains("Text")) {
 
             Coordinate[] locs = sigmet.getLinePoints();
-            ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+            ArrayList<IDisplayable> slist = new ArrayList<>();
 
             Text display = new Text(null, "Courier", 14.0f,
                     TextJustification.CENTER, locs[0], 0.0,
                     TextRotation.SCREEN_RELATIVE, sigmet.getDisplayTxt(),
                     FontStyle.REGULAR, dspClr[0], 0, 0, false, DisplayType.BOX,
                     "Text", "General Text");
-            slist.addAll(createDisplayElements((IText) display, paintProps));
+            slist.addAll(createDisplayElements(display, paintProps));
 
             return slist;
         }
@@ -5146,13 +5208,13 @@ public class DisplayElementFactory {
                     dspClr[0], 0, 3, false, DisplayType.NORMAL, "Text",
                     "General Text");
 
-            list.addAll(createDisplayElements((IText) display, paintProps));
+            list.addAll(createDisplayElements(display, paintProps));
         }
     }
 
     /**
      * Creates a list of IDisplayable Objects from a Volcano object
-     * 
+     *
      * @param vol
      *            : A PGEN Drawable Element of a Volcano object
      * @param paintProps
@@ -5162,11 +5224,12 @@ public class DisplayElementFactory {
     private ArrayList<IDisplayable> createDisplayElements(Volcano vol,
             PaintProperties paintProps) {
 
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
 
         // an empty list for texts: TEST/RESUME,etc
-        if (VaaInfo.isNonDrawableVol(vol))
+        if (VaaInfo.isNonDrawableVol(vol)) {
             return slist;
+        }
 
         SymbolLocationSet centerSign = new SymbolLocationSet(null,
                 new Color[] { Color.cyan }, 2, 1.0, false, vol.getLinePoints(),
@@ -5205,7 +5268,7 @@ public class DisplayElementFactory {
                 Coordinate[] c = DistanceOp.nearestPoints(line, point);
                 loc2 = c[0];
             }
-            ArrayList<Coordinate> locs = new ArrayList<Coordinate>();
+            ArrayList<Coordinate> locs = new ArrayList<>();
             locs.add(loc1);
             locs.add(loc2);
 
@@ -5225,7 +5288,7 @@ public class DisplayElementFactory {
                     "POINTED_ARROW");
 
             list.addAll(createDisplayElements(line, paintProps));
-            list.addAll(createDisplayElements((IText) text, paintProps));
+            list.addAll(createDisplayElements(text, paintProps));
 
             // create Symbol if needed
             if (gfa.getSymbolType() != null) {
@@ -5272,7 +5335,7 @@ public class DisplayElementFactory {
                 Symbol sym = new Symbol(null,
                         getDisplayColors(elem.getColors()), 1.5f, 1.0f, false,
                         loc1, "Symbol", gfa.getSymbolType());
-                list.addAll(createDisplayElements((ISymbol) sym, paintProps));
+                list.addAll(createDisplayElements(sym, paintProps));
             }
         }
 
@@ -5280,7 +5343,7 @@ public class DisplayElementFactory {
     }
 
     /**
-     * 
+     *
      * create CCFP elements
      */
     private ArrayList<IDisplayable> createDisplayElements(
@@ -5335,9 +5398,8 @@ public class DisplayElementFactory {
                             getDisplayColors(sigmet.getColors())[0], 0, 3,
                             false, DisplayType.NORMAL, "Text", "General Text");
 
-                    list.addAll(createDisplayElements((IVector) v, paintProps));
-                    list.addAll(
-                            createDisplayElements((IText) spdTxt, paintProps));
+                    list.addAll(createDisplayElements(v, paintProps));
+                    list.addAll(createDisplayElements(spdTxt, paintProps));
                 }
             }
 
@@ -5352,8 +5414,9 @@ public class DisplayElementFactory {
                                                  // != null){
 
                 String loct = sigmet.getEditableAttrFreeText();
-                if (loct == null || loct.isEmpty() || (!loct.contains(":::")))
+                if (loct == null || loct.isEmpty() || (!loct.contains(":::"))) {
                     return list;
+                }
                 double azi = Double.parseDouble(loct.split(":::")[0]);
                 double dis = Double.parseDouble(loct.split(":::")[1]);
 
@@ -5363,7 +5426,7 @@ public class DisplayElementFactory {
                                 .getCoordinateReferenceSystem());
 
                 Coordinate loc2;
-                ArrayList<Coordinate> locs = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> locs = new ArrayList<>();
 
                 loc2 = CcfpInfo.getSigCentroid2(sigmet,
                         (IMapDescriptor) iDescriptor);
@@ -5378,8 +5441,9 @@ public class DisplayElementFactory {
 
                 }
 
-                if (pts == null)
+                if (pts == null) {
                     return list;
+                }
 
                 Coordinate loc1 = new Coordinate(pts.getX(), pts.getY());
                 locs.add(loc1);
@@ -5400,7 +5464,7 @@ public class DisplayElementFactory {
                     list.addAll(createDisplayElements(line, paintProps));
                 }
 
-                list.addAll(createDisplayElements((IText) display, paintProps));
+                list.addAll(createDisplayElements(display, paintProps));
 
             }
         }
@@ -5409,7 +5473,7 @@ public class DisplayElementFactory {
     }
 
     /**
-     * 
+     *
      * return the speed Text position for CCFP
      */
     private Coordinate getCcfpTxtPts(IVector vect) {
@@ -5419,8 +5483,9 @@ public class DisplayElementFactory {
         double[] start = iDescriptor.worldToPixel(tmp);
 
         double speed = 9;
-        if (!vect.hasDirectionOnly())
+        if (!vect.hasDirectionOnly()) {
             speed = vect.getSpeed();
+        }
         double arrowLength = sfactor * (speed + 4);
 
         double angle = 90.0 - northOffsetAngle(vect.getLocation())
@@ -5442,7 +5507,7 @@ public class DisplayElementFactory {
     private ArrayList<IDisplayable> adjustContourLineLabels(IMultiPoint de,
             PaintProperties paintProps, double[][] smoothpts) {
 
-        ArrayList<IDisplayable> dlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> dlist = new ArrayList<>();
 
         if (de instanceof Line
                 && ((Line) de).getParent() instanceof ContourLine) {
@@ -5486,7 +5551,7 @@ public class DisplayElementFactory {
             }
 
             int numText2Draw = Math.min(actualLength, cline.getNumOfLabels());
-            ArrayList<Coordinate> txtPositions = new ArrayList<Coordinate>();
+            ArrayList<Coordinate> txtPositions = new ArrayList<>();
 
             /*
              * Determine the number of labels to be drawn and set their
@@ -5594,8 +5659,9 @@ public class DisplayElementFactory {
                         }
 
                         int nadd = numText2Draw - 1;
-                        if (lineClosed)
+                        if (lineClosed) {
                             nadd = numText2Draw;
+                        }
 
                         for (int jj = 0; jj < nadd; jj++) {
                             if (jj == 0) {
@@ -5623,8 +5689,8 @@ public class DisplayElementFactory {
             double[] tps;
             double[] loc = { 0.0, 0.0, 0.0 };
             for (int kk = 0; kk < numText2Draw; kk++) {
-                 if ((!cline.getLabels().isEmpty())
-                       && (kk < cline.getLabels().size())) {
+                if ((!cline.getLabels().isEmpty())
+                        && (kk < cline.getLabels().size())) {
                     Text txt = cline.getLabels().get(kk);
                     loc[0] = txtPositions.get(kk).x;
                     loc[1] = txtPositions.get(kk).y;
@@ -5635,13 +5701,13 @@ public class DisplayElementFactory {
                     }
 
                     txt.setParent(null);
-                    dlist.addAll(createDisplayElements((IText) txt, paintProps));
+                    dlist.addAll(createDisplayElements(txt, paintProps));
                     txt.setParent(cline);
 
                     if (!forceAuto) {
                         txt.setAuto(false);
                     }
-                 }
+                }
             }
         }
 
@@ -5654,7 +5720,7 @@ public class DisplayElementFactory {
     private ArrayList<IDisplayable> adjustContourCircleLabel(IArc arc,
             PaintProperties paintProps, double[][] smoothpts) {
 
-        ArrayList<IDisplayable> dlist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> dlist = new ArrayList<>();
 
         AbstractDrawableComponent parent = ((DrawableElement) arc).getParent();
 
@@ -5714,7 +5780,7 @@ public class DisplayElementFactory {
              * Display.
              */
             labelText.setParent(null);
-            dlist.addAll(createDisplayElements((IText) labelText, paintProps));
+            dlist.addAll(createDisplayElements(labelText, paintProps));
             labelText.setParent(parent);
 
             if (!forceAuto) {
@@ -5771,15 +5837,15 @@ public class DisplayElementFactory {
                         getDisplayColors(ccfp.getPrimaryDE().getColors())[0], 0,
                         0, false, DisplayType.NORMAL, "Text", "General Text");
 
-                list.addAll(createDisplayElements((IVector) v, paintProps));
-                list.addAll(createDisplayElements((IText) spdTxt, paintProps));
+                list.addAll(createDisplayElements(v, paintProps));
+                list.addAll(createDisplayElements(spdTxt, paintProps));
             }
         }
     }
 
     /**
      * Calculate end point from a start point, distance and angle.
-     * 
+     *
      * @param startPt
      * @param angle
      * @param distance
@@ -5797,7 +5863,7 @@ public class DisplayElementFactory {
 
     /**
      * Get the point on arc aith a sepcified angle from the starting angle.
-     * 
+     *
      * @param arc
      * @param angle
      * @return
@@ -5838,7 +5904,7 @@ public class DisplayElementFactory {
 
     /**
      * Get the line that connects two TCM wind/wave quarters
-     * 
+     *
      * @param pt1
      *            - start point
      * @param pt2
@@ -5848,7 +5914,7 @@ public class DisplayElementFactory {
      */
     private Line getWindQuatroLine(Coordinate pt1, Coordinate pt2,
             Color color) {
-        ArrayList<Coordinate> pts = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> pts = new ArrayList<>();
         pts.add(pt1);
         pts.add(pt2);
 
@@ -5874,7 +5940,7 @@ public class DisplayElementFactory {
 
     /**
      * Generate a box that could hold a text string.
-     * 
+     *
      * @param txt
      *            A PGEN Drawable Element of a text string
      * @param paintProps
@@ -5958,8 +6024,9 @@ public class DisplayElementFactory {
          * calculate the rotation for "Screen" relative.
          */
         double rotation = txt.getRotation();
-        if (txt.getRotationRelativity() == TextRotation.NORTH_RELATIVE)
+        if (txt.getRotationRelativity() == TextRotation.NORTH_RELATIVE) {
             rotation += northOffsetAngle(txt.getPosition());
+        }
 
         /*
          * create drawableString and calculate its bounds
@@ -6013,7 +6080,7 @@ public class DisplayElementFactory {
                 dstring.basics.x + right, dstring.basics.y - yOffset,
                 dstring.basics.y + yOffset);
 
-        List<Coordinate> rngBox = new ArrayList<Coordinate>();
+        List<Coordinate> rngBox = new ArrayList<>();
         rngBox.add(new Coordinate(box.getMinX() - PgenRangeRecord.RANGE_OFFSET,
                 box.getMaxY() + PgenRangeRecord.RANGE_OFFSET));
         rngBox.add(new Coordinate(box.getMaxX() + PgenRangeRecord.RANGE_OFFSET,
@@ -6023,7 +6090,7 @@ public class DisplayElementFactory {
         rngBox.add(new Coordinate(box.getMinX() - PgenRangeRecord.RANGE_OFFSET,
                 box.getMinY() - PgenRangeRecord.RANGE_OFFSET));
 
-        List<Coordinate> textPos = new ArrayList<Coordinate>();
+        List<Coordinate> textPos = new ArrayList<>();
         textPos.add(new Coordinate(loc[0], loc[1]));
 
         if (font != null) {
@@ -6035,7 +6102,7 @@ public class DisplayElementFactory {
 
     /**
      * Find a range box that holds the symbol image.
-     * 
+     *
      * @param symbolSet
      *            A symbol with associated lat/lon coordinates
      * @param paintProps
@@ -6083,7 +6150,7 @@ public class DisplayElementFactory {
         /*
          * Build range
          */
-        List<Coordinate> rngBox = new ArrayList<Coordinate>();
+        List<Coordinate> rngBox = new ArrayList<>();
         rngBox.add(new Coordinate(
                 pts[0][0] - pic.getWidth() / 2 - PgenRangeRecord.RANGE_OFFSET,
                 pts[0][1] + pic.getHeight() / 2
@@ -6101,7 +6168,7 @@ public class DisplayElementFactory {
                 pts[0][1] - pic.getHeight() / 2
                         - PgenRangeRecord.RANGE_OFFSET));
 
-        List<Coordinate> symPos = new ArrayList<Coordinate>();
+        List<Coordinate> symPos = new ArrayList<>();
         symPos.add(sym.getLocation());
 
         if (pic != null) {
@@ -6114,7 +6181,7 @@ public class DisplayElementFactory {
 
     /**
      * Find a range box that holds the image of a combo symbol.
-     * 
+     *
      * @param symbolSet
      *            A symbol with associated lat/lon coordinates
      * @param paintProps
@@ -6186,7 +6253,7 @@ public class DisplayElementFactory {
         /*
          * Build range
          */
-        List<Coordinate> rngBox = new ArrayList<Coordinate>();
+        List<Coordinate> rngBox = new ArrayList<>();
         double min_x = Math.min(rng1.getExtent().get(0).x,
                 Math.min(rng2.getExtent().get(0).x, rng3.getExtent().get(0).x));
         double max_x = Math.max(rng1.getExtent().get(1).x,
@@ -6201,7 +6268,7 @@ public class DisplayElementFactory {
         rngBox.add(new Coordinate(max_x, min_y));
         rngBox.add(new Coordinate(min_x, min_y));
 
-        List<Coordinate> comboPos = new ArrayList<Coordinate>();
+        List<Coordinate> comboPos = new ArrayList<>();
         comboPos.add(combo.getLocation());
 
         return new PgenRangeRecord(rngBox, comboPos, false);
@@ -6210,7 +6277,7 @@ public class DisplayElementFactory {
 
     /**
      * Find the visible part of the screen.
-     * 
+     *
      * @param paintProps
      *            The paint properties associated with the target
      * @return A PgenRangeRecord
@@ -6237,13 +6304,13 @@ public class DisplayElementFactory {
         /*
          * Build range
          */
-        List<Coordinate> rngBox = new ArrayList<Coordinate>();
+        List<Coordinate> rngBox = new ArrayList<>();
         rngBox.add(new Coordinate(minx, maxy));
         rngBox.add(new Coordinate(maxx, maxy));
         rngBox.add(new Coordinate(maxx, miny));
         rngBox.add(new Coordinate(minx, miny));
 
-        List<Coordinate> pos = new ArrayList<Coordinate>();
+        List<Coordinate> pos = new ArrayList<>();
         pos.add(new Coordinate((maxx - minx) / 2, (maxy - miny) / 2));
 
         return new PgenRangeRecord(rngBox, pos, false);
@@ -6252,7 +6319,7 @@ public class DisplayElementFactory {
 
     /**
      * Find a range box that holds the image of a TCA.
-     * 
+     *
      * @param tca
      *            A tca with associated lat/lon coordinates
      * @param paintProps
@@ -6263,7 +6330,7 @@ public class DisplayElementFactory {
             PaintProperties paintProps) {
 
         List<TropicalCycloneAdvisory> advisories = tca.getAdvisories();
-        ArrayList<Coordinate> allpts = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> allpts = new ArrayList<>();
 
         // loop through each advisory.
         for (TropicalCycloneAdvisory tt : advisories) {
@@ -6272,8 +6339,9 @@ public class DisplayElementFactory {
             // loop through each path defining the watch/warning segment
             for (Coordinate[] coords : segment.getPaths()) {
                 // convert Coordinate[] to ArrayList<Coordinate>
-                for (Coordinate c : coords)
+                for (Coordinate c : coords) {
                     allpts.add(c);
+                }
             }
         }
 
@@ -6292,7 +6360,7 @@ public class DisplayElementFactory {
 
     /**
      * Find a range box that holds a vector.
-     * 
+     *
      * @param vect
      *            A vector with associated lat/lon coordinates
      * @param paintProps
@@ -6309,7 +6377,7 @@ public class DisplayElementFactory {
         double angle;
         double speed;
 
-        ArrayList<Coordinate> allpts = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> allpts = new ArrayList<>();
 
         /*
          * Create appropriate vector representation
@@ -6326,8 +6394,9 @@ public class DisplayElementFactory {
 
             // calculate the length of the arrow, and its direction
             speed = 10.;
-            if (!vect.hasDirectionOnly())
+            if (!vect.hasDirectionOnly()) {
                 speed = vect.getSpeed();
+            }
             double arrowLength = sfactor * speed;
             angle = 90.0 - northOffsetAngle(vect.getLocation())
                     + vect.getDirection();
@@ -6401,8 +6470,9 @@ public class DisplayElementFactory {
             // TODO - orientation issues
             double BARB_ANGLE = 70.0;
             double barbAngle = angle + BARB_ANGLE;
-            if (vect.getLocation().y < 0.0)
+            if (vect.getLocation().y < 0.0) {
                 barbAngle = angle - BARB_ANGLE;
+            }
             double cosineBarbAngle = Math.cos(Math.toRadians(barbAngle));
             double sineBarbAngle = Math.sin(Math.toRadians(barbAngle));
 
@@ -6462,8 +6532,9 @@ public class DisplayElementFactory {
                                                  // between
             // hash lines
             double spacing = 1.0 * spaceFactor; // distance between hash lines
-            if (vect.getLineWidth() > 3.0)
+            if (vect.getLineWidth() > 3.0) {
                 spacing += (0.25 * spaceFactor * (vect.getLineWidth() - 3));
+            }
 
             double scaleSize = sfactor * vect.getSizeScale(); // hash line
                                                               // length
@@ -6510,9 +6581,9 @@ public class DisplayElementFactory {
 
     /*
      * Check if PaintProperties indicate the display is zooming
-     * 
+     *
      * @param paintProps The paint properties associated with the target
-     * 
+     *
      * @return A boolean indicating a zoom event
      */
     private boolean zoomEvent(PaintProperties paintProps) {
@@ -6525,9 +6596,9 @@ public class DisplayElementFactory {
 
     /*
      * Retrieve the default spacing defined for a contour symbol and its label
-     * 
+     *
      * @param symbolType PgenType for the contour symbol
-     * 
+     *
      * @return A Coordinate representing default spacing in x and y direction.
      */
     private Coordinate getDefaultContourLabelSpacing(String symbolType) {

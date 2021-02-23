@@ -58,17 +58,17 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 09/09        160         G. Zhang    Initial Creation. 
- * 12/09        182         G. Zhang    Added Snapping for ConvSigmet 
+ * 09/09        160         G. Zhang    Initial Creation.
+ * 12/09        182         G. Zhang    Added Snapping for ConvSigmet
  * 05/11        ?           J. Wu       Correct VOR text format for GFA
- * 07/11        ?           J. Wu       Comment out the message box in 
+ * 07/11        ?           J. Wu       Comment out the message box in
  *                                         SnapVor.getSnapWithStation()
  * 08/11        ?           B. Yin      Fixed part of TTR 239.
  * 07/11        450         G. Hull     NcPathManager for station tables
  * 10/11        ?           J. Wu       Fixed non-snappable points for outlook.
  * 01/12        597         S. Gurung   Removed Snapping for ConvSigmet
  * 02/2012      #676        Q.Zhou      Fixed spellings in TREND_ARRAY and SIGMET_TYPES[0].
- * 02/2012      #675        Q.Zhou      Modified PHEN_MAP.   
+ * 02/2012      #675        Q.Zhou      Modified PHEN_MAP.
  * 02/2012      #597        S. Gurung   Moved snap functionalities to SnapUtil. Removed GUI snapping for Non ConvSigmet.
  * 02/2012                  S. Gurung   Moved back isSnapADC() and getNumOfCompassPts() to SigmetInfo from SnapUtil
  * 11/12        #893        J. Wu       TTR635 - Fix volcano in alphabetical breakdown order.
@@ -79,7 +79,9 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Jun 4,  2020 79256       ksunil      Series ID is now a function of Issuing Office
  * Jun 11, 2020 79243       smanoj      Added Caribbean and South American FIRs.
- * 
+ * Feb 24, 2021 86827       srussell    Updated getIsolated() to use consistent
+ *                                      units when making an ellipsoid
+ *
  * </pre>
  *
  * @author gzhang
@@ -103,11 +105,11 @@ public class SigmetInfo {
 
     public static final String GFA_TEXT = new String("GFA_TYPE");
 
-    public static final Map<String, String[]> AREA_MAP = new HashMap<String, String[]>();
+    public static final Map<String, String[]> AREA_MAP = new HashMap<>();
 
-    public static final Map<String, String[]> ID_MAP = new HashMap<String, String[]>();
+    public static final Map<String, String[]> ID_MAP = new HashMap<>();
 
-    public static final Map<String, String[]> PHEN_MAP = new HashMap<String, String[]>();
+    public static final Map<String, String[]> PHEN_MAP = new HashMap<>();
 
     public static final String[] SPEED_ARRAY = new String[] { "5", "10", "15",
             "20", "25", "30", "35", "40", "45", "50" };
@@ -202,11 +204,13 @@ public class SigmetInfo {
     }
 
     public static String getSigmetTypeString(String pgenType) {
-        if (pgenType == null || "".equals(pgenType))
+        if (pgenType == null || "".equals(pgenType)) {
             return SIGMET_TYPES[0];
+        }
         for (String temp : SIGMET_TYPES) {
-            if (pgenType.contains(temp))
+            if (pgenType.contains(temp)) {
                 return temp;
+            }
         }
         return SIGMET_TYPES[0]; // default INTL
     }
@@ -247,12 +251,13 @@ public class SigmetInfo {
     }
 
     private static Map<String, List<String>> initVolBucketMap() {
-        Map<String, List<String>> result = new HashMap<String, List<String>>();
+        Map<String, List<String>> result = new HashMap<>();
 
         List<Station> volcanoStnList = SigmetInfo.VOLCANO_STATION_LIST;
-        ArrayList<String> volcanoList = new ArrayList<String>();
-        for (Station s : volcanoStnList)
+        ArrayList<String> volcanoList = new ArrayList<>();
+        for (Station s : volcanoStnList) {
             volcanoList.add(s.getStnname());
+        }
 
         java.util.Collections.sort(volcanoList);
 
@@ -260,7 +265,7 @@ public class SigmetInfo {
         for (int ii = 1; ii < VOL_NAME_BUCKET_ARRAY.length; ii++) {
             String bktStr = VOL_NAME_BUCKET_ARRAY[ii];
             String[] keys = bktStr.toUpperCase().split("-");
-            ArrayList<String> volSubList = new ArrayList<String>();
+            ArrayList<String> volSubList = new ArrayList<>();
 
             if (keys != null && keys.length >= 1) {
 
@@ -293,8 +298,9 @@ public class SigmetInfo {
 
         Collection<List<String>> lists = VOLCANO_BUCKET_MAP.values();
         for (List<String> list : lists) {
-            if (list != null && list.contains(name))
+            if (list != null && list.contains(name)) {
                 return false;
+            }
         }
         return true;
     }
@@ -321,8 +327,9 @@ public class SigmetInfo {
             IMapDescriptor mapDescriptor) {
         Coordinate[] coorArray = latlonToPixelInCoor(latlonArray,
                 mapDescriptor);
-        if (!(coorArray.length > 3))
+        if (!(coorArray.length > 3)) {
             coorArray = new Coordinate[] {};
+        }
         GeometryFactory gf = new GeometryFactory();
         return gf.createPolygon(gf.createLinearRing(coorArray),
                 new LinearRing[] {});
@@ -354,12 +361,15 @@ public class SigmetInfo {
     public static Coordinate[] getIsolated(Coordinate vertex,
             double widthInNautical, IMapDescriptor mapDescriptor) {
 
+        Double widthInMeters = widthInNautical * PgenUtil.NM2M;
+
         double[] tmp = { vertex.x, vertex.y, 0.0 };
         double[] center = mapDescriptor.worldToPixel(tmp);
 
+        // Ellipsoid with axis in meters
         GeodeticCalculator gc = new GeodeticCalculator(DefaultEllipsoid.WGS84);
         gc.setStartingGeographicPoint(tmp[0], tmp[1]);
-        gc.setDirection(0.0, widthInNautical);
+        gc.setDirection(0.0, widthInMeters);
 
         double[] tmp2 = { gc.getDestinationGeographicPoint().getX(),
                 gc.getDestinationGeographicPoint().getY(), 0.0 };
@@ -371,7 +381,7 @@ public class SigmetInfo {
         double cosineAxis = Math.cos(-Math.toRadians(axisAngle));
         double sineAxis = Math.sin(-Math.toRadians(axisAngle));
 
-        ArrayList<Coordinate> list = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> list = new ArrayList<>();
 
         double diff[] = { circum[0] - center[0], circum[1] - center[1] };
         double width = Math.sqrt((diff[0] * diff[0]) + (diff[1] * diff[1]));
@@ -399,7 +409,7 @@ public class SigmetInfo {
         Coordinate[] isolated = getIsolated(vertex, widthInNautical,
                 mapDescriptor);
         Coordinate[] ip = new Coordinate[isolated.length + 1];
-        ip = (Coordinate[]) Arrays.copyOf(isolated, isolated.length);
+        ip = Arrays.copyOf(isolated, isolated.length);
         ip[ip.length - 1] = isolated[0];
         return getPolygon(ip, mapDescriptor);
     }
@@ -408,7 +418,7 @@ public class SigmetInfo {
             double width, IMapDescriptor mapDescriptor) {
         Coordinate[] ip = getSOLCoors(coors, line, width, mapDescriptor);
         Coordinate[] ipPlus = new Coordinate[ip.length + 1];
-        ipPlus = (Coordinate[]) Arrays.copyOf(ip, ipPlus.length);
+        ipPlus = Arrays.copyOf(ip, ipPlus.length);
         ipPlus[ipPlus.length - 1] = ip[0];
         return getPolygon(ipPlus, mapDescriptor);
     }
@@ -522,8 +532,8 @@ public class SigmetInfo {
     public static Coordinate[][] getSidesWithArcIntsc(
             IMapDescriptor mapDescriptor, Coordinate[] vertice,
             Coordinate[] sides, Coordinate[] sidesOther) {
-        ArrayList<Coordinate> sidesList = new ArrayList<Coordinate>();
-        ArrayList<Coordinate> sidesOtherList = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> sidesList = new ArrayList<>();
+        ArrayList<Coordinate> sidesOtherList = new ArrayList<>();
         sidesList.add(sides[0]);
         sidesOtherList.add(sidesOther[0]);
         sidesList.add(sides[1]);
@@ -574,8 +584,9 @@ public class SigmetInfo {
                 sidesOtherList.add(lhList != null && lhList.size() > 0
                         ? lhList.get(lhList.size() - 1) : sidesOther[i + 1]);
 
-                for (int ii = lhList.size() - 1; ii >= 0; ii--)
+                for (int ii = lhList.size() - 1; ii >= 0; ii--) {
                     sidesOtherList.add(lhList.get(ii));
+                }
                 sidesOtherList.add(lhList != null && lhList.size() > 0
                         ? lhList.get(0) : sidesOther[i + 2]);
             }
@@ -617,7 +628,7 @@ public class SigmetInfo {
         double cosineAxis = Math.cos(-Math.toRadians(axisAngle));
         double sineAxis = Math.sin(-Math.toRadians(axisAngle));
 
-        ArrayList<Coordinate> list = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> list = new ArrayList<>();
 
         double diff[] = { circum[0] - center[0], circum[1] - center[1] };
         double width = Math.sqrt((diff[0] * diff[0]) + (diff[1] * diff[1]));
@@ -658,9 +669,9 @@ public class SigmetInfo {
 
     public static double getAngExt(double a1, double a2) {
         double diff = a2 - a1;
-        if (Math.abs(diff) <= 180.0)
+        if (Math.abs(diff) <= 180.0) {
             return -Math.abs(diff);
-        else {
+        } else {
             return Math.abs(diff) - 360;
         }
     }
@@ -668,13 +679,14 @@ public class SigmetInfo {
     public static boolean getAFOSflg() {
         String sigmetFMT = System.getenv("SIGMETFMT");
 
-        if (sigmetFMT == null)
+        if (sigmetFMT == null) {
             return false;
+        }
         return "AFOS".equals(sigmetFMT);
     }
 
     public static Map<String, Polygon> initFirPolygonMapFromShapfile() {
-        Map<String, Polygon> result = new HashMap<String, Polygon>();
+        Map<String, Polygon> result = new HashMap<>();
         IMapDescriptor mapDescriptor = PgenSession.getInstance()
                 .getPgenResource().getDescriptor();
 
@@ -696,7 +708,7 @@ public class SigmetInfo {
         String[] LABEL_ATTR = new String[] { "FIR_ID" };
 
         FeatureIterator<SimpleFeature> featureIterator = null;
-        HashMap<String, Coordinate[]> firGeoMap = new HashMap<String, Coordinate[]>();
+        HashMap<String, Coordinate[]> firGeoMap = new HashMap<>();
         ShapefileDataStore shapefileDataStore = null;
         String shapeField = null;
 
@@ -767,7 +779,7 @@ public class SigmetInfo {
 
     /**
      * check if the adc needs snapping
-     * 
+     *
      * @param adc:
      *            the element to be checked
      * @return: true: snapping needed; false not needed
@@ -778,7 +790,7 @@ public class SigmetInfo {
 
     /**
      * get the num of compass points for snapping need
-     * 
+     *
      * @param adc:
      *            the element to be snapped
      * @return int: the num of compass points for snapping

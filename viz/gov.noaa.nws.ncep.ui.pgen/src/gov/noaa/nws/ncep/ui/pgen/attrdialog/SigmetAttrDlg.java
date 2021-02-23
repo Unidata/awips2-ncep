@@ -151,6 +151,14 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                       SIGMET Save output and International SIGMET message to show Integer.
  * Feb 05, 2021  87538      smanoj       Added FCST Lat/Lon for Tropical Cyclone, also fixed some issues.
  * Feb 18, 2021  86828      achalla      Created updateFirBtn() method to check the correct FIR Region buttons
+ * Feb 24, 2021  86827      srussell     Updated createDialogAreaGeneral():
+ *                                       Removed the setWidthStr() call in the
+ *                                       set and reset area, it was preventing
+ *                                       user entered values from being used.
+ *                                       Updated getFirString() removed the
+ *                                       uneeded call to JTS covers() method
+ *
+ *
  * </pre>
  *
  * @author gzhang
@@ -1774,7 +1782,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         if (coors != null && lineType != null) {
             IMapDescriptor mapDescriptor = SigmetAttrDlg.this.drawingLayer
                     .getDescriptor();
-            double width = Double.parseDouble(widthStr);
+
+            double width = Double.parseDouble(this.widthStr);
 
             if (SigmetAttrDlg.AREA.equals(lineType)) {
 
@@ -1811,8 +1820,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         for (Entry<String, Polygon> entry : firPolygonMap.entrySet()) {
             String aFir = entry.getKey();
             Polygon firP = entry.getValue();
-            if ((firP.covers(areaP) || firP.intersects(areaP))
-                    && (!fir.toString().contains(aFir.substring(0, 4)))) {
+
+            if (firP.intersects(areaP)
+                    && !(fir.toString().contains(aFir.substring(0, 4)))) {
                 fir.append(aFir.substring(0, 4)).append(" ");
             }
 
@@ -1823,9 +1833,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         String[] firIdArray = firId.split(" ");
 
         StringBuilder firNameBuilder = new StringBuilder();
-        for (
-
-        String id : firIdArray) {
+        for (String id : firIdArray) {
             String firName = "";
             for (String s : SigmetInfo.FIR_ARRAY) {
                 if (id.equals(s.substring(0, 4))) {
@@ -2286,7 +2294,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         lblText.setText("Width: ");
         final Text txtWidth = new Text(top, SWT.SINGLE | SWT.BORDER);
         attrControlMap.put("widthStr", txtWidth);
-        txtWidth.setText("10.00");
+        txtWidth.setText(WIDTH);
         txtWidth.setEnabled(false);
         attrButtonMap.put(LINE_TYPE,
                 new Button[] { btnArea, btnLine, btnIsolated });
@@ -2344,7 +2352,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         // set and reset
         setLineType(AREA);
         setSideOfLine(comboLine.getText());
-        setWidthStr(txtWidth.getText());
 
         if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType)
                 && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)) {

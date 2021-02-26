@@ -157,8 +157,9 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                       user entered values from being used.
  *                                       Updated getFirString() removed the
  *                                       uneeded call to JTS covers() method
- *
- *
+ * Feb 26, 2021  87541      achalla      Updated getFirString() to identify and select AWC Backup FIR Regions
+ *                                       and drop AWC AOR FIR Regions if  the sigmet polygon crosses over
+ *                                       or partially extends into those regions.
  * </pre>
  *
  * @author gzhang
@@ -1831,6 +1832,40 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         String firId = fir.toString();
 
         String[] firIdArray = firId.split(" ");
+
+        // AWC Backup FIR Regions
+        List<String> firIdAWCBackup = new ArrayList<>();
+
+        Collections.addAll(firIdAWCBackup, SigmetInfo.FIR_MEXICO);
+        Collections.addAll(firIdAWCBackup, SigmetInfo.FIR_OTHER);
+
+        List<String> newFirID = new ArrayList<>();
+
+        if (firIdArray != null && firIdArray.length > 1) {
+
+            for (String element : firIdArray) {
+
+                for (int i = 0; i < firIdAWCBackup.size(); i++) {
+
+                    if (element.equals(firIdAWCBackup.get(i))) {
+                        newFirID.add(element);
+                    }
+
+                }
+
+            }
+        }
+
+        if (newFirID.size() > 0) {
+
+            firIdArray = newFirID.stream().toArray(String[]::new);
+
+            firId = " ";
+            for (String element : firIdArray) {
+                firId = firId.concat(element.toString() + " ");
+
+            }
+        }
 
         StringBuilder firNameBuilder = new StringBuilder();
         for (String id : firIdArray) {
@@ -4805,33 +4840,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         if (oldEditableFirID.equals(null) || oldEditableFirID.equals("")) {
             return;
         }
-        String[] loopFIR = null;
 
-        if (oldEditableFirID.contains("PAZA")
-                || oldEditableFirID.contains("KZAK")) {
+        String[] copyFir = SigmetInfo.FIR_ARRAY.clone();
+        String[] loopFIR = new String[copyFir.length];
 
-            loopFIR = SigmetInfo.FIR_PACIFIC.clone();
-
-        } else if (oldEditableFirID.contains("MMFO")
-                || oldEditableFirID.contains("MMFR")) {
-
-            loopFIR = SigmetInfo.FIR_MEXICO.clone();
-
-        } else if (oldEditableFirID.contains("KZHU")
-                || oldEditableFirID.contains("KZWY")
-                || oldEditableFirID.contains("KZMA")
-                || oldEditableFirID.contains("TJZS")
-                || oldEditableFirID.contains("KZNY")) {
-
-            loopFIR = SigmetInfo.FIR_ATLANTIC.clone();
-
-        } else {
-
-            loopFIR = SigmetInfo.FIR_OTHER.clone();
-
+        for (int i = 0; copyFir != null && i < copyFir.length; i++) {
+            loopFIR[i] = copyFir[i].substring(0, 4);
         }
 
-        // editableFirID has to be empty in order to invoke getFirs()
         editableFirID = "";
         String newEditableFirID = getFirs();
 

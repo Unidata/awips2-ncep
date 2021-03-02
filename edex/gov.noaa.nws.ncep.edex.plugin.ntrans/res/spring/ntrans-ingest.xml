@@ -25,7 +25,7 @@
 		<!-- Begin Ntrans routes -->
 		<route id="ntransIngestRoute">
 			<from uri="jms-durable:queue:Ingest.Ntrans" />
-		<!-- 	<setHeader headerName="pluginName">
+		<!-- 	<setHeader name="pluginName">
 				<constant>ntrans</constant>
 			</setHeader>-->
 			<doTry>

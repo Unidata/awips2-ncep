@@ -4,43 +4,42 @@
     http://www.springframework.org/schema/beans/spring-beans.xsd
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
-    
+
     <bean id="ffgDecoder" class="gov.noaa.nws.ncep.edex.plugin.ffg.decoder.FfgDecoder"/>
 
     <bean id="ffgSeparator" class="gov.noaa.nws.ncep.edex.plugin.ffg.decoder.FfgSeparator"/>
 
     <bean id="ffgDistRegistry" factory-bean="distributionSrv"
-		factory-method="register">
-		<constructor-arg value="ffg" />
-		<constructor-arg value="jms-durable:queue:Ingest.ffg" />
-	</bean>
-    
+        factory-method="register">
+        <constructor-arg value="ffg" />
+        <constructor-arg value="jms-durable:queue:Ingest.ffg" />
+    </bean>
+
     <camelContext id="ffg-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
 
-        <!-- Begin Ffg routes -->
         <route id="ffgIngestRoute">
             <from uri="jms-durable:queue:Ingest.ffg"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>ffg</constant>
             </setHeader>
             <doTry>
                 <pipeline>
-		            <bean ref="stringToFile" />
-        		    <split streaming="true">
-                		<method bean="ffgSeparator" method="separate"/>
-                  		<doTry>
-                     		<pipeline>
-                        		<bean ref="ffgDecoder" method="decode"/>
-                        		<to uri="direct-vm:indexAlert"/>
-		                    </pipeline>
-        		            <doCatch>
-                		        <exception>java.lang.Throwable</exception>
-                        		<to uri="log:ffg?level=ERROR"/>
-		                    </doCatch>
-						</doTry>
-					</split>
+                    <bean ref="stringToFile" />
+                    <split streaming="true">
+                        <method ref="ffgSeparator" method="separate"/>
+                          <doTry>
+                             <pipeline>
+                                <bean ref="ffgDecoder" method="decode"/>
+                                <to uri="direct-vm:indexAlert"/>
+                            </pipeline>
+                            <doCatch>
+                                <exception>java.lang.Throwable</exception>
+                                <to uri="log:ffg?level=ERROR"/>
+                            </doCatch>
+                        </doTry>
+                    </split>
                 </pipeline>
                 <doCatch>
                     <exception>java.lang.Throwable</exception>
@@ -48,5 +47,5 @@
                 </doCatch>
             </doTry>
         </route>
-	</camelContext>
+    </camelContext>
 </beans>

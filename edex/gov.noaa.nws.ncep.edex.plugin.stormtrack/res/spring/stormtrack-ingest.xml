@@ -22,12 +22,12 @@
 		<!-- Begin StormTrack routes -->
 		<route id="stormTrackIngestRoute">
 			<from uri="jms-durable:queue:Ingest.stormtrack" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>stormtrack</constant>
 			</setHeader>
 			<bean ref="stringToFile" />
 			<split streaming="true">
-				<method bean="stormTrackSeparator" method="batchSeparate" />
+				<method ref="stormTrackSeparator" method="batchSeparate" />
 				<doTry>
 					<pipeline>
 						<bean ref="stormTrackDecoder" method="decode" />

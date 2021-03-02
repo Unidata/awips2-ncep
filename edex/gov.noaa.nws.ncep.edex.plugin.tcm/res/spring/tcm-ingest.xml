@@ -23,14 +23,14 @@
 		<!-- Begin Tcm routes -->
 		<route id="tcmIngestRoute">
 			<from uri="jms-durable:queue:Ingest.tcm" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>tcm</constant>
 			</setHeader>
 			<doTry>
 			<pipeline>
 			<bean ref="stringToFile" />
 			<split streaming="true">
-				<method bean="tcmSeparator" method="separate" />
+				<method ref="tcmSeparator" method="separate" />
 				<doTry>
 					<pipeline>
 						<bean ref="tcmDecoder" method="decode" />

@@ -23,14 +23,14 @@
         <!-- Begin pirep routes -->
         <route id="pirepIngestRoute">
             <from uri="jms-durable:queue:Ingest.pirep"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>pirep</constant>
             </setHeader>
             <doTry>
                 <pipeline>
                     <bean ref="stringToFile" />
                     <split streaming="true">
-                        <method bean="pirepSeparator" method="separate"/>
+                        <method ref="pirepSeparator" method="separate"/>
                         <doTry>
                             <pipeline>
                                 <bean ref="pirepDecoder" method="decode"/>

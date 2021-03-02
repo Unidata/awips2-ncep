@@ -11,10 +11,10 @@
    <bean id="airmetSeparator" class="gov.noaa.nws.ncep.edex.plugin.airmet.decoder.AirmetSeparator"/>
 
     <bean id="airmetDistRegistry" factory-bean="distributionSrv"
-		factory-method="register">
-		<constructor-arg value="airmet" />
-		<constructor-arg value="jms-durable:queue:Ingest.airmet" />
-	</bean>
+        factory-method="register">
+        <constructor-arg value="airmet" />
+        <constructor-arg value="jms-durable:queue:Ingest.airmet" />
+    </bean>
 
     <camelContext id="airmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
@@ -23,31 +23,31 @@
         <!-- Begin Airmet routes -->
         <route id="airmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.airmet"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>airmet</constant>
             </setHeader>
             <doTry>
-				<pipeline>
-		            <bean ref="stringToFile" />
-        		    <split streaming="true">
-                		<method bean="airmetSeparator" method="separate"/>
-		                <doTry>
-        		        	<pipeline>
-                		    	<bean ref="airmetDecoder" method="decode"/>
-                        		<to uri="direct-vm:indexAlert"/>
-		                    </pipeline>
-        	            <doCatch>
-	                        <exception>java.lang.Throwable</exception>
-    	                    <to uri="log:airmet?level=ERROR"/>
-        	             </doCatch>
-            	      </doTry>
-		            </split>
+                <pipeline>
+                    <bean ref="stringToFile" />
+                    <split streaming="true">
+                        <method ref="airmetSeparator" method="separate"/>
+                        <doTry>
+                            <pipeline>
+                                <bean ref="airmetDecoder" method="decode"/>
+                                <to uri="direct-vm:indexAlert"/>
+                            </pipeline>
+                        <doCatch>
+                            <exception>java.lang.Throwable</exception>
+                            <to uri="log:airmet?level=ERROR"/>
+                         </doCatch>
+                      </doTry>
+                    </split>
                 </pipeline>
-        	    <doCatch>
-            	    <exception>java.lang.Throwable</exception>
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
                     <to uri="log:airmet?level=ERROR"/>
                 </doCatch>
             </doTry>
         </route>
-	</camelContext>
+    </camelContext>
 </beans>

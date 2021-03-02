@@ -26,7 +26,7 @@
 
 		<route id="ncscatIngestRoute">
 			<from uri="jms-durable:queue:Ingest.Ncscat" />
-		<!-- 	<setHeader headerName="pluginName">
+		<!-- 	<setHeader name="pluginName">
 				<constant>ncscat</constant>
 			</setHeader>-->
 			<doTry>

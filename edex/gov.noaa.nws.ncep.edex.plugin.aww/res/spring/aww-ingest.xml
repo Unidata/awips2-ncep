@@ -29,14 +29,14 @@
         <!-- Begin Aww routes -->
         <route id="awwIngestRoute">
             <from uri="jms-durable:queue:Ingest.aww"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>aww</constant>
             </setHeader>
             <doTry>
 				<pipeline>
 		            <bean ref="stringToFile" />
         		    <split streaming="true">
-                		<method bean="awwSeparator" method="separate"/>
+                		<method ref="awwSeparator" method="separate"/>
 		                <doTry>
         		        	<pipeline>
                 		    	<bean ref="awwDecoder" method="decode"/>

@@ -24,14 +24,14 @@
 		<!-- Begin TAF routes -->
 		<route id="nctafIngestRoute">
 			<from uri="jms-durable:queue:Ingest.nctaf"/>
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>nctaf</constant>
 			</setHeader>
 			<doTry>
 				<pipeline>
 					<bean ref="stringToFile" />
 					<split streaming="true">
-						<method bean="nctafSeparator" method="separate" />
+						<method ref="nctafSeparator" method="separate" />
 						<doTry>
 							<pipeline>
 								<bean ref="nctafDecoder" method="decode" />

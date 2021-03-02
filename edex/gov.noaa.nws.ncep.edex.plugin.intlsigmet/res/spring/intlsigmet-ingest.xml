@@ -23,14 +23,14 @@
         <!-- Begin IntlSigmet routes -->
         <route id="intlsigmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.intlsigmet"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>intlsigmet</constant>
             </setHeader>
             <bean ref="stringToFile" />
             <doTry>
                 <pipeline>
                     <split streaming="true">
-                        <method bean="intlsigmetSeparator" method="separate"/>
+                        <method ref="intlsigmetSeparator" method="separate"/>
                         <doTry>
                             <pipeline>
                                 <bean ref="intlsigmetDecoder" method="decode"/>

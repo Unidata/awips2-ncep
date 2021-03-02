@@ -30,7 +30,7 @@
 		<!-- Begin Ssha routes -->
 		<route id="sshaIngestRoute">
 			<from uri="jms-durable:queue:Ingest.ssha"/>
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>ssha</constant>
 			</setHeader>
 			<doTry>

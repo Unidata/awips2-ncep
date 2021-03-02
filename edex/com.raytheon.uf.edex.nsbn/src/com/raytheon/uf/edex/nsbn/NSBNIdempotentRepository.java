@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.camel.spi.IdempotentRepository;
-import org.apache.camel.support.ServiceSupport;
+import org.apache.camel.support.service.ServiceSupport;
 
 import com.raytheon.uf.common.time.util.TimeUtil;
 
@@ -39,13 +39,14 @@ import com.raytheon.uf.common.time.util.TimeUtil;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Dec 10, 2018 56039      tjensen     Initial creation
+ * Mar  3, 2021 8326       tgurney     Camel 3 fixes
  *
  * </pre>
  *
  * @author tjensen
  */
 public class NSBNIdempotentRepository extends ServiceSupport
-        implements IdempotentRepository<String> {
+        implements IdempotentRepository {
 
     private final Map<String, Long> cache = new ConcurrentHashMap<>();
 

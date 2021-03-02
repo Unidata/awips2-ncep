@@ -4,51 +4,50 @@
     http://www.springframework.org/schema/beans/spring-beans.xsd
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
-       
+
     <bean id="nonconvsigmetDecoder" class="gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.decoder.NonConvSigmetDecoder">
         <constructor-arg ref="nonconvsigmetPluginName"/>
     </bean>
-    
+
     <bean id="nonconvsigmetSeparator" class="gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.decoder.NonConvSigmetSeparator"/>
 
     <bean id="nonconvsigmetDistRegistry" factory-bean="distributionSrv"
-		factory-method="register">
-		<constructor-arg value="nonconvsigmet" />
-		<constructor-arg value="jms-durable:queue:Ingest.nonconvsigmet" />
-	</bean>
+        factory-method="register">
+        <constructor-arg value="nonconvsigmet" />
+        <constructor-arg value="jms-durable:queue:Ingest.nonconvsigmet" />
+    </bean>
 
     <camelContext id="nonconvsigmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
 
-        <!-- Begin NonConvSigmet routes -->
         <route id="nonconvsigmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.nonconvsigmet"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>nonconvsigmet</constant>
             </setHeader>
             <doTry>
                 <pipeline>
-		            <bean ref="stringToFile" />
-    		        <split streaming="true">
-        		        <method bean="nonconvsigmetSeparator" method="separate"/>
-           		    	<doTry>
-                	       	<pipeline>
-                    	   		<bean ref="nonconvsigmetDecoder" method="decode"/>
-                       			<to uri="direct-vm:indexAlert"/>
-	                   		</pipeline>
-    	               	 	<doCatch>
-        	               		<exception>java.lang.Throwable</exception>
-            	           		<to uri="log:nonconvsigmet?level=ERROR"/>
-                	   		</doCatch>
-               			</doTry>
-	            	</split>
-           		</pipeline>
-           	 	<doCatch>
-               		<exception>java.lang.Throwable</exception>
-              		<to uri="log:nonconvsigmet?level=ERROR"/>
-           		</doCatch>
-       		</doTry>
+                    <bean ref="stringToFile" />
+                    <split streaming="true">
+                        <method ref="nonconvsigmetSeparator" method="separate"/>
+                           <doTry>
+                               <pipeline>
+                                   <bean ref="nonconvsigmetDecoder" method="decode"/>
+                                   <to uri="direct-vm:indexAlert"/>
+                               </pipeline>
+                                <doCatch>
+                                   <exception>java.lang.Throwable</exception>
+                                   <to uri="log:nonconvsigmet?level=ERROR"/>
+                               </doCatch>
+                           </doTry>
+                    </split>
+                   </pipeline>
+                    <doCatch>
+                       <exception>java.lang.Throwable</exception>
+                      <to uri="log:nonconvsigmet?level=ERROR"/>
+                   </doCatch>
+               </doTry>
         </route>
-	</camelContext>
+    </camelContext>
 </beans>

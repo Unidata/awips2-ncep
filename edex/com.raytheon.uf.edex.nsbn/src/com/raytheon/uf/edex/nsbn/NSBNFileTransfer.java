@@ -75,8 +75,9 @@ import com.raytheon.uf.edex.core.EDEXUtil;
  * Dec 10, 2018  56039    tjensen      Use Canonical paths, refactor threading,
  *                                     handle retransmissions
  * Jun 07, 2019  64732    tjensen      Improve exception handling, logging
- * Jan 28, 2020  73722    smanoj       Fix to properly handle multiple 
+ * Jan 28, 2020  73722    smanoj       Fix to properly handle multiple
  *                                     localization levels
+ * Mar  3, 2021  8326     tgurney      Camel 3 fixes
  *
  * </pre>
  *
@@ -176,7 +177,7 @@ public class NSBNFileTransfer implements Processor {
             moveFileToDestinationDir(exchange);
         } else {
             // No file received
-            exchange.getOut().setFault(true);
+            exchange.setRouteStop(true);
         }
     }
 
@@ -254,9 +255,10 @@ public class NSBNFileTransfer implements Processor {
                 }
             } catch (LocalizationException | IOException
                     | SerializationException e) {
-                statusHandler
-                        .error("Error unmarshalling post processed data type list: "
-                                + nsbnTransferFile, e);
+                statusHandler.error(
+                        "Error unmarshalling post processed data type list: "
+                                + nsbnTransferFile,
+                        e);
             }
         }
     }
@@ -321,63 +323,54 @@ public class NSBNFileTransfer implements Processor {
                                 .get(NSBN_SHARED_EXECUTOR);
                     }
 
-                    executor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            File newFile;
-                            try {
-                                newFile = createAndMoveNewFile(path, inFile);
-                                Map<String, Object> headers = new HashMap<>();
-                                headers.put("enqueueTime",
-                                        System.currentTimeMillis());
+                    executor.execute(() -> {
+                        File newFile;
+                        try {
+                            newFile = createAndMoveNewFile(path, inFile);
+                            Map<String, Object> headers = new HashMap<>();
+                            headers.put("enqueueTime",
+                                    System.currentTimeMillis());
 
-                                // Notify ingest of the new file
-                                EDEXUtil.getMessageProducer().sendAsyncUri(
-                                        "jms-durable:queue:" + destQueue,
-                                        newFile.getPath(), headers);
+                            // Notify ingest of the new file
+                            EDEXUtil.getMessageProducer().sendAsyncUri(
+                                    "jms-durable:queue:" + destQueue,
+                                    newFile.getPath(), headers);
 
-                                long stopMethodTime = System
-                                        .currentTimeMillis();
-                                long processTime = stopMethodTime
-                                        - START_METHOD_TIME;
-                                long latencyTime = stopMethodTime
-                                        - FILE_MODIFIED_TIME;
-                                if (latencyTime
-                                        / TimeUtil.MILLIS_PER_SECOND > FILE_PROCESS_WARNING_THRESHOLD
-                                        || processTime
-                                                / TimeUtil.MILLIS_PER_SECOND > FILE_PROCESS_WARNING_THRESHOLD) {
-                                    statusHandler.warn(
-                                            "File " + newFile.getAbsolutePath()
-                                                    + " took longer than "
-                                                    + FILE_PROCESS_WARNING_THRESHOLD
-                                                    + "s to process. "
-                                                    + " File process time: "
-                                                    + TimeUtil.prettyDuration(
-                                                            processTime)
-                                                    + ", File latency time: "
-                                                    + TimeUtil.prettyDuration(
-                                                            latencyTime));
-                                } else {
-                                    statusHandler.info("File "
-                                            + newFile.getAbsolutePath()
-                                            + " sent to queue '" + destQueue
-                                            + "'. File process time: "
-                                            + TimeUtil
-                                                    .prettyDuration(processTime)
-                                            + ", File latency time: "
-                                            + TimeUtil.prettyDuration(
-                                                    latencyTime));
-                                }
-                            } catch (IOException e) {
-                                statusHandler
-                                        .error("Unable to create and move file ["
-                                                + fileName + "]", e);
-                            } catch (Exception e) {
-                                statusHandler.error(
-                                        "Failed to insert file [" + fileName
-                                                + "] into NSBN ingest stream.",
-                                        e);
+                            long stopMethodTime = System.currentTimeMillis();
+                            long processTime = stopMethodTime
+                                    - START_METHOD_TIME;
+                            long latencyTime = stopMethodTime
+                                    - FILE_MODIFIED_TIME;
+                            if (latencyTime
+                                    / TimeUtil.MILLIS_PER_SECOND > FILE_PROCESS_WARNING_THRESHOLD
+                                    || processTime
+                                            / TimeUtil.MILLIS_PER_SECOND > FILE_PROCESS_WARNING_THRESHOLD) {
+                                statusHandler.warn("File "
+                                        + newFile.getAbsolutePath()
+                                        + " took longer than "
+                                        + FILE_PROCESS_WARNING_THRESHOLD
+                                        + "s to process. "
+                                        + " File process time: "
+                                        + TimeUtil.prettyDuration(processTime)
+                                        + ", File latency time: "
+                                        + TimeUtil.prettyDuration(latencyTime));
+                            } else {
+                                statusHandler.info("File "
+                                        + newFile.getAbsolutePath()
+                                        + " sent to queue '" + destQueue
+                                        + "'. File process time: "
+                                        + TimeUtil.prettyDuration(processTime)
+                                        + ", File latency time: "
+                                        + TimeUtil.prettyDuration(latencyTime));
                             }
+                        } catch (IOException e1) {
+                            statusHandler
+                                    .error("Unable to create and move file ["
+                                            + fileName + "]", e1);
+                        } catch (Exception e2) {
+                            statusHandler.error("Failed to insert file ["
+                                    + fileName + "] into NSBN ingest stream.",
+                                    e2);
                         }
                     });
                     break;
@@ -391,28 +384,25 @@ public class NSBNFileTransfer implements Processor {
              * to the rejected directory
              */
             executor = threadPoolExecutorMap.get(NSBN_REJECTED_EXECUTOR);
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    StringBuilder rejectPath = new StringBuilder(
-                            inFile.getPath().length());
-                    rejectPath.append(File.separator).append(NSBN_STORE)
-                            .append(File.separator).append("rejected_files")
-                            .append(File.separator).append(fileParent)
-                            .append(File.separatorChar)
-                            .append(sdfs.get().format(timeAdded))
-                            .append(File.separatorChar);
+            executor.execute(() -> {
+                StringBuilder rejectPath = new StringBuilder(
+                        inFile.getPath().length());
+                rejectPath.append(File.separator).append(NSBN_STORE)
+                        .append(File.separator).append("rejected_files")
+                        .append(File.separator).append(fileParent)
+                        .append(File.separatorChar)
+                        .append(sdfs.get().format(timeAdded))
+                        .append(File.separatorChar);
 
-                    try {
-                        createAndMoveNewFile(rejectPath, inFile);
-                    } catch (IOException e) {
-                        statusHandler
-                                .error("Unable to create and move rejected file ["
-                                        + path.toString() + fileName + "]", e);
-                    }
-                    statusHandler.warn("The file " + inFile.getAbsolutePath()
-                            + " was rejected for transfer.");
+                try {
+                    createAndMoveNewFile(rejectPath, inFile);
+                } catch (IOException e) {
+                    statusHandler
+                            .error("Unable to create and move rejected file ["
+                                    + path.toString() + fileName + "]", e);
                 }
+                statusHandler.warn("The file " + inFile.getAbsolutePath()
+                        + " was rejected for transfer.");
             });
 
         }

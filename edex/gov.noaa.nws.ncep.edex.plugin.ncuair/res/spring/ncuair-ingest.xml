@@ -26,17 +26,15 @@
 		<route id="ncuairIngestRoute">
 			
 			<from uri="jms-durable:queue:Ingest.ncuair" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>ncuair</constant>
 			</setHeader>
 			<bean ref="stringToFile" />			
 			
-			<split streaming="true"> 
-				<!-- chin method bean="ncuairSeparator" method="separate" /-->
-			 	<method bean="ncuairSeparator" method="batchSeparate" />
+			<split streaming="true">
+			 	<method ref="ncuairSeparator" method="batchSeparate" />
 				<doTry>
 					<pipeline>			
-						<!-- chin  bean ref="ncuairDecoder" method="decode" /-->
 					 	<bean ref="ncuairDecoder" method="decodeBatch" />
 						<bean ref="ncuairToPointData" method="toPointData" />					
 						<to uri="direct-vm:persistIndexAlert" />

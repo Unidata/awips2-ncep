@@ -24,14 +24,14 @@
 		<!-- Begin idft routes -->
 		<route id="idftIngestRoute">
 			<from uri="jms-durable:queue:Ingest.idft" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>idft</constant>
 			</setHeader>
 			<doTry>
 				<pipeline>
 					<bean ref="stringToFile" />
 					<split streaming="true">
-						<method bean="idftSeparator" method="separate" />
+						<method ref="idftSeparator" method="separate" />
 						<doTry>
 							<pipeline>
 								<bean ref="idftDecoder" method="decode" />

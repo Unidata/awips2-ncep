@@ -24,14 +24,14 @@
 		<!-- Begin wcp routes -->
 		<route id="wcpIngestRoute">
 			<from uri="jms-durable:queue:Ingest.wcp" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>wcp</constant>
 			</setHeader>
 			<doTry>
 				<pipeline>
 					<bean ref="stringToFile" />
 					<split streaming="true">
-						<method bean="wcpSeparator" method="separate" />
+						<method ref="wcpSeparator" method="separate" />
 						<doTry>
 							<pipeline>
 								<bean ref="wcpDecoder" method="decode" />

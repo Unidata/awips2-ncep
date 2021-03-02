@@ -23,7 +23,7 @@
 
 		<route id="nctextIngestRoute">
 			<from uri="jms-durable:queue:ingest.nctext" />
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
                 <constant>nctext</constant>
             </setHeader>
 			<bean ref="stringToFile" />

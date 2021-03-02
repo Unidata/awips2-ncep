@@ -28,7 +28,7 @@
 
 		<route id="sgwhIngestRoute">
 			<from uri="jms-durable:queue:Ingest.sgwh"/>
-			<setHeader headerName="pluginName">
+			<setHeader name="pluginName">
 				<constant>sgwh</constant>
 			</setHeader>
 			<doTry>

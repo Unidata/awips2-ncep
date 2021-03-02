@@ -24,14 +24,14 @@
         <!-- Begin ConvSigmet routes -->
         <route id="convsigmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.convsigmet"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>convsigmet</constant>
             </setHeader>
             <doTry>
                 <pipeline>
 		            <bean ref="stringToFile" />
         		    <split streaming="true">
-                		<method bean="convsigmetSeparator" method="separate"/>
+                		<method ref="convsigmetSeparator" method="separate"/>
                   		<doTry>
                      		<pipeline>
                         		<bean ref="convsigmetDecoder" method="decode"/>

@@ -14,16 +14,16 @@
         <endpoint id="ncgribJmsEndpoint" uri="jms-durable:queue:Ingest.ncGrib?concurrentConsumers=${GRIB_SPLIT_THREADS}"/>
 
         <route id="ncgribFileNameConsumerRoute">
-            <from ref="ncgribJmsEndpoint"/>
+            <from uri="ncgribJmsEndpoint"/>
             <doTry>
                 <pipeline>
                     <bean ref="ncgribFilenameProcessor"/>
-                    <setHeader headerName="pluginName">
+                    <setHeader name="pluginName">
                         <constant>grid</constant> 
                     </setHeader>
                     <bean ref="stringToFile"/>
                     <split streaming="true">
-                        <method bean="gribSplitter" method="split"/>
+                        <method ref="gribSplitter" method="split"/>
                         <to uri="jms-durable:queue:Ingest.GribDecode" />
                     </split>
                 </pipeline>

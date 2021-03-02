@@ -19,7 +19,7 @@
             uri="file:${nsbn.drop.box}?noop=true&amp;idempotent=true&amp;idempotentRepository=#nsbnIdempotentRepository&amp;delay=5000&amp;maxMessagesPerPoll=1000&amp;exclusiveReadLockStrategy=#nsbnFileChangedStrategy&amp;recursive=true" />
 
         <route id="nsbnFileScan">
-            <from ref="nsbnFileTransferEndpoint" />
+            <from uri="nsbnFileTransferEndpoint" />
             <bean ref="nsbnFileTransferProcess"/>
         </route>
     </camelContext>

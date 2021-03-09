@@ -160,6 +160,10 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Feb 26, 2021  87541      achalla      Updated getFirString() to identify and select AWC Backup FIR Regions
  *                                       and drop AWC AOR FIR Regions if  the sigmet polygon crosses over
  *                                       or partially extends into those regions.
+ * Mar 09, 2021  88219      achalla      Added a duplicate set of Level Info attributes within
+ *                                       the Forecast Section of the Edit Attributes area in the
+ *                                       Int'l SIGMET Edit GUI for the VOLCANIC_ASH phenomenon and
+ *                                       Removed the existing Altitudes attributes
  * </pre>
  *
  * @author gzhang
@@ -2021,6 +2025,104 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
     }
 
+    public void createLevelAltitudes(Group topLbl) {
+
+        Label lblLevelInfo = new Label(top, SWT.LEFT);
+        lblLevelInfo.setText("Level Info: ");
+
+        final Combo comboLevel = new Combo(topLbl, SWT.READ_ONLY);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL, comboLevel);
+        comboLevel.setItems(NONE, "FCST", "TOPS");
+        setControl(comboLevel, EDITABLE_ATTR_LEVEL);
+
+        final Combo comboLevelInfo1 = new Combo(topLbl, SWT.READ_ONLY);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO1, comboLevelInfo1);
+        comboLevelInfo1.setItems("TO", "ABV", "BLW", "BTN");
+        setControl(comboLevelInfo1, EDITABLE_ATTR_LEVEL_INFO1);
+
+        final Text txtLevelInfo1 = new Text(topLbl, SWT.SINGLE | SWT.BORDER);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL_TEXT1, txtLevelInfo1);
+        txtLevelInfo1.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+
+        txtLevelInfo1.addListener(SWT.Verify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                e.doit = validateNumInput(e);
+            }
+        });
+
+        GridData gdText1 = new GridData();
+        gdText1.widthHint = 66;
+        gdText1.grabExcessHorizontalSpace = true;
+
+        txtLevelInfo1.setLayoutData(gdText1);
+
+        final Combo comboLevelInfo2 = new Combo(topLbl, SWT.READ_ONLY);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO2, comboLevelInfo2);
+        comboLevelInfo2.setItems(NONE, "AND");
+        setControl(comboLevelInfo2, EDITABLE_ATTR_LEVEL_INFO2);
+
+        comboLevelInfo2.addListener(SWT.Selection, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrLevelInfo2(comboLevelInfo2.getText());
+            }
+        });
+
+        final Text txtLevelInfo2 = new Text(topLbl, SWT.SINGLE | SWT.BORDER);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL_TEXT2, txtLevelInfo2);
+        txtLevelInfo2.setLayoutData(
+                new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+
+        txtLevelInfo2.addListener(SWT.Verify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                e.doit = validateNumInput(e);
+            }
+        });
+        txtLevelInfo2.setLayoutData(gdText1);
+
+        txtLevelInfo2.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrLevelText2(txtLevelInfo2.getText());
+            }
+        });
+
+        comboLevel.addListener(SWT.Selection, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                setEditableAttrLevel(comboLevel.getText());
+                if (NONE.equals(comboLevel.getText())) {
+                    txtLevelInfo1.setText("");
+                    txtLevelInfo2.setText("");
+                    txtFreeText.setText("");
+                    comboLevelInfo2.select(0);
+                }
+            }
+        });
+
+        comboLevelInfo1.addListener(SWT.Selection, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrLevelInfo1(comboLevelInfo1.getText());
+            }
+        });
+
+        txtLevelInfo1.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this
+                        .setEditableAttrLevelText1(txtLevelInfo1.getText());
+            }
+        });
+
+    }
+
     private void createDetailsAreaForecastSectionVolcanic(
             Composite detailsComposite) {
 
@@ -2063,57 +2165,15 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
         });
 
-        Group altGrp = new Group(topSecPhenom, SWT.LEFT);
-        altGrp.setLayoutData(
-                new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1));
-        altGrp.setLayout(new GridLayout(8, false));
+        Group altitudesGrp = new Group(topSecPhenom, SWT.LEFT);
+        altitudesGrp.setLayoutData(
+                new GridData(SWT.RIGHT, SWT.CENTER, true, false, 4, 1));
+        altitudesGrp.setLayout(new GridLayout(8, false));
+        altitudesGrp.setText("Altitudes");
 
-        Label lblAlt = new Label(altGrp, SWT.LEFT);
-        lblAlt.setText("Altitudes: ");
-        final Button abv = new Button(altGrp, SWT.RADIO);
-        abv.setText("ABV");
-        abv.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                SigmetAttrDlg.this.setEditableAttrAltitudeSelection("ABV");
-            }
-        });
-
-        final Button blw = new Button(altGrp, SWT.RADIO);
-        blw.setText("BLW");
-        blw.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                SigmetAttrDlg.this.setEditableAttrAltitudeSelection("BLW");
-            }
-        });
-
-        final Button btn = new Button(altGrp, SWT.RADIO);
-        btn.setText("BTN");
-        btn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                SigmetAttrDlg.this.setEditableAttrAltitudeSelection("BTN");
-            }
-        });
-
-        attrButtonMap.put(EDITABLE_ATTR_ALTITUDE_SELECTION,
-                new Button[] { abv, blw, btn });
-
-        final Text kftText = new Text(altGrp, SWT.LEFT);
-        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_TEXT, kftText);
-
-        kftText.addListener(SWT.Modify, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                SigmetAttrDlg.this.setEditableAltLevelText(kftText.getText());
-            }
-        });
-        if (this.getEditableAltLevelText() != null) {
-            kftText.setText(this.getEditableAltLevelText());
-        }
-        Label lbl = new Label(altGrp, SWT.LEFT);
-        lbl.setText(" kFt ");
+        // Level Info attributes within the Forecast Section of
+        // VOLCANIC_ASH phenomenon
+        this.createLevelAltitudes(altitudesGrp);
 
         Group ralGrp = new Group(topSecPhenom, SWT.LEFT);
         ralGrp.setLayoutData(

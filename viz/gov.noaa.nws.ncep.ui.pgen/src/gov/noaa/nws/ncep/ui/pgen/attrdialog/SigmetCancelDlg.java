@@ -65,7 +65,8 @@ import java.util.TimeZone;
  * ------------- -------- --------- -----------------
  * Jun 01, 2020  78215    smanoj   Initial creation
  * Jun 16, 2020  79243    smanoj   Added Caribbean and South American FIRs.
- *
+ * Mar 15, 2021  88217    smanoj   Added capability to SAVE CANCEL file.
+ * 
  * </pre>
  *
  * @author smanoj
@@ -129,13 +130,18 @@ public class SigmetCancelDlg extends AttrDlg {
 
     private static final int TEST_XML_ID = IDialogConstants.CLIENT_ID + 2;
 
-    private static final int SEND_ID = IDialogConstants.OK_ID;
+    private static final int SEND_ID =IDialogConstants.CLIENT_ID + 3;
+
+    private static final int SAVE_ID = IDialogConstants.OK_ID;
 
     private static final int CANCEL_ID = IDialogConstants.CANCEL_ID;
 
-    public SigmetCancelDlg(Shell parShell, Sigmet sigmet) {
+    private SigmetAttrDlg parentDlg = null;
+
+    public SigmetCancelDlg(SigmetAttrDlg parentDlg, Shell parShell, Sigmet sigmet) {
         super(parShell);
         this.sigmet = sigmet;
+        this.parentDlg = parentDlg;
     }
 
     @Override
@@ -574,6 +580,8 @@ public class SigmetCancelDlg extends AttrDlg {
         Button testSendbtn = createButton(parent, SEND_ID, "SEND", true);
         testSendbtn.setEnabled(false);
 
+        createButton(parent, SAVE_ID, "SAVE", true);
+
         createButton(parent, CANCEL_ID, "CLOSE", true);
     }
 
@@ -608,7 +616,9 @@ public class SigmetCancelDlg extends AttrDlg {
 
     @Override
     public void okPressed() {
-        setReturnCode(OK);
+        //Invoke the same Save Dialog from the SigmetAttrDlg
+        int buttonId= IDialogConstants.CLIENT_ID + 2;
+        parentDlg.buttonPressed(buttonId);
         close();
     }
 

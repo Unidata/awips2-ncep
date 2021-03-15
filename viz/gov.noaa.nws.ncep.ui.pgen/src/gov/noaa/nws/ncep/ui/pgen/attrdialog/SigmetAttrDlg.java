@@ -158,7 +158,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                       set and reset area, it was preventing
  *                                       user entered values from being used.
  *                                       Updated getFirString() removed the
- *                                       uneeded call to JTS covers() method
+ *                                       unneeded call to JTS covers() method
  * Feb 26, 2021  87541      achalla      Updated getFirString() to identify and select AWC Backup FIR Regions
  *                                       and drop AWC AOR FIR Regions if  the sigmet polygon crosses over
  *                                       or partially extends into those regions.
@@ -169,11 +169,13 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Mar 09, 2021  87540      srussell     Added createLineWidthControls() to
  *                                       install a slider & spinner to control
  *                                       the line width of polygons.
- *                                       Updted okPressed() to support the new
+ *                                       Updated okPressed() to support the new
  *                                       line width controls when the "Apply"
  *                                       button is pressed.
- *                                       Upated setAttrForDlg() to support the
+ *                                       Updated setAttrForDlg() to support the
  *                                       new line width GUI controls.
+ * Mar 15, 2021  88217     smanoj        SIGMET CANCEL SAVE Enhancement.
+ *
  * </pre>
  *
  * @author gzhang
@@ -227,8 +229,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private static final String EDITABLE_ATTR_FCST_CENTER = "editableAttrFcstCntr";
 
     private static final String EDITABLE_ATTR_FCST_VADESC = "editableAttrFcstVADesc";
-
-    private static final String EDITABLE_ATTR_ALT_LEVEL_TEXT = "editableAttrAltLevelText";
 
     private static final String EDITABLE_ATTR_RAL_SELECTION = "editableAttrRALSelection";
 
@@ -654,14 +654,19 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
             if (STATUS_CANCEL
                     .equals(SigmetAttrDlg.this.getEditableAttrStatus())) {
-                if (!SigmetAttrDlg.this.isSigmetActive()) {
-                    statusHandler.warn(
-                            "Unable to Save SIGMET product for CANCEL: SIGMET is not active.");
-                    break;
-                } else if (!sigmetCnlDlg.getValidationCheck()) {
-                    statusHandler.warn(
-                            "Unable to Save SIGMET product for CANCEL: SIGMET Attributes are not Valid.");
-                    break;
+                if ((sigmetCnlDlg == null)) {
+                    Sigmet sigmet = (Sigmet) getSigmet();
+                    try {
+                        sigmetCnlDlg = new SigmetCancelDlg(
+                                getInstance(getShell()), getShell(), sigmet);
+                    } catch (Exception ee) {
+                        statusHandler
+                                .warn("Unable to create SIGMET Cancellation Dialog: "
+                                        + ee.getLocalizedMessage(), ee);
+                    }
+                    if (sigmetCnlDlg != null) {
+                        sigmetCnlDlg.open();
+                    }
                 }
             }
 
@@ -853,7 +858,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         if (isSigmetActive()) {
                             Sigmet sigmet = (Sigmet) getSigmet();
                             try {
-                                sigmetCnlDlg = new SigmetCancelDlg(getShell(),
+                                sigmetCnlDlg = new SigmetCancelDlg(getInstance(getShell()),getShell(),
                                         sigmet);
                             } catch (Exception ee) {
                                 statusHandler
@@ -3553,7 +3558,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             StringBuilder sb = new StringBuilder();
             sb.append(SigmetAttrDlg.this.getEditableAttrArea());
             sb.append("_").append(SigmetAttrDlg.this.getEditableAttrId());
-            sb.append("_").append(SigmetAttrDlg.this.getEditableAttrSeqNum());
+
+            if (cnlSigmet) {
+                sb.append("_").append(sigmetCnlDlg.getSeriesNumber());
+            } else {
+                sb.append("_")
+                        .append(SigmetAttrDlg.this.getEditableAttrSeqNum());
+            }
+
             sb.append(".sigintl");
             return sb.toString();
         }

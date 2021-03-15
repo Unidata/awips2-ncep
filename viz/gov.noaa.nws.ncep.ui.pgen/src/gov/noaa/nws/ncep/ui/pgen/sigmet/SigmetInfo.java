@@ -81,6 +81,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Jun 11, 2020 79243       smanoj      Added Caribbean and South American FIRs.
  * Feb 24, 2021 86827       srussell    Updated getIsolated() to use consistent
  *                                      units when making an ellipsoid
+ * Mar 15, 2021 86159       srussell    Added isValidLatLonArray method and 1
+ *                                      call to it.
  *
  * </pre>
  *
@@ -330,6 +332,7 @@ public class SigmetInfo {
         if (!(coorArray.length > 3)) {
             coorArray = new Coordinate[] {};
         }
+
         GeometryFactory gf = new GeometryFactory();
         return gf.createPolygon(gf.createLinearRing(coorArray),
                 new LinearRing[] {});
@@ -694,10 +697,33 @@ public class SigmetInfo {
 
         for (String firId : firGeoMap.keySet()) {
             Coordinate[] coors = firGeoMap.get(firId);
-            result.put(firId, SigmetInfo.getPolygon(coors, mapDescriptor));
+            if (isValidLatLonArray(coors, mapDescriptor)) {
+                result.put(firId, SigmetInfo.getPolygon(coors, mapDescriptor));
+            }
         }
 
         return result;
+    }
+
+    /*-
+     * Screen out latlon arrays with NAN for x or y coordinates.
+     */
+    public static boolean isValidLatLonArray(Coordinate[] latlonArray,
+            IMapDescriptor mapDescriptor) {
+
+        boolean isValidLatLonArray = false;
+
+        Coordinate[] coorArray = latlonToPixelInCoor(latlonArray,
+                mapDescriptor);
+
+        for (Coordinate c : coorArray) {
+            if (Double.isNaN(c.x) || Double.isNaN(c.y)) {
+                isValidLatLonArray = false;
+                return isValidLatLonArray;
+            }
+        }
+        isValidLatLonArray = true;
+        return isValidLatLonArray;
     }
 
     /*

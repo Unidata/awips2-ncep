@@ -22,6 +22,7 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.SigmetInfo;
@@ -136,6 +137,10 @@ public class SigmetCancelDlg extends AttrDlg {
 
     private static final int CANCEL_ID = IDialogConstants.CANCEL_ID;
 
+    private static final String INTL_SIGMET = "INTL_SIGMET";
+
+    private static final String STATUS_CANCEL = "2";
+
     private SigmetAttrDlg parentDlg = null;
 
     public SigmetCancelDlg(SigmetAttrDlg parentDlg, Shell parShell, Sigmet sigmet) {
@@ -175,8 +180,28 @@ public class SigmetCancelDlg extends AttrDlg {
 
         seqNumInt = Integer.parseInt(seqNum);
 
-        // Incremented series number to reference the SIGMET to be canceled.
-        seriesNumber = seqNumInt + 1;
+        if (sigmet.getEditableAttrStatus() != null) {
+            if (STATUS_CANCEL.equals(sigmet.getEditableAttrStatus())) {
+                // In the case of opening a cancelled SIGMET (existing *.xml)
+                // so the Cancel Dialog is populated with the correct Series
+                // Number.
+                String fileName = parentDlg.drawingLayer.getActiveProduct()
+                        .getInputFile();
+                if (fileName != null && fileName.startsWith(INTL_SIGMET)
+                        && fileName.endsWith(".xml")) {
+                    char serNum = fileName.charAt(fileName.length() - 5);
+                    seriesNumber = Integer.parseInt(Character.toString(serNum));
+                }
+            }
+        } else {
+            // Incremented series number to reference the SIGMET to be canceled.
+            seriesNumber = seqNumInt + 1;
+        }
+
+        // Series Number for Cancel should be higher than Sequence Number
+        if (seriesNumber <= seqNumInt) {
+            seriesNumber = seqNumInt + 1;
+        }
 
         seriesNum = Integer.toString(seriesNumber);
 
@@ -522,8 +547,10 @@ public class SigmetCancelDlg extends AttrDlg {
     private String getFileContent() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(area);
-        sb.append(" ").append(getTimeStringPlusHourInHMS(0));
+        sb.append(getWmo());
+        sb.append("\n");
+
+        sb.append(getAfospil());
         sb.append("\n");
 
         sb.append(firID);
@@ -645,6 +672,124 @@ public class SigmetCancelDlg extends AttrDlg {
         } else {
             return null;
         }
+    }
+
+    private String getWmo() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("W");
+        sb.append(getWmoPhen());
+        sb.append(getOcnWmoAwpHeaders()[1]);
+        sb.append(getInum());
+        sb.append(" ").append(parentDlg.getEditableAttrArea());
+        sb.append(" ").append(getTimeStringPlusHourInHMS(0));
+
+        return sb.toString();
+    }
+
+    private String getAfospil() {
+        StringBuilder sb = new StringBuilder();
+
+        if ("PAWU".equals(parentDlg.getEditableAttrArea())) {
+            sb.append(getAwpPhen());
+            sb.append(getOcnWmoAwpHeaders()[2]);
+            sb.append(getInum());
+            sb.append("\n").append(getIdnode());
+            sb.append(parentDlg.getEditableAttrId().charAt(0));
+            sb.append(" WS ").append(getTimeStringPlusHourInHMS(0));
+        } else {
+            sb.append(getAwpPhen());
+            sb.append(getOcnWmoAwpHeaders()[2]);
+            sb.append(parentDlg.getEditableAttrId().substring(0, 1));
+        }
+
+        return sb.toString();
+    }
+
+    private String getWmoPhen() {
+        String phen = parentDlg.getEditableAttrPhenom();
+        if (phen != null) {
+            phen = phen.trim();
+        }
+        if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phen)) {
+            return "V";
+        }
+        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phen)) {
+            return "C";
+        }
+        return "S";
+    }
+
+    private String getAwpPhen() {
+        String wmophen = getWmoPhen();
+        if ("S".equals(wmophen)) {
+            return "SIG";
+        }
+        if ("V".equals(wmophen)) {
+            return "WSV";
+        }
+        return "WST";
+    }
+
+    private String getInum() {
+        char firstIdChar = parentDlg.getEditableAttrId().charAt(0);
+
+        if ("PHFO".equals(parentDlg.getEditableAttrArea())) {
+            int inum = firstIdChar - 77;
+            return inum < 0 || inum > 9 ? Integer.toString(inum) : "0" + inum;
+        } else if ("PAWU".equals(parentDlg.getEditableAttrArea())) {
+            int inum = firstIdChar - 72;
+            return inum < 0 || inum > 9 ? Integer.toString(inum) : "0" + inum;
+        }
+        int inum = firstIdChar - 64;
+        return inum < 0 || inum > 9 ? Integer.toString(inum) : "0" + inum;
+    }
+
+    private String getIdnode() {
+        String area = parentDlg.getEditableAttrArea();
+
+        if ("KKCI".equals(area)) {
+            return "MKC";
+        }
+        if ("KNHC".equals(area)) {
+            return "NHC";
+        }
+        if ("PHFO".equals(area)) {
+            return "HFO";
+        }
+        // PAWU
+        return "ANC";
+    }
+
+    private String[] getOcnWmoAwpHeaders() {
+        String area = parentDlg.getEditableAttrArea();
+        // 0:hdrocn, 1:hdrwmo, 2:hdrawp
+        String[] headers = new String[3];
+        headers[0] = headers[1] = headers[2] = "";
+
+        if ("PAWU".equals(area)) {
+            headers[1] = "AK";
+            headers[2] = "AK";
+        } else if ("PHFO".equals(area)) {
+            headers[1] = "PA";
+            headers[2] = "PA";
+        } else {
+            // area is KKCI or KNHC
+            String fir = parentDlg.getFirs();
+            if (!(fir == null || fir.length() == 0)) {
+                if (fir.contains("KZHU") || fir.contains("KZMA")
+                        || fir.contains("KZWY") || fir.contains("TJZS")) {
+                    headers[0] = "NT";
+                    headers[1] = "NT";
+                    headers[2] = "A0";
+                } else if (fir.contains("KZAK") || fir.contains("PAZA")) {
+                    headers[0] = "PN";
+                    headers[1] = "PN";
+                    headers[2] = "P0";
+                }
+            }
+        }
+
+        return headers;
     }
 
     private class SigmetCancelErrorDlg extends AttrDlg {

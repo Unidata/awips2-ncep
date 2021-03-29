@@ -3438,19 +3438,6 @@
     </extension>
 
    <extension
-       point="org.eclipse.ui.menus">
-       <menuContribution
-           locationURI="menu:tools?after=tools.Pg">
-           <command
-                   commandId="gov.noaa.nws.ncep.ui.nctextui.palette"
-                   id="gov.noaa.nws.ncep.ui.nctextui.palette"
-                   label="NCTEXT"
-                   tooltip="nctext">
-             </command>
-       </menuContribution>
-   </extension>
-
-   <extension
          point="com.raytheon.uf.viz.core.classContext">
          <classContext
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow">

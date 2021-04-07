@@ -19,9 +19,6 @@
  **/
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
@@ -67,15 +64,14 @@ import java.util.TimeZone;
  * Jun 01, 2020  78215    smanoj   Initial creation
  * Jun 16, 2020  79243    smanoj   Added Caribbean and South American FIRs.
  * Mar 15, 2021  88217    smanoj   Added capability to SAVE CANCEL file.
+ * Apr 07, 2021  88217    smanoj   Remove Hazard Type from Cancellation Information Text.
+ *                                 Also remove unused buttons.
  * 
  * </pre>
  *
  * @author smanoj
  */
 public class SigmetCancelDlg extends AttrDlg {
-
-    private static final IUFStatusHandler statusHandler = UFStatus
-            .getHandler(SigmetAttrDlg.class);
 
     private Sigmet sigmet;
 
@@ -129,9 +125,7 @@ public class SigmetCancelDlg extends AttrDlg {
 
     private static final int CHECK_ID = IDialogConstants.CLIENT_ID + 1;
 
-    private static final int TEST_XML_ID = IDialogConstants.CLIENT_ID + 2;
-
-    private static final int SEND_ID =IDialogConstants.CLIENT_ID + 3;
+    private static final int PARENT_SAVE_ID = IDialogConstants.CLIENT_ID + 2;
 
     private static final int SAVE_ID = IDialogConstants.OK_ID;
 
@@ -564,8 +558,7 @@ public class SigmetCancelDlg extends AttrDlg {
 
         sb.append(firName.replace('_', ' ')).append(" ")
                 .append(SigmetConstant.FIR).append(" ");
-        sb.append(qualifier.replace('_', ' '));
-        sb.append(" ").append(SigmetConstant.CNL);
+        sb.append(SigmetConstant.CNL);
 
         sb.append(" ").append(SigmetConstant.SIGMET);
         sb.append(" ").append(attrId);
@@ -600,13 +593,6 @@ public class SigmetCancelDlg extends AttrDlg {
     public void createButtonsForButtonBar(Composite parent) {
         createButton(parent, CHECK_ID, "CHECK", true);
 
-        // TODO Keeping it disabled for now according to direction from site.
-        // Will update as soon as we get more information from site.
-        Button testXMLbtn = createButton(parent, TEST_XML_ID, "TEST XML", true);
-        testXMLbtn.setEnabled(false);
-        Button testSendbtn = createButton(parent, SEND_ID, "SEND", true);
-        testSendbtn.setEnabled(false);
-
         createButton(parent, SAVE_ID, "SAVE", true);
 
         createButton(parent, CANCEL_ID, "CLOSE", true);
@@ -624,12 +610,6 @@ public class SigmetCancelDlg extends AttrDlg {
             }
             break;
 
-        case TEST_XML_ID:
-            break;
-
-        case SEND_ID:
-            break;
-
         default:
             break;
         }
@@ -644,8 +624,7 @@ public class SigmetCancelDlg extends AttrDlg {
     @Override
     public void okPressed() {
         //Invoke the same Save Dialog from the SigmetAttrDlg
-        int buttonId= IDialogConstants.CLIENT_ID + 2;
-        parentDlg.buttonPressed(buttonId);
+        parentDlg.buttonPressed(PARENT_SAVE_ID);
         close();
     }
 

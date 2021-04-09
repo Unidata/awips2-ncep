@@ -88,6 +88,7 @@ import javax.xml.bind.annotation.XmlType;
  * 04/28/20     77994       ksunil      new fields for TC.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Feb 08, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
+ * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
  * 
  * </pre>
  *
@@ -217,6 +218,9 @@ public class Sigmet {
 
     @XmlAttribute
     protected String editableAttrFir;
+
+    @XmlAttribute
+    protected String editableAttrCarSamBackupMode;
 
     @XmlAttribute
     protected String editableAttrFcstAvail;
@@ -1150,4 +1154,24 @@ public class Sigmet {
         this.editableAttrFir = value;
     }
 
+    /**
+     * Gets the value of the editableAttrCarSamBackupMode property.
+     * 
+     * @return possible object is {@link String }
+     * 
+     */
+    public String getEditableAttrCarSamBackupMode() {
+        return editableAttrCarSamBackupMode;
+    }
+
+    /**
+     * Sets the value of the editableAttrCarSamBackupMode property.
+     * 
+     * @param value
+     *            allowed object is {@link String }
+     * 
+     */
+    public void setEditableAttrCarSamBackupMode(String value) {
+        this.editableAttrCarSamBackupMode = value;
+    }
 }

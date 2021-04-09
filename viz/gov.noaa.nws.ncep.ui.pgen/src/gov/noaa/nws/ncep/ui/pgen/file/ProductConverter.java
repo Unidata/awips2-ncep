@@ -144,6 +144,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Feb 08, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
+ * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
  * 
  * </pre>
  * 
@@ -1222,6 +1223,8 @@ public class ProductConverter {
                                 ((Sigmet) de).getEditableAttrFromLine());
                         sigmet.setEditableAttrFir(
                                 ((Sigmet) de).getEditableAttrFir());
+                        sigmet.setEditableAttrCarSamBackupMode(
+                                ((Sigmet) de).getEditableAttrCarSamBackupMode());
                         sigmet.setEditableAttrRALSelection(
                                 ((Sigmet) de).getEditableAttrRALSelection());
                         sigmet.setEditableAttrAltLevelText(

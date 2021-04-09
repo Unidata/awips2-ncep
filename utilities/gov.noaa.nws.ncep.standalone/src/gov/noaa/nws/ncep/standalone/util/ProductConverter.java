@@ -123,6 +123,8 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  *
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
+ * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
+ * 
  * </pre>
  *
  * @author J. Wu
@@ -1367,6 +1369,7 @@ public class ProductConverter {
                 ((Sigmet) de).getEditableAttrLevelText2());
         sigmet.setEditableAttrFromLine(((Sigmet) de).getEditableAttrFromLine());
         sigmet.setEditableAttrFir(((Sigmet) de).getEditableAttrFir());
+        sigmet.setEditableAttrCarSamBackupMode(((Sigmet) de).getEditableAttrCarSamBackupMode());
 
         fde.getSigmet().add(sigmet);
     }

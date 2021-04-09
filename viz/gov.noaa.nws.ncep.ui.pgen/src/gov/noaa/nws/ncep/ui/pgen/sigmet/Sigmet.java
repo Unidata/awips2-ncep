@@ -31,6 +31,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
  * 04/28/20     77994       ksunil      new fields for TC.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Feb 05, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
+ * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
  * 
  * </pre>
  *
@@ -97,6 +98,8 @@ public class Sigmet extends AbstractSigmet {
 
     private String editableAttrFir;
 
+    private String editableAttrCarSamBackupMode;
+
     private String editableAttrFcstAvail;
 
     private String editableAttrFcstTime;
@@ -155,6 +158,7 @@ public class Sigmet extends AbstractSigmet {
         this.editableAttrLevelText1 = fSig.getEditableAttrLevelText1();
         this.editableAttrLevelText2 = fSig.getEditableAttrLevelText2();
         this.editableAttrFir = fSig.getEditableAttrFir();
+        this.editableAttrCarSamBackupMode = fSig.getEditableAttrCarSamBackupMode();
         this.editableAttrFcstAvail = fSig.getEditableAttrFcstAvail();
         this.editableAttrFcstTime = fSig.getEditableAttrFcstTime();
         this.editableAttrFcstCntr = fSig.getEditableAttrFcstCntr();
@@ -246,6 +250,7 @@ public class Sigmet extends AbstractSigmet {
         newSigmet.setEditableAttrLevelText1(this.getEditableAttrLevelText1());
         newSigmet.setEditableAttrLevelText2(this.getEditableAttrLevelText2());
         newSigmet.setEditableAttrFir(this.getEditableAttrFir());
+        newSigmet.setEditableAttrCarSamBackupMode(this.getEditableAttrCarSamBackupMode());
         newSigmet.setEditableAttrFcstVADesc(this.getEditableAttrFcstVADesc());
         newSigmet.setEditableAttrRALSelection(
                 this.getEditableAttrRALSelection());
@@ -484,6 +489,14 @@ public class Sigmet extends AbstractSigmet {
 
     public void setEditableAttrFir(String editableAttrFir) {
         this.editableAttrFir = editableAttrFir;
+    }
+
+    public String getEditableAttrCarSamBackupMode() {
+        return editableAttrCarSamBackupMode;
+    }
+
+    public void setEditableAttrCarSamBackupMode(String editableAttrCarSamBackupMode) {
+        this.editableAttrCarSamBackupMode = editableAttrCarSamBackupMode;
     }
 
     public String getEditableAttrRALSelection() {

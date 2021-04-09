@@ -83,7 +83,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  *                                      units when making an ellipsoid
  * Mar 15, 2021 86159       srussell    Added isValidLatLonArray method and 1
  *                                      call to it.
- *
+ * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
+ * 
  * </pre>
  *
  * @author gzhang
@@ -95,12 +96,18 @@ public class SigmetInfo {
             + IPathManager.SEPARATOR + "pgen" + IPathManager.SEPARATOR
             + "IntlSigmetIssueList.xml";
 
+    private static final String AWC_BACKUP_CARSAM_WMO_HEADERS = "ncep"
+            + IPathManager.SEPARATOR + "pgen" + IPathManager.SEPARATOR
+            + "AWCBackupCarSamWmoHeaders.xml";
+
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(SigmetInfo.class);
 
     public static List<Station> VOLCANO_STATION_LIST;
 
     public static IntlSigmetIssueList availableOffices;
+
+    public static AWCBackupCarSamWmoHeaders awcBackupCarSamWmoHeaders;
 
     public static final String[] SIGMET_TYPES = new String[] { "INTL", "CONV",
             "NCON", "AIRM", "OUTL" };// should be consistent with plugin.xml
@@ -172,6 +179,8 @@ public class SigmetInfo {
 
             availableOffices = readAvailableOfficesList();
 
+            awcBackupCarSamWmoHeaders= readAWCBackupCarSamWmoHeaders();
+
             String[] officeNames = availableOffices.getOffices().stream()
                     .map(IssueOffice::getName).toArray(String[]::new);
             AREA_MAP.put(SIGMET_TYPES[0], officeNames);
@@ -215,6 +224,31 @@ public class SigmetInfo {
             }
         }
         return SIGMET_TYPES[0]; // default INTL
+    }
+
+    private static AWCBackupCarSamWmoHeaders readAWCBackupCarSamWmoHeaders() {
+        PathManager pm = (PathManager) PathManagerFactory.getPathManager();
+        ILocalizationFile lFile = pm.getStaticLocalizationFile(
+                LocalizationType.CAVE_STATIC, AWC_BACKUP_CARSAM_WMO_HEADERS);
+        if (lFile != null) {
+
+            try (InputStream is = lFile.openInputStream()) {
+
+                SingleTypeJAXBManager<AWCBackupCarSamWmoHeaders> sTypeJAXB = SingleTypeJAXBManager
+                        .createWithoutException(
+                                AWCBackupCarSamWmoHeaders.class);
+
+                AWCBackupCarSamWmoHeaders awcBackupCarSamWmoHeaders = sTypeJAXB
+                        .unmarshalFromInputStream(is);
+
+                return awcBackupCarSamWmoHeaders;
+
+            } catch (SerializationException | LocalizationException
+                    | IOException e) {
+                statusHandler.error("Unable to read AWCBackupCarSamWmoHeaders", e);
+            }
+        }
+        return new AWCBackupCarSamWmoHeaders();
     }
 
     private static IntlSigmetIssueList readAvailableOfficesList() {

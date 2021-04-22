@@ -84,7 +84,7 @@
          id="org.apache.thrift"
          download-size="0"
          install-size="0"
-         version="0.14.0"/>
+         version="0.10.0"/>
 
    <plugin
          id="org.geotools"

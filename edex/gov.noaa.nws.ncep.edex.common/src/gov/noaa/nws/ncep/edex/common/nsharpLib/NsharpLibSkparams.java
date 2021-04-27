@@ -1,5 +1,7 @@
 package gov.noaa.nws.ncep.edex.common.nsharpLib;
 
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.DendriticZone;
+
 /**
  * 
  * 
@@ -16,6 +18,15 @@ package gov.noaa.nws.ncep.edex.common.nsharpLib;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 02/25/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement Phase 1&2
+ * 06/19/2017   RM#34793    Chin Chen   Add support of max lapse rate
+ * 07/10/2017   RM#34796    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Reformat the lower left data page
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and 
+ *                                      the "modified SHERBE" parameter,..etc.
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  *
  * </pre>
  * 
@@ -45,7 +56,7 @@ public class NsharpLibSkparams {
     /* maxTemp = Returned max temp (c) */
     /* mixlyr = Assumed depth of mixing layer [-1=100mb] */
     /*************************************************************/
-    {
+    {    
         float maxTemp, temp, sfcpres;
 
         maxTemp = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
@@ -144,20 +155,20 @@ public class NsharpLibSkparams {
         totd = 0;
         totp = 0;
         if(foundHi && foundLow){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (sndLys.get(i).getDewpoint() != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA) {
-        			/* ----- Calculate every level that reports a dwpt ----- */
-        			dp2 = sndLys.get(i).getDewpoint();
-        			p2 = sndLys.get(i).getPressure();
-        			dbar = (dp1 + dp2) / 2.0f;
-        			pbar = (p1 + p2) / 2.0f;
-        			totd = totd + dbar;
-        			totp = totp + pbar;
-        			dp1 = dp2;
-        			p1 = p2;
-        			num++;
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (sndLys.get(i).getDewpoint() != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA) {
+                    /* ----- Calculate every level that reports a dwpt ----- */
+                    dp2 = sndLys.get(i).getDewpoint();
+                    p2 = sndLys.get(i).getPressure();
+                    dbar = (dp1 + dp2) / 2.0f;
+                    pbar = (p1 + p2) / 2.0f;
+                    totd = totd + dbar;
+                    totp = totp + pbar;
+                    dp1 = dp2;
+                    p1 = p2;
+                    num++;
+                }
+            }
         }
 
         /* ----- Finish with interpolated top layer ----- */
@@ -252,26 +263,26 @@ public class NsharpLibSkparams {
         pmax = lowerLayerPres;
 
         if(foundHi && foundLow){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
-        			/* ----- Calculate every level that reports a dwpt ----- */
-        			pres = sndLys.get(i).getPressure();
-        			temp = sndLys.get(i).getTemperature();
-        			dwpt = sndLys.get(i).getDewpoint();
-        			sndLy = NsharpLibThermo.drylift(pres, temp, dwpt);
-        			if (sndLy != null) {
-        				p2 = sndLy.getPressure();
-        				t2 = sndLy.getTemperature();
-        			} else {
-        				continue; // skip this layer
-        			}
-        			t1 = NsharpLibThermo.wetlift(p2, t2, 1000.0f);
-        			if (t1 > tmax) {
-        				tmax = t1;
-        				pmax = pres;
-        			}
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
+                    /* ----- Calculate every level that reports a dwpt ----- */
+                    pres = sndLys.get(i).getPressure();
+                    temp = sndLys.get(i).getTemperature();
+                    dwpt = sndLys.get(i).getDewpoint();
+                    sndLy = NsharpLibThermo.drylift(pres, temp, dwpt);
+                    if (sndLy != null) {
+                        p2 = sndLy.getPressure();
+                        t2 = sndLy.getTemperature();
+                    } else {
+                        continue; // skip this layer
+                    }
+                    t1 = NsharpLibThermo.wetlift(p2, t2, 1000.0f);
+                    if (t1 > tmax) {
+                        tmax = t1;
+                        pmax = pres;
+                    }
+                }
+            }
         }
         /* ----- Finish with interpolated top layer ----- */
         sndLy = NsharpLibThermo.drylift(upperLayerPres,
@@ -282,14 +293,14 @@ public class NsharpLibSkparams {
             t2 = sndLy.getTemperature();
             t1 = NsharpLibThermo.wetlift(p2, t2, 1000f);
             if (t1 > tmax) {
-            	int i = upperIndex+1;
-            	while(i <= sndLys.size() - 1){
+                int i = upperIndex+1;
+                while(i <= sndLys.size() - 1){
                     if(NsharpLibBasics.qc(sndLys.get(i).getDewpoint())){
                         pmax = sndLys.get(i).getPressure();
                         break;
                     }
                     i++;
-            	}
+                }
             }
         }
         return pmax;
@@ -371,21 +382,21 @@ public class NsharpLibSkparams {
         totd = 0;
         totp = 0;
         if(foundHi && foundLow){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
-        			/* ----- Calculate every level that reports a temp ----- */
-        			dp2 = NsharpLibThermo.theta(sndLys.get(i).getPressure(), sndLys
-        					.get(i).getTemperature(), 1000.0f);
-        			p2 = sndLys.get(i).getPressure();
-        			dbar = (dp1 + dp2) / 2.0f;
-        			pbar = (p1 + p2) / 2.0f;
-        			totd = totd + dbar;
-        			totp = totp + pbar;
-        			dp1 = dp2;
-        			p1 = p2;
-        			num++;
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
+                    /* ----- Calculate every level that reports a temp ----- */
+                    dp2 = NsharpLibThermo.theta(sndLys.get(i).getPressure(), sndLys
+                            .get(i).getTemperature(), 1000.0f);
+                    p2 = sndLys.get(i).getPressure();
+                    dbar = (dp1 + dp2) / 2.0f;
+                    pbar = (p1 + p2) / 2.0f;
+                    totd = totd + dbar;
+                    totp = totp + pbar;
+                    dp1 = dp2;
+                    p1 = p2;
+                    num++;
+                }
+            }
         }
 
         /* ----- Finish with interpolated top layer ----- */
@@ -2060,14 +2071,14 @@ public class NsharpLibSkparams {
     /* Value is returned. */
     /*************************************************************/
     {
-
-        if (!NsharpLibBasics.qc(NsharpLibBasics.i_vtmp(sndLys, lower))
-                || !NsharpLibBasics.qc(NsharpLibBasics.i_vtmp(sndLys, upper))) {
+        //Note: Since bigSharp2017Feb version, use i_temp to replace i_vtmp
+        if (!NsharpLibBasics.qc(NsharpLibBasics.i_temp(sndLys, lower))
+                || !NsharpLibBasics.qc(NsharpLibBasics.i_temp(sndLys, upper))) {
             return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         } else {
             float dt, dz;
-            dt = NsharpLibBasics.i_vtmp(sndLys, upper)
-                    - NsharpLibBasics.i_vtmp(sndLys, lower);
+            dt = NsharpLibBasics.i_temp(sndLys, upper)
+                    - NsharpLibBasics.i_temp(sndLys, lower);
             dz = NsharpLibBasics.i_hght(sndLys, upper)
                     - NsharpLibBasics.i_hght(sndLys, lower);
             return ((dt / dz) * -1000.0f);
@@ -2162,22 +2173,22 @@ public class NsharpLibSkparams {
         totd = 0;
         totp = 0;
         if(foundLow && foundHi){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
-        			/* ----- Calculate every level that reports a temp ----- */
-        			eqPotenTemp2 = NsharpLibThermo.thetae(sndLys.get(i)
-        					.getPressure(), sndLys.get(i).getTemperature(), sndLys
-        					.get(i).getDewpoint());
-        			p2 = sndLys.get(i).getPressure();
-        			dbar = (eqPotenTemp1 + eqPotenTemp2) / 2.0f;
-        			pbar = (p1 + p2) / 2.0f;
-        			totd = totd + dbar;
-        			totp = totp + pbar;
-        			eqPotenTemp1 = eqPotenTemp2;
-        			p1 = p2;
-        			num++;
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
+                    /* ----- Calculate every level that reports a temp ----- */
+                    eqPotenTemp2 = NsharpLibThermo.thetae(sndLys.get(i)
+                            .getPressure(), sndLys.get(i).getTemperature(), sndLys
+                            .get(i).getDewpoint());
+                    p2 = sndLys.get(i).getPressure();
+                    dbar = (eqPotenTemp1 + eqPotenTemp2) / 2.0f;
+                    pbar = (p1 + p2) / 2.0f;
+                    totd = totd + dbar;
+                    totp = totp + pbar;
+                    eqPotenTemp1 = eqPotenTemp2;
+                    p1 = p2;
+                    num++;
+                }
+            }
         }
 
         /* ----- Finish with interpolated top layer ----- */
@@ -2376,24 +2387,24 @@ public class NsharpLibSkparams {
         totp = 0;
         tott = 0;
         if(foundHi && foundLow){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
-        			/* ----- Calculate every level that reports a dwpt ----- */
-        			dp2 = sndLys.get(i).getDewpoint();
-        			t2 = sndLys.get(i).getTemperature();
-        			p2 = sndLys.get(i).getPressure();
-        			tbar = (t1 + t2) / 2.0f;
-        			dbar = (dp1 + dp2) / 2.0f;
-        			pbar = (p1 + p2) / 2.0f;
-        			totd += dbar;
-        			totp += pbar;
-        			tott += tbar;
-        			dp1 = dp2;
-        			p1 = p2;
-        			t1 = t2;
-        			num++;
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())) {
+                    /* ----- Calculate every level that reports a dwpt ----- */
+                    dp2 = sndLys.get(i).getDewpoint();
+                    t2 = sndLys.get(i).getTemperature();
+                    p2 = sndLys.get(i).getPressure();
+                    tbar = (t1 + t2) / 2.0f;
+                    dbar = (dp1 + dp2) / 2.0f;
+                    pbar = (p1 + p2) / 2.0f;
+                    totd += dbar;
+                    totp += pbar;
+                    tott += tbar;
+                    dp1 = dp2;
+                    p1 = p2;
+                    t1 = t2;
+                    num++;
+                }
+            }
         }
         /* ----- Finish with interpolated top layer ----- */
         if (NsharpLibBasics.qc(NsharpLibBasics.i_dwpt(sndLys, upper))) {
@@ -2863,103 +2874,103 @@ public class NsharpLibSkparams {
         mdrct = sfclyr.getWindDirection();
         msped = sfclyr.getWindSpeed();
         for (int ii = sfcIndex; ii < sndLys.size() - 1; ii++) {
-        	lyr = sndLys.get(ii);
-        	if(!NsharpLibBasics.qc(lyr.getTemperature())){
-        		continue;
-        	}
-        	int plusIndex = ii+1;
-        	lyrPlus = sndLys.get(plusIndex);
-        	while(!NsharpLibBasics.qc(lyrPlus.getTemperature())){
-        		// skip layers with no valid temperature
-        		plusIndex++;
-        		if(plusIndex > sndLys.size() - 1){
-        			// reach end of layers list, can not continue
-        			return new MixHeight();
-        		}
-        		lyrPlus = sndLys.get(plusIndex);
-        	}
+            lyr = sndLys.get(ii);
+            if(!NsharpLibBasics.qc(lyr.getTemperature())){
+                continue;
+            }
+            int plusIndex = ii+1;
+            lyrPlus = sndLys.get(plusIndex);
+            while(!NsharpLibBasics.qc(lyrPlus.getTemperature())){
+                // skip layers with no valid temperature
+                plusIndex++;
+                if(plusIndex > sndLys.size() - 1){
+                    // reach end of layers list, can not continue
+                    return new MixHeight();
+                }
+                lyrPlus = sndLys.get(plusIndex);
+            }
 
-        	if(flag == 0){
-        		savedCurrentLyr = lyr;
-        		drct = savedCurrentLyr.getWindDirection();
-            	sped = savedCurrentLyr.getWindSpeed();
-        		// surface based, always use surface layer as lower layer 
-        		lyr = sfclyr;
-        	}else {
-        	    drct = lyr.getWindDirection();
-        	    sped = lyr.getWindSpeed();
-        	}
-        	/* ----- Calculate Lapse Rate ----- */
-        	dt = lyrPlus.getTemperature() - lyr.getTemperature();
-        	dz = lyrPlus.getGeoHeight() - lyr.getGeoHeight();
-        	lapser = (dt / dz) * -1000;
+            if(flag == 0){
+                savedCurrentLyr = lyr;
+                drct = savedCurrentLyr.getWindDirection();
+                sped = savedCurrentLyr.getWindSpeed();
+                // surface based, always use surface layer as lower layer 
+                lyr = sfclyr;
+            }else {
+                drct = lyr.getWindDirection();
+                sped = lyr.getWindSpeed();
+            }
+            /* ----- Calculate Lapse Rate ----- */
+            dt = lyrPlus.getTemperature() - lyr.getTemperature();
+            dz = lyrPlus.getGeoHeight() - lyr.getGeoHeight();
+            lapser = (dt / dz) * -1000;
 
 
-        	/* ----- Store Maximum Wind Data ----- */
-        	
-        	if (sped > msped) {
-        		mdrct = drct;
-        		msped = sped;
-        	}
+            /* ----- Store Maximum Wind Data ----- */
+            
+            if (sped > msped) {
+                mdrct = drct;
+                msped = sped;
+            }
 
-        	if (lapser < thresh)  {
-        		// yes, it is a stable layer
-        		if(ii == sfcIndex){// || (flag ==0 && ii == sfcIndex+1)){
-        			// first level is already stable, handle it differently from other level
-        			mh_pres = lyr.getPressure();
-        			mh_drct = lyr.getWindDirection();
-        			mh_sped = lyr.getWindSpeed();
-        			mh_dC = -dt;
-        			mh_lr = lapser;
-        			mh_drct_max =  lyr.getWindDirection();;
-        			mh_sped_max =  lyr.getWindSpeed();
-        			MixHeight mixHeight = new MixHeight(mh_pres, mh_drct,
-        					mh_sped, mh_dC, mh_lr, mh_drct_max, mh_sped_max);
-        			return mixHeight;
-        		}
-        		/* ----- Above Mixing Height ----- */
-        		if(flag != 0){
-        			/* ----- Calculate Previous Rate ----- */
-        			int minusIndex = ii-1;
-        			NcSoundingLayer lyrMinus=null;  
-        			// find valid layer minus
-        			while(minusIndex >= 0){
-        				// skip layers with no valid temperature
-        				lyrMinus  = sndLys.get(minusIndex);
-        				if(NsharpLibBasics.qc(lyrMinus.getTemperature())){
-        					break;
-        				}     
-        				else {
-        					minusIndex--;
-        					if(minusIndex<0){
-        						return new MixHeight();
-        					}
-        				}
-        			}
-        			dt = lyr.getTemperature() - lyrMinus.getTemperature();
-        			dz = lyr.getGeoHeight() - lyrMinus.getGeoHeight();
-        			lapser_1 = (dt / dz) * -1000;
-        			mh_pres = lyr.getPressure();
-            		mh_drct = lyr.getWindDirection();
-            		mh_sped = lyr.getWindSpeed();
-        		}
-        		else {
-        			dt = savedCurrentLyr.getTemperature() - sfclyr.getTemperature();
-        			dz = savedCurrentLyr.getGeoHeight() - sfclyr.getGeoHeight();
-        			lapser_1 = (dt / dz) * -1000;
-        			mh_pres = savedCurrentLyr.getPressure();
-            		mh_drct = savedCurrentLyr.getWindDirection();
-            		mh_sped = savedCurrentLyr.getWindSpeed();
-        		}
+            if (lapser < thresh)  {
+                // yes, it is a stable layer
+                if(ii == sfcIndex){// || (flag ==0 && ii == sfcIndex+1)){
+                    // first level is already stable, handle it differently from other level
+                    mh_pres = lyr.getPressure();
+                    mh_drct = lyr.getWindDirection();
+                    mh_sped = lyr.getWindSpeed();
+                    mh_dC = -dt;
+                    mh_lr = lapser;
+                    mh_drct_max =  lyr.getWindDirection();;
+                    mh_sped_max =  lyr.getWindSpeed();
+                    MixHeight mixHeight = new MixHeight(mh_pres, mh_drct,
+                            mh_sped, mh_dC, mh_lr, mh_drct_max, mh_sped_max);
+                    return mixHeight;
+                }
+                /* ----- Above Mixing Height ----- */
+                if(flag != 0){
+                    /* ----- Calculate Previous Rate ----- */
+                    int minusIndex = ii-1;
+                    NcSoundingLayer lyrMinus=null;  
+                    // find valid layer minus
+                    while(minusIndex >= 0){
+                        // skip layers with no valid temperature
+                        lyrMinus  = sndLys.get(minusIndex);
+                        if(NsharpLibBasics.qc(lyrMinus.getTemperature())){
+                            break;
+                        }     
+                        else {
+                            minusIndex--;
+                            if(minusIndex<0){
+                                return new MixHeight();
+                            }
+                        }
+                    }
+                    dt = lyr.getTemperature() - lyrMinus.getTemperature();
+                    dz = lyr.getGeoHeight() - lyrMinus.getGeoHeight();
+                    lapser_1 = (dt / dz) * -1000;
+                    mh_pres = lyr.getPressure();
+                    mh_drct = lyr.getWindDirection();
+                    mh_sped = lyr.getWindSpeed();
+                }
+                else {
+                    dt = savedCurrentLyr.getTemperature() - sfclyr.getTemperature();
+                    dz = savedCurrentLyr.getGeoHeight() - sfclyr.getGeoHeight();
+                    lapser_1 = (dt / dz) * -1000;
+                    mh_pres = savedCurrentLyr.getPressure();
+                    mh_drct = savedCurrentLyr.getWindDirection();
+                    mh_sped = savedCurrentLyr.getWindSpeed();
+                }
 
-        		mh_dC = -dt;
-        		mh_lr = lapser_1;
-        		mh_drct_max = mdrct;
-        		mh_sped_max = msped;
-        		MixHeight mixHeight1 = new MixHeight(mh_pres, mh_drct,
-        				mh_sped, mh_dC, mh_lr, mh_drct_max, mh_sped_max);
-        		return mixHeight1;
-        	}
+                mh_dC = -dt;
+                mh_lr = lapser_1;
+                mh_drct_max = mdrct;
+                mh_sped_max = msped;
+                MixHeight mixHeight1 = new MixHeight(mh_pres, mh_drct,
+                        mh_sped, mh_dC, mh_lr, mh_drct_max, mh_sped_max);
+                return mixHeight1;
+            }
         }
 
         MixHeight mixHeight = new MixHeight();
@@ -2980,7 +2991,7 @@ public class NsharpLibSkparams {
         /* Lift a MOST UNSTABLE Parcel */
         pres = unstbl_lvl(sndLys, -1, -1);
         if(pres == NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA){
-        	return 0;
+            return 0;
         }
         temp = NsharpLibBasics.i_temp(sndLys, pres);
         dwpt = NsharpLibBasics.i_dwpt(sndLys, pres);
@@ -3065,26 +3076,26 @@ public class NsharpLibSkparams {
         totd = 0;
         totp = 0;
         if(foundHi && foundLow){
-        	for (int i = lowIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())
-        				&& NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
-        			/*
-        			 * ----- Calculate every level that reports a temp & dew point
-        			 * -----
-        			 */
-        			dp2 = NsharpLibThermo.wetbulb(sndLys.get(i).getPressure(),
-        					sndLys.get(i).getTemperature(), sndLys.get(i)
-        					.getDewpoint());
-        			p2 = sndLys.get(i).getPressure();
-        			dbar = (dp1 + dp2) / 2.0f;
-        			pbar = (p1 + p2) / 2.0f;
-        			totd = totd + dbar;
-        			totp = totp + pbar;
-        			dp1 = dp2;
-        			p1 = p2;
-        			num++;
-        		}
-        	}
+            for (int i = lowIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getDewpoint())
+                        && NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
+                    /*
+                     * ----- Calculate every level that reports a temp & dew point
+                     * -----
+                     */
+                    dp2 = NsharpLibThermo.wetbulb(sndLys.get(i).getPressure(),
+                            sndLys.get(i).getTemperature(), sndLys.get(i)
+                            .getDewpoint());
+                    p2 = sndLys.get(i).getPressure();
+                    dbar = (dp1 + dp2) / 2.0f;
+                    pbar = (p1 + p2) / 2.0f;
+                    totd = totd + dbar;
+                    totp = totp + pbar;
+                    dp1 = dp2;
+                    p1 = p2;
+                    num++;
+                }
+            }
         }
         /* ----- Finish with interpolated top layer ----- */
         dp2 = NsharpLibThermo.wetbulb(upper,
@@ -3160,20 +3171,20 @@ public class NsharpLibSkparams {
         totTemp = 0;
         totPress = 0;
         if(foundHi && foundLow){
-        	for (int i = lowerIndex; i <= upperIndex; i++) {
-        		if (NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
-        			/* ----- Calculate every level that reports a temp ----- */
-        			temp2 = sndLys.get(i).getTemperature();
-        			press2 = sndLys.get(i).getPressure();
-        			tempBar = (temp1 + temp2) / 2.0f;
-        			pressBar = (press1 + press2) / 2.0f;
-        			totTemp = totTemp + tempBar;
-        			totPress = totPress + pressBar;
-        			temp1 = temp2;
-        			press1 = press2;
-        			numLayer++;
-        		}
-        	}
+            for (int i = lowerIndex; i <= upperIndex; i++) {
+                if (NsharpLibBasics.qc(sndLys.get(i).getTemperature())) {
+                    /* ----- Calculate every level that reports a temp ----- */
+                    temp2 = sndLys.get(i).getTemperature();
+                    press2 = sndLys.get(i).getPressure();
+                    tempBar = (temp1 + temp2) / 2.0f;
+                    pressBar = (press1 + press2) / 2.0f;
+                    totTemp = totTemp + tempBar;
+                    totPress = totPress + pressBar;
+                    temp1 = temp2;
+                    press1 = press2;
+                    numLayer++;
+                }
+            }
         }
         /* ----- Finish with interpolated top layer ----- */
         temp2 = NsharpLibBasics.i_temp(sndLys, upper);
@@ -3288,4 +3299,169 @@ public class NsharpLibSkparams {
 
         return (fmdc * (float) Math.sqrt(1 + u_sq)) / 0.3002f;
     }
+    
+    public static float maxtevv (List<NcSoundingLayer> sndLys)
+    /*************************************************************/
+    /*  Max product of theta-e difference and mean omega         */
+    /*  Rich Thompson SPC OUN                                    */
+    /*                                                           */
+    /*  Calculates the product of theta-e difference and omega   */
+    /*  in 2 km deep layers every 0.5 km from surface to 6 km.   */
+    /*  The max product is returned.                             */
+    /*                                                           */ 
+    /*  Ported from bigSharp9.3-2017feb27                        */
+    /*  Note: a bug in original code is found and fixed when     */
+    /*  computing the_top. The error is confirmed by original    */
+    /*  author John Hart                                         */
+    /*************************************************************/
+    {
+        float z, maxe = 0.0f, the_bot, the_top, pres_bot, pres_top, the = -999.0f, 
+                uvv=NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA, uvv_top, uvv_bot;
+
+        /* loop through 2km layers every 500 m AGL up to 6 km */
+        for (z=0; z<=4000; z+=500) {    
+            /* Theta-e top and bottom of 2km layer */
+            float zPress = NsharpLibBasics.i_pres(sndLys,NsharpLibBasics.msl(sndLys,z));
+            the_bot = NsharpLibThermo.thetae(zPress, 
+                    NsharpLibBasics.i_temp(sndLys,zPress), 
+                    NsharpLibBasics.i_dwpt(sndLys,zPress));
+            float z2000Press = NsharpLibBasics.i_pres(sndLys,NsharpLibBasics.msl(sndLys,z+2000));
+            // Note: original code has a bug that its first parameter input for thetae z+2000 level for tht_top
+            // is wrong. Original code use this, i_pres(msl(z)+2000), but the correct one should be, i_pres(msl(z+2000))
+            // This error is confirmed by original author: John Hart
+            the_top = NsharpLibThermo.thetae(z2000Press,
+                    NsharpLibBasics.i_temp(sndLys,z2000Press),
+                    NsharpLibBasics.i_dwpt(sndLys,z2000Press));
+            the = (the_bot - the_top);
+
+            if (the > maxe) {
+                maxe = the;
+                pres_bot = NsharpLibBasics.i_pres(sndLys,NsharpLibBasics.msl(sndLys,z));
+                uvv_bot = NsharpLibBasics.i_omeg(sndLys,pres_bot);
+                pres_top = NsharpLibBasics.i_pres(sndLys,NsharpLibBasics.msl(sndLys,z+2000));
+                uvv_top = NsharpLibBasics.i_omeg(sndLys,pres_top);
+                uvv = ((uvv_bot + uvv_top)/2)*-100; // convert to Pa per sec
+            }
+        }
+        float maxte =  (maxe * uvv );
+        if (maxte < 0) { 
+            maxte = 0; 
+        }
+
+        return maxte;
+    }
+    
+    public static DendriticZone dend_layer(List<NcSoundingLayer> sndLys)
+    /*************************************************************/
+    /*  DEND_LYR                                                 */
+    /*                                                           */
+    /*  Calculates the top and bottom levels (mb) of the lowest  */
+    /*  dendritic growth zone (-12 to -17 C).                    */
+    /*                                                           */
+    /*  *top        =  Returned top level (mb).                  */
+    /*  *bot        =  Returned bottom level (mb).               */
+    /*  Ported from bigSharp9.3-2017feb27                        */
+    /*************************************************************/
+    {
+    float  p0, p1, t0, t1, temp;
+    double nm1, nm2, nm3;
+    
+    DendriticZone dendLyr = new DendriticZone();
+    boolean topFound = false;
+    for (int i=sndLys.size()-1; i >= 0; i--) {
+    	// Find top of dendritic layer (first point warmer than -17C)
+    	temp = -17;
+    	if(!NsharpLibBasics.qc(sndLys.get(i).getTemperature()) || 
+    			!NsharpLibBasics.qc(sndLys.get(i).getPressure())){
+    		continue;
+    	}
+    	float iTemp = sndLys.get(i).getTemperature();
+    	if ((!topFound) && (iTemp >= temp)) {
+    		if (i == 0) {
+    			return null;
+    		}
+    		if (iTemp == temp) {
+    			dendLyr.setTopPress(sndLys.get(i).getPressure());
+    			dendLyr.setTopHeight(NsharpLibBasics.mtof(sndLys.get(i).getGeoHeight()));
+    			topFound = true;
+    		}
+    		else {
+    			if (i==sndLys.size()-1){
+    				continue;
+    			}
+    			if(!NsharpLibBasics.qc(sndLys.get(i+1).getTemperature()) || 
+    	    			!NsharpLibBasics.qc(sndLys.get(i+1).getPressure())){
+    	    		continue;
+    	    	}
+    			if (sndLys.get(i+1).getTemperature() == temp) {
+    				dendLyr.setTopPress(sndLys.get(i+1).getPressure());
+    				dendLyr.setTopHeight(NsharpLibBasics.mtof(sndLys.get(i+1).getGeoHeight()));
+        			topFound = true;
+    			}
+    			else {
+    				p0 = sndLys.get(i).getPressure();
+    				p1 = sndLys.get(i+1).getPressure();
+    				t0 = sndLys.get(i).getTemperature();
+    				t1 = sndLys.get(i+1).getTemperature();
+    				nm1 = temp - t0;
+    				nm2 = t1 - t0;
+    				nm3 = Math.log(p1 / p0);
+    				float topP = (float)(p0 * Math.exp((nm1 / nm2) * nm3));
+    				dendLyr.setTopPress( topP);
+    				dendLyr.setTopHeight(NsharpLibBasics.mtof(NsharpLibBasics.i_hght(sndLys, topP)));
+    				topFound = true;
+    				//printf("DEND top 0 P0:%.1f, P1:%.1f, T0:%.1f, T1:%.1f.\n", p0, p1, t0, t1);
+    			}
+    		}
+    	}
+
+    	// Find bottom of dendritic layer (next time a point is warmer than -12C or colder than -17C)
+    	if (topFound ) {
+    		if ((iTemp >= -12) || (iTemp <= -17)) {
+    			if(iTemp >= -12){
+    				temp = -12;
+    			}
+    			else{
+    				temp = -17;
+    			}
+    			if (i == 0) {
+    				return null;
+    			}
+    			if (iTemp == temp) {
+    				dendLyr.setBottomPress(sndLys.get(i).getPressure());
+    				dendLyr.setBottomHeight(NsharpLibBasics.mtof(sndLys.get(i).getGeoHeight()));
+    				return dendLyr;
+    			}
+    			else { 
+    				if(!NsharpLibBasics.qc(sndLys.get(i+1).getTemperature()) || 
+        	    			!NsharpLibBasics.qc(sndLys.get(i+1).getPressure())){
+        	    		continue;
+        	    	}
+    				if (sndLys.get(i+1).getTemperature() == temp){
+    					dendLyr.setBottomPress(sndLys.get(i+1).getPressure());
+    					dendLyr.setBottomHeight(NsharpLibBasics.mtof(sndLys.get(i+1).getGeoHeight()));
+    					return dendLyr;
+    				}
+    				else {
+    					p0 = sndLys.get(i).getPressure();
+    					p1 = sndLys.get(i+1).getPressure();
+    					t0 = sndLys.get(i).getTemperature();
+    					t1 = sndLys.get(i+1).getTemperature();
+    					nm1 = temp - t0;
+    					nm2 = t1 - t0;
+    					nm3 = Math.log(p1 / p0);
+    					float botP = (float)(p0 * Math.exp((nm1 / nm2) * nm3));
+    					dendLyr.setBottomPress(botP);
+    					dendLyr.setBottomHeight((NsharpLibBasics.mtof(NsharpLibBasics.i_hght(sndLys, botP))));
+    					return dendLyr;
+    				}
+    			}
+    		}
+    	}
+    }
+    // JAH 12/12/2016 - If the routine gets this far, then the surface is the bottom of the dend layer.
+    dendLyr.setBottomPress(NsharpLibBasics.sfcPressure(sndLys));
+    dendLyr.setBottomHeight(NsharpLibBasics.mtof(NsharpLibBasics.sfcHeight(sndLys)));
+    return dendLyr;
+    } 
 }

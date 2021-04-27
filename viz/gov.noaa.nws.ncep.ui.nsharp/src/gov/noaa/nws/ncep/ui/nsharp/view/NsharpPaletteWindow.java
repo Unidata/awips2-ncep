@@ -82,7 +82,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             compareStnBtn, compareSndBtn, compareTmBtn, graphEditBtn,
             graphModeBtnSkew, graphModeBtnIcing, graphModeBtnTurb,
             graphModeBtnHodo, effBulkShearBtn, stpBtn, shipBtn, winterBtn,
-            fireBtn, hailBtn, sarsBtn, cfgBtn;
+            fireBtn, hailBtn, sarsBtn, cfgBtn, vrotBtn, condTorBtn;
 
     private Shell shell;
 
@@ -148,6 +148,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
     private static NsharpConstants.SPCGraph rightGraph = NsharpConstants.SPCGraph.STP;
 
+    private float userVrot = 0;
+    
     private boolean spcGpCreated = false;
 
     private boolean imD2d = false;
@@ -387,9 +389,21 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         } else {
             sarsBtn.setBackground(colorGrey);
         }
+        if ((leftGraph == NsharpConstants.SPCGraph.VROT)
+                || (rightGraph == NsharpConstants.SPCGraph.VROT)) {
+            vrotBtn.setBackground(colorBlue);
+        } else {
+            vrotBtn.setBackground(colorGrey);
+        }
+        if ((leftGraph == NsharpConstants.SPCGraph.CONDTOR)
+                || (rightGraph == NsharpConstants.SPCGraph.CONDTOR)) {
+            condTorBtn.setBackground(colorBlue);
+        } else {
+        	condTorBtn.setBackground(colorGrey);
+        }
         NsharpResourceHandler rsc = getRscHandler();
         if ((rsc != null) && (rsc.getSpcGraphsPaneRsc() != null)) {
-            rsc.getSpcGraphsPaneRsc().setGraphs(leftGraph, rightGraph);
+            rsc.getSpcGraphsPaneRsc().setGraphs(leftGraph, rightGraph, userVrot);
         }
 
     }
@@ -1423,6 +1437,53 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
+        vrotBtn = new Button(spcGp, SWT.PUSH);
+        vrotBtn.setFont(newFont);
+        vrotBtn.setText("    Vrot    ");
+        if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+            vrotBtn.setEnabled(true);
+        } else {
+            vrotBtn.setEnabled(false);
+        }
+        vrotBtn.addListener(SWT.MouseUp, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+            	Shell shell = PlatformUI.getWorkbench()
+                        .getActiveWorkbenchWindow().getShell();
+            	NsharpVrotDialog vrotDialog = NsharpVrotDialog
+                        .getInstance(shell);
+                if (vrotDialog != null) {
+                	vrotDialog.open();
+                	userVrot = vrotDialog.getVrotValue();
+                }
+                if ((leftGraph != NsharpConstants.SPCGraph.VROT)
+                        && (rightGraph != NsharpConstants.SPCGraph.VROT)) {
+                    rightGraph = leftGraph;
+                    leftGraph = NsharpConstants.SPCGraph.VROT;                    
+                }
+                // always update spc graph as vrot value may be changed
+                updateSPCGraphs();
+            }
+        });
+        condTorBtn = new Button(spcGp, SWT.PUSH);
+        condTorBtn.setFont(newFont);
+        condTorBtn.setText("CondTOR");
+        if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+            condTorBtn.setEnabled(true);
+        } else {
+            condTorBtn.setEnabled(false);
+        }
+        condTorBtn.addListener(SWT.MouseUp, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if ((leftGraph != NsharpConstants.SPCGraph.CONDTOR)
+                        && (rightGraph != NsharpConstants.SPCGraph.CONDTOR)) {
+                    rightGraph = leftGraph;
+                    leftGraph = NsharpConstants.SPCGraph.CONDTOR;
+                    updateSPCGraphs();
+                }
+            }
+        });
         updateSPCGraphs();
         spcGpCreated = true;
         parent.layout();
@@ -1439,8 +1500,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         fireBtn.dispose();
         hailBtn.dispose();
         sarsBtn.dispose();
+        vrotBtn.dispose();
+        condTorBtn.dispose();
         spcGp.dispose();
-
         nextInsetBtn = null;
         prevInsetBtn = null;
         insetGp = null;
@@ -1451,7 +1513,10 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         fireBtn = null;
         hailBtn = null;
         sarsBtn = null;
+        vrotBtn = null;
+        condTorBtn = null;
         spcGp = null;
+        
     }
 
     public boolean isEditorVisible() {

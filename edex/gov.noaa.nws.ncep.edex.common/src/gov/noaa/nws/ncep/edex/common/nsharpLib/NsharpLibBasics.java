@@ -15,6 +15,12 @@ package gov.noaa.nws.ncep.edex.common.nsharpLib;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 02/25/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement Phase 1&2
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and 
+ *                                      the "modified SHERBE" parameter,..etc.
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  *
  * </pre>
  * 
@@ -160,6 +166,19 @@ public class NsharpLibBasics {
             return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         }
     }
+    
+    public static float sfcHeight(List<NcSoundingLayer> sndLys) {
+        /*************************************************************/
+        /* sfcHeight */
+        /* return a valid surface layer's height */
+        /*************************************************************/
+        NcSoundingLayer sfcLy = sfc(sndLys);
+        if (sfcLy != null) {
+            return sfcLy.getGeoHeight();
+        } else {
+            return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+        }
+    }
 
     public static float sfcTemperature(List<NcSoundingLayer> sndLys) {
         /*************************************************************/
@@ -169,6 +188,19 @@ public class NsharpLibBasics {
         NcSoundingLayer sfcLy = sfc(sndLys);
         if (sfcLy != null) {
             return sfcLy.getTemperature();
+        } else {
+            return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+        }
+    }
+    
+    public static float sfcDewPoint(List<NcSoundingLayer> sndLys) {
+        /*************************************************************/
+        /* sfcDewpoint */
+        /* return a valid surface layer's dew point */
+        /*************************************************************/
+        NcSoundingLayer sfcLy = sfc(sndLys);
+        if (sfcLy != null) {
+            return sfcLy.getDewpoint();
         } else {
             return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         }

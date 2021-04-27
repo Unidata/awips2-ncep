@@ -14,6 +14,8 @@ package gov.noaa.nws.ncep.edex.common.nsharpLib;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 02/25/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement Phase 1&2
+ * 07/10/2017   RM#34796    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                     - Reformat the lower left data page
  *
  * </pre>
  * 
@@ -36,22 +38,22 @@ public class NsharpLibSndglib {
     public static final UnitConverter kelvinToCelsius = SI.KELVIN
             .getConverterTo(SI.CELSIUS);
 
-    // PARCEL type flags to be used for define_parcel() as defined in BigNsharp
+    // PARCEL type flags to be used for define_parcel()
     public static final int PARCELTYPE_NULL = -1;
 
     public static final int PARCELTYPE_OBS_SFC = 1;
+    
+    public static final int PARCELTYPE_MEAN_MIXING = 2;
+    
+    public static final int PARCELTYPE_FCST_SFC = 3;
+    
+    public static final int PARCELTYPE_MOST_UNSTABLE = 4;    
+    
+    public static final int PARCELTYPE_EFF = 5;
+    
+    public static final int PARCELTYPE_USER_DEFINED = 6;
 
-    public static final int PARCELTYPE_FCST_SFC = 2;
-
-    public static final int PARCELTYPE_MOST_UNSTABLE = 3;// BigNsharp
-
-    public static final int PARCELTYPE_MEAN_MIXING = 4; // BigNsharp
-
-    public static final int PARCELTYPE_USER_DEFINED = 5;
-
-    public static final int PARCELTYPE_EFF = 6; // BigNsharp
-
-    public static final int PARCEL_MAX = PARCELTYPE_EFF;
+    public static final int PARCEL_MAX = PARCELTYPE_USER_DEFINED;
 
     public static final int PARCEL_D2DLITE_MAX = PARCELTYPE_MOST_UNSTABLE; // d2dlite
 

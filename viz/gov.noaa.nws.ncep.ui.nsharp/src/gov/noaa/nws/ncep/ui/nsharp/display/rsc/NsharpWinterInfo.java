@@ -15,6 +15,9 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  *
  * </pre>
  * 
@@ -26,6 +29,7 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSkparams;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.DendriticZone;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
 
@@ -63,10 +67,12 @@ public class NsharpWinterInfo {
     private String bestGuess1;
 
     private String bestGuess2;
+    
+    private DendriticZone dendZone;
 
     public NsharpWinterInfo() {
         super();
-
+        dendZone = new DendriticZone();
     }
 
     class PosnegTemp {
@@ -320,16 +326,35 @@ public class NsharpWinterInfo {
         String initStr = "N/A";
 
         /* Do dendritic growth zone calculations between -12C and -17C */
-        ptop = NsharpLibSkparams.temp_lvl(soundingLys, -17);
-        pbot = NsharpLibSkparams.temp_lvl(soundingLys, -12);
-        if (ptop < 0) {
-            ptop = NsharpLibBasics.sfcPressure(soundingLys);
+        DendriticZone dendriticZone = NsharpLibSkparams.dend_layer(soundingLys);
+        if(dendriticZone == null){
+        	ptop = NsharpLibBasics.sfcPressure(soundingLys);
+        	pbot = NsharpLibBasics.sfcPressure(soundingLys);
+        	htop = NsharpLibBasics.mtof(NsharpLibBasics.sfcHeight(soundingLys));
+        	hbot = NsharpLibBasics.mtof(NsharpLibBasics.sfcHeight(soundingLys));
         }
-        if (pbot < 0) {
-            pbot = NsharpLibBasics.sfcPressure(soundingLys);
-        }
-        htop = NsharpLibBasics.i_hght(soundingLys, ptop);
-        hbot = NsharpLibBasics.i_hght(soundingLys, pbot);
+        else {
+        	if(!NsharpLibBasics.qc(dendriticZone.getTopPress())){
+        		ptop = NsharpLibBasics.sfcPressure(soundingLys);
+        		htop = NsharpLibBasics.mtof(NsharpLibBasics.sfcHeight(soundingLys));
+        	}
+        	else {
+        		ptop = dendriticZone.getTopPress();
+        		htop = dendriticZone.getTopHeight();
+        	}
+        	if(!NsharpLibBasics.qc(dendriticZone.getBottomPress())){
+        		pbot = NsharpLibBasics.sfcPressure(soundingLys);
+        		hbot = NsharpLibBasics.mtof(NsharpLibBasics.sfcHeight(soundingLys));
+        	}
+        	else {
+        		pbot = dendriticZone.getBottomPress();
+        		hbot = dendriticZone.getBottomHeight();
+        	}
+        }   
+        winterInfo.dendZone.setTopHeight(htop);
+        winterInfo.dendZone.setTopPress(ptop);
+        winterInfo.dendZone.setBottomHeight(hbot);
+        winterInfo.dendZone.setBottomPress(pbot);
         mrh = NsharpLibSkparams.mean_relhum(soundingLys, pbot, ptop);
         mq = NsharpLibSkparams.mean_mixratio(soundingLys, pbot, ptop);
         mo = NsharpLibSkparams.mean_omeg(soundingLys, pbot, ptop) * 1000;
@@ -355,8 +380,7 @@ public class NsharpWinterInfo {
         winterInfo.setOprh(oprhStr);
         String layerDepth = String.format(
                 "Layer Depth:     %.0f ft (%.0f - %.0f ft msl)",
-                NsharpLibBasics.mtof(htop - hbot), NsharpLibBasics.mtof(hbot),
-                NsharpLibBasics.mtof(htop));
+                (htop - hbot), hbot, htop);
         winterInfo.setLayerDepth(layerDepth);
         String meanLayerRh;
         if (NsharpLibBasics.qc(mrh)) {
@@ -706,5 +730,13 @@ public class NsharpWinterInfo {
     public void setBestGuess2(String bestGuess2) {
         this.bestGuess2 = bestGuess2;
     }
+
+	public  DendriticZone getDendZone() {
+		return dendZone;
+	}
+
+	public void setDendZone(DendriticZone dendZone) {
+		dendZone = dendZone;
+	}
 
 }

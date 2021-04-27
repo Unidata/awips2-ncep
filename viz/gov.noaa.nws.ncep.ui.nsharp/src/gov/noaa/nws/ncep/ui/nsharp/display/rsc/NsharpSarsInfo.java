@@ -1,42 +1,42 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system. 
- * 
- * All methods developed in this class are based on the algorithm developed in BigSharp 
- * native C file, basics.c , by John A. Hart/SPC.
- * All methods name are defined with same name as the C function name defined in native code.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- * 
- */
-/**
- * SARS (Sounding Analog Retrieval System)
- */
+import java.util.ArrayList;
+import java.util.List;
+
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibWinds;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpNlistFile.NlistLineInfo;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSupFile.SupLineInfo;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpHailDataFile.HailDataLineInfo;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpSupercellDataFile.SupercellDataLineInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * All methods developed in this class are based on the algorithm developed in BigSharp
+ * native C file, basics.c , by John A. Hart/SPC.
+ * All methods name are defined with same name as the C function name defined in native code.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * May 22, 2018 20492   mgamazaychikov  Renamed references to NsharpSupFile and NsharpNlistFile.
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ *
+ */
+/**
+ * SARS (Sounding Analog Retrieval System)
+ */
 public class NsharpSarsInfo {
 
     private List<String> hailStr = new ArrayList<>();
@@ -61,7 +61,7 @@ public class NsharpSarsInfo {
      * This function is derived from show_sars() of xwvid3.c of BigNsharp by
      * John Hart NSSFC KCMO Rewrite code to get all computed parameters/string
      * for CAVE. All original BigNsharp gui functions are removed.
-     * 
+     *
      * @param sndLys
      * @param weatherDataStore
      * @return sarsInfo
@@ -70,10 +70,8 @@ public class NsharpSarsInfo {
             NsharpWeatherDataStore weatherDataStore) {
         NsharpSarsInfo sarsInfo = new NsharpSarsInfo();
 
-        Parcel mlParcel = weatherDataStore.getParcelMap().get(
-                NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
-        Parcel muParcel = weatherDataStore.getParcelMap().get(
-                NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+        Parcel mlParcel = weatherDataStore.getParcelMap().get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
+        Parcel muParcel = weatherDataStore.getParcelMap().get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
 
         if (muParcel == null || mlParcel == null) {
             return sarsInfo;
@@ -86,52 +84,33 @@ public class NsharpSarsInfo {
         /* Compute Hail Sars Data */
         float temp500 = NsharpLibBasics.i_temp(sndLys, 500);
         float lr75 = weatherDataStore.getSevenHundredTo500mbLapseRate();
-        float shr6 = NsharpLibBasics.kt_to_mps(weatherDataStore
-                .getStormTypeToWindShearMap().get("SFC-6km"));
-        float shr3 = NsharpLibBasics.kt_to_mps(weatherDataStore
-                .getStormTypeToWindShearMap().get("SFC-3km"));
-        WindComponent windComp9k = NsharpLibWinds.wind_shear(
-                sndLys,
-                NsharpLibBasics.sfcPressure(sndLys),
-                NsharpLibBasics.i_pres(sndLys,
-                        NsharpLibBasics.msl(sndLys, 9000)));
+        float shr6 = NsharpLibBasics.kt_to_mps(weatherDataStore.getStormTypeToWindShearMap().get("SFC-6km"));
+        float shr3 = NsharpLibBasics.kt_to_mps(weatherDataStore.getStormTypeToWindShearMap().get("SFC-3km"));
+        WindComponent windComp9k = NsharpLibWinds.wind_shear(sndLys, NsharpLibBasics.sfcPressure(sndLys),
+                NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, 9000)));
         float shr9 = NsharpLibBasics.kt_to_mps(windComp9k.getWspd());
-        float srh3 = weatherDataStore.getStormTypeToHelicityMap()
-                .get("SFC-3km").getTotalHelicity();
-        float srh1 = weatherDataStore.getStormTypeToHelicityMap()
-                .get("SFC-1km").getTotalHelicity();
+        float srh3 = weatherDataStore.getStormTypeToHelicityMap().get("SFC-3km").getTotalHelicity();
+        float srh1 = weatherDataStore.getStormTypeToHelicityMap().get("SFC-1km").getTotalHelicity();
         float pBot = weatherDataStore.getEffLyPress().getBottomPress();
-        float hBot = NsharpLibBasics.agl(sndLys,
-                NsharpLibBasics.i_hght(sndLys, pBot));
+        float hBot = NsharpLibBasics.agl(sndLys, NsharpLibBasics.i_hght(sndLys, pBot));
         if (hBot > 0) {
             float pTop = weatherDataStore.getEffLyPress().getTopPress();
-            float hTop = NsharpLibBasics.agl(sndLys,
-                    NsharpLibBasics.i_hght(sndLys, pTop));
+            float hTop = NsharpLibBasics.agl(sndLys, NsharpLibBasics.i_hght(sndLys, pTop));
 
-            WindComponent windComp = NsharpLibWinds.wind_shear(
-                    sndLys,
-                    pBot,
-                    NsharpLibBasics.i_pres(sndLys,
-                            NsharpLibBasics.msl(sndLys, hTop * 0.25f)));
+            WindComponent windComp = NsharpLibWinds.wind_shear(sndLys, pBot,
+                    NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, hTop * 0.25f)));
             shr3 = NsharpLibBasics.kt_to_mps(windComp.getWspd());
-            windComp = NsharpLibWinds.wind_shear(
-                    sndLys,
-                    pBot,
-                    NsharpLibBasics.i_pres(sndLys,
-                            NsharpLibBasics.msl(sndLys, hTop * 0.5f)));
+            windComp = NsharpLibWinds.wind_shear(sndLys, pBot,
+                    NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, hTop * 0.5f)));
             shr6 = NsharpLibBasics.kt_to_mps(windComp.getWspd());
-            windComp = NsharpLibWinds.wind_shear(
-                    sndLys,
-                    pBot,
-                    NsharpLibBasics.i_pres(sndLys,
-                            NsharpLibBasics.msl(sndLys, hTop * 0.75f)));
+            windComp = NsharpLibWinds.wind_shear(sndLys, pBot,
+                    NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, hTop * 0.75f)));
             shr9 = NsharpLibBasics.kt_to_mps(windComp.getWspd());
 
             // Note: original Bigsharp code, use pBot, and pTop as input
             // parameters. It is not correct, as input to helicity() should be
             // higher and lower level's AGL not pressure
-            srh3 = NsharpLibWinds.helicity(sndLys, hBot, hTop,
-                    weatherDataStore.getSmdir(), weatherDataStore.getSmspd())
+            srh3 = NsharpLibWinds.helicity(sndLys, hBot, hTop, weatherDataStore.getSmdir(), weatherDataStore.getSmspd())
                     .getTotalHelicity();
             // Not sure if following statement is correct, we just follow
             // original Bigsharp source code
@@ -158,9 +137,9 @@ public class NsharpSarsInfo {
          * BEGIN of sars()
          */
 
-        // read in nlist.txt contents
-        List<NlistLineInfo> nlistLineList = NsharpNlistFile.readNlistFile();
-        for (NlistLineInfo lineInfo : nlistLineList) {
+        // read in historicHailData.txt contents
+        List<HailDataLineInfo> hailDataLineList = NsharpHailDataFile.readHailDataFile();
+        for (HailDataLineInfo lineInfo : hailDataLineList) {
             // mixing ratio ranges (g/kg)
             float ranmr = 2;
             float ranmrt1 = 2;
@@ -204,37 +183,29 @@ public class NsharpSarsInfo {
             boolean km9Match = false;
             boolean shr3Match = false;
             boolean srhMatch = false;
-            if (mumixr > (lineInfo.getMixingRatio() - ranmr)
-                    && mumixr < (lineInfo.getMixingRatio() + ranmr)) {
+            if (mumixr > (lineInfo.getMixingRatio() - ranmr) && mumixr < (lineInfo.getMixingRatio() + ranmr)) {
                 mrMatch = true;
             }
-            if (mucape > (lineInfo.getCape() - rancape)
-                    && mucape < (lineInfo.getCape() + rancape)) {
+            if (mucape > (lineInfo.getCape() - rancape) && mucape < (lineInfo.getCape() + rancape)) {
                 capeMatch = true;
             }
-            if (lr75 > (lineInfo.getLapseRate75() - ranlr)
-                    && lr75 < (lineInfo.getLapseRate75() + ranlr)) {
+            if (lr75 > (lineInfo.getLapseRate75() - ranlr) && lr75 < (lineInfo.getLapseRate75() + ranlr)) {
                 lrMatch = true;
             }
-            if (temp500 > (lineInfo.getTemp500() - rantemp)
-                    && temp500 < (lineInfo.getTemp500() + rantemp)) {
+            if (temp500 > (lineInfo.getTemp500() - rantemp) && temp500 < (lineInfo.getTemp500() + rantemp)) {
                 tempMatch = true;
             }
-            if (shr6 > (lineInfo.getShear6km() - ranshr)
-                    && shr6 < (lineInfo.getShear6km() + ranshr)) {
+            if (shr6 > (lineInfo.getShear6km() - ranshr) && shr6 < (lineInfo.getShear6km() + ranshr)) {
                 shrMatch = true;
             }
-            if (shr9 > (lineInfo.getShear9km() - rankm9)
-                    && shr9 < (lineInfo.getShear9km() + rankm9)) {
+            if (shr9 > (lineInfo.getShear9km() - rankm9) && shr9 < (lineInfo.getShear9km() + rankm9)) {
                 km9Match = true;
             }
-            if (shr3 > (lineInfo.getShear3km() - ranshr3)
-                    && shr3 < (lineInfo.getShear3km() + ranshr3)) {
+            if (shr3 > (lineInfo.getShear3km() - ranshr3) && shr3 < (lineInfo.getShear3km() + ranshr3)) {
                 shr3Match = true;
             }
             // Check if all 7 parameters are met, exclude datestn
-            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch
-                    && km9Match && shr3Match) {
+            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch && km9Match && shr3Match) {
                 // It's a match
                 matches = matches + 1;
                 // Determine if majority of matches are correct category
@@ -252,41 +223,32 @@ public class NsharpSarsInfo {
             shr3Match = false;
             srhMatch = false;
             // TIER 1
-            if (mumixr > (lineInfo.getMixingRatio() - ranmrt1)
-                    && mumixr < (lineInfo.getMixingRatio() + ranmrt1)) {
+            if (mumixr > (lineInfo.getMixingRatio() - ranmrt1) && mumixr < (lineInfo.getMixingRatio() + ranmrt1)) {
                 mrMatch = true;
             }
-            if (mucape > (lineInfo.getCape() - rancapet1)
-                    && mucape < (lineInfo.getCape() + rancapet1)) {
+            if (mucape > (lineInfo.getCape() - rancapet1) && mucape < (lineInfo.getCape() + rancapet1)) {
                 capeMatch = true;
             }
-            if (lr75 > (lineInfo.getLapseRate75() - ranlrt1)
-                    && lr75 < (lineInfo.getLapseRate75() + ranlrt1)) {
+            if (lr75 > (lineInfo.getLapseRate75() - ranlrt1) && lr75 < (lineInfo.getLapseRate75() + ranlrt1)) {
                 lrMatch = true;
             }
-            if (temp500 > (lineInfo.getTemp500() - rantempt1)
-                    && temp500 < (lineInfo.getTemp500() + rantempt1)) {
+            if (temp500 > (lineInfo.getTemp500() - rantempt1) && temp500 < (lineInfo.getTemp500() + rantempt1)) {
                 tempMatch = true;
             }
-            if (shr6 > (lineInfo.getShear6km() - ranshrt1)
-                    && shr6 < (lineInfo.getShear6km() + ranshrt1)) {
+            if (shr6 > (lineInfo.getShear6km() - ranshrt1) && shr6 < (lineInfo.getShear6km() + ranshrt1)) {
                 shrMatch = true;
             }
-            if (shr9 > (lineInfo.getShear9km() - rankm9t1)
-                    && shr9 < (lineInfo.getShear9km() + rankm9t1)) {
+            if (shr9 > (lineInfo.getShear9km() - rankm9t1) && shr9 < (lineInfo.getShear9km() + rankm9t1)) {
                 km9Match = true;
             }
-            if (shr3 > (lineInfo.getShear3km() - ranshr3t1)
-                    && shr3 < (lineInfo.getShear3km() + ranshr3t1)) {
+            if (shr3 > (lineInfo.getShear3km() - ranshr3t1) && shr3 < (lineInfo.getShear3km() + ranshr3t1)) {
                 shr3Match = true;
             }
-            if (srh3 > (lineInfo.getHelicity3km() - ransrht1)
-                    && srh3 < (lineInfo.getHelicity3km() + ransrht1)) {
+            if (srh3 > (lineInfo.getHelicity3km() - ransrht1) && srh3 < (lineInfo.getHelicity3km() + ransrht1)) {
                 srhMatch = true;
             }
             // See if sounding matches
-            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch
-                    && km9Match && shr3Match && srhMatch) {
+            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch && km9Match && shr3Match && srhMatch) {
                 tier1++;
                 if (tier1 < 15) {
                     sndgList.add(lineInfo.getDateStnStr());
@@ -312,37 +274,29 @@ public class NsharpSarsInfo {
             km9Match = false;
             shr3Match = false;
             srhMatch = false;
-            if (mumixr > (lineInfo.getMixingRatio() - ranmr)
-                    && mumixr < (lineInfo.getMixingRatio() + ranmr)) {
+            if (mumixr > (lineInfo.getMixingRatio() - ranmr) && mumixr < (lineInfo.getMixingRatio() + ranmr)) {
                 mrMatch = true;
             }
-            if (mucape > (lineInfo.getCape() - rancape)
-                    && mucape < (lineInfo.getCape() + rancape)) {
+            if (mucape > (lineInfo.getCape() - rancape) && mucape < (lineInfo.getCape() + rancape)) {
                 capeMatch = true;
             }
-            if (lr75 > (lineInfo.getLapseRate75() - ranlr)
-                    && lr75 < (lineInfo.getLapseRate75() + ranlr)) {
+            if (lr75 > (lineInfo.getLapseRate75() - ranlr) && lr75 < (lineInfo.getLapseRate75() + ranlr)) {
                 lrMatch = true;
             }
-            if (temp500 > (lineInfo.getTemp500() - rantemp)
-                    && temp500 < (lineInfo.getTemp500() + rantemp)) {
+            if (temp500 > (lineInfo.getTemp500() - rantemp) && temp500 < (lineInfo.getTemp500() + rantemp)) {
                 tempMatch = true;
             }
-            if (shr6 > (lineInfo.getShear6km() - ranshr)
-                    && shr6 < (lineInfo.getShear6km() + ranshr)) {
+            if (shr6 > (lineInfo.getShear6km() - ranshr) && shr6 < (lineInfo.getShear6km() + ranshr)) {
                 shrMatch = true;
             }
-            if (shr9 > (lineInfo.getShear9km() - rankm9)
-                    && shr9 < (lineInfo.getShear9km() + rankm9)) {
+            if (shr9 > (lineInfo.getShear9km() - rankm9) && shr9 < (lineInfo.getShear9km() + rankm9)) {
                 km9Match = true;
             }
-            if (shr3 > (lineInfo.getShear3km() - ranshr3)
-                    && shr3 < (lineInfo.getShear3km() + ranshr3)) {
+            if (shr3 > (lineInfo.getShear3km() - ranshr3) && shr3 < (lineInfo.getShear3km() + ranshr3)) {
                 shr3Match = true;
             }
             // Check if all 7 parameters are met, exclude datestn
-            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch
-                    && km9Match && shr3Match) {
+            if (mrMatch && capeMatch && lrMatch && tempMatch && shrMatch && km9Match && shr3Match) {
                 matches2++;
                 totalSize = totalSize + lineInfo.getSize();
             }
@@ -376,11 +330,11 @@ public class NsharpSarsInfo {
                         sarsInfo.getHailStrColor().add(i, 5);
                     }
                     // note: sndgList contains matched date and stn from
-                    // nlist.txt's first column
-                    // hailList contains matched hail size from nlist.txt's 3rd
+                    // historicHailData.txt's first column
+                    // hailList contains matched hail size from
+                    // historicHailData.txt's 3rd
                     // column
-                    String hailString = String.format("%s %.2f",
-                            sndgList.get(i), hailList.get(i));
+                    String hailString = String.format("%s %.2f", sndgList.get(i), hailList.get(i));
                     sarsInfo.getHailStr().add(i, hailString);
                 } else {
                     sarsInfo.getHailStr().add(i, "");
@@ -407,8 +361,7 @@ public class NsharpSarsInfo {
             st1 = "**SIG HAIL!**";
         }
         if ((p1 >= 50) || (p1 < 50 && matches > 0)) {
-            String str = String.format("(%d matches/%d sndgs)", matches,
-                    nlistLineList.size());
+            String str = String.format("(%d matches/%d sndgs)", matches, hailDataLineList.size());
             sarsInfo.getHailStr().add(10, str);
         } else {
             sarsInfo.getHailStr().add(10, "");
@@ -423,10 +376,8 @@ public class NsharpSarsInfo {
             // However, when compute hail match above, if hBot>0, we have to
             // use different values for them, therefore, we have to reset
             // shr3, shr6, shr9 here when hBot>0.
-            shr6 = NsharpLibBasics.kt_to_mps(weatherDataStore
-                    .getStormTypeToWindShearMap().get("SFC-6km"));
-            shr3 = NsharpLibBasics.kt_to_mps(weatherDataStore
-                    .getStormTypeToWindShearMap().get("SFC-3km"));
+            shr6 = NsharpLibBasics.kt_to_mps(weatherDataStore.getStormTypeToWindShearMap().get("SFC-6km"));
+            shr3 = NsharpLibBasics.kt_to_mps(weatherDataStore.getStormTypeToWindShearMap().get("SFC-3km"));
             shr9 = NsharpLibBasics.kt_to_mps(windComp9k.getWspd());
         }
         /*************************************************************************
@@ -438,8 +389,8 @@ public class NsharpSarsInfo {
         /**
          * BEGIN of sup_nsharp()
          */
-        // read in sup.txt contents
-        List<SupLineInfo> supLineList = NsharpSupFile.readSupFile();
+        // read in historicSupercellData.txt contents
+        List<SupercellDataLineInfo> supLineList = NsharpSupercellDataFile.readSupercellDataFile();
         // count number of soundings
         int cnt = supLineList.size();
 
@@ -497,7 +448,7 @@ public class NsharpSarsInfo {
         int noncnt = 0;
         p1 = 0;
 
-        for (SupLineInfo supLineInfo : supLineList) {
+        for (SupercellDataLineInfo supLineInfo : supLineList) {
             boolean mlcapeMatch = false;
             boolean mllclMatch = false;
             boolean shrMatch = false;
@@ -505,36 +456,28 @@ public class NsharpSarsInfo {
             boolean tempMatch = false;
             boolean lrMatch = false;
 
-            if (mlcape >= (supLineInfo.getCape() - ranmlcape)
-                    && mlcape <= (supLineInfo.getCape() + ranmlcape)) {
+            if (mlcape >= (supLineInfo.getCape() - ranmlcape) && mlcape <= (supLineInfo.getCape() + ranmlcape)) {
                 mlcapeMatch = true;
             }
-            if (mllcl >= (supLineInfo.getLcl() - ranmllcl)
-                    && mllcl <= (supLineInfo.getLcl() + ranmllcl)) {
+            if (mllcl >= (supLineInfo.getLcl() - ranmllcl) && mllcl <= (supLineInfo.getLcl() + ranmllcl)) {
                 mllclMatch = true;
             }
-            if (shr6 >= (supLineInfo.getShear6km() - ranshr)
-                    && shr6 <= (supLineInfo.getShear6km() + ranshr)) {
+            if (shr6 >= (supLineInfo.getShear6km() - ranshr) && shr6 <= (supLineInfo.getShear6km() + ranshr)) {
                 shrMatch = true;
             }
-            if (srh1 >= (supLineInfo.getHelicity1km() - ransrh)
-                    && srh1 <= (supLineInfo.getHelicity1km() + ransrh)) {
+            if (srh1 >= (supLineInfo.getHelicity1km() - ransrh) && srh1 <= (supLineInfo.getHelicity1km() + ransrh)) {
                 srhMatch = true;
             }
-            if (temp500 >= (supLineInfo.getTemp500() - rantemp)
-                    && temp500 <= (supLineInfo.getTemp500() + rantemp)) {
+            if (temp500 >= (supLineInfo.getTemp500() - rantemp) && temp500 <= (supLineInfo.getTemp500() + rantemp)) {
                 tempMatch = true;
             }
-            if (lr75 >= (supLineInfo.getLapseRate75() - ranlr)
-                    && lr75 <= (supLineInfo.getLapseRate75() + ranlr)) {
+            if (lr75 >= (supLineInfo.getLapseRate75() - ranlr) && lr75 <= (supLineInfo.getLapseRate75() + ranlr)) {
                 lrMatch = true;
             }
             // Check if all 6 parameters are met
-            if (mlcapeMatch && mllclMatch && shrMatch && srhMatch && tempMatch
-                    && lrMatch) {
+            if (mlcapeMatch && mllclMatch && shrMatch && srhMatch && tempMatch && lrMatch) {
                 // Determine if majority of matches are correct category
-                if (supLineInfo.getTornadoType() == 1
-                        || supLineInfo.getTornadoType() == 2) {
+                if (supLineInfo.getTornadoType() == 1 || supLineInfo.getTornadoType() == 2) {
                     torcnt = torcnt + 1;
                 } else if (supLineInfo.getTornadoType() == 0) {
                     noncnt = noncnt + 1;
@@ -552,16 +495,13 @@ public class NsharpSarsInfo {
             boolean shr9kMatch = false;
             boolean srh3kMatch = false;
             // TIER 1 run
-            if (mlcape >= (supLineInfo.getCape() - ranmlcapet1)
-                    && mlcape <= (supLineInfo.getCape() + ranmlcapet1)) {
+            if (mlcape >= (supLineInfo.getCape() - ranmlcapet1) && mlcape <= (supLineInfo.getCape() + ranmlcapet1)) {
                 mlcapeMatch = true;
             }
-            if (mllcl >= (supLineInfo.getLcl() - ranmllclt1)
-                    && mllcl <= (supLineInfo.getLcl() + ranmllclt1)) {
+            if (mllcl >= (supLineInfo.getLcl() - ranmllclt1) && mllcl <= (supLineInfo.getLcl() + ranmllclt1)) {
                 mllclMatch = true;
             }
-            if (shr6 >= (supLineInfo.getShear6km() - ranshrt1)
-                    && shr6 <= (supLineInfo.getShear6km() + ranshrt1)) {
+            if (shr6 >= (supLineInfo.getShear6km() - ranshrt1) && shr6 <= (supLineInfo.getShear6km() + ranshrt1)) {
                 shrMatch = true;
             }
             if (srh1 >= (supLineInfo.getHelicity1km() - ransrht1)
@@ -572,16 +512,13 @@ public class NsharpSarsInfo {
                     && temp500 <= (supLineInfo.getTemp500() + rantempt1)) {
                 tempMatch = true;
             }
-            if (lr75 >= (supLineInfo.getLapseRate75() - ranlrt1)
-                    && lr75 <= (supLineInfo.getLapseRate75() + ranlrt1)) {
+            if (lr75 >= (supLineInfo.getLapseRate75() - ranlrt1) && lr75 <= (supLineInfo.getLapseRate75() + ranlrt1)) {
                 lrMatch = true;
             }
-            if (shr3 >= (supLineInfo.getShear3km() - ranshr3kt1)
-                    && shr3 <= (supLineInfo.getShear3km() + ranshr3kt1)) {
+            if (shr3 >= (supLineInfo.getShear3km() - ranshr3kt1) && shr3 <= (supLineInfo.getShear3km() + ranshr3kt1)) {
                 shr3kMatch = true;
             }
-            if (shr9 >= (supLineInfo.getShear9km() - ranshr9kt1)
-                    && shr9 <= (supLineInfo.getShear9km() + ranshr9kt1)) {
+            if (shr9 >= (supLineInfo.getShear9km() - ranshr9kt1) && shr9 <= (supLineInfo.getShear9km() + ranshr9kt1)) {
                 shr9kMatch = true;
             }
             if (srh3 >= (supLineInfo.getHelicity3km() - ransrh3t1)
@@ -589,8 +526,8 @@ public class NsharpSarsInfo {
                 srh3kMatch = true;
             }
             // Check if all 9 parameters are met
-            if (mlcapeMatch && mllclMatch && shrMatch && srhMatch && tempMatch
-                    && lrMatch && shr3kMatch && shr9kMatch && srh3kMatch) {
+            if (mlcapeMatch && mllclMatch && shrMatch && srhMatch && tempMatch && lrMatch && shr3kMatch && shr9kMatch
+                    && srh3kMatch) {
                 tier1 = tier1 + 1;
                 if (tier1 < 15) {
                     supSndgList.add(supLineInfo.getDateStnStr());
@@ -609,8 +546,9 @@ public class NsharpSarsInfo {
          */
 
         if (tier1 > 0) {
-            if (tier1 > 10)
+            if (tier1 > 10) {
                 tier1 = 10;
+            }
             for (int i = 0; i < 10; i++) {
                 if (i < tier1) {
                     // supList stores tornado type as defined in sup_nsharp.f
@@ -635,8 +573,7 @@ public class NsharpSarsInfo {
                         tornadoStr = "NONTOR";
                         break;
                     }
-                    String supStr = String.format("%s  %s", supSndgList.get(i),
-                            tornadoStr);
+                    String supStr = String.format("%s  %s", supSndgList.get(i), tornadoStr);
                     sarsInfo.getSupcellStr().add(i, supStr);
 
                 } else {
@@ -657,8 +594,7 @@ public class NsharpSarsInfo {
         sarsInfo.getSupcellStrColor().add(10, 31);
         sarsInfo.getSupcellStrColor().add(11, 31);
         st1 = "No Matches";
-        Parcel sfcParcel = weatherDataStore.getParcelMap().get(
-                NsharpLibSndglib.PARCELTYPE_OBS_SFC);
+        Parcel sfcParcel = weatherDataStore.getParcelMap().get(NsharpLibSndglib.PARCELTYPE_OBS_SFC);
 
         if (sfcParcel.getBplus() >= 100) {
             if (matches > 0) {

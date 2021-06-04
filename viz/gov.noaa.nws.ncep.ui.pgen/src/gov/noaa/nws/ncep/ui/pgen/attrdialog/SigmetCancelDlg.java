@@ -68,6 +68,7 @@ import java.util.TimeZone;
  * Apr 07, 2021  88217    smanoj   Remove Hazard Type from Cancellation Information Text.
  *                                 Also remove unused buttons.
  * Apr 09, 2021  90325    smanoj   CARSAM Backup WMO headers update.
+ * Jun 04, 2021  91845    smanoj   Fixing some issues with Backupmode and CANCEL.
  * 
  * </pre>
  *
@@ -320,12 +321,14 @@ public class SigmetCancelDlg extends AttrDlg {
         if(parentDlg.isCarSamBackupMode()){
             isCarSamBackup = true;
             btnCarSamBackUp.setSelection(true);
+            updateCancelText();
         }
         btnCarSamBackUp.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 Button btn = (Button) event.getSource();
                 isCarSamBackup = btn.getSelection();
+                updateCancelText();
             }
         });
     }
@@ -567,10 +570,12 @@ public class SigmetCancelDlg extends AttrDlg {
     }
 
     private void updateCancelText() {
-        cancelText.clearSelection();
-        String updatedTxt = getFileContent();
-        if (updatedTxt != null) {
-            cancelText.setText(getFileContent());
+        if (cancelText != null) {
+            cancelText.clearSelection();
+            String updatedTxt = getFileContent();
+            if (updatedTxt != null) {
+                cancelText.setText(getFileContent());
+            }
         }
     }
 

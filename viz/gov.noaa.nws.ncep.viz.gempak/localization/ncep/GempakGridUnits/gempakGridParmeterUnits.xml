@@ -1424,13 +1424,13 @@
      </parmeterinfo>
      <parmeterinfo>
           <name>Reflectivity</name>
-          <units>dB</units>
+          <units>dBZ</units>
           <gnam>REFD</gnam>
           <scale>0</scale>
      </parmeterinfo>
      <parmeterinfo>
           <name>Composite reflectivity</name>
-          <units>dB</units>
+          <units>dBZ</units>
           <gnam>REFC</gnam>
           <scale>0</scale>
      </parmeterinfo>

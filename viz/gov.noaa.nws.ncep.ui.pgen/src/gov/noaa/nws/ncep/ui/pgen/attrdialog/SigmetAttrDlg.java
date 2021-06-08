@@ -30,15 +30,16 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
@@ -69,6 +70,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.ui.pgen.Activator;
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
@@ -184,7 +186,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 10, 2021  91845     smanoj        Save CARSAM Backupmode flag to the SIGMET xml.
  * May 28, 2021  91845     smanoj        Drawing SIGMET spanning multiple FIRs in Backupmode.
  * Jun 04, 2021  91845     smanoj        Fixing some issues with Backupmode and CANCEL.
- * 
+ * Jun 09, 2021  90732     mroos         Correcting Level Info locations, drop-down box, and observed info
+ *
  * </pre>
  *
  * @author gzhang
@@ -1298,7 +1301,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
 
         final ToolBar tb = new ToolBar(topPhenom, SWT.HORIZONTAL);
-        final ToolItem ti = new ToolItem(tb, SWT.DROP_DOWN);
+        final ToolItem ti = new ToolItem(tb, SWT.PUSH);
+        ImageDescriptor id = Activator.imageDescriptorFromPlugin(
+                Activator.PLUGIN_ID, "icons/dropdown_arrow.gif");
+        Image icon = null;
+        if (id != null) {
+            icon = id.createImage();
+        }
+        ti.setImage(icon);
         final Menu mu = new Menu(shell, SWT.POP_UP);
 
         for (int i = 0; i < SigmetInfo.VOL_NAME_BUCKET_ARRAY.length; i++) {
@@ -1848,7 +1858,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             }
         }
-
         btnCarSamBackUp.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -2160,7 +2169,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     public void createLevelAltitudes(Group topLbl) {
 
-        Label lblLevelInfo = new Label(top, SWT.LEFT);
+        Label lblLevelInfo = new Label(topLbl, SWT.LEFT);
         lblLevelInfo.setText("Level Info: ");
 
         final Combo comboLevel = new Combo(topLbl, SWT.READ_ONLY);
@@ -5220,7 +5229,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         this.setEditableAttrLevelText1(sig.getEditableAttrLevelText1());
         this.setEditableAttrLevelText2(sig.getEditableAttrLevelText2());
         this.setEditableAttrFir(sig.getEditableAttrFir());
-        this.setEditableAttrCarSamBackupMode(sig.getEditableAttrCarSamBackupMode());
+        this.setEditableAttrCarSamBackupMode(
+                sig.getEditableAttrCarSamBackupMode());
 
         String lineType = this.getType();
         if (lineType != null && lineType.contains(SigmetInfo.LINE_SEPERATER)) {

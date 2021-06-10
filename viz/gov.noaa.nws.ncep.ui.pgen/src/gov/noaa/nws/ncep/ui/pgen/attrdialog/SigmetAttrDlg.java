@@ -30,6 +30,7 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -3441,7 +3442,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         private Text txtError;
 
-        private String errorInfo;
+        private final String errorInfo;
 
         SigmetAttrValidateDlg(Shell parShell, String error) {
             super(parShell);

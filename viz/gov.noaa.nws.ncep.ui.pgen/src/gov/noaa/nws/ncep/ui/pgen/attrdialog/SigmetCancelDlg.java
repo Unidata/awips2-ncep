@@ -69,6 +69,7 @@ import java.util.TimeZone;
  *                                 Also remove unused buttons.
  * Apr 09, 2021  90325    smanoj   CARSAM Backup WMO headers update.
  * Jun 04, 2021  91845    smanoj   Fixing some issues with Backupmode and CANCEL.
+ * Jun 15, 2021  91845    smanoj   Remove duplicate text from Cancellation Information Text.
  * 
  * </pre>
  *
@@ -144,7 +145,8 @@ public class SigmetCancelDlg extends AttrDlg {
 
     private SigmetAttrDlg parentDlg = null;
 
-    public SigmetCancelDlg(SigmetAttrDlg parentDlg, Shell parShell, Sigmet sigmet) {
+    public SigmetCancelDlg(SigmetAttrDlg parentDlg, Shell parShell,
+            Sigmet sigmet) {
         super(parShell);
         this.sigmet = sigmet;
         this.parentDlg = parentDlg;
@@ -263,7 +265,7 @@ public class SigmetCancelDlg extends AttrDlg {
                 }
             }
         }
-        
+
         Group firCarSAmericanGrp = new Group(firRegGrp, SWT.LEFT);
         firCarSAmericanGrp.setLayoutData(
                 new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
@@ -283,7 +285,7 @@ public class SigmetCancelDlg extends AttrDlg {
                 }
             }
         }
-        
+
         Group firOtherGrp = new Group(firCarSAmericanGrp, SWT.TOP);
         firOtherGrp.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
@@ -309,7 +311,7 @@ public class SigmetCancelDlg extends AttrDlg {
         btnCarSamBackUp.setEnabled(false);
         // CARSAM back mode only editable if Fir Region checked is
         // one of the CARSAM sites
-        if(firID !=null ){
+        if (firID != null) {
             for (CarSamBackupWmoHeader carsamWmo : SigmetInfo.awcBackupCarSamWmoHeaders
                     .getCarSamBackupWmoHeader()) {
                 if (firID.contains(carsamWmo.getFirID())) {
@@ -318,7 +320,7 @@ public class SigmetCancelDlg extends AttrDlg {
                 }
             }
         }
-        if(parentDlg.isCarSamBackupMode()){
+        if (parentDlg.isCarSamBackupMode()) {
             isCarSamBackup = true;
             btnCarSamBackUp.setSelection(true);
             updateCancelText();
@@ -613,8 +615,13 @@ public class SigmetCancelDlg extends AttrDlg {
         sb.append(" ").append(area).append("-");
         sb.append("\n");
 
-        sb.append(firName.replace('_', ' ')).append(" ")
-                .append(SigmetConstant.FIR).append(" ");
+        for (String s : SigmetInfo.FIR_ARRAY) {
+            if (firID.contains(s.substring(0, 4))) {
+                firName = s.substring(5, s.length());
+                sb.append(firName.replace('_', ' ')).append(" ")
+                        .append(SigmetConstant.FIR).append(" ");
+            }
+        }
         sb.append(SigmetConstant.CNL);
 
         sb.append(" ").append(SigmetConstant.SIGMET);
@@ -726,9 +733,10 @@ public class SigmetCancelDlg extends AttrDlg {
                     sb.append(carsamWmo.getWmoHeaderForOther());
                 }
                 sb.append(" ").append(carsamWmo.getWmoID());
-                sb.append(" ").append(getTimeStringPlusHourInHMS(0));
+                break;
             }
         }
+        sb.append(" ").append(getTimeStringPlusHourInHMS(0));
         return sb.toString();
     }
 

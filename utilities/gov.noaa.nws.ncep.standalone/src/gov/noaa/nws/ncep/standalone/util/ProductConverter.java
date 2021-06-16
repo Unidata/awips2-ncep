@@ -124,6 +124,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
+ * Jun 18, 2021 90732       mroos       Added variables for VolAsh altitude level info
  * 
  * </pre>
  *
@@ -1057,6 +1058,16 @@ public class ProductConverter {
 
         fde.getVector().add(vector);
     }
+                        sigmet.setEditableAttrAltLevel(
+                                ((Sigmet) de).getEditableAttrAltLevel());
+                        sigmet.setEditableAttrAltLevelInfo1(
+                                ((Sigmet) de).getEditableAttrAltLevelInfo1());
+                        sigmet.setEditableAttrAltLevelInfo2(
+                                ((Sigmet) de).getEditableAttrAltLevelInfo2());
+                        sigmet.setEditableAttrAltLevelText1(
+                                ((Sigmet) de).getEditableAttrAltLevelText1());
+                        sigmet.setEditableAttrAltLevelText2(
+                                ((Sigmet) de).getEditableAttrAltLevelText2());
 
     /*
      * Convert in-memory PGEN Text DrawableElement object into a list held in an

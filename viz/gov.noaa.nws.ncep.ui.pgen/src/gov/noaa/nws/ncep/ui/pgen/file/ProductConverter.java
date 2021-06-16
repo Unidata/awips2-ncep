@@ -1,6 +1,6 @@
 /*
 F * gov.noaa.nws.ncep.ui.pgen.file.ProductConverter
- * 
+ *
  * Date created: 17 February 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -89,7 +89,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 /**
  * Define a ProductConverter Class - some methods to convert the products
  * between XML format and the actual in-memory PGEN products.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -104,7 +104,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * 07/09        #104        S. Gilbert  Added AvnText
  * 08/09        #135        B. Yin      Added Jet
  * 08/09        #135        B. Yin      Handle relative location for jet text
- * 08/09        #149        B. Yin      Added PgenType and PgenCategory for DECollections 
+ * 08/09        #149        B. Yin      Added PgenType and PgenCategory for DECollections
  * 09/09        #151        J. Wu       Added  more attributes for Product
  * 11/09        #167        J. Wu       Added Contours
  * 10/09        #163        S. Gilbert  Added TCA
@@ -114,7 +114,7 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * 03/10        #159        B. Yin      Added Watch status information
  * 05/10        #267        B. Yin      Added Outlook
  * 03/10        #223        M.Laryukhin Added Gfa
- * 08/10        #137        Q. Zhou     Add a condition for standalone watchbox -- county 
+ * 08/10        #137        Q. Zhou     Add a condition for standalone watchbox -- county
  * 08/10        #215        J. Wu       Added Contours' attributes to Outlook
  * 09/10                    Q. Zhou     Fix a typo on xmlStatusExpCal
  * 09/10        #305/306    B. Yin      Added LabeledLine(Cloud and Turbulence)
@@ -122,10 +122,10 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * 11/10                    Q.Zhou      Handle null situation for contour time
  * 11/10                    J. Wu       Added ContourCircle into Contours
  * 11/10                    Q.Zhou      Added code to get Avntext in convertXML2LabeledLine()
- * 01/11                    J. Wu       Reworked on Product's attributes. 
+ * 01/11                    J. Wu       Reworked on Product's attributes.
  * 04/11        #?          B. Yin      Re-factor IAttribute
  * 12/11        #?          B. Yin      Changed 'TO' to '-' in LLWS vorText
- * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
+ * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo.
  * 03/12        #676        Q. Zhou     Added Issue Office field.
  * 03/12        #610        J. Wu       Restore issue/until times for GFA smears.
  * 05/12        #808        J. Wu       Remove SnapUtil from converting GFA.
@@ -145,9 +145,9 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Feb 08, 2021 87538       smanoj      Added FCST Lat/Lon for Tropical Cyclone.
  * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
- * 
+ * Jun 18, 2021 90732       mroos       Added variables for VolAsh altitude level info
  * </pre>
- * 
+ *
  * @author J. Wu
  */
 
@@ -163,7 +163,7 @@ public class ProductConverter {
      */
     public static List<Product> convert(Products filePrds) {
 
-        List<Product> prd = new ArrayList<Product>();
+        List<Product> prd = new ArrayList<>();
 
         for (gov.noaa.nws.ncep.ui.pgen.file.Product fPrd : filePrds
                 .getProduct()) {
@@ -223,7 +223,7 @@ public class ProductConverter {
     private static List<Layer> convertFileLayers(
             List<gov.noaa.nws.ncep.ui.pgen.file.Layer> flayers) {
 
-        List<Layer> layers = new ArrayList<Layer>();
+        List<Layer> layers = new ArrayList<>();
 
         for (gov.noaa.nws.ncep.ui.pgen.file.Layer fLayer : flayers) {
 
@@ -264,7 +264,7 @@ public class ProductConverter {
     private static List<AbstractDrawableComponent> convert(
             gov.noaa.nws.ncep.ui.pgen.file.DrawableElement elem) {
 
-        List<AbstractDrawableComponent> des = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> des = new ArrayList<>();
 
         if (!elem.getLine().isEmpty()) {
 
@@ -278,7 +278,7 @@ public class ProductConverter {
                             fColor.getBlue(), fColor.getAlpha());
                 }
 
-                ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> linePoints = new ArrayList<>();
                 nn = 0;
                 for (Point pt : fLine.getPoint()) {
                     linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -496,7 +496,7 @@ public class ProductConverter {
                             fColor.getBlue(), fColor.getAlpha());
                 }
 
-                ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> linePoints = new ArrayList<>();
                 for (Point pt : fArc.getPoint()) {
                     linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
                 }
@@ -662,7 +662,7 @@ public class ProductConverter {
                             fColor.getBlue(), fColor.getAlpha());
                 }
 
-                ArrayList<Coordinate> sigmetPoints = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> sigmetPoints = new ArrayList<>();
                 nn = 0;
                 for (Point pt : fSig.getPoint()) {
                     sigmetPoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -686,7 +686,7 @@ public class ProductConverter {
                             fColor.getBlue(), fColor.getAlpha());
                 }
 
-                ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> linePoints = new ArrayList<>();
                 nn = 0;
                 for (Point pt : fgfa.getPoint()) {
                     linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -882,7 +882,7 @@ public class ProductConverter {
     private static List<gov.noaa.nws.ncep.ui.pgen.file.Layer> convertLayers(
             List<Layer> layers) {
 
-        List<gov.noaa.nws.ncep.ui.pgen.file.Layer> flyrs = new ArrayList<gov.noaa.nws.ncep.ui.pgen.file.Layer>();
+        List<gov.noaa.nws.ncep.ui.pgen.file.Layer> flyrs = new ArrayList<>();
 
         for (Layer lyr : layers) {
             gov.noaa.nws.ncep.ui.pgen.file.Layer l = new gov.noaa.nws.ncep.ui.pgen.file.Layer();
@@ -1219,12 +1219,22 @@ public class ProductConverter {
                                 ((Sigmet) de).getEditableAttrLevelText1());
                         sigmet.setEditableAttrLevelText2(
                                 ((Sigmet) de).getEditableAttrLevelText2());
+                        sigmet.setEditableAttrAltLevel(
+                                ((Sigmet) de).getEditableAttrAltLevel());
+                        sigmet.setEditableAttrAltLevelInfo1(
+                                ((Sigmet) de).getEditableAttrAltLevelInfo1());
+                        sigmet.setEditableAttrAltLevelInfo2(
+                                ((Sigmet) de).getEditableAttrAltLevelInfo2());
+                        sigmet.setEditableAttrAltLevelText1(
+                                ((Sigmet) de).getEditableAttrAltLevelText1());
+                        sigmet.setEditableAttrAltLevelText2(
+                                ((Sigmet) de).getEditableAttrAltLevelText2());
                         sigmet.setEditableAttrFromLine(
                                 ((Sigmet) de).getEditableAttrFromLine());
                         sigmet.setEditableAttrFir(
                                 ((Sigmet) de).getEditableAttrFir());
-                        sigmet.setEditableAttrCarSamBackupMode(
-                                ((Sigmet) de).getEditableAttrCarSamBackupMode());
+                        sigmet.setEditableAttrCarSamBackupMode(((Sigmet) de)
+                                .getEditableAttrCarSamBackupMode());
                         sigmet.setEditableAttrRALSelection(
                                 ((Sigmet) de).getEditableAttrRALSelection());
                         sigmet.setEditableAttrAltLevelText(
@@ -1541,7 +1551,7 @@ public class ProductConverter {
     /**
      * Convert a DECollection to a format that can be used by jaxb and saved to
      * XML files
-     * 
+     *
      * @param dec
      * @return
      */
@@ -1558,7 +1568,7 @@ public class ProductConverter {
         fdec.setPgenType(dec.getPgenType());
         fdec.setPgenCategory(dec.getPgenCategory());
 
-        List<AbstractDrawableComponent> componentList = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> componentList = new ArrayList<>();
         Iterator<AbstractDrawableComponent> it = dec.getComponentIterator();
 
         while (it.hasNext()) {
@@ -1573,7 +1583,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a jet element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -1589,8 +1599,9 @@ public class ProductConverter {
 
         if (elem.getLine() != null) {
             jet.add(convertJetLine(elem.getLine().get(0), jet));
-        } else
+        } else {
             return null;
+        }
 
         if (elem.getVector() != null) {
             for (gov.noaa.nws.ncep.ui.pgen.file.Vector fVector : elem
@@ -1641,7 +1652,7 @@ public class ProductConverter {
 
     /**
      * Convert a XML Line to a jet line
-     * 
+     *
      * @return
      */
     private static JetLine convertJetLine(
@@ -1654,7 +1665,7 @@ public class ProductConverter {
                     fColor.getBlue(), fColor.getAlpha());
         }
 
-        ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> linePoints = new ArrayList<>();
         nn = 0;
         for (Point pt : jetLine.getPoint()) {
             linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -1673,7 +1684,7 @@ public class ProductConverter {
 
     /**
      * Convert a vector from XML to jet hash
-     * 
+     *
      * @param fVector
      * @param jet
      * @return
@@ -1708,7 +1719,7 @@ public class ProductConverter {
 
     /**
      * Convert a Vector from XML to jet barb
-     * 
+     *
      * @param fVector
      * @param jet
      * @return
@@ -1742,7 +1753,7 @@ public class ProductConverter {
 
     /**
      * Convert an XML text to a jet flight level text
-     * 
+     *
      * @param fText
      * @return
      */
@@ -1781,7 +1792,7 @@ public class ProductConverter {
 
     /**
      * Convert a Contours object to an XML Contours object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -1853,7 +1864,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML Contours object to a PGEN Contours object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -1875,18 +1886,20 @@ public class ProductConverter {
 
         Calendar cntTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         XMLGregorianCalendar xmlCal = cnt.getTime1();
-        if (xmlCal != null)
+        if (xmlCal != null) {
             cntTime.set(xmlCal.getYear(), xmlCal.getMonth() - 1,
                     xmlCal.getDay(), xmlCal.getHour(), xmlCal.getMinute(),
                     xmlCal.getSecond());
+        }
         contours.setTime1(cntTime);
 
         Calendar cntTime2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         XMLGregorianCalendar xmlCal2 = cnt.getTime2();
-        if (xmlCal2 != null)
+        if (xmlCal2 != null) {
             cntTime2.set(xmlCal2.getYear(), xmlCal2.getMonth() - 1,
                     xmlCal2.getDay(), xmlCal2.getHour(), xmlCal2.getMinute(),
                     xmlCal2.getSecond());
+        }
         contours.setTime2(cntTime2);
 
         for (gov.noaa.nws.ncep.ui.pgen.file.DECollection fdec : cnt
@@ -1974,7 +1987,7 @@ public class ProductConverter {
 
     /**
      * convert a Spenes element to XML file
-     * 
+     *
      * @param spenes
      * @return
      */
@@ -2035,7 +2048,7 @@ public class ProductConverter {
 
     /**
      * Convert XML to spenes element
-     * 
+     *
      * @param fwb
      * @return
      */
@@ -2072,7 +2085,7 @@ public class ProductConverter {
         sp.setColors(clr);
 
         // set points
-        ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> linePoints = new ArrayList<>();
         nn = 0;
         for (Point pt : fspenes.getPoint()) {
             linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -2084,7 +2097,7 @@ public class ProductConverter {
 
     /**
      * Convert a WatchBox element to file
-     * 
+     *
      * @param wb
      * @return
      */
@@ -2305,7 +2318,7 @@ public class ProductConverter {
 
     /**
      * Convert XML to WatchBox element
-     * 
+     *
      * @param fwb
      * @return
      */
@@ -2346,48 +2359,60 @@ public class ProductConverter {
         wb.setSeverity(fwb.getSeverity());
         wb.setTimeZone(fwb.getTimeZone());
 
-        if (fwb.getHailSize() != null)
+        if (fwb.getHailSize() != null) {
             wb.setHailSize(fwb.getHailSize());
+        }
 
-        if (fwb.getGust() != null)
+        if (fwb.getGust() != null) {
             wb.setGust(fwb.getGust());
+        }
 
-        if (fwb.getTop() != null)
+        if (fwb.getTop() != null) {
             wb.setTop(fwb.getTop());
+        }
 
-        if (fwb.getMoveDir() != null)
+        if (fwb.getMoveDir() != null) {
             wb.setMoveDir(fwb.getMoveDir());
+        }
 
-        if (fwb.getMoveSpeed() != null)
+        if (fwb.getMoveSpeed() != null) {
             wb.setMoveSpeed(fwb.getMoveSpeed());
+        }
 
         wb.setAdjAreas(fwb.getAdjAreas());
 
-        if (fwb.getReplWatch() != null)
+        if (fwb.getReplWatch() != null) {
             wb.setReplWatch(fwb.getReplWatch());
+        }
 
-        if (fwb.getContWatch() != null)
+        if (fwb.getContWatch() != null) {
             wb.setContWatch(fwb.getContWatch());
+        }
 
-        if (fwb.getIssueFlag() != null)
+        if (fwb.getIssueFlag() != null) {
             wb.setIssueFlag(fwb.getIssueFlag());
+        }
 
         wb.setForecaster(fwb.getForecaster());
 
-        if (fwb.getWatchNumber() != null)
+        if (fwb.getWatchNumber() != null) {
             wb.setWatchNumber(fwb.getWatchNumber());
+        }
 
         wb.setEndPointAnc(fwb.getEndPointAnc());
         wb.setEndPointVor(fwb.getEndPointVor());
 
-        if (fwb.getWatchAreaNm() != null)
+        if (fwb.getWatchAreaNm() != null) {
             wb.setWathcAreaNm(fwb.getWatchAreaNm());
+        }
 
-        if (fwb.getHalfWidthNm() != null)
+        if (fwb.getHalfWidthNm() != null) {
             wb.setHalfWidthNm(fwb.getHalfWidthNm());
+        }
 
-        if (fwb.getHalfWidthSm() != null)
+        if (fwb.getHalfWidthSm() != null) {
             wb.setHalfWidthSm(fwb.getHalfWidthSm());
+        }
 
         // set color
 
@@ -2400,7 +2425,7 @@ public class ProductConverter {
         wb.setColors(clr);
 
         // set points
-        ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> linePoints = new ArrayList<>();
         nn = 0;
         for (Point pt : fwb.getPoint()) {
             linePoints.add(new Coordinate(pt.getLon(), pt.getLat()));
@@ -2456,7 +2481,7 @@ public class ProductConverter {
         }
         // set original county list
         if (!fwb.getOriginalCounties().isEmpty()) {
-            List<SPCCounty> cntylist = new ArrayList<SPCCounty>();
+            List<SPCCounty> cntylist = new ArrayList<>();
             for (SPCCounty cnty : PgenStaticDataProvider.getProvider()
                     .getSPCCounties()) {
                 if (cnty.getUgcId() != null) {
@@ -2519,7 +2544,7 @@ public class ProductConverter {
 
     /**
      * Convert an Outlook object to an XML Outlook object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -2616,7 +2641,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML Outlook object to a PGEN Outlook object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -2728,9 +2753,9 @@ public class ProductConverter {
 
     /**
      * Convert XML to Volcano element
-     * 
+     *
      * public for saving elements with SaveMsgDlg and TEST/RESUME types
-     * 
+     *
      * @param fVol
      * @return Volcano element
      */
@@ -2756,13 +2781,14 @@ public class ProductConverter {
         boolean isNoneDrawable = Arrays
                 .asList(VaaInfo.ProductInfo.getProduct(VaaInfo.LOCS[1]))
                 .contains(fvp);
-        ArrayList<Coordinate> volPoints = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> volPoints = new ArrayList<>();
         nn = 0;
         for (Point pt : fVol.getPoint()) {
             volPoints.add(new Coordinate(pt.getLon(), pt.getLat()));
         }
-        if (!isNoneDrawable)
+        if (!isNoneDrawable) {
             vol.setPoints(volPoints);
+        }
 
         vol.setName(fVol.getName());
         vol.setNumber(fVol.getNumber());
@@ -2801,9 +2827,9 @@ public class ProductConverter {
 
     /**
      * Convert Volcano element to XML file
-     * 
+     *
      * public for saving elements with SaveMsgDlg and TEST/RESUME types
-     * 
+     *
      * @param vol
      * @return XML file
      */
@@ -2829,8 +2855,9 @@ public class ProductConverter {
         }
 
         for (Coordinate crd : vol.getLinePoints()) {
-            if (isNoneDrawable)
+            if (isNoneDrawable) {
                 break;
+            }
             Point fpt = new Point();
             fpt.setLat(crd.y);
             fpt.setLon(crd.x);
@@ -2885,7 +2912,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a labeled line element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -3021,7 +3048,7 @@ public class ProductConverter {
                                             fColor.getAlpha());
                                 }
 
-                                ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+                                ArrayList<Coordinate> linePoints = new ArrayList<>();
                                 nn = 0;
                                 for (Point pt : arrowLine.getPoint()) {
                                     linePoints.add(new Coordinate(pt.getLon(),
@@ -3066,7 +3093,7 @@ public class ProductConverter {
                                 fColor.getAlpha());
                     }
 
-                    ArrayList<Coordinate> linePoints = new ArrayList<Coordinate>();
+                    ArrayList<Coordinate> linePoints = new ArrayList<>();
                     nn = 0;
                     for (Point pt : fLine.getPoint()) {
                         linePoints
@@ -3093,7 +3120,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a cloud element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -3106,7 +3133,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a turbulence element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -3170,7 +3197,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML TCM object to a PGEN Tcm object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -3206,7 +3233,7 @@ public class ProductConverter {
 
     /**
      * Convert a Tcm object to an XML TCM object.
-     * 
+     *
      * @param cnt
      * @return
      */

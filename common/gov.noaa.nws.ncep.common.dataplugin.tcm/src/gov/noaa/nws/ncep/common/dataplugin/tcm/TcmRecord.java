@@ -49,11 +49,11 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Feb 11, 2014 2784    rferrel    Remove override of setIdentifier.
  * Jun 11, 2014 2061    bsteffen   Remove IDecoderGettable
  * Jan 25, 2019 7717    ksunil     Remove 8000 char limitation from bullMessage
+ * Jun 16, 2021 8479    tgurney    Fix bullmessage data type
  * 
  * </pre>
  * 
  * @author T.Lee
- * @version 1.0
  */
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "tcmseq")
@@ -161,7 +161,7 @@ public class TcmRecord extends PluginDataObject {
     private String mndTime;
 
     /** Bulletin messages */
-    @Column
+    @Column(columnDefinition="text")
     @DynamicSerializeElement
     private String bullMessage;
 

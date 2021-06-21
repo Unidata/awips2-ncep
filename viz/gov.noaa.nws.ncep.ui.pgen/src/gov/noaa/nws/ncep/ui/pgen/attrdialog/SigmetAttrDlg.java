@@ -188,6 +188,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 28, 2021  91845     smanoj        Drawing SIGMET spanning multiple FIRs in Backupmode.
  * Jun 04, 2021  91845     smanoj        Fixing some issues with Backupmode and CANCEL.
  * Jun 09, 2021  90732     mroos         Correcting Level Info locations, drop-down box, and observed info
+ * Jun 30, 2021  93038     mroos         Change default Trend attribute and allow default attributes to change
  *
  * </pre>
  *
@@ -1545,14 +1546,18 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         final Combo comboSpeed = new Combo(top4, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_PHENOM_SPEED, comboSpeed);
         comboSpeed.setItems(SigmetInfo.SPEED_ARRAY);
-        comboSpeed.select(0);
-        this.setEditableAttrPhenomSpeed(comboSpeed.getText());
-
+        if (editableAttrPhenomSpeed == null) {
+            comboSpeed.select(0);
+            this.setEditableAttrPhenomSpeed(comboSpeed.getText());
+        }
+        copyEditableAttrToSigmet((Sigmet) getSigmet());
         comboSpeed.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
                 SigmetAttrDlg.this
                         .setEditableAttrPhenomSpeed(comboSpeed.getText());
+                copyEditableAttrToSigmet((Sigmet) getSigmet());
+
             }
         });
 
@@ -1561,13 +1566,16 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         final Combo comboDirection = new Combo(top4, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_PHENOM_DIRECTION, comboDirection);
         comboDirection.setItems(SigmetInfo.DIRECT_ARRAY);
-        comboDirection.select(0);
-        this.setEditableAttrPhenomDirection(comboDirection.getText());
-
+        if (editableAttrPhenomDirection == null) {
+            comboDirection.select(0);
+            this.setEditableAttrPhenomDirection(comboDirection.getText());
+        }
+        copyEditableAttrToSigmet((Sigmet) getSigmet());
         comboDirection.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrPhenomDirection(comboDirection.getText());
+                copyEditableAttrToSigmet((Sigmet) getSigmet());
             }
         });
 
@@ -1576,15 +1584,18 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         final Combo comboTrend = new Combo(top4, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_TREND, comboTrend);
         comboTrend.setItems(SigmetInfo.TREND_ARRAY);
-        comboTrend.select(0);
-        this.setEditableAttrTrend(comboTrend.getText());
+        if (editableAttrTrend == null) {
+            comboTrend.select(1);
+            this.setEditableAttrTrend(comboTrend.getText());
+        }
+        copyEditableAttrToSigmet((Sigmet) getSigmet());
         comboTrend.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, false, false, 7, 1));
-
         comboTrend.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
                 setEditableAttrTrend(comboTrend.getText());
+                copyEditableAttrToSigmet((Sigmet) getSigmet());
             }
         });
     }

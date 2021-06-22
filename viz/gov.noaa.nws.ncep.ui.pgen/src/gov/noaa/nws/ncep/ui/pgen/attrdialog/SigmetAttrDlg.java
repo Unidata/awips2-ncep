@@ -225,6 +225,16 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
     private static final String EDITABLE_ATTR_LEVEL = "editableAttrLevel";
 
+    private static final String EDITABLE_ATTR_ALT_LEVEL_TEXT2 = "editableAttrAltLevelText2";
+
+    private static final String EDITABLE_ATTR_ALT_LEVEL_INFO2 = "editableAttrAltLevelInfo2";
+
+    private static final String EDITABLE_ATTR_ALT_LEVEL_TEXT1 = "editableAttrAltLevelText1";
+
+    private static final String EDITABLE_ATTR_ALT_LEVEL_INFO1 = "editableAttrAltLevelInfo1";
+
+    private static final String EDITABLE_ATTR_ALT_LEVEL = "editableAttrAltLevel";
+
     private static final String EDITABLE_ATTR_PHENOM2 = "editableAttrPhenom2";
 
     private static final String EDITABLE_ATTR_TREND = "editableAttrTrend";
@@ -2184,17 +2194,17 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         lblLevelInfo.setText("Level Info: ");
 
         final Combo comboLevel = new Combo(topLbl, SWT.READ_ONLY);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL, comboLevel);
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL, comboLevel);
         comboLevel.setItems(NONE, "FCST", "TOPS");
-        setControl(comboLevel, EDITABLE_ATTR_LEVEL);
+        setControl(comboLevel, EDITABLE_ATTR_ALT_LEVEL);
 
         final Combo comboLevelInfo1 = new Combo(topLbl, SWT.READ_ONLY);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO1, comboLevelInfo1);
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_INFO1, comboLevelInfo1);
         comboLevelInfo1.setItems("TO", "ABV", "BLW", "BTN");
-        setControl(comboLevelInfo1, EDITABLE_ATTR_LEVEL_INFO1);
+        setControl(comboLevelInfo1, EDITABLE_ATTR_ALT_LEVEL_INFO1);
 
         final Text txtLevelInfo1 = new Text(topLbl, SWT.SINGLE | SWT.BORDER);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL_TEXT1, txtLevelInfo1);
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_TEXT1, txtLevelInfo1);
         txtLevelInfo1.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 
@@ -2212,9 +2222,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         txtLevelInfo1.setLayoutData(gdText1);
 
         final Combo comboLevelInfo2 = new Combo(topLbl, SWT.READ_ONLY);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO2, comboLevelInfo2);
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_INFO2, comboLevelInfo2);
         comboLevelInfo2.setItems(NONE, "AND");
-        setControl(comboLevelInfo2, EDITABLE_ATTR_LEVEL_INFO2);
+        setControl(comboLevelInfo2, EDITABLE_ATTR_ALT_LEVEL_INFO2);
 
         comboLevelInfo2.addListener(SWT.Selection, new Listener() {
             @Override
@@ -2225,7 +2235,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         });
 
         final Text txtLevelInfo2 = new Text(topLbl, SWT.SINGLE | SWT.BORDER);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL_TEXT2, txtLevelInfo2);
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_TEXT2, txtLevelInfo2);
         txtLevelInfo2.setLayoutData(
                 new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 

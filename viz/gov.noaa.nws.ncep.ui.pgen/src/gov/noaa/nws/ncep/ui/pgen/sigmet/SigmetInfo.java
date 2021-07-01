@@ -84,6 +84,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  * Mar 15, 2021 86159       srussell    Added isValidLatLonArray method and 1
  *                                      call to it.
  * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
+ * Jun 29, 2021 93036       smanoj      Changes for QC alerts for Int'l SIGMETS.
  * 
  * </pre>
  *
@@ -148,6 +149,15 @@ public class SigmetInfo {
 
     public static final String[] FIR_OTHER = new String[] { "MUFH", "MKJK",
             "MDCS", "TTZP" };
+
+    public static final String[] LEVEL_ARRAY = new String[] { "TOPS", "FCST",
+            "-none-" };
+
+    public static final String[] LEVEL_INFO_ARRAY = new String[] { "TO", "ABV",
+            "BLW", "BTN" };
+
+    public static final String[] LEVEL_INFO_2_ARRAY = new String[] { "-none-",
+            "AND" };
 
     public static final String[] TREND_ARRAY = new String[] { "-none-", "NC",
             "WKN", "INTSF" };

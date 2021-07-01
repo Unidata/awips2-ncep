@@ -188,6 +188,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 28, 2021  91845     smanoj        Drawing SIGMET spanning multiple FIRs in Backupmode.
  * Jun 04, 2021  91845     smanoj        Fixing some issues with Backupmode and CANCEL.
  * Jun 09, 2021  90732     mroos         Correcting Level Info locations, drop-down box, and observed info
+ * Jun 29, 2021  93036     smanoj        Changes for QC alerts for Int'l SIGMETS.
  * Jun 30, 2021  93038     mroos         Change default Trend attribute and allow default attributes to change
  *
  * </pre>
@@ -201,6 +202,8 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             .getHandler(SigmetAttrDlg.class);
 
     private static final long SIX_HR_MS = 6 * TimeUtil.MILLIS_PER_HOUR;
+
+    private static final int MAX_FLIGHT_LEVEL = 600;
 
     private static final String NONE = "-none-";
 
@@ -737,6 +740,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         String phenomType = SigmetAttrDlg.this.getEditableAttrPhenom();
 
         StringBuffer errors = new StringBuffer();
+
+        // SIGMET should intersect at least One FIR.
+
+        errors.append(validateFIRSigmetEntries(
+                SigmetAttrDlg.this.getEditableAttrFir()));
+
         errors.append(validateCommonSigmetEntries(phenomType));
 
         if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phenomType) && StringUtils
@@ -746,6 +755,85 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
         }
 
+        // Validate Radical/Area/Line Description Lat/Lon
+        if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phenomType)) {
+            if ((SigmetAttrDlg.this.getEditableAttrFcstVADesc() != null)
+                    && (SigmetAttrDlg.this.getEditableAttrFcstVADesc()
+                            .length() > 0)) {
+                String[] locPair = SigmetAttrDlg.this
+                        .getEditableAttrFcstVADesc().split("-");
+                for (int i = 0; i < locPair.length; i++) {
+                    String locTemp = locPair[i];
+                    locTemp = locTemp.trim();
+                    String[] latlonPair = locTemp.split(" ");
+                    if (latlonPair.length > 1) {
+                        String lat = latlonPair[0];
+                        String lon = latlonPair[1];
+
+                        if (lat.length() < 5) {
+                            errors.append(
+                                    "Entered an Invalid Latitude value for the Radical/Area/Line Description :  "
+                                            + lat
+                                            + ". Example of Valid Latitude: N2330.\n\n");
+                        }
+                        if (lon.length() < 6) {
+                            errors.append(
+                                    "Entered an Invalid Longitude value for the Radical/Area/Line Description :  "
+                                            + lon
+                                            + ". Example of Valid Longitude: W07500.\n\n");
+                        }
+                    } else {
+                        errors.append(
+                                "Both Latitude and Longitude coordinates need to be entered for the "
+                                        + "Radical/Area/Line Description. Example N2330 W07500. \n\n");
+                    }
+
+                }
+            }
+        }
+
+        // validate level information (Max value is 600)
+        errors.append(validateLevelInfoSigmetEntries(
+                SigmetAttrDlg.this.getEditableAttrLevelText1()));
+
+        errors.append(validateLevelInfoSigmetEntries(
+                SigmetAttrDlg.this.getEditableAttrLevelText2()));
+
+        return errors.toString();
+    }
+
+    private String validateFIRSigmetEntries(String firID) {
+        StringBuffer errors = new StringBuffer();
+        if (firID == null || firID.isEmpty()) {
+            if (SigmetAttrDlg.AREA.equals(lineType)) {
+                errors.append(
+                        "SIGMET polygon does not intersect any FIRs for the selected MWO.\n\n");
+            } else if (SigmetAttrDlg.ISOLATED.equals(lineType)) {
+                errors.append(
+                        "Isolated SIGMET does not intersect any FIRs for the selected MWO.\n\n");
+            } else {
+                errors.append(
+                        "Line SIGMET does not intersect any FIRs for the selected MWO.\n\n");
+            }
+        }
+        return errors.toString();
+    }
+
+    private String validateLevelInfoSigmetEntries(String levelInfo) {
+        StringBuffer errors = new StringBuffer();
+        if (levelInfo != null && !levelInfo.isEmpty()) {
+            int levelVal = Integer.parseInt(levelInfo);
+            if (levelVal < 100) {
+                errors.append(
+                        "The Flight Level Info should be a 3-digit value. Value entered is "
+                                + levelVal + ".\n\n");
+            }
+            if (levelVal > MAX_FLIGHT_LEVEL) {
+                errors.append(
+                        "Upper Limit for the Flight Level is 600. Value entered is "
+                                + levelVal + ".\n\n");
+            }
+        }
         return errors.toString();
     }
 
@@ -758,11 +846,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
             if (StringUtils
                     .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
-                errors.append("Phenon Name can't be null or empty.\n");
+                errors.append(
+                        "Phenom Name can't be null or empty. Please select Phenom Name.\n\n");
             }
+
             // check if the fcstAvail check box is set and make sure time and
             // center are correct
-
             if ("true".equals(getEditableAttrFcstAvail())) {
 
                 if (!validateFcstTimeString(
@@ -1611,12 +1700,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         final Combo comboLevel = new Combo(top5, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_LEVEL, comboLevel);
-        comboLevel.setItems(NONE, "FCST", "TOPS");
+        comboLevel.setItems(SigmetInfo.LEVEL_ARRAY);
         setControl(comboLevel, EDITABLE_ATTR_LEVEL);
 
         final Combo comboLevelInfo1 = new Combo(top5, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO1, comboLevelInfo1);
-        comboLevelInfo1.setItems("TO", "ABV", "BLW", "BTN");
+        comboLevelInfo1.setItems(SigmetInfo.LEVEL_INFO_ARRAY);
         setControl(comboLevelInfo1, EDITABLE_ATTR_LEVEL_INFO1);
 
         final Text txtLevelInfo1 = new Text(top5, SWT.SINGLE | SWT.BORDER);
@@ -1639,7 +1728,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         final Combo comboLevelInfo2 = new Combo(top5, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO2, comboLevelInfo2);
-        comboLevelInfo2.setItems(NONE, "AND");
+        comboLevelInfo2.setItems(SigmetInfo.LEVEL_INFO_2_ARRAY);
         setControl(comboLevelInfo2, EDITABLE_ATTR_LEVEL_INFO2);
 
         comboLevelInfo2.addListener(SWT.Selection, new Listener() {
@@ -1666,6 +1755,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         txtLevelInfo2.addListener(SWT.Modify, new Listener() {
             @Override
             public void handleEvent(Event e) {
+                qualityCheckForLevelInfo(txtLevelInfo2.getText());
                 SigmetAttrDlg.this
                         .setEditableAttrLevelText2(txtLevelInfo2.getText());
             }
@@ -1695,6 +1785,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         txtLevelInfo1.addListener(SWT.Modify, new Listener() {
             @Override
             public void handleEvent(Event e) {
+                qualityCheckForLevelInfo(txtLevelInfo1.getText());
                 SigmetAttrDlg.this
                         .setEditableAttrLevelText1(txtLevelInfo1.getText());
             }
@@ -2206,12 +2297,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         final Combo comboLevel = new Combo(topLbl, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL, comboLevel);
-        comboLevel.setItems(NONE, "FCST", "TOPS");
+        comboLevel.setItems(SigmetInfo.LEVEL_ARRAY);
         setControl(comboLevel, EDITABLE_ATTR_ALT_LEVEL);
 
         final Combo comboLevelInfo1 = new Combo(topLbl, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_INFO1, comboLevelInfo1);
-        comboLevelInfo1.setItems("TO", "ABV", "BLW", "BTN");
+        comboLevelInfo1.setItems(SigmetInfo.LEVEL_INFO_ARRAY);
         setControl(comboLevelInfo1, EDITABLE_ATTR_ALT_LEVEL_INFO1);
 
         final Text txtLevelInfo1 = new Text(topLbl, SWT.SINGLE | SWT.BORDER);
@@ -2234,7 +2325,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         final Combo comboLevelInfo2 = new Combo(topLbl, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL_INFO2, comboLevelInfo2);
-        comboLevelInfo2.setItems(NONE, "AND");
+        comboLevelInfo2.setItems(SigmetInfo.LEVEL_INFO_2_ARRAY);
         setControl(comboLevelInfo2, EDITABLE_ATTR_ALT_LEVEL_INFO2);
 
         comboLevelInfo2.addListener(SWT.Selection, new Listener() {
@@ -2261,6 +2352,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         txtLevelInfo2.addListener(SWT.Modify, new Listener() {
             @Override
             public void handleEvent(Event e) {
+                qualityCheckForLevelInfo(txtLevelInfo2.getText());
                 SigmetAttrDlg.this
                         .setEditableAttrAltLevelText2(txtLevelInfo2.getText());
             }
@@ -2290,6 +2382,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         txtLevelInfo1.addListener(SWT.Modify, new Listener() {
             @Override
             public void handleEvent(Event e) {
+                qualityCheckForLevelInfo(txtLevelInfo1.getText());
                 SigmetAttrDlg.this
                         .setEditableAttrAltLevelText1(txtLevelInfo1.getText());
             }
@@ -3063,6 +3156,19 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
         }
         return result;
+    }
+
+    private void qualityCheckForLevelInfo(String levelInfo) {
+        if (!levelInfo.isEmpty()) {
+            int levelVal = Integer.parseInt(levelInfo);
+            if (levelVal > MAX_FLIGHT_LEVEL) {
+                String inValid = "Upper Limit for the Flight Level is 600. Value entered is "
+                        + levelVal;
+                if (!StringUtils.isEmpty(inValid)) {
+                    (new SigmetAttrValidateDlg(getShell(), inValid)).open();
+                }
+            }
+        }
     }
 
     public void copyEditableAttrToSigmet(Sigmet ba) {
@@ -4105,27 +4211,31 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                     String locTemp = locPair[i];
                     locTemp = locTemp.trim();
                     String[] latlonPair = locTemp.split(" ");
-                    String lat = latlonPair[0];
-                    String lon = latlonPair[1];
+                    if (latlonPair.length > 1) {
+                        String lat = latlonPair[0];
+                        String lon = latlonPair[1];
 
-                    int latval = getIntValueOfLat(lat);
-                    int lonval = getIntValueOfLon(lon);
-                    latval = getValRoundedToNearest15Min(latval);
-                    lonval = getValRoundedToNearest15Min(lonval);
+                        int latval = getIntValueOfLat(lat);
+                        int lonval = getIntValueOfLon(lon);
+                        latval = getValRoundedToNearest15Min(latval);
+                        lonval = getValRoundedToNearest15Min(lonval);
 
-                    latLonLocation.append(" ")
-                            .append(lat.substring(0, lat.length() - 4));
-                    latLonLocation.append(Integer.toString(latval)).append(" ");
-                    latLonLocation.append(lon.substring(0, lon.length() - 5));
-                    String strLon = Integer.toString(lonval);
-                    if ((strLon.length()) < 5) {
-                        latLonLocation.append("0").append(strLon);
-                    } else {
-                        latLonLocation.append(strLon);
-                    }
+                        latLonLocation.append(" ")
+                                .append(lat.substring(0, lat.length() - 4));
+                        latLonLocation.append(Integer.toString(latval))
+                                .append(" ");
+                        latLonLocation
+                                .append(lon.substring(0, lon.length() - 5));
+                        String strLon = Integer.toString(lonval);
+                        if ((strLon.length()) < 5) {
+                            latLonLocation.append("0").append(strLon);
+                        } else {
+                            latLonLocation.append(strLon);
+                        }
 
-                    if (i < locPair.length - 1) {
-                        latLonLocation.append(" ").append("-");
+                        if (i < locPair.length - 1) {
+                            latLonLocation.append(" ").append("-");
+                        }
                     }
                 }
                 locationDesc = latLonLocation.toString();
@@ -4147,14 +4257,15 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             } else if (SigmetAttrDlg.AREA.equals(lineType)) {
                 if (sb.toString().contains(SigmetConstant.TS)) {
                     if (isTropCyc) {
+
                         // ------ TOPS
                         if (tops != null && (!NONE.equals(tops))) {
-                            if (SigmetConstant.TOPS.equals(tops)) {
-                                sb.append(" ").append(SigmetConstant.TOP);
-                            }
-                            String levelInfo1 = SigmetAttrDlg.this
+                            String text1 = SigmetAttrDlg.this
                                     .getEditableAttrLevelText1();
-                            if (levelInfo1 != null) {
+                            if (text1 != null && text1.length() > 0) {
+                                if (SigmetConstant.TOPS.equals(tops)) {
+                                    sb.append(" ").append(SigmetConstant.TOP);
+                                }
                                 if ((SigmetAttrDlg.this
                                         .getEditableAttrLevelInfo1()
                                         .equalsIgnoreCase(SigmetConstant.ABV))
@@ -4165,20 +4276,17 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                                     sb.append(" ").append(SigmetAttrDlg.this
                                             .getEditableAttrLevelInfo1());
                                 }
-                            }
-                            sb.append(" ").append(SigmetConstant.FL);
-                            String text1 = SigmetAttrDlg.this
-                                    .getEditableAttrLevelText1();
-                            sb.append(text1 == null ? "" : text1);
+                                sb.append(" ").append(SigmetConstant.FL);
+                                sb.append(text1 == null ? "" : text1);
 
-                            String levelInfo2 = SigmetAttrDlg.this
-                                    .getEditableAttrLevelInfo2();
-                            if (!NONE.equals(levelInfo2)) {
-                                sb.append("/");
-                                String text2 = SigmetAttrDlg.this
-                                        .getEditableAttrLevelText2();
-                                sb.append(text2 == null ? "" : text2);
-
+                                String levelInfo2 = SigmetAttrDlg.this
+                                        .getEditableAttrLevelInfo2();
+                                if (!NONE.equals(levelInfo2)) {
+                                    sb.append("/");
+                                    String text2 = SigmetAttrDlg.this
+                                            .getEditableAttrLevelText2();
+                                    sb.append(text2 == null ? "" : text2);
+                                }
                             }
                         }
 
@@ -4383,18 +4491,24 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             return sb.toString();
         }
 
+                String text1 = SigmetAttrDlg.this.getEditableAttrLevelText1();
+                if (text1 != null && text1.length() > 0) {
+            } else {
+                levelTxt = null;
+            }
+
         private StringBuilder getAltLevelInfo(String tops) {
             StringBuilder levelTxt = new StringBuilder();
 
             // ------ TOPS
             if (tops != null && (!NONE.equals(tops))) {
-                if (SigmetConstant.FCST.equals(tops)) {
-                    levelTxt.append(" ").append(SigmetConstant.FCST);
-                }
-
-                String levelInfo1 = SigmetAttrDlg.this
+                String text1 = SigmetAttrDlg.this
                         .getEditableAttrAltLevelText1();
-                if (levelInfo1 != null) {
+                if (text1 != null && text1.length() > 0) {
+                    if (SigmetConstant.FCST.equals(tops)) {
+                        levelTxt.append(" ").append(SigmetConstant.FCST);
+                    }
+
                     if ((SigmetAttrDlg.this.getEditableAttrAltLevelInfo1()
                             .equalsIgnoreCase(SigmetConstant.ABV))
                             || (SigmetAttrDlg.this
@@ -4403,21 +4517,21 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         levelTxt.append(" ").append(SigmetAttrDlg.this
                                 .getEditableAttrAltLevelInfo1());
                     }
-                }
 
-                levelTxt.append(" ").append(SigmetConstant.FL);
-                String text1 = SigmetAttrDlg.this
-                        .getEditableAttrAltLevelText1();
-                levelTxt.append(text1 == null ? "" : text1);
+                    levelTxt.append(" ").append(SigmetConstant.FL);
+                    levelTxt.append(text1 == null ? "" : text1);
 
-                String levelInfo2 = SigmetAttrDlg.this
-                        .getEditableAttrAltLevelInfo2();
-                if (!NONE.equals(levelInfo2)) {
-                    levelTxt.append("/");
-                    String text2 = SigmetAttrDlg.this
-                            .getEditableAttrAltLevelText2();
-                    levelTxt.append(text2 == null ? "" : text2);
+                    String levelInfo2 = SigmetAttrDlg.this
+                            .getEditableAttrAltLevelInfo2();
+                    if (!NONE.equals(levelInfo2)) {
+                        levelTxt.append("/");
+                        String text2 = SigmetAttrDlg.this
+                                .getEditableAttrAltLevelText2();
+                        levelTxt.append(text2 == null ? "" : text2);
+                    }
                 }
+            } else {
+                levelTxt = null;
             }
             return levelTxt;
         }
@@ -4430,27 +4544,29 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 String locTemp = locPair[i];
                 locTemp = locTemp.trim();
                 String[] latlonPair = locTemp.split(" ");
-                String lat = latlonPair[0];
-                String lon = latlonPair[1];
+                if (latlonPair.length > 1) {
+                    String lat = latlonPair[0];
+                    String lon = latlonPair[1];
 
-                int latval = getIntValueOfLat(lat);
-                int lonval = getIntValueOfLon(lon);
-                latval = getValRoundedToNearest15Min(latval);
-                lonval = getValRoundedToNearest15Min(lonval);
+                    int latval = getIntValueOfLat(lat);
+                    int lonval = getIntValueOfLon(lon);
+                    latval = getValRoundedToNearest15Min(latval);
+                    lonval = getValRoundedToNearest15Min(lonval);
 
-                fcstLatLonLoc.append(" ")
-                        .append(lat.substring(0, lat.length() - 4));
-                fcstLatLonLoc.append(Integer.toString(latval)).append(" ");
-                fcstLatLonLoc.append(lon.substring(0, lon.length() - 5));
-                String strLon = Integer.toString(lonval);
-                if ((strLon.length()) < 5) {
-                    fcstLatLonLoc.append("0").append(strLon);
-                } else {
-                    fcstLatLonLoc.append(strLon);
-                }
+                    fcstLatLonLoc.append(" ")
+                            .append(lat.substring(0, lat.length() - 4));
+                    fcstLatLonLoc.append(Integer.toString(latval)).append(" ");
+                    fcstLatLonLoc.append(lon.substring(0, lon.length() - 5));
+                    String strLon = Integer.toString(lonval);
+                    if ((strLon.length()) < 5) {
+                        fcstLatLonLoc.append("0").append(strLon);
+                    } else {
+                        fcstLatLonLoc.append(strLon);
+                    }
 
-                if (i < locPair.length - 1) {
-                    fcstLatLonLoc.append(" ").append("-");
+                    if (i < locPair.length - 1) {
+                        fcstLatLonLoc.append(" ").append("-");
+                    }
                 }
             }
             return fcstLatLonLoc;

@@ -9,6 +9,7 @@
 #   ------------    ----------    -----------    ------------
 #   Jan 25, 2019    7717          K. Sunil       Update bullmessage column to remove 8000 char limitation
 #   Jun 13, 2019    7869          tjensen        Remove -h option from psql command
+#   Jun 16, 2021    8479          tgurney        Change bullmessage to type 'text'
 
 #  Purpose:  Run SQL script to change bullmessage column data type in table tcm
 #  Database: metadata 
@@ -47,11 +48,9 @@ fi
 
 PSQL_RUN_COMMAND="${PSQL} -X -U $USER --set ON_ERROR_STOP=on --set AUTOCOMMIT=on $DB "
 
-RESULT=$($PSQL_RUN_COMMAND <<ENDSQL
-
-alter table tcm alter column bullmessage set data type varchar
-
-ENDSQL
+RESULT=$($PSQL_RUN_COMMAND <<EOF
+alter table tcm alter column bullmessage type text;
+EOF
 
 )
 

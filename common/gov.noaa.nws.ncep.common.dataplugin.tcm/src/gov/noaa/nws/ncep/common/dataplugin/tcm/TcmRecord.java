@@ -49,7 +49,8 @@ import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
  * Jun 11, 2014 2061    bsteffen   Remove IDecoderGettable
  * Jan 25, 2019 7717    ksunil     Remove 8000 char limitation from bullMessage
  * Mar 06, 2019 6140    tgurney    Hibernate 5 @Index fix
- *
+ * Jun 16, 2021 8479    tgurney    Fix bullmessage data type
+ * 
  * </pre>
  *
  * @author T.Lee
@@ -162,7 +163,7 @@ public class TcmRecord extends PluginDataObject {
     private String mndTime;
 
     /** Bulletin messages */
-    @Column
+    @Column(columnDefinition="text")
     @DynamicSerializeElement
     private String bullMessage;
 

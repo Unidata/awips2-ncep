@@ -26,6 +26,8 @@ package gov.noaa.nws.ncep.ui.pgen;
  *                                  TYPE_VOLCANIC_ASH
  * Dec 09, 2020  85217    smanoj    Added ADD_NEW_LABEL
  *
+ * Aug 17, 2021  93036      omoncayo     PGEN INTL SIGMET:QC Check Attributes
+ *
  * </pre>
  *
  * @author srussell
@@ -150,6 +152,20 @@ public final class PgenConstant {
 
     public static final String LEVEL = "Level";
 
+    public static final String LEVEL_TOPS = "TOPS";
+
+    public static final String LEVEL_FCST = "FCST";
+
+    public static final String LEVEL_NONE = "-none-";
+
+    public static final String LEVEL_INFO_ABV = "ABV";
+
+    public static final String LEVEL_INFO_BLW = "BLW";
+
+    public static final String LEVEL_INFO_BTN = "BTN";
+
+    public static final String LEVEL_INFO2_AND = "AND";
+
     public static final String FORECAST_HOUR = "ForecastHour";
 
     public static final String NONE = "None";
@@ -205,6 +221,20 @@ public final class PgenConstant {
     public static final String TYPE_SHEAR_LINE = "SHEAR_LINE";
 
     public static final String LABEL_SHEARLINE = "SHEARLINE";
+
+    public static final String TYPE_FRQ_TS = "FRQ_TS";
+
+    public static final String TYPE_OBSC_TS = "OBSC_TS";
+
+    public static final String TYPE_EMBD_TS = "EMBD_TS";
+
+    public static final String TYPE_SQL_TS = "SQL_TS";
+
+    public static final String TYPE_SEV_TURB = "SEV_TURB";
+
+    public static final String TYPE_SEV_ICE = "SEV_ICE";
+
+    public static final String TYPE_RDOACT_CLD = "RDOACT_CLD";
 
     public static final String TYPE_TROPICAL_CYCLONE = "TROPICAL_CYCLONE";
 

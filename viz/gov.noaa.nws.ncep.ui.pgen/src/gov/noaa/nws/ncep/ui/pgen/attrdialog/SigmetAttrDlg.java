@@ -192,6 +192,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Jun 30, 2021  93038     mroos         Change default Trend attribute and allow default attributes to change
  * Jul 26, 2021  93964      omoncayo     Eliminate gosh volcanos menu for Cyclone
  *                                       populate Observed Phenom Lat and Lon
+ * Aug 20, 2021  93036      omoncayo     PGEN INTL SIGMET:QC Check Attributes
  *
  * </pre>
  *
@@ -748,19 +749,115 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         errors.append(validateFIRSigmetEntries(
                 SigmetAttrDlg.this.getEditableAttrFir()));
 
-        errors.append(validateCommonSigmetEntries(phenomType));
-
-        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phenomType) && StringUtils
-                .isEmpty(SigmetAttrDlg.this.getEditableAttrFcstCntr())) {
-            if ("true".equals(getEditableAttrFcstAvail())) {
-                errors.append("Fcst Center can't be null or empty.\n");
+        // Validations by Phenom Type
+        switch (phenomType) {
+        case PgenConstant.TYPE_FRQ_TS:
+        case PgenConstant.TYPE_OBSC_TS:
+        case PgenConstant.TYPE_EMBD_TS:
+        case PgenConstant.TYPE_SQL_TS:
+            if (!getEditableAttrLevel().equals(PgenConstant.LEVEL_TOPS)) {
+                errors.append(
+                        "Level Info first widget combo box should be set to “TOPS”.\n\n");
             }
-        }
+            // validate level information (Max value is 600)
+            errors.append(validateLevelInfoSigmetEntries(
+                    SigmetAttrDlg.this.getEditableAttrLevelText1(), 0, 600));
+            break;
+        case PgenConstant.TYPE_SEV_TURB:
+        case PgenConstant.TYPE_SEV_ICE:
+            if (!getEditableAttrLevel().equals(PgenConstant.LEVEL_FCST)) {
+                errors.append(
+                        "Level Info first widget combo box should be set to “FCST”.\n\n");
+            }
+            switch (editableAttrLevelInfo1) {
+            case PgenConstant.LEVEL_INFO_ABV:
+            case PgenConstant.LEVEL_INFO_BLW:
+                // validate level information (Max value is 600)
+                errors.append(validateLevelInfoSigmetEntries(
+                        SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
+                        600));
+                break;
+            case PgenConstant.LEVEL_INFO_BTN:
+                // validate level information (Min 250, Max 350
+                errors.append(validateLevelInfoSigmetEntries(
+                        SigmetAttrDlg.this.getEditableAttrLevelText1(), 250,
+                        350));
+                if (getEditableAttrLevelInfo2()
+                        .equals(PgenConstant.LEVEL_INFO2_AND)) {
+                    // validate level information (Max value is 600)
+                    errors.append(validateLevelInfoSigmetEntries(
+                            SigmetAttrDlg.this.getEditableAttrLevelText2(), 0,
+                            600));
+                } else {
+                    errors.append(
+                            "Ensure the Level Info 4th widget is set to AND\n\n");
+                }
+                break;
+            default:
+                errors.append(
+                        "Level Info second widget combo box should be set to “ABV/BLW/BTN”.\n\n");
+            }
+            break;
+        case PgenConstant.TYPE_RDOACT_CLD:
+            if (!getEditableAttrLevel().equals(PgenConstant.LEVEL_FCST)) {
+                errors.append(
+                        "Level Info first widget combo box should be set to “FCST”.\n\n");
+            }
+            switch (editableAttrLevelInfo1) {
+            case PgenConstant.LEVEL_INFO_ABV:
+            case PgenConstant.LEVEL_INFO_BLW:
+            case PgenConstant.LEVEL_INFO_BTN:
+                if (getEditableAttrLevelInfo2()
+                        .equals(PgenConstant.LEVEL_INFO2_AND)) {
+                    // validate level information (Max value is 600)
+                    errors.append(validateLevelInfoSigmetEntries(
+                            SigmetAttrDlg.this.getEditableAttrLevelText2(), 0,
+                            600));
+                } else {
+                    errors.append(
+                            "Ensure the Level Info 4th widget is set to AND\n\n");
+                }
+                break;
+            default:
+                errors.append(
+                        "Level Info second widget combo box should be set to “ABV/BLW/BTN”.\n\n");
 
-        // Validate Radical/Area/Line Description Lat/Lon
-        if (PgenConstant.TYPE_VOLCANIC_ASH.equals(phenomType)) {
-            if ((SigmetAttrDlg.this.getEditableAttrFcstVADesc() != null)
-                    && (SigmetAttrDlg.this.getEditableAttrFcstVADesc()
+            }
+            break;
+        case PgenConstant.TYPE_TROPICAL_CYCLONE:
+
+            if (StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
+                errors.append(
+                        "Phenom Name can't be null or empty. Please Enter Phenom Name.\n\n");
+            }
+            if (StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrFcstCntr())
+                    && ("true".equals(getEditableAttrFcstAvail()))) {
+                errors.append("Fcst Center can't be null or empty.\n\n");
+            }
+            if (!getEditableAttrLevel().equals(PgenConstant.LEVEL_TOPS)) {
+                errors.append(
+                        "Level Info first widget combo box should be set to “TOPS”.\n\n");
+            }
+            // validate level information (Max value is 600)
+            errors.append(validateLevelInfoSigmetEntries(
+                    SigmetAttrDlg.this.getEditableAttrLevelText1(), 0, 600));
+
+            errors.append(validateFcstAvailSigmetEntries(phenomType));
+
+            break;
+        case PgenConstant.TYPE_VOLCANIC_ASH:
+
+            if (StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
+                errors.append(
+                        "Phenom Name can't be null or empty. Please Select/Enter Phenom Name.\n\n");
+            }
+            // Validate Radical/Area/Line Description Lat/Lon
+            if (!StringUtils
+                    .isEmpty(SigmetAttrDlg.this.getEditableAttrFcstVADesc())
+                    && (SigmetAttrDlg.this.getEditableAttrFcstVADesc().trim()
                             .length() > 0)) {
                 String[] locPair = SigmetAttrDlg.this
                         .getEditableAttrFcstVADesc().split("-");
@@ -774,32 +871,84 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
                         if (lat.length() < 5) {
                             errors.append(
-                                    "Entered an Invalid Latitude value for the Radical/Area/Line Description :  "
+                                    "Entered an Invalid Latitude value for the Radial/Area/Line Description :  "
                                             + lat
                                             + ". Example of Valid Latitude: N2330.\n\n");
                         }
                         if (lon.length() < 6) {
                             errors.append(
-                                    "Entered an Invalid Longitude value for the Radical/Area/Line Description :  "
+                                    "Entered an Invalid Longitude value for the Radial/Area/Line Description :  "
                                             + lon
                                             + ". Example of Valid Longitude: W07500.\n\n");
                         }
                     } else {
                         errors.append(
                                 "Both Latitude and Longitude coordinates need to be entered for the "
-                                        + "Radical/Area/Line Description. Example N2330 W07500. \n\n");
+                                        + "Radial/Area/Line Description. Example N2330 W07500. \n\n");
                     }
 
                 }
+            } // End Switch - Validation of Radial/Area/Line Description is on
+              // validateCommonSigmetEntries
+
+            switch (getEditableAttrLevel()) {
+            case PgenConstant.LEVEL_FCST:
+                // validate level information (Max value is 600)
+                errors.append(validateLevelInfoSigmetEntries(
+                        SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
+                        600));
+
+                switch (editableAttrLevelInfo1) {
+                case PgenConstant.LEVEL_INFO_ABV:
+                case PgenConstant.LEVEL_INFO_BLW:
+                case PgenConstant.LEVEL_INFO_BTN:
+                    if (getEditableAttrLevelInfo2()
+                            .equals(PgenConstant.LEVEL_INFO2_AND)) {
+                        // validate level information (Max value is 600)
+                        errors.append(validateLevelInfoSigmetEntries(
+                                SigmetAttrDlg.this.getEditableAttrLevelText2(),
+                                0, 600));
+                    } else {
+                        errors.append(
+                                "Ensure the Level Info 4th widget is set to AND\n\n");
+                    }
+                    break;
+
+                default:
+                    errors.append(
+                            "Level Info second widget combo box should be set to “ABV/BLW/BTN”.\n\n");
+
+                }
+
+                break;
+
+            case PgenConstant.LEVEL_TOPS:
+
+                switch (editableAttrLevelInfo1) {
+                case PgenConstant.LEVEL_INFO_ABV:
+                case PgenConstant.LEVEL_INFO_BLW:
+                    // validate level information (Max value is 600)
+                    errors.append(validateLevelInfoSigmetEntries(
+                            SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
+                            600));
+                    break;
+                default:
+                    errors.append(
+                            "Level Info second widget combo box should be set to “ABV/BLW”.\n\n");
+                }
+
+                break;
+
+            default:
+                errors.append(
+                        "Level Info first widget combo box should be set to “FCST” or “TOPS” .\n\n");
+
             }
-        }
 
-        // validate level information (Max value is 600)
-        errors.append(validateLevelInfoSigmetEntries(
-                SigmetAttrDlg.this.getEditableAttrLevelText1()));
+            errors.append(validateFcstAvailSigmetEntries(phenomType));
 
-        errors.append(validateLevelInfoSigmetEntries(
-                SigmetAttrDlg.this.getEditableAttrLevelText2()));
+            break;
+        } // End switch
 
         return errors.toString();
     }
@@ -821,53 +970,78 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         return errors.toString();
     }
 
-    private String validateLevelInfoSigmetEntries(String levelInfo) {
+    private String validateLevelInfoSigmetEntries(String levelInfo,
+            int minFlightLevel, int maxFlightLevel) {
         StringBuffer errors = new StringBuffer();
-        if (levelInfo != null && !levelInfo.isEmpty()) {
-            int levelVal = Integer.parseInt(levelInfo);
-            if (levelVal < 100) {
-                errors.append(
-                        "The Flight Level Info should be a 3-digit value. Value entered is "
-                                + levelVal + ".\n\n");
-            }
-            if (levelVal > MAX_FLIGHT_LEVEL) {
-                errors.append(
-                        "Upper Limit for the Flight Level is 600. Value entered is "
-                                + levelVal + ".\n\n");
+        if (levelInfo == null || levelInfo.isEmpty()) {
+            errors.append(
+                    "The Flight Level Info should be a 3-digit value. No Value entered.\n\n");
+        } else {
+            int levelVal = Integer.parseInt(levelInfo.trim());
+            if (!levelInfo.trim().matches("^\\d{3}$")) {
+                errors.append(String.format(
+                        "The Flight Level Info should be a 3-digit value. Value entered is %s.%n%n",
+                        levelInfo));
+            } else {
+                if (levelVal < minFlightLevel) {
+                    errors.append(String.format(
+                            "Lower Limit for the Flight Level is %s. Value entered is %s.%n%n",
+                            minFlightLevel, levelVal));
+                }
+                if (levelVal > maxFlightLevel) {
+                    errors.append(String.format(
+                            "Upper Limit for the Flight Level is %s. Value entered is %s.%n%n",
+                            maxFlightLevel, levelVal));
+                }
             }
         }
         return errors.toString();
     }
 
-    private String validateCommonSigmetEntries(String phenomType) {
+    private String validateFcstAvailSigmetEntries(String phenomType) {
 
         StringBuffer errors = new StringBuffer();
 
-        if (PgenConstant.TYPE_TROPICAL_CYCLONE.equals(phenomType)
-                || PgenConstant.TYPE_VOLCANIC_ASH.equals(phenomType)) {
+        // check if the fcstAvail check box is set and make sure time and
+        // center are correct and Radial/Area/Line Description is not empty
+        if ("true".equals(getEditableAttrFcstAvail())) {
 
-            if (StringUtils
-                    .isEmpty(SigmetAttrDlg.this.getEditableAttrPhenomName())) {
+            if (!validateFcstTimeString(
+                    SigmetAttrDlg.this.getEditableAttrFcstTime())) {
                 errors.append(
-                        "Phenom Name can't be null or empty. Please select Phenom Name.\n\n");
+                        "Incorrect format for fcst Time. Use HHMM zulu time.\n");
             }
 
-            // check if the fcstAvail check box is set and make sure time and
-            // center are correct
-            if ("true".equals(getEditableAttrFcstAvail())) {
+            if (!validateTimeDifference(this.getEditableAttrStartTime(),
+                    this.getEditableAttrEndTime(), SIX_HR_MS)) {
+                errors.append("Valid from/to can't be more than 6 Hrs.\n");
+            }
 
-                if (!validateFcstTimeString(
-                        SigmetAttrDlg.this.getEditableAttrFcstTime())) {
+            switch (phenomType) {
+            case PgenConstant.TYPE_TROPICAL_CYCLONE:
+                if (StringUtils.isEmpty(
+                        SigmetAttrDlg.this.getEditableAttrFcstPhenomLat())) {
                     errors.append(
-                            "Incorrect format for fcst Time. Use HHMM zulu time.\n");
+                            "Forecast Phenom Latitud can't be null or empty. Please Enter valid Latitud.\n\n");
                 }
-
-                if (!validateTimeDifference(this.getEditableAttrStartTime(),
-                        this.getEditableAttrEndTime(), SIX_HR_MS)) {
-                    errors.append("Valid from/to can't be more than 6 Hrs.\n");
+                if (StringUtils.isEmpty(
+                        SigmetAttrDlg.this.getEditableAttrFcstPhenomLon())) {
+                    errors.append(
+                            "Forecast Phenom Longitud can't be null or empty. Please Enter valid Longitud.\n\n");
                 }
+                break;
+            case PgenConstant.TYPE_VOLCANIC_ASH:
+                if (StringUtils.isEmpty(
+                        SigmetAttrDlg.this.getEditableAttrFcstVADesc())) {
+                    errors.append(
+                            "Both Latitude and Longitude coordinates need to be entered for the "
+                                    + "Radial/Area/Line Description. Example N2330 W07500. \n\n");
+                }
+                break;
             }
+
         }
+
         return errors.toString();
     }
 
@@ -1183,17 +1357,18 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             public void handleEvent(Event e) {
                 setEditableAttrPhenom(comboPhenom.getText());
                 String endTime;
-                if (PgenConstant.TYPE_TROPICAL_CYCLONE
-                        .equals(comboPhenom.getText())
-                        || PgenConstant.TYPE_VOLCANIC_ASH
-                                .equals(comboPhenom.getText())) {
+                switch (comboPhenom.getText()) {
+                case PgenConstant.TYPE_TROPICAL_CYCLONE:
+                case PgenConstant.TYPE_VOLCANIC_ASH:
                     endTime = convertTimeStringPlusHourInHMS(
                             txtValidFrom.getText(), 6, true);
-
-                } else {
+                    break;
+                default:
                     endTime = convertTimeStringPlusHourInHMS(
                             txtValidFrom.getText(), 4, true);
+
                 }
+
                 txtTo.setText(endTime);
                 setEditableAttrEndTime(txtTo.getText());
                 withExpandedArea = true;
@@ -1213,7 +1388,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
         Shell shell = getShell();
         Label lblSEPhenomName = new Label(topPhenom, SWT.LEFT);
-        lblSEPhenomName.setText("Select/Enter\nPhenom Name: ");
+        lblSEPhenomName.setText("Select / Enter\nPhenom Name: ");
 
         final Text txtSEPhenomName = new Text(topPhenom, SWT.LEFT | SWT.BORDER);
         attrControlMap.put(EDITABLE_ATTR_PHENOM_NAME, txtSEPhenomName);
@@ -1658,9 +1833,21 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         lblLevelInfo.setText("Level Info: ");
 
         final Combo comboLevel = new Combo(top5, SWT.READ_ONLY);
-        attrControlMap.put(EDITABLE_ATTR_LEVEL, comboLevel);
         comboLevel.setItems(SigmetInfo.LEVEL_ARRAY);
+        switch (comboPhenom.getText()) {
+        case PgenConstant.TYPE_SEV_TURB:
+        case PgenConstant.TYPE_SEV_ICE:
+        case PgenConstant.TYPE_RDOACT_CLD:
+        case PgenConstant.TYPE_VOLCANIC_ASH:
+            comboLevel.setText(comboLevel.getItem(1));// FCST
+            break;
+        default:
+            comboLevel.setText(comboLevel.getItem(0));// TOPS
+
+        }
+        setEditableAttrLevel(comboLevel.getText());
         setControl(comboLevel, EDITABLE_ATTR_LEVEL);
+        attrControlMap.put(EDITABLE_ATTR_LEVEL, comboLevel);
 
         final Combo comboLevelInfo1 = new Combo(top5, SWT.READ_ONLY);
         attrControlMap.put(EDITABLE_ATTR_LEVEL_INFO1, comboLevelInfo1);
@@ -1749,7 +1936,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .setEditableAttrLevelText1(txtLevelInfo1.getText());
             }
         });
-
     }
 
     private void createDetailsAreaRemarks(Composite detailsComposite) {
@@ -2188,27 +2374,15 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 new GridData(SWT.FILL, SWT.LEFT, true, true, 1, 1));
         attrControlMap.put(EDITABLE_ATTR_FCST_CENTER, fcstCenterText);
 
-        fcstCenterText.addListener(SWT.Modify, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                SigmetAttrDlg.this.setEditableAttrFcstCntr(
-                        (fcstCenterText.getText()).trim());
-            }
-        });
-
-        createForecastLatLonSection(detailsComposite);
-    }
-
-    private void createForecastLatLonSection(Composite detailsComposite) {
-
-        Group topSecPhenom = new Group(detailsComposite, SWT.LEFT);
-        topSecPhenom.setLayoutData(
+        Group topSecPhenomlatLon = new Group(detailsComposite, SWT.LEFT);
+        topSecPhenomlatLon.setLayoutData(
                 new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
-        topSecPhenom.setLayout(new GridLayout(8, false));
+        topSecPhenomlatLon.setLayout(new GridLayout(8, false));
 
-        Label lblFcstPheLat = new Label(topSecPhenom, SWT.LEFT);
+        Label lblFcstPheLat = new Label(topSecPhenomlatLon, SWT.LEFT);
         lblFcstPheLat.setText("Fcst Phenom\nLat: ");
-        Text txtFcstPheLat = new Text(topSecPhenom, SWT.LEFT | SWT.BORDER);
+        Text txtFcstPheLat = new Text(topSecPhenomlatLon,
+                SWT.LEFT | SWT.BORDER);
         if (SigmetAttrDlg.this.getEditableAttrFcstPhenomLat() != null) {
             txtFcstPheLat
                     .setText(SigmetAttrDlg.this.getEditableAttrFcstPhenomLat());
@@ -2228,9 +2402,49 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             }
         });
 
-        Label lblFcstPheLon = new Label(topSecPhenom, SWT.LEFT);
+        txtFcstPheLat.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrFcstPhenomLat() != null) {
+                    txtFcstPheLat.setText(getEditableAttrFcstPhenomLat());
+                    setBackgroundColor(txtFcstPheLat, rightFormatColor);
+                    if (StringUtils.isEmpty(
+                            SigmetAttrDlg.this.getEditableAttrFcstCntr())) {
+                        SigmetAttrDlg.this
+                                .setEditableAttrFcstCntr(String.format("%s %s",
+                                        StringUtils.isEmpty(SigmetAttrDlg.this
+                                                .getEditableAttrFcstPhenomLat())
+                                                        ? ""
+                                                        : SigmetAttrDlg.this
+                                                                .getEditableAttrFcstPhenomLat(),
+                                        StringUtils.isEmpty(SigmetAttrDlg.this
+                                                .getEditableAttrFcstPhenomLon())
+                                                        ? ""
+                                                        : SigmetAttrDlg.this
+                                                                .getEditableAttrFcstPhenomLon()));
+                        fcstCenterText.setText(
+                                SigmetAttrDlg.this.getEditableAttrFcstCntr());
+                    }
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    txtFcstPheLat.setText("");
+                    setBackgroundColor(txtFcstPheLat, wrongFormatColor);
+                }
+            }
+        });
+
+        Label lblFcstPheLon = new Label(topSecPhenomlatLon, SWT.LEFT);
         lblFcstPheLon.setText("Fcst Phenom\nLon: ");
-        Text txtFcstPheLon = new Text(topSecPhenom, SWT.LEFT | SWT.BORDER);
+        Text txtFcstPheLon = new Text(topSecPhenomlatLon,
+                SWT.LEFT | SWT.BORDER);
         if (SigmetAttrDlg.this.getEditableAttrFcstPhenomLon() != null) {
             txtFcstPheLon
                     .setText(SigmetAttrDlg.this.getEditableAttrFcstPhenomLon());
@@ -2249,6 +2463,106 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 }
             }
         });
+
+        txtFcstPheLon.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrFcstPhenomLon() != null) {
+                    txtFcstPheLon.setText(getEditableAttrFcstPhenomLon());
+                    setBackgroundColor(txtFcstPheLon, rightFormatColor);
+
+                    SigmetAttrDlg.this
+                            .setEditableAttrFcstCntr(String.format("%s %s",
+                                    StringUtils.isEmpty(SigmetAttrDlg.this
+                                            .getEditableAttrFcstPhenomLat())
+                                                    ? ""
+                                                    : SigmetAttrDlg.this
+                                                            .getEditableAttrFcstPhenomLat(),
+                                    StringUtils.isEmpty(SigmetAttrDlg.this
+                                            .getEditableAttrFcstPhenomLon())
+                                                    ? ""
+                                                    : SigmetAttrDlg.this
+                                                            .getEditableAttrFcstPhenomLon()));
+                    fcstCenterText.setText(
+                            SigmetAttrDlg.this.getEditableAttrFcstCntr());
+                    setBackgroundColor(fcstCenterText, rightFormatColor);
+
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    txtFcstPheLon.setText("");
+                    setBackgroundColor(txtFcstPheLon, wrongFormatColor);
+                }
+            }
+        });
+
+        fcstCenterText.addListener(SWT.Modify, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                SigmetAttrDlg.this.setEditableAttrFcstCntr(
+                        (fcstCenterText.getText()).trim());
+                for (String coord : SigmetAttrDlg.this.getEditableAttrFcstCntr()
+                        .split(" ")) {
+                    String valid = getPhenomLatLon(coord, false);
+                    if ("".equals(valid)) {
+                        SigmetAttrDlg.this.setEditableAttrFcstCntr(null);
+                    }
+                }
+            }
+        });
+
+        fcstCenterText.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrFcstCntr() != null) {
+                    fcstCenterText.setText(getEditableAttrFcstCntr());
+                    setBackgroundColor(fcstCenterText, rightFormatColor);
+
+                    if (!StringUtils.isEmpty(
+                            SigmetAttrDlg.this.getEditableAttrFcstCntr())) {
+                        if (StringUtils.isEmpty(SigmetAttrDlg.this
+                                .getEditableAttrFcstPhenomLat())) {
+                            SigmetAttrDlg.this.setEditableAttrFcstPhenomLat(
+                                    SigmetAttrDlg.this.getEditableAttrFcstCntr()
+                                            .split(" ")[0]);
+                            txtFcstPheLat.setText(SigmetAttrDlg.this
+                                    .getEditableAttrFcstPhenomLat());
+                            setBackgroundColor(txtFcstPheLat, rightFormatColor);
+                        }
+                        if (StringUtils.isEmpty(SigmetAttrDlg.this
+                                .getEditableAttrFcstPhenomLon())) {
+                            SigmetAttrDlg.this.setEditableAttrFcstPhenomLon(
+                                    SigmetAttrDlg.this.getEditableAttrFcstCntr()
+                                            .split(" ")[1]);
+                            txtFcstPheLon.setText(SigmetAttrDlg.this
+                                    .getEditableAttrFcstPhenomLon());
+                            setBackgroundColor(txtFcstPheLon, rightFormatColor);
+                        }
+                    }
+
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    fcstCenterText.setText("");
+                    setBackgroundColor(fcstCenterText, wrongFormatColor);
+                }
+            }
+        });
+
     }
 
     public void createLevelAltitudes(Group topLbl) {
@@ -2257,8 +2571,20 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         lblLevelInfo.setText("Level Info: ");
 
         final Combo comboLevel = new Combo(topLbl, SWT.READ_ONLY);
-        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL, comboLevel);
         comboLevel.setItems(SigmetInfo.LEVEL_ARRAY);
+        switch (comboPhenom.getText()) {
+        case PgenConstant.TYPE_SEV_TURB:
+        case PgenConstant.TYPE_SEV_ICE:
+        case PgenConstant.TYPE_RDOACT_CLD:
+        case PgenConstant.TYPE_VOLCANIC_ASH:
+            comboLevel.setText(comboLevel.getItem(1));// FCST
+            break;
+        default:
+            comboLevel.setText(comboLevel.getItem(0));// TOPS
+
+        }
+        setEditableAttrLevel(comboLevel.getText());
+        attrControlMap.put(EDITABLE_ATTR_ALT_LEVEL, comboLevel);
         setControl(comboLevel, EDITABLE_ATTR_ALT_LEVEL);
 
         final Combo comboLevelInfo1 = new Combo(topLbl, SWT.READ_ONLY);
@@ -2478,6 +2804,35 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             public void handleEvent(Event e) {
                 SigmetAttrDlg.this
                         .setEditableAttrFcstVADesc(descText.getText());
+                for (String coord : SigmetAttrDlg.this
+                        .getEditableAttrFcstVADesc().split(" ")) {
+                    String valid = getPhenomLatLon(coord, false);
+                    if ("".equals(valid)) {
+                        SigmetAttrDlg.this.setEditableAttrFcstVADesc(null);
+                    }
+                }
+            }
+        });
+
+        descText.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                // No Op
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (getEditableAttrFcstVADesc() != null) {
+                    descText.setText(getEditableAttrFcstVADesc());
+                    setBackgroundColor(descText, rightFormatColor);
+                } else {
+                    /*
+                     * "???" causes inconvenience for copy/paste. Instead, use
+                     * Color as hint.
+                     */
+                    descText.setText("");
+                    setBackgroundColor(descText, wrongFormatColor);
+                }
             }
         });
 
@@ -2531,13 +2886,13 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     private void setPhenomLatLon(String phenomName) {
         // set Phenom Latitude
         Float lat = getLatitudeForPhenomName(phenomName);
-        String latitude = getPhenomLatLon(lat.toString(), true);
+        String latitude = getPhenomLatLon(lat.toString().trim(), true);
         setEditableAttrPhenomLat(latitude);
         txtPheLat.setText(getEditableAttrPhenomLat());
 
         // set Phenom Longitude
         Float lon = getLongitudeForPhenomName(phenomName);
-        String longitude = getPhenomLatLon(lon.toString(), false);
+        String longitude = getPhenomLatLon(lon.toString().trim(), false);
         setEditableAttrPhenomLon(longitude);
         txtPheLon.setText(getEditableAttrPhenomLon());
     }
@@ -4180,8 +4535,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         int lonval = getIntValueOfLon(lon);
                         latval = getValRoundedToNearest15Min(latval);
                         lonval = getValRoundedToNearest15Min(lonval);
-
-                        latLonLocation.append(" ")
+                        latLonLocation.append((i > 0) ? " " : "")
                                 .append(lat.substring(0, lat.length() - 4));
                         latLonLocation.append(Integer.toString(latval))
                                 .append(" ");
@@ -5100,7 +5454,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         return false;
     }
 
-    /*
+    /**
      * This method validates the input lat or lon are in the specified formats
      * and format it into a specfied form as described below:
      *

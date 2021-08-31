@@ -740,12 +740,17 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
     }
 
     private String validateSigmetEntries() {
-        String phenomType = SigmetAttrDlg.this.getEditableAttrPhenom();
+        // Validation for NPE
+        String phenomType = SigmetAttrDlg.this.getEditableAttrPhenom() == null
+                ? "" : SigmetAttrDlg.this.getEditableAttrPhenom();
+        String levelInfo1 = editableAttrLevelInfo1 == null ? ""
+                : editableAttrLevelInfo1;
+        String level = getEditableAttrLevel() == null ? ""
+                : getEditableAttrLevel();
 
         StringBuffer errors = new StringBuffer();
 
         // SIGMET should intersect at least One FIR.
-
         errors.append(validateFIRSigmetEntries(
                 SigmetAttrDlg.this.getEditableAttrFir()));
 
@@ -769,7 +774,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 errors.append(
                         "Level Info first widget combo box should be set to “FCST”.\n\n");
             }
-            switch (editableAttrLevelInfo1) {
+            switch (levelInfo1) {
             case PgenConstant.LEVEL_INFO_ABV:
             case PgenConstant.LEVEL_INFO_BLW:
                 // validate level information (Max value is 600)
@@ -786,7 +791,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                         .equals(PgenConstant.LEVEL_INFO2_AND)) {
                     // validate level information (Max value is 600)
                     errors.append(validateLevelInfoSigmetEntries(
-                            SigmetAttrDlg.this.getEditableAttrLevelText2(), 0,
+                            SigmetAttrDlg.this.getEditableAttrLevelText2(),
+                            Integer.parseInt(SigmetAttrDlg.this
+                                    .getEditableAttrLevelText1()),
                             600));
                 } else {
                     errors.append(
@@ -803,15 +810,26 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 errors.append(
                         "Level Info first widget combo box should be set to “FCST”.\n\n");
             }
-            switch (editableAttrLevelInfo1) {
+            switch (levelInfo1) {
             case PgenConstant.LEVEL_INFO_ABV:
             case PgenConstant.LEVEL_INFO_BLW:
+                // validate level information (Max value is 600)
+                errors.append(validateLevelInfoSigmetEntries(
+                        SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
+                        600));
+                break;
             case PgenConstant.LEVEL_INFO_BTN:
+                // validate level information (Max value is 600)
+                errors.append(validateLevelInfoSigmetEntries(
+                        SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
+                        600));
                 if (getEditableAttrLevelInfo2()
                         .equals(PgenConstant.LEVEL_INFO2_AND)) {
                     // validate level information (Max value is 600)
                     errors.append(validateLevelInfoSigmetEntries(
-                            SigmetAttrDlg.this.getEditableAttrLevelText2(), 0,
+                            SigmetAttrDlg.this.getEditableAttrLevelText2(),
+                            Integer.parseInt(SigmetAttrDlg.this
+                                    .getEditableAttrLevelText1()),
                             600));
                 } else {
                     errors.append(
@@ -891,14 +909,14 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             } // End Switch - Validation of Radial/Area/Line Description is on
               // validateCommonSigmetEntries
 
-            switch (getEditableAttrLevel()) {
+            switch (level) {
             case PgenConstant.LEVEL_FCST:
                 // validate level information (Max value is 600)
                 errors.append(validateLevelInfoSigmetEntries(
                         SigmetAttrDlg.this.getEditableAttrLevelText1(), 0,
                         600));
 
-                switch (editableAttrLevelInfo1) {
+                switch (levelInfo1) {
                 case PgenConstant.LEVEL_INFO_ABV:
                 case PgenConstant.LEVEL_INFO_BLW:
                 case PgenConstant.LEVEL_INFO_BTN:
@@ -924,7 +942,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
 
             case PgenConstant.LEVEL_TOPS:
 
-                switch (editableAttrLevelInfo1) {
+                switch (levelInfo1) {
                 case PgenConstant.LEVEL_INFO_ABV:
                 case PgenConstant.LEVEL_INFO_BLW:
                     // validate level information (Max value is 600)
@@ -1022,12 +1040,12 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                 if (StringUtils.isEmpty(
                         SigmetAttrDlg.this.getEditableAttrFcstPhenomLat())) {
                     errors.append(
-                            "Forecast Phenom Latitud can't be null or empty. Please Enter valid Latitud.\n\n");
+                            "Forecast Phenom Latitude can't be null or empty. Please Enter valid Latitude.\n\n");
                 }
                 if (StringUtils.isEmpty(
                         SigmetAttrDlg.this.getEditableAttrFcstPhenomLon())) {
                     errors.append(
-                            "Forecast Phenom Longitud can't be null or empty. Please Enter valid Longitud.\n\n");
+                            "Forecast Phenom Longitude can't be null or empty. Please Enter valid Longitude.\n\n");
                 }
                 break;
             case PgenConstant.TYPE_VOLCANIC_ASH:
@@ -4611,10 +4629,10 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
                                         .substring(2, 6))
                                 .append(SigmetConstant.Z);
                     }
-                    sb.append(" ").append(SigmetConstant.WI);
+                    sb.append(" ").append(SigmetConstant.WI).append(" ");
                 } else {
                     if (!fromLineWithFormat.contains(SigmetConstant.VOR)) {
-                        sb.append(" ").append(SigmetConstant.WI);
+                        sb.append(" ").append(SigmetConstant.WI).append(" ");
                     } else {
                         sb.append(" ").append(
                                 SigmetConstant.WI_AREA_BOUNDED_BY_LINE_FM);

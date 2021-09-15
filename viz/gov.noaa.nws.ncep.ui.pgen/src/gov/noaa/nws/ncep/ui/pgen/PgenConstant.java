@@ -27,6 +27,8 @@ package gov.noaa.nws.ncep.ui.pgen;
  * Dec 09, 2020  85217    smanoj    Added ADD_NEW_LABEL
  *
  * Aug 17, 2021  93036      omoncayo     PGEN INTL SIGMET:QC Check Attributes
+ * Sep 21, 2021  93036      omoncayo     More QC check:
+ *                                         adding TO option
  *
  * </pre>
  *
@@ -157,6 +159,8 @@ public final class PgenConstant {
     public static final String LEVEL_FCST = "FCST";
 
     public static final String LEVEL_NONE = "-none-";
+
+    public static final String LEVEL_INFO_TO = "TO";
 
     public static final String LEVEL_INFO_ABV = "ABV";
 

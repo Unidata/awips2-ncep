@@ -1,22 +1,5 @@
-/**
- * 
- * Non-Convective Sigmet Decoder
- * 
- * This java class decodes NONCONVSIGMET (non-convective sigmet) raw data. 
- * HISTORY
- *
- * Date     	Author		Description
- * ------------	----------	-----------	--------------------------
- * 06/2009		Uma Josyula		Initial creation	
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- */
 
 package gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.decoder;
-
-import gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet.NonConvSigmetRecord;
-import gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.util.NonConvSigmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.Scanner;
 
@@ -27,13 +10,35 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
+import gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet.NonConvSigmetRecord;
+import gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.util.NonConvSigmetParser;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ *
+ * Non-Convective Sigmet Decoder
+ *
+ * This java class decodes NONCONVSIGMET (non-convective sigmet) raw data.
+ *
+ * <pre>
+ * HISTORY
+ *
+ * Date         Ticket#     Author      Description
+ * ------------ ----------  ----------- --------------------------
+ * 06/2009                  Uma Josyula Initial creation
+ * Sep 23, 2021 8608        mapeters    Handle PDO.traceId changes
+ *
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ */
 public class NonConvSigmetDecoder extends AbstractDecoder {
 
     private final String pluginName;
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public NonConvSigmetDecoder(String name) throws DecoderException {
@@ -61,11 +66,12 @@ public class NonConvSigmetDecoder extends AbstractDecoder {
          * May have multiple duplicate bulletins, only get the first bulletin
          * and eliminate the remaining bulletins after the first bulletin.
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-        if (cc.hasNext()) {
-            theBulletin = cc.next();
-        } else {
-            theBulletin = theMessage;
+        try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+            if (cc.hasNext()) {
+                theBulletin = cc.next();
+            } else {
+                theBulletin = theMessage;
+            }
         }
         /*
          * Decode by calling the NonconvSigmetParser method processRecord
@@ -76,15 +82,14 @@ public class NonConvSigmetDecoder extends AbstractDecoder {
             /*
              * Replace special characters to a blank so that it may be readable
              */
-            currentRecord.setBullMessage(UtilN
-                    .removeLeadingWhiteSpaces((theBulletin.substring(5))
-                            .replace('\036', ' ').replace('\r', ' ')
-                            .replace('\003', ' ').replace('\000', ' ')
-                            .replace('\001', ' ')));
+            currentRecord.setBullMessage(UtilN.removeLeadingWhiteSpaces(
+                    (theBulletin.substring(5)).replace('\036', ' ')
+                            .replace('\r', ' ').replace('\003', ' ')
+                            .replace('\000', ' ').replace('\001', ' ')));
             /*
              * Check the NonConvsigmet record object. If not, throws exception.
              */
-            currentRecord.setTraceId(traceId);
+            currentRecord.setSourceTraceId(traceId);
             try {
                 currentRecord.constructDataURI();
 

@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.wcp.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.wcp.WcpRecord;
-import gov.noaa.nws.ncep.edex.plugin.wcp.util.WcpParser;
-
 import java.util.Calendar;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -15,16 +12,19 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
+import gov.noaa.nws.ncep.common.dataplugin.wcp.WcpRecord;
+import gov.noaa.nws.ncep.edex.plugin.wcp.util.WcpParser;
+
 /**
  * WcpDecoder
- * 
+ *
  * Decoder implementation for WCP Plug-In.
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 12Dec2008    37         F. J. Yen   Initial creation
@@ -33,10 +33,10 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * 24Aug2009    37         F. J. Yen   Modified for TO11 migration
  * 10Dec2009    37         F. J. Yen   Modified for To11d6
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
+ * Sep 23, 2021 8608       mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author Fee Jing Yen, SIB
- * @version 1
  */
 public class WcpDecoder extends AbstractDecoder {
     // Name of the plugin controlling this decoder.
@@ -46,7 +46,7 @@ public class WcpDecoder extends AbstractDecoder {
 
     protected Pattern regexPattern;
 
-    public final Integer maxSegment = 100;
+    public static final Integer maxSegment = 100;
 
     public Integer segmentIndex = 0;
 
@@ -54,7 +54,7 @@ public class WcpDecoder extends AbstractDecoder {
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public WcpDecoder(String name) throws DecoderException {
@@ -97,19 +97,20 @@ public class WcpDecoder extends AbstractDecoder {
          * bulletin and eliminate the remaining bulletins after the first
          * bulletin by excluding the duplicate report after the first ^c
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-        if (cc.hasNext()) {
-            theBulletin = cc.next();
-        } else {
-            theBulletin = theMessage;
+        try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+            if (cc.hasNext()) {
+                theBulletin = cc.next();
+            } else {
+                theBulletin = theMessage;
+            }
         }
-        WcpRecord record = null;
-        record = new WcpRecord();
+        WcpRecord record = new WcpRecord();
         /*
          * Replace white spaces with blank
          */
         record.setBullMessage((theBulletin.substring(5)).replace('\r', ' ')
-                .replace('\003', ' ').replace('\000', ' ').replace('\001', ' '));
+                .replace('\003', ' ').replace('\000', ' ')
+                .replace('\001', ' '));
         /*
          * Decode the File Created time line
          */
@@ -125,28 +126,28 @@ public class WcpDecoder extends AbstractDecoder {
         /*
          * Check the WCP record object
          */
-        if (record != null) {
-            try {
-                record.setTraceId(traceId);
-                record.constructDataURI();
-            } catch (PluginException e) {
-                throw new DecoderException("Unable to construct dataURI", e);
-            }
+        try {
+            record.setSourceTraceId(traceId);
+            record.constructDataURI();
+        } catch (PluginException e) {
+            throw new DecoderException("Unable to construct dataURI", e);
         }
         /*
          * Break up bulletin into segments with possible delimiters for both
          * types of records.
          */
         String segmentDelim = "((SEVR )|(NO WATCHES ))";
-        Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
         String[] segment = new String[maxSegment];
-        int segmentIndex = 0;
-        while (sc.hasNext() && (segmentIndex < maxSegment)) {
-            segment[segmentIndex] = sc.next();
-            segmentIndex++;
+        try (Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim)) {
+            int segmentIndex = 0;
+            while (sc.hasNext() && (segmentIndex < maxSegment)) {
+                segment[segmentIndex] = sc.next();
+                segmentIndex++;
+            }
         }
         try {
-            for (int idx = 0; (idx < segmentIndex) && (idx < maxSegment); idx++) {
+            for (int idx = 0; (idx < segmentIndex)
+                    && (idx < maxSegment); idx++) {
                 Matcher sevrMatcher = sevrrptPattern.matcher(segment[idx]);
                 Matcher nowatchMatcher = nowatchPattern.matcher(segment[idx]);
                 if (sevrMatcher.find()) {
@@ -166,13 +167,7 @@ public class WcpDecoder extends AbstractDecoder {
             throw new DecoderException(
                     "Unable to decode WCP record due to formatting errors", e);
         }
-        /*
-         * Return record object if not null
-         */
-        if (record == null) {
-            return new PluginDataObject[0];
-        } else {
-            return new PluginDataObject[] { record };
-        }
+
+        return new PluginDataObject[] { record };
     }
 }

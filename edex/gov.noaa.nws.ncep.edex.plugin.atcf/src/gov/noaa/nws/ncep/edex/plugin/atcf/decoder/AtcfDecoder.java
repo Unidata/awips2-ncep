@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.atcf.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.atcf.AtcfRecord;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.plugin.atcf.util.AtcfParser;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -18,17 +14,21 @@ import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
+import gov.noaa.nws.ncep.common.dataplugin.atcf.AtcfRecord;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.plugin.atcf.util.AtcfParser;
+
 /**
- * 
+ *
  * AtcfDecoder
- * 
+ *
  * Decoder implementation for ATCF Plug-In
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#  Engineer     Description
  * ------------ -------- -----------  --------------------------
  * 06/23/2010   208      F. J. Yen   Initial creation
@@ -39,13 +39,11 @@ import com.raytheon.uf.common.status.UFStatus;
  * 08/10/2016   R19869   B. Hebbard  Per code review, share out regex ATCF_DATA so
  *                                   AtcfSeparator needn't have a duplicate expression;
  *                                   clean comments.
+ * Sep 23, 2021 8608     mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author Fee Jing Yen, SIB
- * @version 1
- * 
  */
-
 public class AtcfDecoder extends AbstractDecoder {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(AtcfDecoder.class);
@@ -60,7 +58,7 @@ public class AtcfDecoder extends AbstractDecoder {
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public AtcfDecoder() throws DecoderException {
@@ -79,7 +77,7 @@ public class AtcfDecoder extends AbstractDecoder {
          * Check if there are more records
          */
         AtcfRecord record = null;
-        List<AtcfRecord> records = new ArrayList<AtcfRecord>();
+        List<AtcfRecord> records = new ArrayList<>();
         AtcfSeparator sep = AtcfSeparator.separate(data, headers);
 
         while (sep.hasNext()) {
@@ -92,12 +90,12 @@ public class AtcfDecoder extends AbstractDecoder {
                 if (atcfMatcher.find()) {
 
                 } else {
-                    statusHandler.warn("ATCF:  Ignored invalid record:  "
-                            + theMessage);
+                    statusHandler.warn(
+                            "ATCF:  Ignored invalid record:  " + theMessage);
                 }
             } catch (Exception e) {
-                statusHandler.error("ATCF exception:  Unable to decode:  "
-                        + theMessage, e);
+                statusHandler.error(
+                        "ATCF exception:  Unable to decode:  " + theMessage, e);
             }
 
             /*
@@ -110,11 +108,12 @@ public class AtcfDecoder extends AbstractDecoder {
              */
             if (record != null) {
                 try {
-                    record.setTraceId(traceId);
+                    record.setSourceTraceId(traceId);
                     record.setReportType("ATCF");
                     record.constructDataURI();
                     if ((record.getClat() != IDecoderConstantsN.FLOAT_MISSING)
-                            && (record.getClon() != IDecoderConstantsN.FLOAT_MISSING)) {
+                            && (record
+                                    .getClon() != IDecoderConstantsN.FLOAT_MISSING)) {
                         records.add(record);
                     }
 

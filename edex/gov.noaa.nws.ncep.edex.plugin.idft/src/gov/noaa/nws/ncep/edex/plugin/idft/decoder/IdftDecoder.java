@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.idft.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.idft.IdftRecord;
-import gov.noaa.nws.ncep.edex.plugin.idft.util.IdftParser;
-import gov.noaa.nws.ncep.edex.plugin.idft.util.IdftUtil;
-
 import java.util.Calendar;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -20,18 +16,22 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
+import gov.noaa.nws.ncep.common.dataplugin.idft.IdftRecord;
+import gov.noaa.nws.ncep.edex.plugin.idft.util.IdftParser;
+import gov.noaa.nws.ncep.edex.plugin.idft.util.IdftUtil;
+
 /**
- * 
+ *
  * IdftDecoder
- * 
+ *
  * Decoder Plug-In for IDFT (Ice Drift text files).
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS II system.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#     Engineer    Description
  * ------------ -------- ----------- --------------------------
  * 1 June 2009  100      F. J. Yen   Initial creation
@@ -41,18 +41,17 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * 27 Oct 2010  100      F. J. Yen   For migration from to11dr11 to R1G1-4,
  *                                   added forecast time.
  * Aug 30, 2013 2298     rjpeter     Make getPluginName abstract
+ * Sep 23, 2021 8608     mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author Fee Jing Yen, SIB
- * @version 1
  */
 public class IdftDecoder extends AbstractDecoder {
+
     // Name of the plugin controlling this decoder.
-    public static String pluginName;
+    public final String pluginName;
 
     protected String traceId = "";
-
-    private IdftRecord record;
 
     public int kkk = 0;
 
@@ -64,7 +63,7 @@ public class IdftDecoder extends AbstractDecoder {
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      * @throws Exception
      */
@@ -74,11 +73,8 @@ public class IdftDecoder extends AbstractDecoder {
 
     }
 
-    // public PluginDataObject[] decode(byte[] data) throws DecoderException {
     public synchronized PluginDataObject[] decode(byte[] data, Headers headers)
             throws DecoderException {
-        // TODO Auto-generated method stub
-
         String traceId = "";
         if (headers != null) {
             traceId = (String) headers.get("traceId");
@@ -108,15 +104,16 @@ public class IdftDecoder extends AbstractDecoder {
             throw new DecoderException("Out of data");
         }
         String theMessage = new String(messageData);
-        record = new IdftRecord();
+        IdftRecord record = new IdftRecord();
         /*
          * Exclude the duplicate report after the first ^c
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-        if (cc.hasNext()) {
-            theBulletin = cc.next();
-        } else {
-            theBulletin = theMessage;
+        try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+            if (cc.hasNext()) {
+                theBulletin = cc.next();
+            } else {
+                theBulletin = theMessage;
+            }
         }
         /*
          * Process the valid time string and set validTime
@@ -141,8 +138,7 @@ public class IdftDecoder extends AbstractDecoder {
                 DataTime dataTime = new DataTime(issueTime, fcstSecs);
                 record.setDataTime(dataTime);
             } catch (DataFormatException e) {
-                System.out.println("Unable to getYYGGgg");
-                e.printStackTrace();
+                logger.error("Unable to getYYGGgg", e);
             }
         }
         /*
@@ -161,28 +157,21 @@ public class IdftDecoder extends AbstractDecoder {
                 IdftParser.processIdft(m2, 6, record);
             }
         } catch (Exception e) {
-            System.out.println("Invalid IDFT point record format");
-            e.printStackTrace();
+            logger.error("Invalid IDFT point record format", e);
         }
         /*
          * Set report type
          */
         record.setReportType(pluginName);
-        if (record != null) {
-            try {
-                record.setTraceId(traceId);
-                record.constructDataURI();
-            } catch (PluginException e) {
-                throw new DecoderException("Unable to construct dataURI", e);
-            }
+        try {
+            record.setSourceTraceId(traceId);
+            record.constructDataURI();
+        } catch (PluginException e) {
+            throw new DecoderException("Unable to construct dataURI", e);
         }
         /*
          * Return IDFT record object if not null
          */
-        if (record == null) {
-            return new PluginDataObject[0];
-        } else {
-            return new PluginDataObject[] { record };
-        }
+        return new PluginDataObject[] { record };
     }
 }

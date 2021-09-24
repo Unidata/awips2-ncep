@@ -1,14 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.mosaic.decoder;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfo;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfoDict;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Layer;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Level3Parser;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.RasterPacket;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyBlock;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyPacket;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,13 +19,22 @@ import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
+import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfo;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfoDict;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Layer;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Level3Parser;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.RasterPacket;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyBlock;
+import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyPacket;
+
 /**
  * Decoder implementation for mosaic plugin
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#         Engineer    Description
  * ------------ ----------      ----------- --------------------------
  * 09/2009      143             L. Lin      Initial coding
@@ -42,13 +42,13 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * 1/2011       143             T. Lee      Used prod name from mosaicInfo.txt
  * 01/19/13                     Greg Hull   Use getStaticLocalizationFile to get mosaicInfo file
  * Aug 30, 2013 2298            rjpeter     Make getPluginName abstract
+ * Sep 23, 2021 8608            mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
- * 
+ *
+ *
  * @author L. Lin
- * @version 1.0
  */
 public class MosaicDecoder extends AbstractDecoder {
 
@@ -88,7 +88,7 @@ public class MosaicDecoder extends AbstractDecoder {
             traceId = (String) headers.get("traceId");
         }
 
-        ArrayList<MosaicRecord> recordList = new ArrayList<MosaicRecord>();
+        ArrayList<MosaicRecord> recordList = new ArrayList<>();
 
         try {
 
@@ -108,8 +108,8 @@ public class MosaicDecoder extends AbstractDecoder {
                 record.setLongitude((float) l3Mosaic.getLongitude());
                 record.setElevation((float) l3Mosaic.getHeight());
                 record.setSourceId(l3Mosaic.getTheSourceId());
-                record.setTrueElevationAngle((float) Level3Parser
-                        .getProductDependentValue(2));
+                record.setTrueElevationAngle(
+                        (float) Level3Parser.getProductDependentValue(2));
 
                 if (prodName == null) {
                     prodName = "unknown";
@@ -123,8 +123,8 @@ public class MosaicDecoder extends AbstractDecoder {
                 }
 
                 record.setProdName(info.getProdName());
-                record.setVolumeCoveragePattern(l3Mosaic
-                        .getVolumeCoveragePattern());
+                record.setVolumeCoveragePattern(
+                        l3Mosaic.getVolumeCoveragePattern());
                 record.setDataTime(new DataTime(l3Mosaic.getVolumeScanTime()));
                 record.setIssueTime(l3Mosaic.getMessageTimestamp());
                 record.setScanTime(l3Mosaic.getVolumeScanTime());
@@ -139,8 +139,8 @@ public class MosaicDecoder extends AbstractDecoder {
                     record.setThreshold(i, l3Mosaic.getDataLevelThreshold(i));
                 }
 
-                record.setProductDependentValues(l3Mosaic
-                        .getProductDependentValue());
+                record.setProductDependentValues(
+                        l3Mosaic.getProductDependentValue());
 
                 processSymbologyBlock(record, l3Mosaic.getSymbologyBlock());
 
@@ -154,17 +154,16 @@ public class MosaicDecoder extends AbstractDecoder {
 
             }
         } catch (IOException e) {
-            theLogger
-                    .error(traceId
-                            + "-Couldn't properly handle your mosaic file; take a look at this error: ",
-                            e);
+            theLogger.error(traceId
+                    + "-Couldn't properly handle your mosaic file; take a look at this error: ",
+                    e);
         }
 
         return recordList.toArray(new PluginDataObject[recordList.size()]);
     }
 
     private void finalizeRecord(MosaicRecord record) throws PluginException {
-        record.setTraceId(traceId);
+        record.setSourceTraceId(traceId);
         record.constructDataURI();
         record.setInsertTime(TimeTools.getSystemCalendar());
     }
@@ -181,12 +180,12 @@ public class MosaicDecoder extends AbstractDecoder {
         if (symbologyBlock == null) {
             return;
         }
-        List<Layer> packetsInLyrs = new ArrayList<Layer>();
+        List<Layer> packetsInLyrs = new ArrayList<>();
         for (int layer = 0; layer < symbologyBlock.getNumLayers(); ++layer) {
             Layer lyr = new Layer();
             lyr.setLayerId(layer);
 
-            List<SymbologyPacket> packets = new ArrayList<SymbologyPacket>();
+            List<SymbologyPacket> packets = new ArrayList<>();
             SymbologyPacket[] inPackets = symbologyBlock.getPackets(layer);
 
             if (inPackets != null) {
@@ -199,14 +198,15 @@ public class MosaicDecoder extends AbstractDecoder {
                     }
                 }
             }
-            lyr.setPackets(packets.toArray(new SymbologyPacket[packets.size()]));
+            lyr.setPackets(
+                    packets.toArray(new SymbologyPacket[packets.size()]));
             packetsInLyrs.add(lyr);
 
         }
 
         // remove the radial and raster from the symb block
-        symbologyBlock.setLayers(packetsInLyrs.toArray(new Layer[packetsInLyrs
-                .size()]));
+        symbologyBlock.setLayers(
+                packetsInLyrs.toArray(new Layer[packetsInLyrs.size()]));
         record.setSymbologyBlock(symbologyBlock);
 
         if (errorCount > 0) {

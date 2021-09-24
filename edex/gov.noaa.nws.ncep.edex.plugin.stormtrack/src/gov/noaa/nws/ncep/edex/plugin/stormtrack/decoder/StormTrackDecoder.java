@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.stormtrack.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.stormtrack.StormTrackRecord;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.plugin.stormtrack.util.StormTrackParser;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -18,29 +14,32 @@ import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
+import gov.noaa.nws.ncep.common.dataplugin.stormtrack.StormTrackRecord;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.plugin.stormtrack.util.StormTrackParser;
+
 /**
  * StormTrackDecoder
- * 
+ *
  * Decoder implementation for StormTrack Plug-In (Automatic Tropical Cyclone
  * Forecast & Ensemble cyclones).
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
- * Date        Ticket#  Engineer   Description
+ *
+ * Date         Ticket# Engineer   Description
  * ------------ ------- ---------- --------------------------
  * 08/2011              T. Lee     ATCF and Ensemble storm tracks
  * 06/2012      606     G. Hull    constructDataURI() after setReportType so it
  *                                 gets into the URI
- * 07/2013              T. Lee     Improved performance via batch processing	
+ * 07/2013              T. Lee     Improved performance via batch processing
  * Aug 30, 2013 2298    rjpeter    Make getPluginName abstract
+ * Sep 23, 2021 8608    mapeters   Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author tlee
- * @version 1
- * 
  */
 public class StormTrackDecoder extends AbstractDecoder {
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -54,7 +53,7 @@ public class StormTrackDecoder extends AbstractDecoder {
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public StormTrackDecoder() throws DecoderException {
@@ -76,7 +75,7 @@ public class StormTrackDecoder extends AbstractDecoder {
          * Check if there are more records
          */
         StormTrackRecord record = null;
-        List<StormTrackRecord> records = new ArrayList<StormTrackRecord>();
+        List<StormTrackRecord> records = new ArrayList<>();
         StormTrackSeparator sep = StormTrackSeparator.separate(data, headers);
 
         while (sep.hasNext()) {
@@ -94,9 +93,8 @@ public class StormTrackDecoder extends AbstractDecoder {
                             + theMessage);
                 }
             } catch (Exception e) {
-                statusHandler.error(
-                        "StormTrack exception:  Unable to decode:  "
-                                + theMessage, e);
+                statusHandler.error("StormTrack exception:  Unable to decode:  "
+                        + theMessage, e);
             }
 
             /*
@@ -109,7 +107,7 @@ public class StormTrackDecoder extends AbstractDecoder {
              */
             if (record != null) {
                 try {
-                    record.setTraceId(traceId);
+                    record.setSourceTraceId(traceId);
 
                     /*
                      * Set report type in record.
@@ -123,7 +121,8 @@ public class StormTrackDecoder extends AbstractDecoder {
 
                     record.constructDataURI();
                     if ((record.getClat() != IDecoderConstantsN.FLOAT_MISSING)
-                            && (record.getClon() != IDecoderConstantsN.FLOAT_MISSING)) {
+                            && (record
+                                    .getClon() != IDecoderConstantsN.FLOAT_MISSING)) {
                         records.add(record);
                     }
 

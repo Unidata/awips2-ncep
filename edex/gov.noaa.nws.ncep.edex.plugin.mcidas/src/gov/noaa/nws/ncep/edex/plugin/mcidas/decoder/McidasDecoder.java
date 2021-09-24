@@ -1,18 +1,11 @@
 package gov.noaa.nws.ncep.edex.plugin.mcidas.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
-import gov.noaa.nws.ncep.edex.plugin.mcidas.McidasSpatialFactory;
-import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.TimeZone;
-
-import si.uom.SI;
 
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
@@ -24,53 +17,55 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.decodertools.core.DecoderTools;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
-//import gov.noaa.nws.ncep.common.dataplugin.mcidas.dao.McidasDao;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
+import gov.noaa.nws.ncep.edex.plugin.mcidas.McidasSpatialFactory;
+import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao;
+import si.uom.SI;
 
 /**
  * This java class decodes McIDAS satellite plug-in image and creates area names
  * from area file number in the header.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- *                   
+ *
  * Date         Ticket#     Engineer    Description
  * -----------  ----------  ----------- --------------------------
  * 9/2009       144         T. Lee      Creation
  * 11/2009      144         T. Lee      Added geographic area names
  * 12/2009      144         T. Lee      Set calType, satelliteId,
  *                                      and imageTypeNumber
- * 12/2009      144         T. Lee      Renamed proj type for resource 
+ * 12/2009      144         T. Lee      Renamed proj type for resource
  *                                      rendering
  * 05/2010      144         L. Lin      Migration to TO11DR11.
  * 11/2011                  T. Lee      Enhanced for ntbn
  * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract
  * 10/2015      7190        R.Reynolds  Send data directly to Mcidas database/no routing through mapping tables
  * Jul 26, 2016 R19277      bsteffen    Convert RECT navigation to an equidistant cylindrical projection.
- * 
+ * Sep 23, 2021 8608        mapeters    Handle PDO.traceId changes
+ *
  * </pre>
- * 
+ *
  * @author tlee
- * @version 1
  */
 public class McidasDecoder extends AbstractDecoder {
-    final int RADIUS = 6371200;
+    private static final int RADIUS = 6_371_200;
 
-    final int SIZE_OF_AREA = 256;
+    private static final int SIZE_OF_AREA = 256;
 
-    final double PI = 3.14159265;
+    private static final double PI = 3.14159265;
 
-    final double HALFPI = PI / 2.;
+    private static final double HALFPI = PI / 2.;
 
-    final double RTD = 180. / PI;
+    private static final double RTD = 180. / PI;
 
-    final double DTR = PI / 180.;
+    private static final double DTR = PI / 180.;
 
-    private final String traceId = "";
+    private static final String traceId = "";
 
     private McidasDao dao;
-
-    Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 
     private final McidasRecord mr = new McidasRecord();
 
@@ -249,16 +244,16 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Actual starting scan int ascan = byteArrayToInt (area, 188,
              * endian);
-             * 
+             *
              * Line prefix documentation section length in bytes int predoc =
              * byteArrayToInt (area, 192, endian);
-             * 
+             *
              * Line prefix calibration section length in bytes int precal =
              * byteArrayToInt (area, 196, endian);
-             * 
+             *
              * Line prefix level map section length in bytes int prelvl =
              * byteArrayToInt (area, 200, endian);
-             * 
+             *
              * Image source type: "VISR', "VAS', 'AAA', ERBE', "AVHR' String
              * srctyp = byteArrayToString (area, 204, endian);
              */
@@ -271,12 +266,12 @@ public class McidasDecoder extends AbstractDecoder {
 
             /*
              * Processing type int prctyp = byteArrayToInt (area, 212, endian);
-             * 
+             *
              * POES signal type int sigtyp = byteArrayToInt (area, 216, endian);
-             * 
+             *
              * POES ascending/descending int phase = byteArrayToInt (area, 220,
              * endian);
-             * 
+             *
              * Original source srctyp String orgtyp = byteArrayToString (area,
              * 224, endian);
              */
@@ -306,7 +301,8 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Set data block.
              */
-            byte[] imageData = new byte[data.length - dataoff - (80 * icomment)];
+            byte[] imageData = new byte[data.length - dataoff
+                    - (80 * icomment)];
             System.arraycopy(data, dataoff, imageData, 0, imageData.length);
             record.setMessageData(imageData);
 
@@ -321,22 +317,22 @@ public class McidasDecoder extends AbstractDecoder {
              */
             int resolution = 0;
             Integer iproj = 0;
-            if (navtyp.trim().equals("PS") || navtyp.equals("MERC")
-                    || navtyp.trim().equals("MET")) {
+            if ("PS".equals(navtyp.trim()) || "MERC".equals(navtyp)
+                    || "MET".equals(navtyp.trim())) {
                 resolution = byteArrayToInt(navigation, 16, endian) / 1000;
 
-                if (navtyp.equals("MERC")) {
+                if ("MERC".equals(navtyp)) {
                     iproj = 1;
-                } else if (navtyp.trim().equals("PS")) {
+                } else if ("PS".equals(navtyp.trim())) {
                     iproj = 5;
                 }
-            } else if (navtyp.equals("LAMB") || navtyp.equals("TANC")) {
+            } else if ("LAMB".equals(navtyp) || "TANC".equals(navtyp)) {
                 resolution = byteArrayToInt(navigation, 20, endian) / 1000;
-                if (navtyp.equals("TANC")) {
+                if ("TANC".equals(navtyp)) {
                     resolution = resolution / 1000;
                 }
                 iproj = 3;
-            } else if (navtyp.equals("RECT")) {
+            } else if ("RECT".equals(navtyp)) {
                 resolution = (yres < xres) ? yres : xres;
                 iproj = 7;
             } else {
@@ -423,7 +419,8 @@ public class McidasDecoder extends AbstractDecoder {
                 double dyp = (1. - ryp) * dy;
                 double alpha = 1. + Math.sin(Math.abs(phi0r));
                 double rm = Math.sqrt(((dxp * dxp) + (dyp * dyp))) / alpha;
-                lllat = (float) (sign * ((HALFPI - (2. * Math.atan(rm / re)))) * RTD);
+                lllat = (float) (sign * ((HALFPI - (2. * Math.atan(rm / re))))
+                        * RTD);
                 double thta;
                 if (dyp != 0) {
                     dyp = (-dyp) * sign;
@@ -439,7 +436,8 @@ public class McidasDecoder extends AbstractDecoder {
                 dxp = (nx - rxp) * dx;
                 dyp = (ny - ryp) * dy;
                 rm = Math.sqrt(((dxp * dxp) + (dyp * dyp))) / alpha;
-                urlat = (float) (sign * ((HALFPI - (2. * Math.atan(rm / re)))) * RTD);
+                urlat = (float) (sign * ((HALFPI - (2. * Math.atan(rm / re))))
+                        * RTD);
 
                 if (dyp != 0) {
                     dyp = (-dyp) * sign;
@@ -489,7 +487,7 @@ public class McidasDecoder extends AbstractDecoder {
                     proj = "SCC";
                 }
 
-                if (navtyp.equals("LAMB")) {
+                if ("LAMB".equals(navtyp)) {
                     // earth radius
                     re = byteArrayToInt(navigation, 28, endian);
 
@@ -525,7 +523,7 @@ public class McidasDecoder extends AbstractDecoder {
                     n6 = byteArrayToInt(navigation, 20, endian);
                     dx = (float) n6 * xres;
                     dy = (float) n6 * yres;
-                } else if (navtyp.equals("TANC")) {
+                } else if ("TANC".equals(navtyp)) {
 
                     /*
                      * McIDAS uses Earth Radius 6371.1 (RADIUS). Navigation
@@ -566,8 +564,8 @@ public class McidasDecoder extends AbstractDecoder {
                     ccone = Math.cos(psi1);
                 } else {
                     double tmp1 = Math.log(Math.sin(psi2) / Math.sin(psi1));
-                    double tmp2 = Math.log(Math.tan(psi2 / 2.)
-                            / Math.tan(psi1 / 2.));
+                    double tmp2 = Math
+                            .log(Math.tan(psi2 / 2.) / Math.tan(psi1 / 2.));
                     ccone = tmp1 / tmp2;
                 }
 
@@ -599,7 +597,8 @@ public class McidasDecoder extends AbstractDecoder {
                 dyp = ny - ryp;
                 rm = dx * Math.sqrt(((dxp * dxp) + (dyp * dyp)));
                 arg = Math.pow(rm * tmp, 1. / ccone) * Math.tan(psi1 / 2.);
-                urlat = (float) (sign * ((HALFPI - (2. * Math.atan(arg)))) * RTD);
+                urlat = (float) (sign * ((HALFPI - (2. * Math.atan(arg))))
+                        * RTD);
 
                 if (dyp != 0) {
                     dyp = -dyp;
@@ -622,7 +621,8 @@ public class McidasDecoder extends AbstractDecoder {
                 int anchor_row = byteArrayToInt(navigation, 4, endian);
                 int unscaled_anchor_lat = byteArrayToInt(navigation, 8, endian);
                 int anchor_col = byteArrayToInt(navigation, 12, endian);
-                int unscaled_anchor_lon = byteArrayToInt(navigation, 16, endian);
+                int unscaled_anchor_lon = byteArrayToInt(navigation, 16,
+                        endian);
                 int unscaled_lat_spacing = byteArrayToInt(navigation, 20,
                         endian);
                 int unscaled_lon_spacing = byteArrayToInt(navigation, 24,
@@ -663,10 +663,10 @@ public class McidasDecoder extends AbstractDecoder {
                         / Math.pow(10.0, anchor_lon_scale);
 
                 /* This dx/dy is in degree spacing */
-                dx = (float) (unscaled_lat_spacing / Math.pow(10.0,
-                        lat_spacing_scale));
-                dy = (float) (unscaled_lon_spacing / Math.pow(10.0,
-                        lon_spacing_scale));
+                dx = (float) (unscaled_lat_spacing
+                        / Math.pow(10.0, lat_spacing_scale));
+                dy = (float) (unscaled_lon_spacing
+                        / Math.pow(10.0, lon_spacing_scale));
 
                 if (swap_lon_sign >= 0) {
                     dx = -1 * dx;
@@ -688,8 +688,8 @@ public class McidasDecoder extends AbstractDecoder {
                  * Need to recalculate dx/dy in a meter spacing since it will be
                  * used with an Equidistant Cylindrical CRS.
                  */
-                DefaultEllipsoid ellipsoid = DefaultEllipsoid.createEllipsoid(
-                        "Mcidas", re, re, SI.METRE);
+                DefaultEllipsoid ellipsoid = DefaultEllipsoid
+                        .createEllipsoid("Mcidas", re, re, SI.METRE);
                 dx = (float) ellipsoid.orthodromicDistance(clon, 0, clon + dx,
                         0);
                 dy = (float) ellipsoid.orthodromicDistance(clon, 0, clon, dy);
@@ -718,38 +718,38 @@ public class McidasDecoder extends AbstractDecoder {
                 } else {
                     // non-remapped Navigations
                     mapCoverage = McidasSpatialFactory.getInstance()
-                            .getMapCoverage(iproj, nx, ny, clon, ulelem,
-                                    ulline, xres, yres, navigation);
+                            .getMapCoverage(iproj, nx, ny, clon, ulelem, ulline,
+                                    xres, yres, navigation);
                 }
             } catch (Exception e) {
-                StringBuffer buf = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 if (iproj <= 7) {
-                    buf.append(
+                    sb.append(
                             "Error getting or constructing SatMapCoverage for values: ")
                             .append("\n\t");
-                    buf.append("mapProjection=" + iproj).append("\n\t");
-                    buf.append("nx=" + nx).append("\n\t");
-                    buf.append("ny=" + ny).append("\n\t");
-                    buf.append("dx=" + dx).append("\n\t");
-                    buf.append("dy=" + dy).append("\n\t");
-                    buf.append("clon=" + clon).append("\n\t");
-                    buf.append("stdlat1=" + stdlat1).append("\n\t");
-                    buf.append("stdlat2=" + stdlat2).append("\n\t");
-                    buf.append("la1=" + lllat).append("\n\t");
-                    buf.append("lo1=" + lllon).append("\n\t");
-                    buf.append("la2=" + urlat).append("\n\t");
-                    buf.append("lo2=" + urlon).append("\n");
+                    sb.append("mapProjection=").append(iproj).append("\n\t");
+                    sb.append("nx=").append(nx).append("\n\t");
+                    sb.append("ny=").append(ny).append("\n\t");
+                    sb.append("dx=").append(dx).append("\n\t");
+                    sb.append("dy=").append(dy).append("\n\t");
+                    sb.append("clon=").append(clon).append("\n\t");
+                    sb.append("stdlat1=").append(stdlat1).append("\n\t");
+                    sb.append("stdlat2=").append(stdlat2).append("\n\t");
+                    sb.append("la1=").append(lllat).append("\n\t");
+                    sb.append("lo1=").append(lllon).append("\n\t");
+                    sb.append("la2=").append(urlat).append("\n\t");
+                    sb.append("lo2=").append(urlon).append("\n");
                 } else {
-                    buf.append(
-                            "Error getting or constructing SatMapCoverage for Navigation Type "
-                                    + proj).append("\n");
+                    sb.append(
+                            "Error getting or constructing SatMapCoverage for Navigation Type ")
+                            .append(proj).append("\n");
                 }
-                throw new DecoderException(buf.toString(), e);
+                throw new DecoderException(sb.toString(), e);
             }
 
             record.setReportType("mcidas");
             if (record != null) {
-                record.setTraceId(traceId);
+                record.setSourceTraceId(traceId);
                 record.setCoverage(mapCoverage);
                 record.setPersistenceTime(TimeTools.getSystemCalendar());
 
@@ -762,7 +762,7 @@ public class McidasDecoder extends AbstractDecoder {
 
     /**
      * Convert from a Julian date to a Gregorian date
-     * 
+     *
      * @param julian
      *            The julian date
      * @return The Calendar
@@ -795,7 +795,7 @@ public class McidasDecoder extends AbstractDecoder {
 
     /**
      * Convert the byte array to an int starting from the given offset.
-     * 
+     *
      * @param b
      *            The byte array
      * @param offset
@@ -822,14 +822,14 @@ public class McidasDecoder extends AbstractDecoder {
                 value += (b[i + offset] & 0x000000FF) << shift;
             }
         } else {
-            System.out.println(" Illegal endian input ");
+            logger.error("Illegal endian input: " + endian);
         }
         return value;
     }
 
     /**
      * Convert the byte array to a string starting from the given offset.
-     * 
+     *
      * @param b
      *            The byte array
      * @param offset
@@ -858,14 +858,14 @@ public class McidasDecoder extends AbstractDecoder {
                     b[offset + 2], b[offset + 3] };
             str = new String(byteArray);
         } else {
-            System.out.println(" Illegal endian input ");
+            logger.error("Illegal endian input: " + endian);
         }
         return str;
     }
 
     /**
      * Convert a longitude in degrees which fall within the range -180 to 180.
-     * 
+     *
      * @param lon
      * @return
      */
@@ -919,8 +919,9 @@ public class McidasDecoder extends AbstractDecoder {
                 try {
                     is.close();
                 } catch (IOException ioe) {
-                    logger.error("Could not close input file "
-                            + inputFile.getName());
+                    logger.error(
+                            "Could not close input file " + inputFile.getName(),
+                            ioe);
                 }
             }
         }

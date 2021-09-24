@@ -1,31 +1,8 @@
-/**
- * 
- * Airmet Decoder
- * 
- * This java class decodes AIRMET raw data.
- * HISTORY
- *
- * * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 05/2009		39				L. Lin		Initial creation
- * 06/2009      39				L. Lin      Set updateNumber before constructing dataURI.	
- * 07/2009		39				L. Lin		Migration to TO11
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
-
 package gov.noaa.nws.ncep.edex.plugin.airmet.decoder;
-
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
-import gov.noaa.nws.ncep.edex.plugin.airmet.util.AirmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,13 +15,38 @@ import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
+import gov.noaa.nws.ncep.edex.plugin.airmet.util.AirmetParser;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ * Airmet Decoder
+ *
+ * This java class decodes AIRMET raw data.
+ *
+ * <pre>
+ * HISTORY
+ *
+ * * Date         Ticket#         Engineer    Description
+ * ------------ ----------      ----------- --------------------------
+ * 05/2009      39              L. Lin      Initial creation
+ * 06/2009      39              L. Lin      Set updateNumber before constructing dataURI.
+ * 07/2009      39              L. Lin      Migration to TO11
+ * Sep 23, 2021 8608            mapeters    Handle PDO.traceId changes
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ *
+ * @author L. Lin
+ */
 public class AirmetDecoder extends AbstractDecoder {
 
     private final String pluginName;
 
     /**
      * Constructor
-     * 
+     *
      * @param name
      *            The name (usually pluginName) for this decoder.
      * @throws DecoderException
@@ -54,7 +56,7 @@ public class AirmetDecoder extends AbstractDecoder {
     }
 
     /**
-     * 
+     *
      * @param data
      * @param headers
      * @return
@@ -88,11 +90,12 @@ public class AirmetDecoder extends AbstractDecoder {
          * May have multiple duplicate bulletins, only get the first bulletin
          * and eliminate the remaining bulletins after the first bulletin.
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-        if (cc.hasNext()) {
-            theBulletin = cc.next();
-        } else {
-            theBulletin = theMessage;
+        try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+            if (cc.hasNext()) {
+                theBulletin = cc.next();
+            } else {
+                theBulletin = theMessage;
+            }
         }
 
         // record = new AirmetRecord();
@@ -108,7 +111,7 @@ public class AirmetDecoder extends AbstractDecoder {
          * Check the Airmet record object. If not, throws exception.
          */
         if (record != null) {
-            record.setTraceId(traceId);
+            record.setSourceTraceId(traceId);
             record.setReportType(pluginName);
             record.setReportName(reportName);
             // Decode and set the update number
@@ -124,11 +127,10 @@ public class AirmetDecoder extends AbstractDecoder {
             try {
                 // Replace special characters to a blank so that it may be
                 // readable
-                record.setBullMessage(UtilN
-                        .removeLeadingWhiteSpaces((theBulletin.substring(5))
-                                .replace('\036', ' ').replace('\r', ' ')
-                                .replace('\003', ' ').replace('\000', ' ')
-                                .replace('\001', ' ')));
+                record.setBullMessage(UtilN.removeLeadingWhiteSpaces(
+                        (theBulletin.substring(5)).replace('\036', ' ')
+                                .replace('\r', ' ').replace('\003', ' ')
+                                .replace('\000', ' ').replace('\001', ' ')));
 
                 // Decode the starting time
                 startTime = AirmetParser.getStartTime(theBulletin, headers);
@@ -137,8 +139,8 @@ public class AirmetDecoder extends AbstractDecoder {
                 }
 
                 // Decode the end time
-                Calendar endTime = AirmetParser
-                        .getEndTime(theBulletin, headers);
+                Calendar endTime = AirmetParser.getEndTime(theBulletin,
+                        headers);
                 if (endTime == null) {
                     /*
                      * if no end time available, end time will be the start time
@@ -158,27 +160,26 @@ public class AirmetDecoder extends AbstractDecoder {
                 }
 
                 // Decode the correction flag and set
-                record.setCorrectionFlag(AirmetParser
-                        .getCorrectionFlag(theBulletin));
+                record.setCorrectionFlag(
+                        AirmetParser.getCorrectionFlag(theBulletin));
 
                 /*
                  * Break the bulletin message into sections by a "OTLK" or
                  * "AIRMET [IFR|MTN OBSCN|TURB|ICE|STG SFC WNDS|LLWS PTENTIAL]".
                  */
-                Scanner sc = new Scanner(theBulletin)
-                        .useDelimiter(sectionDelim);
+                List<String> segmentList = new ArrayList<>();
+                try (Scanner sc = new Scanner(theBulletin)
+                        .useDelimiter(sectionDelim)) {
+                    // throw away the prefix section
+                    sc.next();
 
-                ArrayList<String> segmentList = new ArrayList<String>();
-                segmentList.clear();
-                // throw away the prefix section
-                String segPrefix = sc.next();
-
-                while (sc.hasNext()) {
-                    String segment = sc.next();
-                    segmentList.add(segment);
+                    while (sc.hasNext()) {
+                        String segment = sc.next();
+                        segmentList.add(segment);
+                    }
                 }
 
-                if (segmentList.size() == 0) {
+                if (segmentList.isEmpty()) {
                     // This is NIL/EXPIRE AIRMET report containing header only.
                     record.setCorrectionFlag(4);
                 } else {
@@ -194,30 +195,32 @@ public class AirmetDecoder extends AbstractDecoder {
                     // System.out.println("Process a report=\n" + segment);
                     for (String segment : segmentList) {
                         // starts a new section
-                        Scanner sc2 = new Scanner(segment);
-                        String whatReport = sc2.next();
+                        String whatReport;
+                        try (Scanner sc2 = new Scanner(segment)) {
+                            whatReport = sc2.next();
+                        }
 
-                        if (whatReport.equals("VALID")) {
+                        if ("VALID".equals(whatReport)) {
                             segment = "OTLK".concat(segment);
 
                             // process this section which starts with
                             // "OTLK VALID".
-                            Scanner scOutlook = new Scanner(segment)
-                                    .useDelimiter("AREA ");
-                            ArrayList<String> outlookList = new ArrayList<String>();
-                            outlookList.clear();
-
-                            // Check if "OUTLOOK" section contains more than one
-                            // "AREA".
-                            while (scOutlook.hasNext()) {
-                                String outlookSegment = scOutlook.next();
-                                outlookList.add(outlookSegment);
+                            List<String> outlookList = new ArrayList<>();
+                            try (Scanner scOutlook = new Scanner(segment)
+                                    .useDelimiter("AREA ")) {
+                                // Check if "OUTLOOK" section contains more than
+                                // one "AREA".
+                                while (scOutlook.hasNext()) {
+                                    String outlookSegment = scOutlook.next();
+                                    outlookList.add(outlookSegment);
+                                }
                             }
 
                             if (outlookList.size() <= 1) {
                                 // only one outlook report
                                 AirmetReport outlook = AirmetParser
-                                        .processOutLook(segment, forecastRegion);
+                                        .processOutLook(segment,
+                                                forecastRegion);
                                 AirmetParser.processValidTime(segment, outlook,
                                         validDay, headers);
                                 record.addAirmetReport(outlook);
@@ -231,14 +234,14 @@ public class AirmetDecoder extends AbstractDecoder {
                                 outlookList.remove(outlookHeader);
                                 // process multiple outlook sections
                                 for (String outlookReport : outlookList) {
-                                    outlookReport = outlookHeader.concat(
-                                            "AREA ").concat(outlookReport);
+                                    outlookReport = outlookHeader
+                                            .concat("AREA ")
+                                            .concat(outlookReport);
                                     AirmetReport outlook = AirmetParser
                                             .processOutLook(outlookReport,
                                                     forecastRegion);
-                                    AirmetParser.processValidTime(
-                                            outlookReport, outlook, validDay,
-                                            headers);
+                                    AirmetParser.processValidTime(outlookReport,
+                                            outlook, validDay, headers);
                                     record.addAirmetReport(outlook);
                                 }
                             }
@@ -254,24 +257,22 @@ public class AirmetDecoder extends AbstractDecoder {
 
                             if (theMatcher.find()) {
                                 // prefix the report type
-                                if (theMatcher.group(1).equals("ICE")) {
+                                String reportType = theMatcher.group(1);
+                                if ("ICE".equals(reportType)) {
                                     segment = "AIRMET ICE".concat(segment);
-                                } else if (theMatcher.group(1).equals("TURB")) {
+                                } else if ("TURB".equals(reportType)) {
                                     segment = "AIRMET TURB".concat(segment);
-                                } else if (theMatcher.group(1)
-                                        .equals("CIG BLW")) {
+                                } else if ("CIG BLW".equals(reportType)) {
                                     segment = "AIRMET IFR".concat(segment);
-                                } else if (theMatcher.group(1)
-                                        .equals("VIS BLW")) {
+                                } else if ("VIS BLW".equals(reportType)) {
                                     segment = "AIRMET IFR".concat(segment);
-                                } else if (theMatcher.group(1).equals("MTNS")) {
+                                } else if ("MTNS".equals(reportType)) {
                                     segment = "AIRMET MTN OBSCN"
                                             .concat(segment);
-                                } else if (theMatcher.group(1).equals(
-                                        "SUSTAINED")) {
+                                } else if ("SUSTAINED".equals(reportType)) {
                                     segment = "AIRMET STG SFC WNDS"
                                             .concat(segment);
-                                } else if (theMatcher.group(1).equals("LLWS")) {
+                                } else if ("LLWS".equals(reportType)) {
                                     segment = "LLWS POTENTIAL".concat(segment);
                                 }
                             }
@@ -288,8 +289,8 @@ public class AirmetDecoder extends AbstractDecoder {
                                 report.setEndTime(endTime);
                                 record.addAirmetReport(report);
                             } else {
-                                logger.error("Error decoding segment "
-                                        + segment);
+                                logger.error(
+                                        "Error decoding segment " + segment);
                             }
                         }
                         series++;

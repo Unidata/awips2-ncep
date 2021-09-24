@@ -5,44 +5,43 @@
 
 package gov.noaa.nws.ncep.edex.plugin.nctaf.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafBulletinRecord;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
-
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.wmo.WMOHeader;
 
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafBulletinRecord;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
+
 /**
- * 
+ *
  * Decoder implementation for nctaf plugin.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#     Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 09, 2011 458        sgurung     Initial Creation from Raytheon's taf
  *                                     plugin
  * Sep 23, 2011 458        sgurung     Converted to HDF5
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
+ * Sep 23, 2021 8608       mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author sgurung
- * @version 1.0
  */
-
 public class NcTafDecoder extends AbstractDecoder {
     // Name of the plugin controlling this decoder.
     public static final String PLUGIN_NAME = "nctaf";
 
-    private final String traceId = "";
+    private static final String traceId = "";
 
     /**
      * Constructor.
-     * 
+     *
      * @param productType
      * @throws DecoderException
      */
@@ -57,7 +56,7 @@ public class NcTafDecoder extends AbstractDecoder {
     }
 
     /**
-     * 
+     *
      * @param input
      * @return
      * @throws DecoderException
@@ -89,7 +88,7 @@ public class NcTafDecoder extends AbstractDecoder {
 
         // set the fields that must be done on a per-PDO basis
         for (NcTafRecord pdo : pdos) {
-            pdo.setTraceId(traceId);
+            pdo.setSourceTraceId(traceId);
             try {
                 pdo.constructDataURI();
             } catch (PluginException e) {

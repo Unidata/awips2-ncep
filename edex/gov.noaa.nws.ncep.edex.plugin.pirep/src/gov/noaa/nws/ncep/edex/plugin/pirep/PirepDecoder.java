@@ -52,6 +52,7 @@ import gov.noaa.nws.ncep.edex.plugin.pirep.decoder.PirepParser;
  * Sep 05, 2013  2316     bsteffen  Unify pirep and ncpirep.
  * Jul 23, 2014  3410     bclement  location changed to floats
  * Jul 16, 2020  8191     randerso  Added check for NaN in location
+ * Sep 23, 2021  8608     mapeters  Handle PDO.traceId changes
  *
  * </pre>
  *
@@ -93,7 +94,7 @@ public class PirepDecoder extends AbstractDecoder {
                     input.getWmoHeader());
 
             if (report != null) {
-                report.setTraceId(traceId);
+                report.setSourceTraceId(traceId);
                 try {
                     report.constructDataURI();
                 } catch (PluginException e) {

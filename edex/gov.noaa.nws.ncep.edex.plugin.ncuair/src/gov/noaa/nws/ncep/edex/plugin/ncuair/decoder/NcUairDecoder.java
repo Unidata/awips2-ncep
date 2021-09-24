@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.ncuair.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
-import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairParser;
-import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairShipMobile;
-import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairTimeGroup;
-import gov.noaa.nws.ncep.edex.util.UtilN;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -16,7 +10,6 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.time.DataTime;
@@ -24,16 +17,22 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
 
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
+import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairParser;
+import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairShipMobile;
+import gov.noaa.nws.ncep.edex.plugin.ncuair.util.NcUairTimeGroup;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
 //import gov.noaa.nws.ncep.edex.tools.decoder.SnsTnsLocTbl;
 
 /**
  * NcUairDecoder
- * 
+ *
  * This java class provides the Decoder class for upper air sounding data.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket# Engineer    Description
  * ------------ ------- ----------- -------------------------------------------
  * 03/2010      210     L. Lin      Initial coding
@@ -50,21 +49,21 @@ import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
  * Aug 30, 2013 2298    rjpeter     Make getPluginName abstract
  * Jul 23, 2014 3410    bclement    location changed to floats
  * 09/02/2014           Chin Chen   fix surface height missing on some stations issue
+ * Sep 23, 2021 8608    mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
+ *
  * @author L. Lin
- * @version 1.0
  */
 public class NcUairDecoder extends AbstractDecoder {
     private NcUairRecord record;
 
-    List<NcUairRecord> recordList = new ArrayList<NcUairRecord>();
+    private final List<NcUairRecord> recordList = new ArrayList<>();
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public NcUairDecoder() throws DecoderException {
@@ -72,7 +71,7 @@ public class NcUairDecoder extends AbstractDecoder {
 
     /**
      * Retrieves an obs station with the specified wmo index
-     * 
+     *
      * @param wmoIndex
      *            The wmo index
      * @return The obs station with the specified wmo index
@@ -84,15 +83,15 @@ public class NcUairDecoder extends AbstractDecoder {
         if (dao != null) {
 
             try {
-                obs = dao
-                        .queryBySingleCriteria("wmoIndex", wmoIndex.toString());
+                obs = dao.queryBySingleCriteria("wmoIndex",
+                        wmoIndex.toString());
             } catch (DataAccessLayerException e) {
-                System.out.println("Error while quering for wmoIndex: "
-                        + wmoIndex);
+                logger.error("Error while quering for wmoIndex: " + wmoIndex,
+                        e);
                 return null;
             }
 
-            if ((obs != null) && (obs.size() > 0)) {
+            if (obs != null && !obs.isEmpty()) {
 
                 for (int i = 0; i < obs.size(); i++) {
                     ObStation stationTemp = ((ObStation) obs.get(i));
@@ -123,8 +122,9 @@ public class NcUairDecoder extends AbstractDecoder {
                     break;
                 }
             }
-            if (uElev == false)
+            if (!uElev) {
                 station.setElevation(0);
+            }
         }
         // Chin: sfcElevSolution end
         return station;
@@ -136,9 +136,7 @@ public class NcUairDecoder extends AbstractDecoder {
         String traceId = null;
         WMOHeader hd;
         Boolean nil = false;
-        Boolean ship = false;
-        Boolean drop = false;
-        System.out.println("Nc uair decode entered, data size= " + data.length);
+        logger.debug("Nc uair decode entered, data size= " + data.length);
         long curTime = System.currentTimeMillis();
         if (headers != null) {
             /*
@@ -168,9 +166,9 @@ public class NcUairDecoder extends AbstractDecoder {
         Calendar issueTime = UtilN.findDataTime(hd.getYYGGgg(), cal);
         record.setIssueTime(issueTime);
         // Replace special characters to a blank so that it may be readable.
-        record.setBullMessage(UtilN.removeLeadingWhiteSpaces(theMessage
-                .replace('\r', ' ').replace('\003', ' ').replace('\000', ' ')
-                .replace('\001', ' ')));
+        record.setBullMessage(UtilN.removeLeadingWhiteSpaces(
+                theMessage.replace('\r', ' ').replace('\003', ' ')
+                        .replace('\000', ' ').replace('\001', ' ')));
         // Get and set dataType
         String dataType = NcUairParser.getDataType(theMessage);
 
@@ -182,11 +180,7 @@ public class NcUairDecoder extends AbstractDecoder {
         String stationNumber = null;
         if (dataType != null) {
             String p1 = dataType.substring(0, 2);
-            if (p1.equals("UU")) {
-                ship = true;
-            } else if (p1.equals("XX")) {
-                drop = true;
-            } else {
+            if (!"UU".equals(p1) && !"XX".equals(p1)) {
                 stationNumber = NcUairParser.getStationNumber(theMessage);
             }
         }
@@ -209,9 +203,8 @@ public class NcUairDecoder extends AbstractDecoder {
 
             ObStation station = getStationInfo(Integer.parseInt(stationNumber));
 
-            if ((station != null)
-                    && ((station.getStationId() != null) && (station
-                            .getStationId().length() > 0))) {
+            if ((station != null) && ((station.getStationId() != null)
+                    && (station.getStationId().length() > 0))) {
                 SurfaceObsLocation obsLoc = new SurfaceObsLocation(
                         station.getStationId());
                 if (station.getGeometry() != null) {
@@ -231,13 +224,15 @@ public class NcUairDecoder extends AbstractDecoder {
                     obsLoc.assignLocation(lat, lon);
                     Integer elev = station.getUpperAirElevation();
                     if (elev == null) {
-                        elev = 0; // Chin: sfcElevSolution-9999;
+                        // Chin: sfcElevSolution-9999;
+                        elev = 0;
                     }
                     obsLoc.setElevation(elev);
                     record.setLocation(obsLoc);
                 } else {
-                    logger.info("Latitude/Longitude (the_geom) missing for Station Number ["
-                            + stationNumber + "]. Record discarded.");
+                    logger.info(
+                            "Latitude/Longitude (the_geom) missing for Station Number ["
+                                    + stationNumber + "]. Record discarded.");
                     record = null;
                 }
 
@@ -260,8 +255,8 @@ public class NcUairDecoder extends AbstractDecoder {
         if (!nil && (record != null)) {
             /* Regular expression for UAIR report */
             final String UAIR_REPORT = "(TT|PP)(AA|BB|CC|DD) ( )?(\\d{5}|\\d{4}/) (\\d{5})(.*)=";
-            Pattern reportPattern = Pattern
-                    .compile(UAIR_REPORT, Pattern.DOTALL);
+            Pattern reportPattern = Pattern.compile(UAIR_REPORT,
+                    Pattern.DOTALL);
             Matcher reportMatcher = reportPattern.matcher(theMessage);
 
             final String UAIR_BULL = "(TT|PP)(AA|BB|CC|DD) ( )?(\\d{5}|\\d{4}/) (\\d{5})(.*)\\x03";
@@ -272,15 +267,15 @@ public class NcUairDecoder extends AbstractDecoder {
             if (reportMatcher.find()) {
                 codeMessage = reportMatcher.group(6);
                 if (codeMessage.length() > 4) {
-                    codeMessage = UtilN.removeExtraWhiteSpaces(codeMessage
-                            .replace('\r', ' ').replace('\n', ' '));
+                    codeMessage = UtilN.removeExtraWhiteSpaces(
+                            codeMessage.replace('\r', ' ').replace('\n', ' '));
                 }
             } else if (bullMatcher.find()) {
                 codeMessage = bullMatcher.group(6);
                 if (codeMessage.length() > 4) {
-                    codeMessage = UtilN.removeExtraWhiteSpaces(codeMessage
-                            .replace('\r', ' ').replace('\n', ' ')
-                            .replace('\003', ' '));
+                    codeMessage = UtilN.removeExtraWhiteSpaces(
+                            codeMessage.replace('\r', ' ').replace('\n', ' ')
+                                    .replace('\003', ' '));
                 }
             } else {
                 // Handle ship or dropsonde data
@@ -289,9 +284,9 @@ public class NcUairDecoder extends AbstractDecoder {
                 Matcher shipMatcher = shipPattern.matcher(theMessage);
                 if (shipMatcher.find()) {
                     codeMessage = shipMatcher.group(3);
-                    codeMessage = UtilN.removeExtraWhiteSpaces(codeMessage
-                            .replace('\r', ' ').replace('\n', ' ')
-                            .replace('\003', ' '));
+                    codeMessage = UtilN.removeExtraWhiteSpaces(
+                            codeMessage.replace('\r', ' ').replace('\n', ' ')
+                                    .replace('\003', ' '));
 
                     NcUairShipMobile.ShipMobileField(codeMessage, dataType);
                     codeMessage = NcUairShipMobile.getCodeMessage();
@@ -340,7 +335,7 @@ public class NcUairDecoder extends AbstractDecoder {
             if (headers != null) {
                 traceId = (String) headers.get("traceId");
             }
-            record.setTraceId(traceId);
+            record.setSourceTraceId(traceId);
         }
 
         /*
@@ -363,8 +358,7 @@ public class NcUairDecoder extends AbstractDecoder {
         String traceId = null;
         WMOHeader hd;
         Boolean nil = false;
-        System.out.println("Nc uair decodeBatch(), raw data size= "
-                + data.length);
+        logger.debug("Nc uair decodeBatch(), raw data size= " + data.length);
         // long curTime = System.currentTimeMillis();
         if (headers != null) {
             /*
@@ -397,9 +391,9 @@ public class NcUairDecoder extends AbstractDecoder {
             Calendar issueTime = UtilN.findDataTime(hd.getYYGGgg(), cal);
             record.setIssueTime(issueTime);
             // Replace special characters to a blank so that it may be readable.
-            record.setBullMessage(UtilN.removeLeadingWhiteSpaces(theMessage
-                    .replace('\r', ' ').replace('\003', ' ')
-                    .replace('\000', ' ').replace('\001', ' ')));
+            record.setBullMessage(UtilN.removeLeadingWhiteSpaces(
+                    theMessage.replace('\r', ' ').replace('\003', ' ')
+                            .replace('\000', ' ').replace('\001', ' ')));
             // Get and set dataType
             String dataType = NcUairParser.getDataType(theMessage);
 
@@ -411,11 +405,7 @@ public class NcUairDecoder extends AbstractDecoder {
             String stationNumber = null;
             if (dataType != null) {
                 String p1 = dataType.substring(0, 2);
-                if (p1.equals("UU")) {
-                    // ship = true;
-                } else if (p1.equals("XX")) {
-                    // drop = true;
-                } else {
+                if (!"UU".equals(p1) && !"XX".equals(p1)) {
                     stationNumber = NcUairParser.getStationNumber(theMessage);
                 }
             }
@@ -436,12 +426,11 @@ public class NcUairDecoder extends AbstractDecoder {
             // set station id, lat, lon
             if (stationNumber != null) {
 
-                ObStation station = getStationInfo(Integer
-                        .parseInt(stationNumber));
+                ObStation station = getStationInfo(
+                        Integer.parseInt(stationNumber));
 
-                if ((station != null)
-                        && ((station.getStationId() != null) && (station
-                                .getStationId().length() > 0))) {
+                if ((station != null) && ((station.getStationId() != null)
+                        && (station.getStationId().length() > 0))) {
                     SurfaceObsLocation obsLoc = new SurfaceObsLocation(
                             station.getStationId());
                     if (station.getGeometry() != null) {
@@ -463,15 +452,18 @@ public class NcUairDecoder extends AbstractDecoder {
                         obsLoc.assignLocation(lat, lon);
                         Integer elev = station.getUpperAirElevation();
                         if (elev == null) {
-                            elev = 0; // Chin: sfcElevSolution
+                            // Chin: sfcElevSolution
+                            elev = 0;
                         }
                         obsLoc.setElevation(elev);
                         record.setLocation(obsLoc);
                     } else {
                         // lat/lon (the_geom/upperairgeom) missing in spatial
                         // table
-                        logger.info("Latitude/Longitude (the_geom) missing for Station Number ["
-                                + stationNumber + "]. Record discarded.");
+                        logger.info(
+                                "Latitude/Longitude (the_geom) missing for Station Number ["
+                                        + stationNumber
+                                        + "]. Record discarded.");
                         continue;
                     }
 
@@ -499,8 +491,8 @@ public class NcUairDecoder extends AbstractDecoder {
                 Matcher reportMatcher = reportPattern.matcher(theMessage);
 
                 final String UAIR_BULL = "(TT|PP)(AA|BB|CC|DD) ( )?(\\d{5}|\\d{4}/) (\\d{5})(.*)\\x03";
-                Pattern bullPattern = Pattern
-                        .compile(UAIR_BULL, Pattern.DOTALL);
+                Pattern bullPattern = Pattern.compile(UAIR_BULL,
+                        Pattern.DOTALL);
                 Matcher bullMatcher = bullPattern.matcher(theMessage);
 
                 String codeMessage = null;
@@ -548,8 +540,8 @@ public class NcUairDecoder extends AbstractDecoder {
 
                         obsTime = NcUairShipMobile.getObsTime();
                         record.setObsTime(obsTime);
-                        record.setSynopticTime(NcUairShipMobile
-                                .getSynopticTime());
+                        record.setSynopticTime(
+                                NcUairShipMobile.getSynopticTime());
                         record.setUTC(NcUairShipMobile.getIutc());
                     }
                 }
@@ -573,7 +565,7 @@ public class NcUairDecoder extends AbstractDecoder {
                     if (Math.abs(obsTime.get(Calendar.DAY_OF_MONTH)
                             - issueTime.get(Calendar.DAY_OF_MONTH)) >= 2) {
                         // Chin, not a good record, should just skip it
-                        System.out.println("Nc uair record bad issue time "
+                        logger.debug("Nc uair record bad issue time "
                                 + issueTime.getTime().toString() + " obs Time "
                                 + obsTime.getTime().toString());
                         continue;
@@ -594,11 +586,11 @@ public class NcUairDecoder extends AbstractDecoder {
                 if (headers != null) {
                     traceId = (String) headers.get("traceId");
                 }
-                record.setTraceId(traceId);
+                record.setSourceTraceId(traceId);
                 recordList.add(record);
             }
 
-        }// end while loop
+        }
         /*
          * Return UAIR record object.
          */

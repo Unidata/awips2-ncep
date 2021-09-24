@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.tcm.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord;
-import gov.noaa.nws.ncep.edex.plugin.tcm.util.TcmParser;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
-
 import java.util.Calendar;
 import java.util.Scanner;
 
@@ -16,14 +12,19 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
+import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord;
+import gov.noaa.nws.ncep.edex.plugin.tcm.util.TcmParser;
+import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
+
 /**
  * TcmDecoder
- * 
+ *
  * This java class decodes TCM (Tropical Cyclone Message) data.
- *  
- * <pre> 
+ *
+ * <pre>
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket# Engineer   Description
  * ------------ ------- ---------- -----------
  * 06/2009      128     T. Lee     Creation
@@ -31,13 +32,12 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * 11/2009      128     T. Lee     Migrated to TO11D6
  * 06/2010      128     T. Lee     Migrated to TO11DR11
  * Aug 30, 2013 2298    rjpeter    Make getPluginName abstract
+ * Sep 23, 2021 8608    mapeters   Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author T.Lee
- * @version 1.0       
  */
 public class TcmDecoder extends AbstractDecoder {
-    private static String pluginName;
 
     private TcmRecord record;
 
@@ -45,13 +45,12 @@ public class TcmDecoder extends AbstractDecoder {
 
     /**
      * Default constructor
-     * 
+     *
      * @param name
      *            plugin name
      * @throws DecoderException
      */
     public TcmDecoder(String name) throws DecoderException {
-        pluginName = name;
     }
 
     public PluginDataObject[] decode(byte[] data, Headers headers)
@@ -74,11 +73,12 @@ public class TcmDecoder extends AbstractDecoder {
             /*
              * Exclude the duplicate report after the first
              */
-            Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-            if (cc.hasNext()) {
-                theBulletin = cc.next();
-            } else {
-                theBulletin = theMessage;
+            try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+                if (cc.hasNext()) {
+                    theBulletin = cc.next();
+                } else {
+                    theBulletin = theMessage;
+                }
             }
 
             /*
@@ -97,7 +97,8 @@ public class TcmDecoder extends AbstractDecoder {
                 tp.processWMO(messageData, record, mndTime);
             } catch (Exception e) {
                 if (log.isInfoEnabled()) {
-                    log.info("Process WMO header errors");
+                    log.info("Process WMO header errors: "
+                            + e.getLocalizedMessage());
                 }
             }
 
@@ -126,7 +127,7 @@ public class TcmDecoder extends AbstractDecoder {
                 if (headers != null) {
                     traceId = (String) headers.get("traceId");
                 }
-                record.setTraceId(traceId);
+                record.setSourceTraceId(traceId);
                 record.constructDataURI();
 
             } catch (PluginException e) {

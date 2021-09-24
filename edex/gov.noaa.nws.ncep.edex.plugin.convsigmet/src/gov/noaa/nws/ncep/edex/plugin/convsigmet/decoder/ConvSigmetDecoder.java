@@ -1,35 +1,8 @@
-/**
- * 
- * Convective Sigmet Decoder
- * 
- * This java class decodes CONVSIGMET (convective sigmet) raw data.
- * HISTORY
- *
- * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 03/2009      87/114			L. Lin     	Initial coding
- * 06/2009		87/114			L. Lin		Increase size of locationLine and location
- *                          				and generalize method "processLocation".
- * 07/2009		87/114			L. Lin		Migration to TO11
- * 07/2011		87/114			F. J. Yen	Fix for RTN TTR 9973--ConvSigmet Decoder Ignoring
- * 											time range--implemented fix from Steven Harris,
- * 											RTN to set the end time range
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
-
 package gov.noaa.nws.ncep.edex.plugin.convsigmet.decoder;
-
-import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord;
-import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetSection;
-import gov.noaa.nws.ncep.edex.plugin.convsigmet.util.ConvSigmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Scanner;
 
 import com.raytheon.edex.esb.Headers;
@@ -41,13 +14,43 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
+import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord;
+import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetSection;
+import gov.noaa.nws.ncep.edex.plugin.convsigmet.util.ConvSigmetParser;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ * Convective Sigmet Decoder
+ *
+ * This java class decodes CONVSIGMET (convective sigmet) raw data.
+ *
+ * <pre>
+ * HISTORY
+ *
+ * Date         Ticket#         Engineer    Description
+ * ------------ ----------      ----------- --------------------------
+ * 03/2009      87/114          L. Lin      Initial coding
+ * 06/2009      87/114          L. Lin      Increase size of locationLine and location
+ *                                          and generalize method "processLocation".
+ * 07/2009      87/114          L. Lin      Migration to TO11
+ * 07/2011      87/114          F. J. Yen   Fix for RTN TTR 9973--ConvSigmet Decoder Ignoring
+ *                                          time range--implemented fix from Steven Harris,
+ *                                          RTN to set the end time range
+ * Sep 23, 2021 8608            mapeters    Handle PDO.traceId changes
+ * </pre>
+ *
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ *
+ * @author L. Lin
+ */
+
 public class ConvSigmetDecoder extends AbstractDecoder {
 
     private final String pluginName;
 
     /**
      * Constructor
-     * 
+     *
      * @throws DecoderException
      */
     public ConvSigmetDecoder(String name) throws DecoderException {
@@ -80,11 +83,12 @@ public class ConvSigmetDecoder extends AbstractDecoder {
          * May have multiple duplicate bulletins, only get the first bulletin
          * and eliminate the remaining bulletins after the first bulletin.
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
-        if (cc.hasNext()) {
-            theBulletin = cc.next();
-        } else {
-            theBulletin = theMessage;
+        try (Scanner cc = new Scanner(theMessage).useDelimiter(etx)) {
+            if (cc.hasNext()) {
+                theBulletin = cc.next();
+            } else {
+                theBulletin = theMessage;
+            }
         }
 
         // record = new ConvsigmetRecord();
@@ -99,7 +103,7 @@ public class ConvSigmetDecoder extends AbstractDecoder {
          * Check the Convsigmet record object. If not, throws exception.
          */
         if (record != null) {
-            record.setTraceId(traceId);
+            record.setSourceTraceId(traceId);
             record.setReportType(pluginName);
             record.setForecastRegion(forecastRegion);
             try {
@@ -114,11 +118,10 @@ public class ConvSigmetDecoder extends AbstractDecoder {
             try {
                 // Replace special characters to a blank so that it may be
                 // readable
-                record.setBullMessage(UtilN
-                        .removeLeadingWhiteSpaces((theBulletin.substring(5))
-                                .replace('\036', ' ').replace('\r', ' ')
-                                .replace('\003', ' ').replace('\000', ' ')
-                                .replace('\001', ' ')));
+                record.setBullMessage(UtilN.removeLeadingWhiteSpaces(
+                        (theBulletin.substring(5)).replace('\036', ' ')
+                                .replace('\r', ' ').replace('\003', ' ')
+                                .replace('\000', ' ').replace('\001', ' ')));
 
                 // Decode the starting time
                 startTime = ConvSigmetParser.processStartTime(theBulletin,
@@ -137,14 +140,13 @@ public class ConvSigmetDecoder extends AbstractDecoder {
                  * Break the bulletin message into sections by a "OUTLOOK" or
                  * "CONVECTIVE".
                  */
-                Scanner sc = new Scanner(theBulletin)
-                        .useDelimiter(sectionDelim);
-
-                ArrayList<String> segmentList = new ArrayList<String>();
-                segmentList.clear();
-                while (sc.hasNext()) {
-                    String segment = sc.next();
-                    segmentList.add(segment);
+                List<String> segmentList = new ArrayList<>();
+                try (Scanner sc = new Scanner(theBulletin)
+                        .useDelimiter(sectionDelim)) {
+                    while (sc.hasNext()) {
+                        String segment = sc.next();
+                        segmentList.add(segment);
+                    }
                 }
 
                 Calendar issueTime = record.getIssueTime();
@@ -156,10 +158,12 @@ public class ConvSigmetDecoder extends AbstractDecoder {
                 for (String segment : segmentList) {
 
                     // starts a new section
-                    Scanner sc2 = new Scanner(segment);
-                    String whatSection = sc2.next();
-                    if (whatSection.equals("SIGMET")
-                            || whatSection.equals("SIGMET...NONE")) {
+                    String whatSection;
+                    try (Scanner sc2 = new Scanner(segment)) {
+                        whatSection = sc2.next();
+                    }
+                    if ("SIGMET".equals(whatSection)
+                            || "SIGMET...NONE".equals(whatSection)) {
                         segment = "CONVECTIVE".concat(segment);
 
                         // process this section which starts with
@@ -170,31 +174,28 @@ public class ConvSigmetDecoder extends AbstractDecoder {
                         record.addConvSigmetSection(section);
 
                         // keep track of time range
-                        if ((min == null)
-                                || min.getTime().after(
-                                        section.getStartTime().getTime())) {
+                        if ((min == null) || min.getTime()
+                                .after(section.getStartTime().getTime())) {
                             min = section.getStartTime();
                         }
-                        if ((max == null)
-                                || max.getTime().before(
-                                        section.getEndTime().getTime())) {
+                        if ((max == null) || max.getTime()
+                                .before(section.getEndTime().getTime())) {
                             max = section.getEndTime();
                         }
-                    } else if (whatSection.equals("VALID")) {
+                    } else if ("VALID".equals(whatSection)) {
                         segment = "OUTLOOK".concat(segment);
 
                         // process this section which starts with
                         // "OUTLOOK VALID".
-                        Scanner scOutlook = new Scanner(segment)
-                                .useDelimiter("AREA ");
-                        ArrayList<String> outlookList = new ArrayList<String>();
-                        outlookList.clear();
-
-                        // Check if "OUTLOOK" section contains more than one
-                        // "AREA".
-                        while (scOutlook.hasNext()) {
-                            String outlookSegment = scOutlook.next();
-                            outlookList.add(outlookSegment);
+                        List<String> outlookList = new ArrayList<>();
+                        try (Scanner scOutlook = new Scanner(segment)
+                                .useDelimiter("AREA ")) {
+                            // Check if "OUTLOOK" section contains more than one
+                            // "AREA".
+                            while (scOutlook.hasNext()) {
+                                String outlookSegment = scOutlook.next();
+                                outlookList.add(outlookSegment);
+                            }
                         }
 
                         if (outlookList.size() <= 1) {
@@ -202,14 +203,12 @@ public class ConvSigmetDecoder extends AbstractDecoder {
                             ConvSigmetSection outlook = ConvSigmetParser
                                     .processOutLook(segment, region, headers);
                             record.addConvSigmetSection(outlook);
-                            if ((min == null)
-                                    || min.getTime().after(
-                                            outlook.getStartTime().getTime())) {
+                            if ((min == null) || min.getTime()
+                                    .after(outlook.getStartTime().getTime())) {
                                 min = outlook.getStartTime();
                             }
-                            if ((max == null)
-                                    || max.getTime().before(
-                                            outlook.getEndTime().getTime())) {
+                            if ((max == null) || max.getTime()
+                                    .before(outlook.getEndTime().getTime())) {
                                 max = outlook.getEndTime();
                             }
                         } else {
@@ -228,24 +227,22 @@ public class ConvSigmetDecoder extends AbstractDecoder {
                                         .processOutLook(outlookSection, region,
                                                 headers);
                                 record.addConvSigmetSection(outlook);
-                                if ((min == null)
-                                        || min.getTime().after(
-                                                outlook.getStartTime()
-                                                        .getTime())) {
+                                if ((min == null) || min.getTime().after(
+                                        outlook.getStartTime().getTime())) {
                                     min = outlook.getStartTime();
                                 }
-                                if ((max == null)
-                                        || max.getTime().before(
-                                                outlook.getEndTime().getTime())) {
+                                if ((max == null) || max.getTime().before(
+                                        outlook.getEndTime().getTime())) {
                                     max = outlook.getEndTime();
                                 }
                             }
                         }
                     }
                 }
-                record.setDataTime(new DataTime(record.getDataTime()
-                        .getRefTimeAsCalendar(), new TimeRange(min.getTime(),
-                        max.getTimeInMillis() - min.getTimeInMillis())));
+                record.setDataTime(new DataTime(
+                        record.getDataTime().getRefTimeAsCalendar(),
+                        new TimeRange(min.getTime(), max.getTimeInMillis()
+                                - min.getTimeInMillis())));
             } catch (Exception e) {
                 logger.error("Error processing decoded sigmet", e);
                 record = null;

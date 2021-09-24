@@ -27,10 +27,11 @@ import gov.noaa.nws.ncep.edex.util.UtilN;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 06/2009       113       L. Lin       Initial creation
- * 07/2009       113       L. Lin       Migration to TO11
- * 05/2010       113       L. Lin       Migration to TO11DR11
- * Sep 13, 2018  #7460     dgilling     Code cleanup.
+ * 06/2009      113        L. Lin      Initial creation
+ * 07/2009      113        L. Lin      Migration to TO11
+ * 05/2010      113        L. Lin      Migration to TO11DR11
+ * Sep 13, 2018 7460       dgilling    Code cleanup.
+ * Sep 23, 2021 8608       mapeters    Handle PDO.traceId changes
  *
  * </pre>
  *
@@ -95,7 +96,7 @@ public class IntlSigmetDecoder {
              * Check the IntlSigmet record object. If not, throws exception.
              */
             if (record != null) {
-                record.setTraceId(traceId);
+                record.setSourceTraceId(traceId);
                 record.setReportType(pluginName);
                 record.setHazardType(
                         IntlSigmetParser.getHazardType(theBulletin));
@@ -116,7 +117,7 @@ public class IntlSigmetDecoder {
                                     .replace('\003', ' ').replace('\000', ' ')
                                     .replace('\001', ' ')));
 
-                    if (!record.getHazardType().equals("NIL")) {
+                    if (!"NIL".equals(record.getHazardType())) {
 
                         // Decode the issue time
                         Calendar issueTime = record.getIssueTime();

@@ -4,10 +4,6 @@
  **/
 package gov.noaa.nws.ncep.edex.plugin.airep;
 
-import gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord;
-import gov.noaa.nws.ncep.edex.plugin.airep.decoder.AIREPWeather;
-import gov.noaa.nws.ncep.edex.plugin.airep.decoder.AirepParser;
-
 import java.util.Calendar;
 import java.util.Map;
 
@@ -18,6 +14,10 @@ import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
+
+import gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord;
+import gov.noaa.nws.ncep.edex.plugin.airep.decoder.AIREPWeather;
+import gov.noaa.nws.ncep.edex.plugin.airep.decoder.AirepParser;
 
 /**
  * Decoder strategy for Aicraft Report (AIREP) observation data. Most common
@@ -30,12 +30,12 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  *      // do something with record.
  *   }
  * </code>
- * 
- * 
+ *
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Apr 27, 2011            F.J.Yen     Initial creation from airep.
@@ -45,10 +45,10 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * Sep 05, 2013 2316       bsteffen    Unify airep and ncairep.
  * May 14, 2014 2536       bclement    moved WMO Header to common, removed PLUGIN_NAME
  * Jul 23, 2014 3410       bclement    location changed to floats
+ * Sep 23, 2021 8608       mapeters    Handle PDO.traceId changes
  * </pre>
- * 
+ *
  * @author F. J. Yen
- * @version 1.0
  */
 public class AirepDecoder extends AbstractDecoder {
 
@@ -68,7 +68,7 @@ public class AirepDecoder extends AbstractDecoder {
     }
 
     /**
-     * 
+     *
      */
     public AirepDecoder() {
 
@@ -76,7 +76,7 @@ public class AirepDecoder extends AbstractDecoder {
 
     /**
      * Get the next decoded data record.
-     * 
+     *
      * @param input
      *            the decoder input
      * @return One record of decoded data.
@@ -90,8 +90,7 @@ public class AirepDecoder extends AbstractDecoder {
 
         AirepRecord report = null;
         String traceId = null;
-        System.out.println("====" + new String(input.report)); // input.report
-                                                               // );
+        logger.debug("====" + input.report);
 
         try {
             // traceId = getTraceId(hdrMap);
@@ -100,7 +99,7 @@ public class AirepDecoder extends AbstractDecoder {
             report = populateRecord(new AirepParser(input.report));
 
             if (report != null) {
-                report.setTraceId(traceId);
+                report.setSourceTraceId(traceId);
 
                 reports = new PluginDataObject[] { report };
             }
@@ -178,7 +177,7 @@ public class AirepDecoder extends AbstractDecoder {
     }
 
     /**
-     * 
+     *
      * @param hdrMap
      * @return
      */

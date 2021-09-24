@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.common.dataplugin.modis.dao;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisMessageData;
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisSpatialCoverage;
-
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,8 +16,10 @@ import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.StorageProperties;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
+import com.raytheon.uf.common.datastorage.records.DataUriMetadataIdentifier;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
+import com.raytheon.uf.common.datastorage.records.IMetadataIdentifier;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
 import com.raytheon.uf.common.numeric.buffer.BufferWrapper;
 import com.raytheon.uf.common.numeric.buffer.ShortBufferWrapper;
@@ -35,28 +33,32 @@ import com.raytheon.uf.edex.database.plugin.DownscaleStoreUtil;
 import com.raytheon.uf.edex.database.plugin.DownscaleStoreUtil.IDataRecordCreator;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisMessageData;
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisSpatialCoverage;
+
 /**
  * MODIS DAO - creates storage records from PDOs
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer     Description
  * ------------ ---------- -----------  --------------------------
  * 10/01/2014   R5116      kbugenhagen  Initial creation
- * 
+ * Sep 23, 2021 8608       mapeters     Pass metadata ids to datastore
+ *
+ *
  * </pre>
- * 
+ *
  * @author kbugenhagen
- * @version 1.0
  */
-
 public class ModisDao extends PluginDao {
 
-    public final static String LATITUDE_DATASET_NAME = "latitudes";
+    public static final String LATITUDE_DATASET_NAME = "latitudes";
 
-    public final static String LONGITUDE_DATASET_NAME = "longitudes";
+    public static final String LONGITUDE_DATASET_NAME = "longitudes";
 
     private Object latitudes;
 
@@ -67,15 +69,8 @@ public class ModisDao extends PluginDao {
     }
 
     /*
-     * (non-Javadoc)
-     * 
      * Stores the image, latitude and longitude arrays in the HDF file. All
      * levels for the image are stored to support down-scaling.
-     * 
-     * @see
-     * com.raytheon.uf.edex.database.plugin.PluginDao#populateDataStore(com.
-     * raytheon.uf.common.datastorage.IDataStore,
-     * com.raytheon.uf.common.dataplugin.persist.IPersistable)
      */
     @Override
     protected IDataStore populateDataStore(IDataStore dataStore,
@@ -91,8 +86,8 @@ public class ModisDao extends PluginDao {
         String compression = PluginRegistry.getInstance()
                 .getRegisteredObject(pluginName).getCompression();
         if (compression != null) {
-            props.setCompression(StorageProperties.Compression
-                    .valueOf(compression));
+            props.setCompression(
+                    StorageProperties.Compression.valueOf(compression));
         }
         ModisSpatialCoverage spatialRecord = record.getCoverage();
         final int nx = spatialRecord.getNx();
@@ -107,7 +102,7 @@ public class ModisDao extends PluginDao {
                 IDataRecord idr = DataStoreFactory.createStorageRecord(
                         ModisRecord.getDataSet(downScaleLevel),
                         record.getDataURI(), data, 2, sizes);
-                Map<String, Object> attributes = new HashMap<String, Object>();
+                Map<String, Object> attributes = new HashMap<>();
                 attributes.put(ModisRecord.MISSING_VALUE_ID, fillValue);
                 attributes.put(ModisRecord.OFFSET_ID, messageData.getOffset());
                 attributes.put(ModisRecord.SCALE_ID, messageData.getScale());
@@ -139,18 +134,19 @@ public class ModisDao extends PluginDao {
 
         // create raw image dataset
 
+        IMetadataIdentifier metaId = new DataUriMetadataIdentifier(record);
         // first, add the full image array (level 0)
-        IDataRecord fullSize = creator
-                .create(rawData, 0, new Rectangle(nx, ny));
-        dataStore.addDataRecord(fullSize);
+        IDataRecord fullSize = creator.create(rawData, 0,
+                new Rectangle(nx, ny));
+        dataStore.addDataRecord(fullSize, metaId);
 
         // Data sources are create anonymously here to avoid having the
         // fillValue/validMin/validMax even checked when getting values but
         // still getting the getDataValueInternal functionality
         BufferWrapper ds = BufferWrapper.wrapArray(rawData, nx, ny);
 
-        DataDestination dest = InverseFillValueFilter.apply(
-                (DataDestination) ds, fillValue);
+        DataDestination dest = InverseFillValueFilter
+                .apply((DataDestination) ds, fillValue);
 
         // Wrap the source and replace set each value which will replace
         // anything in missingValues with fillValue
@@ -171,38 +167,28 @@ public class ModisDao extends PluginDao {
         GridDownscaler downscaler = new GridDownscaler(
                 spatialRecord.getGridGeometry(latitudes, longitudes));
 
-        DownscaleStoreUtil.storeInterpolated(dataStore, downscaler, ds,
-                creator, false);
+        DownscaleStoreUtil.storeInterpolated(dataStore, downscaler, ds, creator,
+                metaId, false);
 
         // add latitude and longitude datasets
         dataset = new FloatDataRecord(LATITUDE_DATASET_NAME,
                 record.getDataURI(), (float[]) latitudes, 2, sizes);
-        dataStore.addDataRecord(dataset);
+        dataStore.addDataRecord(dataset, metaId);
         dataset = new FloatDataRecord(LONGITUDE_DATASET_NAME,
                 record.getDataURI(), (float[]) longitudes, 2, sizes);
-        dataStore.addDataRecord(dataset);
+        dataStore.addDataRecord(dataset, metaId);
 
         dataStore.store();
 
         return dataStore;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.uf.edex.database.plugin.PluginDao#purgeAllData()
-     */
     @Override
     public void purgeAllData() throws PluginException {
         super.purgeAllData();
         purgeSpatialData(true);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.uf.edex.database.plugin.PluginDao#purgeExpiredData()
-     */
     @Override
     public void purgeExpiredData() throws PluginException {
         super.purgeExpiredData();
@@ -214,11 +200,11 @@ public class ModisDao extends PluginDao {
      * older than 4 hours if all == false
      */
     private void purgeSpatialData(boolean all) {
-        List<Object> args = new ArrayList<Object>(3);
+        List<Object> args = new ArrayList<>(3);
         args.add(ModisSpatialCoverage.class.getAnnotation(Table.class).name());
         args.add(ModisRecord.class.getAnnotation(Table.class).name());
         String formatString = "delete from %s where gid not in (select distinct coverage_gid from %s)";
-        if (all == false) {
+        if (!all) {
             formatString += " and reftime < '%s'";
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.HOUR, -4);

@@ -85,6 +85,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
  *                                      call to it.
  * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
  * Jun 29, 2021 93036       smanoj      Changes for QC alerts for Int'l SIGMETS.
+ * Oct 04, 2021 93036       omoncayo    Remove --none- as a option in combo
  * 
  * </pre>
  *
@@ -159,8 +160,8 @@ public class SigmetInfo {
     public static final String[] LEVEL_INFO_2_ARRAY = new String[] { "-none-",
             "AND" };
 
-    public static final String[] TREND_ARRAY = new String[] { "-none-", "NC",
-            "WKN", "INTSF" };
+    public static final String[] TREND_ARRAY = new String[] { "NC", "WKN",
+            "INTSF" };
 
     public static final String[] REM_ARRAY = new String[] { "-none-",
             "BASED_ON_SATELLITE_OBS", "BASED_ON_ACFT_AND_SAT",

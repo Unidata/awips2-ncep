@@ -17,7 +17,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
 Export-Package: gov.noaa.nws.ncep.edex.plugin.nctext.common,
  gov.noaa.nws.ncep.edex.plugin.nctext.common.dao,
  gov.noaa.nws.ncep.edex.plugin.nctext.query
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.7",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- javax.persistence;bundle-version="1.0.0",
- com.raytheon.uf.edex.decodertools;bundle-version="1.11.7"
+Require-Bundle: com.raytheon.edex.common,
+ gov.noaa.nws.ncep.edex.common,
+ javax.persistence,
+ com.raytheon.uf.edex.decodertools

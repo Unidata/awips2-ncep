@@ -4,12 +4,12 @@ Bundle-Name: Ffg Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ffg
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
- javax.persistence;bundle-version="1.0.0",
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
  gov.noaa.nws.ncep.common,
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.ffg;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+ gov.noaa.nws.ncep.edex.common,
+ gov.noaa.nws.ncep.common.dataplugin.ffg,
+ org.slf4j
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ffg.decoder,
  gov.noaa.nws.ncep.edex.plugin.ffg.util
 Import-Package: com.raytheon.uf.common.wmo,

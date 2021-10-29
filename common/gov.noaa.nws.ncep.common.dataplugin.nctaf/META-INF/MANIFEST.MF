@@ -5,13 +5,13 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.nctaf
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.raytheon.uf.common.status,
- net.sf.cglib;bundle-version="2.1.3",
+ net.sf.cglib,
  javax.measure,
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.common,
  org.apache.commons.lang,
- com.raytheon.uf.common.time;bundle-version="1.16.0",
- org.hibernate;bundle-version="4.2.15",
- com.raytheon.uf.common.pointdata;bundle-version="1.15.0"
+ com.raytheon.uf.common.time,
+ org.hibernate,
+ com.raytheon.uf.common.pointdata
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,

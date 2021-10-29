@@ -9,9 +9,9 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.core,
  com.raytheon.viz.ui,
  gov.noaa.nws.ncep.viz.common,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0"
+ gov.noaa.nws.ncep.viz.resources,
+ gov.noaa.nws.ncep.viz.ui.display,
+ gov.noaa.nws.ncep.viz.localization
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.viz.resourceManager.timeline,

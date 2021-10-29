@@ -5,4 +5,4 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.common.tools
-Require-Bundle: com.raytheon.uf.edex.decodertools;bundle-version="1.11.16"
+Require-Bundle: com.raytheon.uf.edex.decodertools

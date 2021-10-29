@@ -5,13 +5,13 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.mosaic;singleton:=true
 Bundle-Version: 1.16.0.qualifier
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.resources,
  com.raytheon.viz.core,
- com.raytheon.uf.common.colormap;bundle-version="1.11.17",
- gov.noaa.nws.ncep.edex.plugin.mosaic;bundle-version="1.0.0",
+ com.raytheon.uf.common.colormap,
+ gov.noaa.nws.ncep.edex.plugin.mosaic,
  gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.localization,
- com.raytheon.uf.common.style;bundle-version="1.0.0"
+ com.raytheon.uf.common.style
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.raytheon.uf.common.dataplugin,

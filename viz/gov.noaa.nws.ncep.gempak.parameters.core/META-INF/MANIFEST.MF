@@ -9,5 +9,5 @@ Export-Package: gov.noaa.nws.ncep.gempak.parameters.core.categorymap,
  gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea,
  gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea.station,
  gov.noaa.nws.ncep.gempak.parameters.core.util
-Require-Bundle: org.geotools;bundle-version="10.5.0",
- javax.measure;bundle-version="1.0.0"
+Require-Bundle: org.geotools,
+ javax.measure

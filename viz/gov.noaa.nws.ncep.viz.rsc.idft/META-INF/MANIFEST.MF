@@ -10,14 +10,14 @@ Require-Bundle: org.eclipse.ui,
  org.apache.commons.lang,
  org.geotools,
  com.raytheon.viz.core,
- com.raytheon.viz.ui;bundle-version="1.11.17",
- com.raytheon.uf.common.message;bundle-version="1.11.17",
- com.raytheon.uf.viz.d2d.core;bundle-version="1.11.17",
+ com.raytheon.viz.ui,
+ com.raytheon.uf.common.message,
+ com.raytheon.uf.viz.d2d.core,
  gov.noaa.nws.ncep.viz.common,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.idft;bundle-version="1.0.0"
+ gov.noaa.nws.ncep.viz.resources,
+ gov.noaa.nws.ncep.edex.common,
+ gov.noaa.nws.ncep.ui.pgen,
+ gov.noaa.nws.ncep.common.dataplugin.idft
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.viz.rsc.idft,

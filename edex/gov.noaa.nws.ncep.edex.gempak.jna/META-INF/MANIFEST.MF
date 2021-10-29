@@ -6,4 +6,4 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.edex.gempak.jna
-Require-Bundle: com.sun.jna;bundle-version="3.0.9"
+Require-Bundle: com.sun.jna

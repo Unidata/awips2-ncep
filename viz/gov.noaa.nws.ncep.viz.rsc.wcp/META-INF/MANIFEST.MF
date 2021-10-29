@@ -8,13 +8,13 @@ Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.viz.core,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.resources,
  com.raytheon.viz.ui,
  org.apache.commons.lang,
  org.geotools,
  gov.noaa.nws.ncep.viz.common,
- com.raytheon.uf.common.message;bundle-version="1.11.7",
- gov.noaa.nws.ncep.common.dataplugin.wcp;bundle-version="1.0.0"
+ com.raytheon.uf.common.message,
+ gov.noaa.nws.ncep.common.dataplugin.wcp
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wcp,

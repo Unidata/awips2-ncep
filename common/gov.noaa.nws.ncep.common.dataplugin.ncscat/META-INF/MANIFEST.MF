@@ -4,9 +4,9 @@ Bundle-Name: Ncscat Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ncscat
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.7",
- javax.persistence;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common;bundle-version="1.0.0"
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
+ gov.noaa.nws.ncep.common
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.common.dataplugin.ncscat.dao
 Bundle-Vendor: AWIPS II migration

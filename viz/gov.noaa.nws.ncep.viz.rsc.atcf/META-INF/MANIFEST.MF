@@ -9,16 +9,16 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.viz.rsc.atcf,
  gov.noaa.nws.ncep.viz.rsc.atcf.rsc
-Require-Bundle: gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.atcf;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
- com.raytheon.uf.common.time;bundle-version="1.11.31",
- com.raytheon.uf.viz.core;bundle-version="1.11.31",
- com.raytheon.uf.common.dataplugin;bundle-version="1.11.31",
- com.raytheon.uf.common.geospatial;bundle-version="1.11.31",
- org.eclipse.ui;bundle-version="3.4.1",
- org.eclipse.core.runtime;bundle-version="3.4.0",
- org.eclipse.update.configurator;bundle-version="3.2.201"
+Require-Bundle: gov.noaa.nws.ncep.common,
+ gov.noaa.nws.ncep.common.dataplugin.atcf,
+ gov.noaa.nws.ncep.viz.resources,
+ com.raytheon.uf.common.time,
+ com.raytheon.uf.viz.core,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.geospatial,
+ org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.update.configurator
 Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.uf.edex.decodertools.core,
  com.vividsolutions.jts.geom,

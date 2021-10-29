@@ -9,12 +9,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.viz.ui,
  com.raytheon.viz.core,
- gov.noaa.nws.ncep.viz.common;bundle-version="1.0.0",
- com.raytheon.uf.common.colormap;bundle-version="1.12.1174",
- com.raytheon.uf.common.style;bundle-version="1.0.0",
- com.raytheon.viz.core.graphing;bundle-version="1.12.1174",
- com.raytheon.uf.viz.core.maps;bundle-version="1.12.1174",
- com.raytheon.uf.viz.xy;bundle-version="1.12.1174"
+ gov.noaa.nws.ncep.viz.common,
+ com.raytheon.uf.common.colormap,
+ com.raytheon.uf.common.style,
+ com.raytheon.viz.core.graphing,
+ com.raytheon.uf.viz.core.maps,
+ com.raytheon.uf.viz.xy
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.viz.ui.display

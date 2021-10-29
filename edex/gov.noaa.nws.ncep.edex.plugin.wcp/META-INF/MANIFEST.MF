@@ -4,9 +4,9 @@ Bundle-Name: Wcp Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.wcp
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: AWIPS II Migration
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
- javax.persistence;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.wcp;bundle-version="1.0.0"
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
+ gov.noaa.nws.ncep.common.dataplugin.wcp
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.apache.commons.logging
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

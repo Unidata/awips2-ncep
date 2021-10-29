@@ -6,9 +6,9 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.staticdataprovider.Activator
 Bundle-Vendor: NCEP
 Require-Bundle: org.eclipse.core.runtime,
- gov.noaa.nws.ncep.common.staticdata;bundle-version="1.0.0",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- com.raytheon.viz.core;bundle-version="1.12.1174"
+ gov.noaa.nws.ncep.common.staticdata,
+ gov.noaa.nws.ncep.edex.common,
+ com.raytheon.viz.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: com.vividsolutions.jts.geom,

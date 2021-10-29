@@ -6,7 +6,7 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.tools.Activator
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.ui,
- com.sun.jna;bundle-version="3.0.9",
+ com.sun.jna,
  org.eclipse.core.runtime,
  com.raytheon.uf.common.colormap,
  com.raytheon.uf.viz.core.maps,
@@ -20,8 +20,8 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.viz.gempak.nativelib,
  gov.noaa.nws.ncep.ui.pgen,
- gov.noaa.nws.ncep.common.log;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+ gov.noaa.nws.ncep.common.log,
+ org.slf4j
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.tools,

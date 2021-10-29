@@ -9,12 +9,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.viz.core,
  com.raytheon.viz.ui,
- com.raytheon.uf.common.colormap;bundle-version="1.11.22",
- com.raytheon.uf.common.message;bundle-version="1.11.22",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
- gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+ com.raytheon.uf.common.colormap,
+ com.raytheon.uf.common.message,
+ gov.noaa.nws.ncep.edex.common,
+ gov.noaa.nws.ncep.viz.localization,
+ gov.noaa.nws.ncep.gempak.parameters.core,
+ org.slf4j
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.common.area,

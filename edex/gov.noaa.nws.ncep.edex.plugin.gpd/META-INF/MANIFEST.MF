@@ -12,9 +12,9 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  javax.measure.unit,
  org.apache.commons.logging
 Require-Bundle: com.raytheon.edex.common,
- gov.noaa.nws.ncep.common.dataplugin.gpd;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.common.dataplugin.gpd,
  com.raytheon.uf.common.dataplugin.level,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,
- org.apache.commons.io;bundle-version="2.4.0",
- com.raytheon.uf.common.status;bundle-version="1.15.0"
+ org.apache.commons.io,
+ com.raytheon.uf.common.status

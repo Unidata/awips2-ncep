@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.rsc.pgen,
  com.raytheon.uf.common.sounding,
  com.raytheon.viz.core.graphing,
- org.apache.commons.lang3;bundle-version="3.4.0"
+ org.apache.commons.lang3
 Import-Package: com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.common.sounding,
  com.raytheon.uf.viz.d2d.core.time,

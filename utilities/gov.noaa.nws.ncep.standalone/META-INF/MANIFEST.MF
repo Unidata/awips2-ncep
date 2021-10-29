@@ -15,14 +15,14 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.message,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.viz.core,
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.viz.common,
- gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
- org.apache.log4j;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.localization,
+ org.apache.log4j,
  org.geotools,
- org.junit;bundle-version="1.0.0",
- gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.staticdata;bundle-version="1.0.0"
+ org.junit,
+ gov.noaa.nws.ncep.ui.pgen,
+ gov.noaa.nws.ncep.common.staticdata
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.common.geospatial,

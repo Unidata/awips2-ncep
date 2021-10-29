@@ -4,8 +4,8 @@ Bundle-Name: FFG Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ffg
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.11.1",
+Require-Bundle: gov.noaa.nws.ncep.common,
+ com.raytheon.edex.common,
  org.geotools,
  javax.persistence,
  javax.measure

@@ -5,25 +5,25 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.ncradar;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ncradar.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
-Require-Bundle: org.apache.batik;bundle-version="1.6.0",
+Require-Bundle: org.apache.batik,
  org.eclipse.ui,
  org.eclipse.core.runtime,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.resources,
  com.raytheon.uf.viz.core,
  com.raytheon.viz.core,
  com.raytheon.uf.common.topo,
- com.raytheon.uf.common.colormap;bundle-version="1.11.17",
+ com.raytheon.uf.common.colormap,
  javax.measure,
  org.geotools,
- gov.noaa.nws.ncep.edex.plugin.mosaic;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.edex.plugin.mosaic,
  gov.noaa.nws.ncep.viz.common,
- com.raytheon.uf.common.dataplugin.radar;bundle-version="1.0.0",
+ com.raytheon.uf.common.dataplugin.radar,
  com.raytheon.viz.radar,
  gov.noaa.nws.ncep.viz.localization,
  com.raytheon.viz.ui,
  com.raytheon.viz.pointdata,
- com.raytheon.uf.common.units;bundle-version="1.0.0",
- com.raytheon.uf.common.style;bundle-version="1.0.0"
+ com.raytheon.uf.common.units,
+ com.raytheon.uf.common.style
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.dataplugin,

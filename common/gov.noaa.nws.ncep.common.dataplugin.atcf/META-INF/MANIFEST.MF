@@ -9,9 +9,9 @@ Export-Package: gov.noaa.nws.ncep.common.dataplugin.atcf,
  gov.noaa.nws.ncep.common.dataplugin.atcf.dao,
  gov.noaa.nws.ncep.common.dataplugin.atcf.request,
  gov.noaa.nws.ncep.edex.uengine.tasks.atcf
-Require-Bundle: javax.persistence;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.11.31",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common;bundle-version="1.0.0"
+Require-Bundle: javax.persistence,
+ com.raytheon.edex.common,
+ gov.noaa.nws.ncep.edex.common,
+ gov.noaa.nws.ncep.common
 Import-Package: com.raytheon.uf.common.serialization.comm,
  com.vividsolutions.jts.geom

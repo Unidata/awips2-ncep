@@ -4,22 +4,22 @@ Bundle-Name: NC Satellite Resource Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.satellite;singleton:=true
 Bundle-Version: 1.15.0.qualifier
 Require-Bundle: com.raytheon.viz.core,
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.serialization.comm,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.resources,
  com.raytheon.viz.ui,
- javax.measure;bundle-version="1.0.0",
- javax.persistence;bundle-version="1.0.0",
+ javax.measure,
+ javax.persistence,
  org.apache.commons.lang,
  org.geotools,
- com.raytheon.uf.common.colormap;bundle-version="1.11.7",
+ com.raytheon.uf.common.colormap,
  gov.noaa.nws.ncep.viz.common,
- com.raytheon.viz.satellite;bundle-version="1.11.17",
+ com.raytheon.viz.satellite,
  com.raytheon.uf.viz.core,
- gov.noaa.nws.ncep.common.dataplugin.mcidas;bundle-version="1.0.0",
- com.raytheon.uf.common.dataplugin.satellite;bundle-version="1.0.0",
- com.raytheon.uf.common.style;bundle-version="1.0.0",
- com.raytheon.uf.common.derivparam;bundle-version="1.14.0"
+ gov.noaa.nws.ncep.common.dataplugin.mcidas,
+ com.raytheon.uf.common.dataplugin.satellite,
+ com.raytheon.uf.common.style,
+ com.raytheon.uf.common.derivparam
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.rsc.satellite.area,

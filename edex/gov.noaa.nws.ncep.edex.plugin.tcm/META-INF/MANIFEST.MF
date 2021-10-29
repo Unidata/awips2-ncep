@@ -5,10 +5,10 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.tcm
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: javax.persistence;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.10.13",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.tcm;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+Require-Bundle: javax.persistence,
+ com.raytheon.edex.common,
+ gov.noaa.nws.ncep.edex.common,
+ gov.noaa.nws.ncep.common.dataplugin.tcm,
+ org.slf4j
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core

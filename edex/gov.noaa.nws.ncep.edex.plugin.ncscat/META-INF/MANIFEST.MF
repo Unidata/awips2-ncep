@@ -4,8 +4,8 @@ Bundle-Name: Ncscat Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ncscat
 Bundle-Version: 1.19.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.22",
- javax.persistence;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.dataplugin.ncscat;bundle-version="1.0.0",
- org.slf4j;bundle-version="1.7.25"
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
+ gov.noaa.nws.ncep.common.dataplugin.ncscat,
+ org.slf4j
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ncscat.util

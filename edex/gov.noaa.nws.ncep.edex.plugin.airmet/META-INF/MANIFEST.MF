@@ -4,15 +4,15 @@ Bundle-Name: Airmet Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.airmet
 Bundle-Version: 1.19.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.airmet;bundle-version="1.0.0",
+Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.airmet,
  gov.noaa.nws.ncep.edex.common,
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.11.1",
- com.raytheon.uf.edex.decodertools;bundle-version="1.0.0",
- com.raytheon.uf.common.pointdata;bundle-version="1.11.8",
- com.raytheon.uf.edex.pointdata;bundle-version="1.11.8",
+ gov.noaa.nws.ncep.common,
+ com.raytheon.edex.common,
+ com.raytheon.uf.edex.decodertools,
+ com.raytheon.uf.common.pointdata,
+ com.raytheon.uf.edex.pointdata,
  org.geotools,
  javax.persistence,
  javax.measure,
- org.slf4j;bundle-version="1.7.25"
+ org.slf4j
 Import-Package: com.raytheon.uf.common.wmo

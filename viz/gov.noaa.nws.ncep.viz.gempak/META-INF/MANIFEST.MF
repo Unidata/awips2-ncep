@@ -8,16 +8,16 @@ Eclipse-BuddyPolicy: ext
 Eclipse-RegisterBuddy:  com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- com.raytheon.viz.ui;bundle-version="1.12.1142",
+ com.raytheon.viz.ui,
  gov.noaa.nws.ncep.viz.localization,
- javax.measure;bundle-version="1.0.0",
+ javax.measure,
  com.raytheon.viz.alerts,
- com.raytheon.uf.common.dataplugin.grid;bundle-version="1.0.0",
- com.raytheon.uf.common.gridcoverage;bundle-version="1.0.0",
- com.raytheon.uf.common.parameter;bundle-version="1.0.0",
- com.raytheon.uf.common.dataplugin.level;bundle-version="1.12.1174",
+ com.raytheon.uf.common.dataplugin.grid,
+ com.raytheon.uf.common.gridcoverage,
+ com.raytheon.uf.common.parameter,
+ com.raytheon.uf.common.dataplugin.level,
  com.sun.jna,
- org.geotools;bundle-version="2.6.4",
+ org.geotools,
  javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11

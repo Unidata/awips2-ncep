@@ -4,10 +4,10 @@ Bundle-Name: Pgen
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.pgen
 Bundle-Version: 1.19.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.12.1174",
- javax.persistence;bundle-version="1.0.0",
- com.raytheon.uf.common.serialization.comm;bundle-version="1.12.1174",
- com.raytheon.uf.common.message;bundle-version="1.12.1174",
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
+ com.raytheon.uf.common.serialization.comm,
+ com.raytheon.uf.common.message,
  javax.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.common.dataplugin.pgen.request,

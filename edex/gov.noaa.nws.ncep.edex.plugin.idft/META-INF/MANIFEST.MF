@@ -10,7 +10,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.common.dataplugin.idft,
- org.slf4j;bundle-version="1.7.25"
+ org.slf4j
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.idft

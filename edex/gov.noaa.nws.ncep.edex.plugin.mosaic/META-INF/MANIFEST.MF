@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.mosaic
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
 Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools;bundle-version="1.0.0",
+ com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.measure,
  com.raytheon.uf.common.localization,

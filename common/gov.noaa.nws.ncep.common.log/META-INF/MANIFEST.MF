@@ -4,7 +4,7 @@ Bundle-Name: AWIPS II NCEP Log
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.log
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NOAA NWS NCEP NCO SIB
-Require-Bundle: org.slf4j;bundle-version="1.7.12"
+Require-Bundle: org.slf4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.common.log.logger

@@ -7,8 +7,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization, org.geotools
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.serialization.comm,
- org.geotools;bundle-version="10.5.0",
- javax.measure;bundle-version="1.0.0",
+ org.geotools,
+ javax.measure,
  javax.persistence
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.modis,
  gov.noaa.nws.ncep.common.dataplugin.modis.dao,

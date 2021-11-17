@@ -12,7 +12,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization.annotations,
  gov.noaa.nws.ncep.common.tools,
  gov.noaa.nws.ncep.edex.common.dao
-Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.31",
- javax.persistence;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
+Require-Bundle: com.raytheon.edex.common,
+ javax.persistence,
+ gov.noaa.nws.ncep.common,
  javax.xml.bind

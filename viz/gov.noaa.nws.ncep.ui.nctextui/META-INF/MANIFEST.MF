@@ -8,11 +8,11 @@ Eclipse-BuddyPolicy: registered, ext, global
 Eclipse-RegisterBuddy: com.raytheon.viz.core, com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- com.raytheon.viz.ui;bundle-version="1.11.17",
+ com.raytheon.viz.ui,
  org.geotools,
- com.raytheon.viz.core;bundle-version="1.11.17",
+ com.raytheon.viz.core,
  gov.noaa.nws.ncep.ui.pgen,
- gov.noaa.nws.ncep.viz.common;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.common,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.viz.datacube
 Eclipse-LazyStart: true

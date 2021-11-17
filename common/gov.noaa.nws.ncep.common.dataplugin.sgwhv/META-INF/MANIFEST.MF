@@ -5,9 +5,9 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.sgwhv
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.pointdata
-Require-Bundle: javax.persistence;bundle-version="1.0.0",
+Require-Bundle: javax.persistence,
  com.raytheon.uf.common.status,
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- com.raytheon.uf.common.dataplugin;bundle-version="1.14.0",
- com.raytheon.uf.common.serialization;bundle-version="1.15.1"
+ gov.noaa.nws.ncep.common,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.serialization
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.sgwhv

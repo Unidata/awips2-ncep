@@ -37,9 +37,9 @@ Import-Package: com.raytheon.edex.plugin.bufrua.dao,
  org.locationtech.jts.geom,
  org.opengis.referencing.crs
 Require-Bundle: com.raytheon.uf.edex.database,
- com.raytheon.uf.edex.core;bundle-version="1.14.0",
+ com.raytheon.uf.edex.core,
  com.raytheon.uf.common.dataplugin,
- com.raytheon.uf.common.status;bundle-version="1.15.0",
- org.slf4j;bundle-version="1.7.21",
+ com.raytheon.uf.common.status,
+ org.slf4j,
  javax.media.jai,
  javax.measure

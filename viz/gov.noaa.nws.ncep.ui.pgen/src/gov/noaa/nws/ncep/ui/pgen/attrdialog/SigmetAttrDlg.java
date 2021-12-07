@@ -113,6 +113,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 01/07/2020   71971       smanoj      Code fix to Store and Retrieve INTL_SIGMET.
  * 03/20/2019   #7572       dgilling    Code cleanup.
  * 01/31/2020   73863       smanoj      Added check to validate lat/lon values.
+ * 12/07/2021   #8653       tjensen     Fix ClassCastExceptions during init()
  * 
  * </pre>
  *
@@ -2755,7 +2756,7 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             String attr = f.getName();
             String typeValue = "";
             try {
-                typeValue = (String) f.get(this);
+                typeValue = String.valueOf(f.get(this));
             } catch (Exception e) {
                 statusHandler.debug(e.getLocalizedMessage(), e);
             }

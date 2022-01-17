@@ -5207,12 +5207,6 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
             return sb.toString();
         }
 
-                String text1 = SigmetAttrDlg.this.getEditableAttrLevelText1();
-                if (text1 != null && text1.length() > 0) {
-            } else {
-                levelTxt = null;
-            }
-
         private StringBuilder getAltLevelInfo(String tops) {
             StringBuilder levelTxt = new StringBuilder();
 

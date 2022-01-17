@@ -1058,16 +1058,6 @@ public class ProductConverter {
 
         fde.getVector().add(vector);
     }
-                        sigmet.setEditableAttrAltLevel(
-                                ((Sigmet) de).getEditableAttrAltLevel());
-                        sigmet.setEditableAttrAltLevelInfo1(
-                                ((Sigmet) de).getEditableAttrAltLevelInfo1());
-                        sigmet.setEditableAttrAltLevelInfo2(
-                                ((Sigmet) de).getEditableAttrAltLevelInfo2());
-                        sigmet.setEditableAttrAltLevelText1(
-                                ((Sigmet) de).getEditableAttrAltLevelText1());
-                        sigmet.setEditableAttrAltLevelText2(
-                                ((Sigmet) de).getEditableAttrAltLevelText2());
 
     /*
      * Convert in-memory PGEN Text DrawableElement object into a list held in an

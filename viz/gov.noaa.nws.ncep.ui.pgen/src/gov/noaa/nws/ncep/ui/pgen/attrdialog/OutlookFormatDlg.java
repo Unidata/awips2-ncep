@@ -24,8 +24,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.dom.DOMSource;
 
 import org.dom4j.Document;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -52,6 +50,8 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.serialization.SerializationUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Polygon;
@@ -78,20 +78,23 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
  *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 04/10            ?       B. Yin      Initial Creation.
- * 07/11        #450        G. Hull     NcPathManager
- * 03/12        $703        B. Yin      Generate product text from style sheet
- * 05/12        #710        B. Yin      Format HAIL outlook first
- * 07/12        #789        B. Yin      Change all time to UTC.
- * 11/12        ?           B. Yin        Fixed the otlkAll exception.
- * 01/13        #966        B. Yin      Added clipping functions.
- * 08/13        TTR783,773  B. Yin      Order outlook lines when formatting
- *                                      Added forecaster drop-down
- * 11/13        #1049       B. Yin      Handle outlook type defined in layer.
- * 12/13        TTR800      B. Yin      Use UTC time class.
- * 08/07/2019   66169       mapeters    Fix product text ordering for EXCE_RAIN
+ *
+ * Date          Ticket#     Engineer  Description
+ * ------------- ----------- --------- -----------------------------------------
+ * 04/10         ?           B. Yin    Initial Creation.
+ * 07/11         450         G. Hull   NcPathManager
+ * 03/12         $703        B. Yin    Generate product text from style sheet
+ * 05/12         710         B. Yin    Format HAIL outlook first
+ * 07/12         789         B. Yin    Change all time to UTC.
+ * 11/12         ?           B. Yin    Fixed the otlkAll exception.
+ * 01/13         966         B. Yin    Added clipping functions.
+ * 08/13         TTR783,773  B. Yin    Order outlook lines when formatting Added
+ *                                     forecaster drop-down
+ * 11/13         1049        B. Yin    Handle outlook type defined in layer.
+ * 12/13         TTR800      B. Yin    Use UTC time class.
+ * Aug 07, 2019  66169       mapeters  Fix product text ordering for EXCE_RAIN
+ * Mar 23, 2020  76034       tjensen   Change day calculation to add to DATE
+ * Aug 20, 2020  80844       pbutler   Update for changing default Days/Prods activity and days from outlooktimes.xml config file.
  *
  * </pre>
  *
@@ -99,6 +102,11 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
  */
 
 public class OutlookFormatDlg extends CaveJFACEDialog {
+
+    private static final String FIRE_TEXT = " Fire";
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(OutlookFormatDlg.class);
 
     private static final String EXCE_RAIN = "EXCE_RAIN";
 
@@ -125,9 +133,9 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     }
 
     // Outlook initial time and expiration time document
-    private static Document otlkTimesTbl;
+    private Document otlkTimesTbl;
 
-    private static HashMap<String, Polygon> bounds;
+    private HashMap<String, Polygon> bounds;
 
     // instance of the outlook attribute dialog
     private OutlookAttrDlg otlkDlg;
@@ -139,11 +147,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     private Outlook otlk;
 
     // day radio buttons
-    private Button dayBtn[];
-
-    private static String days[] = { "Day1", "Day2", "Day3", "Day4-8", "Enh00",
-            "Enh04", "Enh12", "Enh16", "Enh20", "Day1 Fire", "Day2 Fire",
-            "Day3-8 Fire" };
+    private Button[] dayBtn;
 
     // initial date and time
     private DateTime initDate;
@@ -198,30 +202,35 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         Group dayGrp = new Group(top, SWT.RADIO);
         dayGrp.setLayout(new GridLayout(3, false));
 
-        dayBtn = new Button[days.length];
+        List<String> dayList = new ArrayList<String>();
 
-        for (int ii = 0; ii < days.length; ii++) {
+        OutlookTimeProduct otp = getProductType();
+        int dayIndex = otp.getDaysIndex(otp.getDays());
+        dayList = (ArrayList<String>) otp.getDayNames(otp.getDays());
+
+        dayBtn = new Button[dayList.size()];
+
+        for (int ii = 0; ii < dayList.size(); ii++) {
             dayBtn[ii] = new Button(dayGrp, SWT.RADIO);
-            dayBtn[ii].setText(days[ii]);
+            dayBtn[ii].setText(dayList.get(ii));
             dayBtn[ii].addSelectionListener(new SelectionAdapter() {
 
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (((Button) e.widget).getSelection()) {
+                        // - set dt time -------------------------------------
                         setInitDt(getDefaultInitDT(((Button) e.widget).getText()
-                                .replaceAll(" Fire", "")));
+                                .replace(FIRE_TEXT, ""), otp));
                         setExpDt(getDefaultExpDT(((Button) e.widget).getText()
-                                .replaceAll(" Fire", "")));
+                                .replace(FIRE_TEXT, ""), otp));
                     }
-
                 }
-
             });
         }
-        dayBtn[0].setSelection(true);
+
+        dayBtn[dayIndex].setSelection(true);
 
         // Initial date/time
-
         Label initLbl = new Label(top, SWT.NONE);
         initLbl.setText("Initial Time:");
 
@@ -235,12 +244,13 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         fd.top = new FormAttachment(dayGrp, 2, SWT.BOTTOM);
         fd.left = new FormAttachment(initDate, 5, SWT.RIGHT);
         initTime.setLayoutData(fd);
-        initTime.setUTCTimeTextField(initDt,
-                this.getDefaultInitDT(this.getDays().replaceAll(" Fire", "")),
-                dayGrp, 5, true);
 
-        setInitDt(
-                this.getDefaultInitDT(this.getDays().replaceAll(" Fire", "")));
+        // - set dt time -------------------------------------
+        initTime.setUTCTimeTextField(initDt, this.getDefaultInitDT(
+                this.getDays().replace(FIRE_TEXT, ""), otp), dayGrp, 5, true);
+
+        setInitDt(this.getDefaultInitDT(this.getDays().replace(FIRE_TEXT, ""),
+                otp));
 
         // expiration date/time
         Label expLbl = new Label(top, SWT.NONE);
@@ -254,12 +264,12 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         fd2.top = new FormAttachment(initTime.getTextWidget(), 2, SWT.BOTTOM);
         fd2.left = new FormAttachment(expDate, 5, SWT.RIGHT);
         expTime.setLayoutData(fd2);
+        // - set dt time ----------------------------------------
+        expTime.setUTCTimeTextField(expDt, this.getDefaultExpDT(
+                this.getDays().replace(FIRE_TEXT, ""), otp), dayGrp, 5, true);
 
-        expTime.setUTCTimeTextField(expDt,
-                this.getDefaultExpDT(this.getDays().replaceAll(" Fire", "")),
-                dayGrp, 5, true);
-
-        setExpDt(this.getDefaultExpDT(this.getDays().replaceAll(" Fire", "")));
+        setExpDt(this.getDefaultExpDT(this.getDays().replace(FIRE_TEXT, ""),
+                otp));
 
         // forecaster
         Label fcstLbl = new Label(top, SWT.NONE);
@@ -296,10 +306,50 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
 
     }
 
-    @Override
+    public String fixStringForKeyCheck(String fixMe) {
+        String updatedFixMeVal = fixMe.trim();
+        int tempLocVal = updatedFixMeVal.indexOf("(");
+
+        if (tempLocVal >= 0) {
+            updatedFixMeVal = fixMe.substring(0, tempLocVal);
+        }
+
+        return updatedFixMeVal;
+    }
+
+    /**
+     * Get Activity/Product Type object. Incoming Product Type map is created
+     * from outlooktimes.xml.
+     * 
+     * @return OutlookTimeProduct
+     */
+    private OutlookTimeProduct getProductType() {
+        Product pd = otlkDlg.drawingLayer.getActiveProduct();
+        String pdType = fixStringForKeyCheck(pd.getName());
+        OutlookTimeProduct otpValue = null;
+
+        // - get products and populate products map
+        OutlookTimeProductLookup otpl = new OutlookTimeProductLookup()
+                .getInstance();
+
+        Map<String, OutlookTimeProduct> productMap = otpl.getProductMap();
+
+        // - check for product default vs activity
+        if (productMap.containsKey(pdType)) {
+            otpValue = productMap.get(pdType);
+            otpValue.setDefault(false);
+        } else {
+            otpValue = productMap.get("Default");
+            otpValue.setDefault(true);
+        }
+
+        return otpValue;
+    }
+
     /**
      * Set the location of the dialog and initialize the widgets
      */
+    @Override
     public int open() {
 
         if (this.getShell() == null) {
@@ -351,21 +401,19 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                 long mins = (getExpTime().getTime().getTime()
                         - getInitTime().getTime().getTime()) / (1000 * 60);
                 String msg = "The duration of your outlook will be "
-                        + (int) Math.floor(mins / 60) + "h " + mins % 60 + "m";
+                        + (int) (mins / 60) + "h " + mins % 60 + "m";
                 msg += "\n";
                 if (getInitTime().before(Calendar.getInstance())) {
                     long dMins = (Calendar.getInstance().getTime().getTime()
                             - getInitTime().getTime().getTime()) / (1000 * 60);
-                    msg += "The outlook became valid "
-                            + (int) Math.floor(dMins / 60) + "h " + dMins % 60
-                            + "m" + " ago.";
+                    msg += "The outlook became valid " + (int) (dMins / 60)
+                            + "h " + dMins % 60 + "m" + " ago.";
                 } else {
                     long dMins = (getInitTime().getTime().getTime()
                             - Calendar.getInstance().getTime().getTime())
                             / (1000 * 60);
                     msg += "The outlook will become valid in "
-                            + (int) Math.floor(dMins / 60) + "h " + dMins % 60
-                            + "m.";
+                            + (int) (dMins / 60) + "h " + dMins % 60 + "m.";
                 }
 
                 MessageDialog confirmDlg = new MessageDialog(
@@ -424,22 +472,18 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     @Override
     protected void okPressed() {
         otlkAll();
-        // otlkDlg.showContLines(otlk);
-        // msgDlg.setMessage(formatOtlk())generateOutlookMsg(otlk,
-        // otlkDlg.drawingLayer.getActiveLayer());
-        return;
     }
 
     private void otlkAll() {
-        // only format active product
-        // format order: from current layer goes down then goes to the top if
-        // necessary
+        /*
+         * only format active product format order: from current layer goes down
+         * then goes to the top if necessary
+         */
         Product pd = otlkDlg.drawingLayer.getActiveProduct();
         int currentLayerIdx = pd.getLayers()
                 .indexOf(otlkDlg.drawingLayer.getActiveLayer());
 
         for (int ii = 0; ii < pd.getLayers().size(); ii++) {
-            // int jj = (ii+currentLayerIdx)%pd.getLayers().size();
             Layer fmtLayer = pd.getLayers()
                     .get((ii + currentLayerIdx) % pd.getLayers().size());
             String fmtFlag = fmtLayer.getMetaInfoFromKey(
@@ -552,7 +596,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                         .createMarshaller();
                 mar.marshal(fileProduct, sw);
             } catch (Exception e) {
-                e.printStackTrace();
+                statusHandler.warn("Error generating outlook message: ", e);
             }
 
             DOMSource ds = new DOMSource(sw);
@@ -577,19 +621,17 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                     .getComponentIterator();
             while (it.hasNext()) {
                 AbstractDrawableComponent adc = it.next();
-                if (adc instanceof Outlook) {
-                    if (!((Outlook) adc).getOutlookType()
-                            .equalsIgnoreCase(ol.getOutlookType())) {
-                        MessageDialog warningDlg = new MessageDialog(
-                                PlatformUI.getWorkbench()
-                                        .getActiveWorkbenchWindow().getShell(),
-                                "Warning!", null,
-                                "More than one outlook types are found in one layer!",
-                                MessageDialog.INFORMATION,
-                                new String[] { "OK" }, 0);
-                        warningDlg.open();
-                        break;
-                    }
+                if (adc instanceof Outlook && !((Outlook) adc).getOutlookType()
+                        .equalsIgnoreCase(ol.getOutlookType())) {
+                    MessageDialog warningDlg = new MessageDialog(
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                                    .getShell(),
+                            "Warning!", null,
+                            "More than one outlook types are found in one layer!",
+                            MessageDialog.INFORMATION, new String[] { "OK" },
+                            0);
+                    warningDlg.open();
+                    break;
                 }
             }
         }
@@ -656,38 +698,20 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     }
 
     /**
-     * Read outlook default init/exp time document
-     *
+     * Get the default initial date/time for the input day period
+     * 
+     * @param days
      * @return
      */
-    private Document readOtlkTimesTbl() {
+    private Calendar getDefaultInitDT(String days, OutlookTimeProduct otp) {
+        List<OutlookTimeDays> dayList = otp.getDays();
+        List<OutlookTimeRange> rangeList = new ArrayList<OutlookTimeRange>();
 
-        if (otlkTimesTbl == null) {
-            try {
-                String outlookTimesFile = PgenStaticDataProvider.getProvider()
-                        .getFileAbsolutePath(PgenStaticDataProvider
-                                .getProvider().getPgenLocalizationRoot()
-                                + "outlooktimes.xml");
-
-                SAXReader reader = new SAXReader();
-                otlkTimesTbl = reader.read(outlookTimesFile);
-            } catch (Exception e) {
-                e.printStackTrace();
+        for (OutlookTimeDays day : dayList) {
+            if (day.getName().equals(days)) {
+                rangeList = day.getRangeList();
             }
         }
-
-        return otlkTimesTbl;
-    }
-
-    /**
-     * Get the default initial date/time for the input day period
-     */
-    private Calendar getDefaultInitDT(String days) {
-
-        String xpath = "/root/days[@name='" + days.toUpperCase() + "']";
-
-        Node day = readOtlkTimesTbl().selectSingleNode(xpath);
-        List<Node> nodes = day.selectNodes("range");
 
         Calendar curDt = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60
@@ -696,28 +720,24 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         int initHH = 0;
         int initMM = 0;
 
-        for (Node node : nodes) {
+        for (OutlookTimeRange range : rangeList) {
             try {
-                int from = Integer
-                        .valueOf(node.valueOf("@from").substring(0, 2)) * 60
-                        + Integer.valueOf(node.valueOf("@from").substring(2));
-                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2))
-                        * 60
-                        + Integer.valueOf(node.valueOf("@to").substring(2));
+                int from = Integer.valueOf(range.getFrom().substring(0, 2)) * 60
+                        + Integer.valueOf(range.getFrom().substring(2));
+                int to = Integer.valueOf(range.getTo().substring(0, 2)) * 60
+                        + Integer.valueOf(range.getTo().substring(2));
                 if (minutes > from && minutes <= to) {
-                    initHH = Integer
-                            .valueOf(node.valueOf("@init").substring(0, 2));
-                    initMM = Integer
-                            .valueOf(node.valueOf("@init").substring(2));
-                    initAdjDay = Integer.valueOf(node.valueOf("@initAdj"));
+                    initHH = Integer.valueOf(range.getInit().substring(0, 2));
+                    initMM = Integer.valueOf(range.getInit().substring(2));
+                    initAdjDay = Integer.valueOf(range.getInitAdj());
                     break;
                 }
             } catch (Exception e) {
-                continue;
+                // Ignore exceptions
             }
         }
 
-        curDt.add(Calendar.DAY_OF_MONTH, initAdjDay);
+        curDt.add(Calendar.DATE, initAdjDay);
         curDt.set(Calendar.HOUR_OF_DAY, initHH);
         curDt.set(Calendar.MINUTE, initMM);
 
@@ -730,12 +750,15 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      * @param days
      * @return
      */
-    private Calendar getDefaultExpDT(String days) {
+    private Calendar getDefaultExpDT(String days, OutlookTimeProduct otp) {
+        List<OutlookTimeDays> dayList = otp.getDays();
+        List<OutlookTimeRange> rangeList = new ArrayList<OutlookTimeRange>();
 
-        String xpath = "/root/days[@name='" + days.toUpperCase() + "']";
-
-        Node day = readOtlkTimesTbl().selectSingleNode(xpath);
-        List<Node> nodes = day.selectNodes("range");
+        for (OutlookTimeDays day : dayList) {
+            if (day.getName().equals(days)) {
+                rangeList = day.getRangeList();
+            }
+        }
 
         Calendar curDt = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         int minutes = curDt.get(Calendar.HOUR_OF_DAY) * 60
@@ -744,28 +767,24 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         int expHH = 0;
         int expMM = 0;
 
-        for (Node node : nodes) {
+        for (OutlookTimeRange range : rangeList) {
             try {
-                int from = Integer
-                        .valueOf(node.valueOf("@from").substring(0, 2)) * 60
-                        + Integer.valueOf(node.valueOf("@from").substring(2));
-                int to = Integer.valueOf(node.valueOf("@to").substring(0, 2))
-                        * 60
-                        + Integer.valueOf(node.valueOf("@to").substring(2));
+                int from = Integer.valueOf(range.getFrom().substring(0, 2)) * 60
+                        + Integer.valueOf(range.getFrom().substring(2));
+                int to = Integer.valueOf(range.getTo().substring(0, 2)) * 60
+                        + Integer.valueOf(range.getTo().substring(2));
                 if (minutes > from && minutes <= to) {
-                    expHH = Integer
-                            .valueOf(node.valueOf("@exp").substring(0, 2));
-                    expMM = Integer.valueOf(node.valueOf("@exp").substring(2));
-                    expAdjDay = Integer.valueOf(node.valueOf("@expAdj"));
+                    expHH = Integer.valueOf(range.getExp().substring(0, 2));
+                    expMM = Integer.valueOf(range.getExp().substring(2));
+                    expAdjDay = Integer.valueOf(range.getExpAdj());
                     break;
                 }
             } catch (Exception e) {
-                continue;
+                // Ignore exceptions
             }
-
         }
 
-        curDt.add(Calendar.DAY_OF_MONTH, expAdjDay);
+        curDt.add(Calendar.DATE, expAdjDay);
         curDt.set(Calendar.HOUR_OF_DAY, expHH);
         curDt.set(Calendar.MINUTE, expMM);
 
@@ -779,9 +798,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      *            - Calendar initial time
      */
     private void setInitDt(Calendar cal) {
-        initDate.setYear(cal.get(Calendar.YEAR));
-        initDate.setMonth(cal.get(Calendar.MONTH));
-        initDate.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        initDate.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH));
         initTime.setText(String.format("%1$tH%1$tM", cal));
     }
 
@@ -792,9 +810,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      *            - Calendar expiration time
      */
     private void setExpDt(Calendar cal) {
-        expDate.setYear(cal.get(Calendar.YEAR));
-        expDate.setMonth(cal.get(Calendar.MONTH));
-        expDate.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        expDate.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH));
         expTime.setText(String.format("%1$tH%1$tM", cal));
     }
 
@@ -842,12 +859,6 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      * @param boundsPoly
      */
     private void processClip(Outlook ol, Layer layer, Polygon boundsPoly) {
-
-        // Plot the bounds polygon.
-        // Line border = new Line(null, new Color[]{Color.MAGENTA},.5f,.5,true,
-        // false, Arrays.asList(boundsPoly.getCoordinates()), 0,
-        // FillPattern.FILL_PATTERN_6,"Lines","LINE_SOLID");
-        // otlkDlg.drawingLayer.addElement( border );
 
         // clip
         Outlook clipped = new ClipProduct(boundsPoly, true)
@@ -919,7 +930,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     private String generateLineInfo(Outlook ol, String lineBreaker) {
 
         if (EXCE_RAIN.equalsIgnoreCase(ol.getOutlookType())) {
-            return excessiveRain(ol, lineBreaker);
+            return excessiveRain(ol);
         }
 
         StringBuilder lnInfo = new StringBuilder();
@@ -1060,7 +1071,7 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
         return lnInfo.toString();
     }
 
-    private String excessiveRain(Outlook ol, String lineBreaker) {
+    private String excessiveRain(Outlook ol) {
         StringBuilder ret = new StringBuilder();
 
         String rainTxt = "RISK OF RAINFALL EXCEEDING FFG TO THE RIGHT OF A LINE FROM";
@@ -1166,12 +1177,12 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                         .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
                     it1 = ((DECollection) adc).getComponentIterator();
                 } else if (adc.getName()
-                        .equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)) {
-                    if (((DECollection) adc).getItemAt(0).getName()
-                            .equalsIgnoreCase(Outlook.OUTLOOK_LABELED_LINE)) {
-                        it1 = ((DECollection) ((DECollection) adc).getItemAt(0))
-                                .getComponentIterator();
-                    }
+                        .equalsIgnoreCase(Outlook.OUTLOOK_LINE_GROUP)
+                        && ((DECollection) adc).getItemAt(0).getName()
+                                .equalsIgnoreCase(
+                                        Outlook.OUTLOOK_LABELED_LINE)) {
+                    it1 = ((DECollection) ((DECollection) adc).getItemAt(0))
+                            .getComponentIterator();
                 }
 
                 if (it1 == null) {
@@ -1181,12 +1192,11 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
                 while (it1.hasNext()) {
                     AbstractDrawableComponent adcInside = it1.next();
 
-                    if (adcInside instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
-                        if (((gov.noaa.nws.ncep.ui.pgen.elements.Text) adcInside)
-                                .getText()[0].equalsIgnoreCase(str)) {
-                            found = true;
-                            break;
-                        }
+                    if (adcInside instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text
+                            && ((gov.noaa.nws.ncep.ui.pgen.elements.Text) adcInside)
+                                    .getText()[0].equalsIgnoreCase(str)) {
+                        found = true;
+                        break;
                     }
                 }
 
@@ -1206,9 +1216,8 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
     private String getOutlookType() {
         if (otlk != null) {
             return otlk.getOutlookType();
-        } else {
-            return otlkDlg.getOutlookType();
         }
-
+        return otlkDlg.getOutlookType();
     }
+
 }

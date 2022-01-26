@@ -161,7 +161,8 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectHandler;
  * 09/06/2019   64150       ksunil      Change private class visibility to protected
  * 09/06/2019   64970       ksunil      Call changeMinmaxType when label/symbol only checkbox is pressed.
  * 02/10/2020   74136       smanoj      Fixed NullPointerException when drawingLayer is null
- *
+ * 10/30/2020   84101       smanoj      Add "Snap Labels to ContourLine" option on the
+ *                                      Contours Attributes dialog.
  * </pre>
  *
  * @author J. Wu
@@ -360,6 +361,10 @@ public class ContoursAttrDlg extends AttrDlg
      * be activated.
      */
     private boolean shiftDownInContourDialog;
+
+    private Button toggleSnapLblChkBox = null;
+
+    private boolean toggleSnapLblChecked = true;
 
     /**
      * Private constructor
@@ -984,6 +989,27 @@ public class ContoursAttrDlg extends AttrDlg
         editTextCompGl.horizontalSpacing = 1;
         editTextComp.setLayout(editTextCompGl);
 
+        Composite toggleLabelSnapComp = new Composite(textGrp, SWT.NONE);
+        GridLayout layoutToggleSnap = new GridLayout(4, false);
+        layoutToggleSnap.horizontalSpacing = 1;
+        layoutToggleSnap.marginWidth = 1;
+        layoutToggleSnap.verticalSpacing = 0;
+        layoutToggleSnap.marginHeight = 0;
+        toggleLabelSnapComp.setLayout(layoutToggleSnap);
+        toggleSnapLblChkBox = new Button(toggleLabelSnapComp, SWT.CHECK);
+        toggleSnapLblChkBox.setText("Snap Labels to ContourLine");
+        toggleSnapLblChkBox.setToolTipText(
+                "Check to snap Labels onto the Contour while editing the line");
+        toggleSnapLblChkBox.setData("toggleSnapLblChkBox");
+        toggleSnapLblChkBox.setSelection(true);
+        toggleSnapLblChecked = true;
+        toggleSnapLblChkBox.addListener(SWT.Selection, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                toggleSnapLblChecked = toggleSnapLblChkBox.getSelection();
+            }
+        });
+
         Composite applyLineColorComp = new Composite(textGrp, SWT.NONE);
         GridLayout layout6 = new GridLayout(4, false);
         layout6.horizontalSpacing = 1;
@@ -1103,6 +1129,10 @@ public class ContoursAttrDlg extends AttrDlg
     @Override
     public Boolean isClosedLine() {
         return lineClosedBtn.getSelection();
+    }
+
+    public boolean getToggleSnapLblChecked() {
+        return toggleSnapLblChecked;
     }
 
     /**

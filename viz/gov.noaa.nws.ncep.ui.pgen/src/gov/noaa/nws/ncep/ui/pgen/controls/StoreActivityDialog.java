@@ -1,22 +1,11 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.controls.StoreActivityeDialog
- * 
+ *
  * 27 March 2013
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 package gov.noaa.nws.ncep.ui.pgen.controls;
-
-import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -57,9 +46,20 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
 import com.raytheon.viz.core.mode.CAVEMode;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
+import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
  * Create a dialog to Store PGEN products to EDEX.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -72,9 +72,10 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  *                                      Added a drop down list for reference time.
  * 05/02/2016   R16076      J. Wu       change type/subtype/site/desk to pulldown menu.
  * 07/28/2016   R17954      B. Yin      return CANCEL when Cancel button is pressed.
- * 
+ * 01/19/2021   86162       S. Russell  Updated setDialogFields() to use GMT
+ *                                      for the reftime.
  * </pre>
- * 
+ *
  * @author
  * @version 1
  */
@@ -175,7 +176,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets
      * .Shell)
@@ -193,7 +194,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     /**
      * (non-Javadoc) Create all of the widgets on the Dialog
-     * 
+     *
      * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
      */
     @Override
@@ -250,8 +251,9 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         nameText = new Text(g1, SWT.NONE);
         nameText.setLayoutData(gdata);
-        nameText.setToolTipText("Name for this activity, just like your first name while activity "
-                + "type/subtype is the last name.");
+        nameText.setToolTipText(
+                "Name for this activity, just like your first name while activity "
+                        + "type/subtype is the last name.");
         nameText.setEnabled(false);
 
         Label typeLabel = new Label(g1, SWT.NONE);
@@ -278,8 +280,8 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         forecasterLabel.setText("Forecaster:");
         forecasterText = new Text(g1, SWT.NONE);
         forecasterText.setLayoutData(gdata);
-        forecasterText
-                .setToolTipText("Forecaster's name, default is your user name, not required");
+        forecasterText.setToolTipText(
+                "Forecaster's name, default is your user name, not required");
 
         Label modeLabel = new Label(g1, SWT.NONE);
         modeLabel.setText("Operating Mode:");
@@ -312,23 +314,22 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         validDate = new DateTime(g2, SWT.BORDER | SWT.DATE);
 
-        validDate
-                .setToolTipText("Activity's reference date, changing it and saving the "
+        validDate.setToolTipText(
+                "Activity's reference date, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
 
         validTime = new Combo(g2, SWT.DROP_DOWN);
 
-        validTime
-                .setToolTipText("Activity's reference time, changing it and saving the "
+        validTime.setToolTipText(
+                "Activity's reference time, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
 
         validTime.setTextLimit(REF_TIME_LIMIT);
         validTime.setLayoutData(new GridData(REF_TIME_WIDTH, -1));
 
         Calendar curTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        validTime
-                .setText(String.format("%02d%2d",
-                        curTime.get(Calendar.HOUR_OF_DAY),
+        validTime.setText(
+                String.format("%02d%2d", curTime.get(Calendar.HOUR_OF_DAY),
                         curTime.get(Calendar.MINUTE)));
 
         validTime.addVerifyListener(new VerifyListener() {
@@ -433,8 +434,8 @@ public class StoreActivityDialog extends CaveJFACEDialog {
             public void widgetSelected(SelectionEvent e) {
 
                 if (((Combo) e.widget).getSelectionIndex() == 0) {
-                    String labelStr = labelCombo.getText().substring(
-                            DEFAULT_LABEL_PREFIX.length());
+                    String labelStr = labelCombo.getText()
+                            .substring(DEFAULT_LABEL_PREFIX.length());
                     labelCombo.setText(labelStr);
                 }
             }
@@ -453,7 +454,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         /*
          * Type - add all types and select the current activity's type
-         * 
+         *
          * Note that Activity type/subtype is stored in Product as
          * "type(subtype)".
          */
@@ -475,7 +476,8 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         ArrayList<String> types = new ArrayList<>();
         for (ProductType ptype : prdTyps.values()) {
             String typStr = ptype.getType();
-            if (ptype.getName() != null && ptype.getName().trim().length() > 0) {
+            if (ptype.getName() != null
+                    && ptype.getName().trim().length() > 0) {
                 typStr = ptype.getName();
             }
 
@@ -497,6 +499,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         typeCombo.select(selectInd);
 
         typeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 subtypeCombo.removeAll();
                 ArrayList<String> subtypes = getSubtypesForType(
@@ -531,6 +534,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         subtypeCombo.select(selectInd);
 
         subtypeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 subtypeCombo.pack();
 
@@ -599,6 +603,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         // Reference time
         Calendar datetime = activity.getTime().getStartTime();
+        datetime.setTimeZone(TimeZone.getTimeZone("GMT"));
         if (datetime != null) {
             validDate.setYear(datetime.get(Calendar.YEAR));
             validDate.setMonth(datetime.get(Calendar.MONTH));
@@ -637,8 +642,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
             MessageDialog confirmDlg = new MessageDialog(
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                             .getShell(),
-                    "Need More Information",
-                    null,
+                    "Need More Information", null,
                     "Activity Label field is required.\nPlease enter an appropriate string and then try saving!",
                     MessageDialog.WARNING, new String[] { "OK" }, 0);
 
@@ -660,13 +664,11 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         String prevName = activity.getName();
         String prevType = activity.getType();
         activity.setName(info.getActivityName());
-        activity.setType(getFullType(info.getActivityType(),
-                info.getActivitySubtype()));
+        activity.setType(
+                getFullType(info.getActivityType(), info.getActivitySubtype()));
 
         try {
-
             StorageUtils.storeProduct(info, activity, true);
-
         } catch (PgenStorageException e) {
             statusHandler.handle(Priority.PROBLEM,
                     "Error storing the products to EDEX", e);
@@ -686,7 +688,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     /*
      * Retrieve the current activity information on dialog.
-     * 
+     *
      * @return a ActivityInfo
      */
     private ActivityInfo getActivityInfo() {
@@ -733,13 +735,13 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     /*
      * Get subtypes defined for an activity type
-     * 
+     *
      * Note: an activity without "subtype" uses DEFAULT_SUBTYPE "none".
-     * 
+     *
      * @param type activity type
-     * 
+     *
      * @param prdTyps a collection of ProductType
-     * 
+     *
      * @return a list of subtypes
      */
     private ArrayList<String> getSubtypesForType(String type,
@@ -765,11 +767,11 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     /*
      * Get full type name from an activity type and subtype
-     * 
+     *
      * @param type activity type
-     * 
+     *
      * @param subtype activity subtype
-     * 
+     *
      * @return full type string
      */
     private String getFullType(String type, String subtype) {
@@ -779,10 +781,8 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         if (type != null && type.trim().length() > 0) {
             fullType = type;
 
-            if (subtype != null
-                    && subtype.trim().length() > 0
-                    && !subtype.trim().equalsIgnoreCase(
-                            PgenConstant.DEFAULT_SUBTYPE)) {
+            if (subtype != null && subtype.trim().length() > 0 && !subtype
+                    .trim().equalsIgnoreCase(PgenConstant.DEFAULT_SUBTYPE)) {
                 fullType += ("(" + subtype + ")");
             }
         }

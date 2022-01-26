@@ -1,16 +1,5 @@
 package gov.noaa.nws.ncep.ui.pgen.store;
 
-import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.DerivedProduct;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.ResponseMessageValidate;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.request.RetrieveActivityRequest;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.request.StoreActivityRequest;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.request.StoreDerivedProductRequest;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.file.ProductConverter;
-import gov.noaa.nws.ncep.ui.pgen.file.Products;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,23 +26,38 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.viz.core.mode.CAVEMode;
 
+import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.DerivedProduct;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.ResponseMessageValidate;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.request.RetrieveActivityRequest;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.request.StoreActivityRequest;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.request.StoreDerivedProductRequest;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.file.ProductConverter;
+import gov.noaa.nws.ncep.ui.pgen.file.Products;
+
 /**
- * 
+ *
  * Utility class containing static methods to retrieve and store PGEN Activities
  * in EDEX
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Apr 22, 2013            sgilbert    Initial creation
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Jan 29, 2014 #1105      jwu         Create ActivityInfo from Product.
- * 
+ * Feb 11, 2021 86162      srussell    Updated storeProduct(Product,boolean)
+ *                                     to allow the activitySubType to be saved
+ *                                     when the Product object has a value for
+ *                                     it, such as modified OUTLOOK records.
+ *
  * </pre>
- * 
+ *
  * @author sgilbert
  * @version 1.0
  */
@@ -63,19 +67,20 @@ public class StorageUtils {
 
     /**
      * Store/Overwrite ActivityXML for given PGEN Product
-     * 
+     *
      * @param prod
      *            PGEN Product
      * @return dataURI associated with this product
      * @throws PgenStorageException
      */
-    public static String storeProduct(Product prod) throws PgenStorageException {
+    public static String storeProduct(Product prod)
+            throws PgenStorageException {
         return storeProduct(prod, false);
     }
 
     /**
      * Store/Overwrite ActivityXML for given PGEN Product
-     * 
+     *
      * @param prod
      *            PGEN Product
      * @param promptOnOverwrite
@@ -94,14 +99,24 @@ public class StorageUtils {
         String type = prod.getType();
         info.setActivityType(type);
 
+        // If the Product holds a PGen Activity, extract and set
+        // the activitySubType. The activitySubtype will be in parentheses.
+        // Example: "Excessive_rainfall_98E(98E_21Z)"
         if (type != null) {
             int loc1 = type.indexOf("(");
             if (loc1 > 0) {
                 info.setActivityType(type.substring(0, loc1));
                 String subtype = type.substring(loc1 + 1).replace(")", "");
-                if (subtype.length() > 0 && !subtype.equalsIgnoreCase("NONE"))
+                if (subtype.length() > 0 && !subtype.equalsIgnoreCase("NONE")) {
                     info.setActivitySubtype(subtype);
+                }
             }
+        }
+
+        // If the Product holds an OUTLOOK record or another type aside from a
+        // PGen activity
+        if (prod.getSubType() != null) {
+            info.setActivitySubtype(prod.getSubType());
         }
 
         info.setActivityLabel(prod.getOutputFile());
@@ -117,7 +132,7 @@ public class StorageUtils {
     /**
      * Store/Overwrite ActivityXML for given PGEN Product using the given
      * ActivityInfo to identify the product
-     * 
+     *
      * @param info
      *            Activity information identifying the product
      * @param prod
@@ -136,7 +151,7 @@ public class StorageUtils {
     /**
      * Store/Overwrite ActivityXML for given PGEN Product using the given
      * ActivityInfo to identify the product
-     * 
+     *
      * @param info
      *            Activity information identifying the product
      * @param prod
@@ -190,10 +205,11 @@ public class StorageUtils {
         if (activityExists(info)) {
             // display confirmation dialog
             String msg = "Activity already exists. Overwrite?";
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm", null, msg, MessageDialog.QUESTION, new String[] {
-                            "OK", "Cancel" }, 0);
+            MessageDialog confirmDlg = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
+                    "Confirm", null, msg, MessageDialog.QUESTION,
+                    new String[] { "OK", "Cancel" }, 0);
             confirmDlg.open();
 
             if (confirmDlg.getReturnCode() == MessageDialog.OK) {
@@ -238,8 +254,8 @@ public class StorageUtils {
         DbQueryRequest request = new DbQueryRequest();
         request.setEntityClass(PgenRecord.class.getName());
         request.addRequestField(PgenRecord.DATAURI);
-        request.addConstraint(PgenRecord.DATAURI, new RequestConstraint(
-                dataURI, ConstraintType.EQUALS));
+        request.addConstraint(PgenRecord.DATAURI,
+                new RequestConstraint(dataURI, ConstraintType.EQUALS));
 
         DbQueryResponse response;
         try {
@@ -247,8 +263,8 @@ public class StorageUtils {
             if (response.getResults().size() == 1) {
                 exists = true;
             }
-            System.out.println("GOT RESPONSE BACK = "
-                    + response.getResults().size());
+            System.out.println(
+                    "GOT RESPONSE BACK = " + response.getResults().size());
         } catch (Exception e) {
             throw new PgenStorageException(
                     "Error determinimg if activity exists", e);
@@ -259,7 +275,7 @@ public class StorageUtils {
 
     /**
      * Retrieves the PGEN Product with the given dataURI
-     * 
+     *
      * @param dataURI
      * @return PGEN Product
      * @throws PgenStorageException
@@ -296,7 +312,7 @@ public class StorageUtils {
 
     /**
      * Serializes the product into XML
-     * 
+     *
      * @param prod
      * @return XML representation of the Product
      * @throws PgenStorageException
@@ -304,7 +320,7 @@ public class StorageUtils {
     public static String serializeProduct(Product prod)
             throws PgenStorageException {
 
-        ArrayList<Product> prodlist = new ArrayList<Product>();
+        ArrayList<Product> prodlist = new ArrayList<>();
         prodlist.add(prod);
 
         Products filePrds = ProductConverter.convert(prodlist);
@@ -319,7 +335,7 @@ public class StorageUtils {
 
     /**
      * Deserializes an XML string into a PGEN Product
-     * 
+     *
      * @param activityXML
      * @return Pgen Product
      * @throws PgenStorageException
@@ -342,7 +358,7 @@ public class StorageUtils {
 
     /**
      * Displays an Exception in a Message Dialog
-     * 
+     *
      * @param e
      */
     public static void showError(Exception e) {
@@ -355,9 +371,10 @@ public class StorageUtils {
             sb.append(temp.getMessage());
         }
 
-        MessageDialog errorDlg = new MessageDialog(PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getShell(), STORAGE_ERROR, null,
-                sb.toString(), MessageDialog.ERROR, new String[] { "OK" }, 0);
+        MessageDialog errorDlg = new MessageDialog(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                STORAGE_ERROR, null, sb.toString(), MessageDialog.ERROR,
+                new String[] { "OK" }, 0);
 
         errorDlg.open();
     }
@@ -365,7 +382,7 @@ public class StorageUtils {
     /**
      * Store/Overwrite a derived product under the Activity with the given
      * datauri
-     * 
+     *
      * @param dataURI
      * @param name
      *            Name of derived product
@@ -383,7 +400,7 @@ public class StorageUtils {
     /**
      * Store/Overwrite a derived product under the Activity with the given
      * datauri
-     * 
+     *
      * @param dataURI
      * @param name
      *            Name of derived product
@@ -437,10 +454,11 @@ public class StorageUtils {
             // display confirmation dialog
             String msg = "Derived Product " + name
                     + " already exists. Overwrite?";
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm", null, msg, MessageDialog.QUESTION, new String[] {
-                            "OK", "Cancel" }, 0);
+            MessageDialog confirmDlg = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
+                    "Confirm", null, msg, MessageDialog.QUESTION,
+                    new String[] { "OK", "Cancel" }, 0);
             confirmDlg.open();
 
             if (confirmDlg.getReturnCode() == MessageDialog.OK) {
@@ -483,7 +501,7 @@ public class StorageUtils {
     /**
      * Store/Overwrite a list of derived products under the Activity with the
      * given datauri
-     * 
+     *
      * @param dataURI
      * @param prodList
      *            List of Derived Products

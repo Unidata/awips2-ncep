@@ -117,11 +117,11 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                      to LocalizationFile.save method.
  * 12/20/2019   71069       smanoj      Modified the code to better handle
  *                                      a null productType.getName()
+ * 12/02/2020   85217       smanoj      Fix error launching configure activity Dialog.
  * 
  * </pre>
  * 
  * @author jwu
- * @version 1.0
  * 
  */
 
@@ -1568,6 +1568,12 @@ public class ProductConfigureDialog extends ProductDialog {
                     actions.remove(contextMenuAction);
                 }
             }
+        }
+
+        // "Add New Label" action is not a configurable Pgen activity,
+        // so remove it from actions.
+        if(actions.contains(PgenConstant.ADD_NEW_LABEL)){
+            actions.remove(PgenConstant.ADD_NEW_LABEL);
         }
 
         controlBtns = new Button[controls.size()];

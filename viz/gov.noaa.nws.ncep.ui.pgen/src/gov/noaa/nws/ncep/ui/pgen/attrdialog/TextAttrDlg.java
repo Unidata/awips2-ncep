@@ -70,6 +70,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 08/20/2019   67218       ksunil          prevent the text box from starting the text on line 2
  * 02/26/2020   75024       smanoj          Fix to have correct default Color Attributes for 
  *                                          tropical TROF front label.
+ * 08/12/2020   81342       mroos           Remove trailing newline at end of text & cursor placement                                         
  *
  * </pre>
  *
@@ -452,14 +453,14 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         int length = result.length();
         if (length > 0) {
-            result.delete(length - 1, length - 1);
+            result.delete(length - 1, length);
         }
 
         // Set text and then the cursor at the end of the string.
         String str = result.toString();
         text.setText(str);
         if (str.length() > 0) {
-            text.setSelection(str.length() - 1);
+            text.setSelection(str.length());
         }
     }
 

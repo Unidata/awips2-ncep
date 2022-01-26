@@ -97,7 +97,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 03/20/2019   #7572       dgilling    Code cleanup.
  * 11/04/2019   70576       smanoj      Update to allow forecaster change/update alphanumeric labels.
  * 01/07/2020   71971       smanoj      Modified code to use PgenConstants
- *
+ * 06/26/2020   79977       pbutler     Added code to add data editableAttrFromLine: states, lakes, coastal waters
+ * 08/18/2020   81809       mroos       Remove States list duplication
  * </pre>
  *
  * @author gzhang
@@ -259,6 +260,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 || this.getEditableAttrSequence().length() == 0) {
             this.setEditableAttrSequence("1");
         }
+
         ba.setEditableAttrSeqNum(this.getEditableAttrSequence());
         ba.setType(this.getLineType());
         ba.setWidth(this.getWidth());
@@ -335,17 +337,21 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
         if (PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Convective SIGMET Edit");
-        } else if (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(this.pgenType)) {
+        } else if (PgenConstant.TYPE_NCON_SIGMET
+                .equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Non-convective SIGMET Edit");
-        } else if (PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(this.pgenType)) {
+        } else if (PgenConstant.TYPE_AIRM_SIGMET
+                .equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("AIRMET Edit");
-        } else if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(this.pgenType)) {
+        } else if (PgenConstant.TYPE_OUTL_SIGMET
+                .equalsIgnoreCase(this.pgenType)) {
             this.getShell().setText("Convective Outlook Edit");
         }
 
         if (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(this.pgenType)
                 || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(this.pgenType)
-                || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(this.pgenType)) {
+                || PgenConstant.TYPE_OUTL_SIGMET
+                        .equalsIgnoreCase(this.pgenType)) {
             SigmetCommAttrDlg.this.setLineType(AREA);
         }
 
@@ -435,7 +441,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));// new
                                                                                // RGB(0,255,0));
 
-        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType) 
+        if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType)
                 && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)
                 && !PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pgenType)) {
             btnLine.setEnabled(false);
@@ -604,10 +610,12 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
     private String getVOR(Coordinate[] coors) {
         boolean isSnapped = false;
-        String vorConnector = (PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
-                || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pgenType)) ? " TO " : "-";
+        String vorConnector = (PgenConstant.TYPE_NCON_SIGMET
+                .equalsIgnoreCase(pgenType)
+                || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pgenType))
+                        ? " TO " : "-";
 
-        if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pgenType) 
+        if (PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pgenType)
                 || PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)
                 || PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
                 || PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pgenType)) {
@@ -623,10 +631,13 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         } else {
             Button[] btns = attrButtonMap.get("lineType");
             if (btns != null) {
-                if (lineType.equals(AREA) 
-                        || PgenConstant.TYPE_NCON_SIGMET.equalsIgnoreCase(pgenType)
-                        || PgenConstant.TYPE_AIRM_SIGMET.equalsIgnoreCase(pgenType)
-                        || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(pgenType)) {
+                if (lineType.equals(AREA)
+                        || PgenConstant.TYPE_NCON_SIGMET
+                                .equalsIgnoreCase(pgenType)
+                        || PgenConstant.TYPE_AIRM_SIGMET
+                                .equalsIgnoreCase(pgenType)
+                        || PgenConstant.TYPE_OUTL_SIGMET
+                                .equalsIgnoreCase(pgenType)) {
                     btns[0].setSelection(true);
                     btns[1].setSelection(false);
                     btns[2].setSelection(false);
@@ -894,12 +905,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 s = "";
             }
 
-            if (PgenConstant.TYPE_NCON_SIGMET
-                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || PgenConstant.TYPE_AIRM_SIGMET
+            if (PgenConstant.TYPE_AIRM_SIGMET
                             .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || PgenConstant.TYPE_OUTL_SIGMET
-                            .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
+                    || PgenConstant.TYPE_OUTL_SIGMET.equalsIgnoreCase(
+                            SigmetCommAttrDlg.this.pgenType)) {
                 return s.toUpperCase();
             }
 
@@ -964,23 +973,30 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             }
         }
 
-        List<String> s = getAreaStringList(cSigPoly, mapDescriptor, "state",
-                "bounds.statebnds");
-        List<String> l = getAreaStringList(cSigPoly, mapDescriptor, "id",
+        List<String> states = getAreaStringList(cSigPoly, mapDescriptor,
+                "state", "bounds.statebnds");
+        List<String> lakes = getAreaStringList(cSigPoly, mapDescriptor, "id",
                 "bounds.greatlakesbnds");
-        List<String> c = getAreaStringList(cSigPoly, mapDescriptor, "id",
-                "bounds.adjcstlbnds");
+        List<String> coastalWaters = getAreaStringList(cSigPoly, mapDescriptor,
+                "id", "bounds.adjcstlbnds");
 
-        return getStates(s, l, c);
+        return getStates(states, lakes, coastalWaters);
     }
 
     public void saveApplyPressed() {
         List<AbstractDrawableComponent> adcList = null;
         List<AbstractDrawableComponent> newList = new ArrayList<>();
 
+        String newEditableLine = this.getEditableAttrFromLine();
+
+        if (PgenConstant.TYPE_NCON_SIGMET
+                .equals(this.asig.getPgenType().trim())) {
+            this.setEditableAttrFromLine(newEditableLine);
+            this.asig.setEditableAttrFromLine(newEditableLine);
+        }
+
         if (drawingLayer != null) {
-            adcList = drawingLayer
-                    .getAllSelected();
+            adcList = drawingLayer.getAllSelected();
         }
 
         if (adcList != null && !adcList.isEmpty()) {
@@ -1003,19 +1019,18 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 }
             }
 
-            List<AbstractDrawableComponent> oldList = new ArrayList<>(
-                    adcList);
+            List<AbstractDrawableComponent> oldList = new ArrayList<>(adcList);
             drawingLayer.replaceElements(oldList, newList);
         }
 
         AbstractDrawableComponent newCmp = null;
 
-        for ( AbstractDrawableComponent adc : newList) {
+        for (AbstractDrawableComponent adc : newList) {
             newCmp = adc;
             drawingLayer.removeElement(adc);
         }
 
-        if(newCmp != null){
+        if (newCmp != null) {
             drawingLayer.addElement(newCmp);
             drawingLayer.addSelected(newCmp);
             drawingLayer.issueRefresh();
@@ -1290,6 +1305,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         s.append(this.getVOR(coors));
         s.append(SigmetInfo.LINE_SEPERATER);
         String fromLineText = s.append("VOR").toString();
+
         SigmetCommAttrDlg.this.setEditableAttrFromLine(fromLineText);
 
         if (txtInfo != null && !txtInfo.isDisposed() && s != null) {
@@ -1307,5 +1323,4 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         this.setLineType(sig.getType());
         this.setWidth("" + (sig.getWidth()));
     }
-
 }

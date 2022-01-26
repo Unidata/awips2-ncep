@@ -1,6 +1,6 @@
 /*
  * OutlookFormatMsgDlg
- * 
+ *
  * Date created: 5 April 2010
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -8,19 +8,10 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
-import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.dom4j.Node;
@@ -43,21 +34,43 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
+import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
+import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
  * Implementation of a dialog to display information of an outlook product.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/10			?		B. Yin   	Initial Creation. 
- * 03/12		#703		B. Yin		Generate product text from style sheet
- * 06/12		#786		B. Yin		Close all dialogs after text is saved.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- -------------------------
+ * 02/10        ?           B. Yin      Initial Creation.
+ * 03/12        #703        B. Yin      Generate product text from style sheet
+ * 06/12        #786        B. Yin      Close all dialogs after text is saved.
  * 04/29/13     #977        S. Gilbert  PGEN Database support
- * 08/13		TTR 770		B. Yin		Handle no outlook, fixed the file name. 
- * 
+ * 08/13        TTR 770     B. Yin      Handle no outlook, fixed the file name.
+ * 2021 Jan 14  86162       S. Russell  Updated storeProduct() to use current
+ *                                      date and time for refTime in PGEN tbl
+ * 2021 Jan 19  86162       S. Russell  Updated storeProduct() to use the
+ *                                      current time for reftime. Also updated
+ *                                      to set the OUTLOOK to have the subtype
+ *                                      and activityname as the parent PGen
+ *                                      activity active on the screen. If an
+ *                                      OutLook has no polygons, but there
+ *                                      is a Text product on the screen, it
+ *                                      is now saved to the OUTLOOK
+ *
  * </pre>
- * 
+ *
  * @author B. Yin
  */
 
@@ -118,10 +131,10 @@ public class OutlookFormatMsgDlg extends Dialog {
         /*
          * Create a text box for the message
          */
-        messageBox = new Text(top, SWT.MULTI | SWT.BORDER | SWT.READ_ONLY
-                | SWT.V_SCROLL);
-        messageBox.setFont(new Font(messageBox.getDisplay(), "Courier", 12,
-                SWT.NORMAL));
+        messageBox = new Text(top,
+                SWT.MULTI | SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL);
+        messageBox.setFont(
+                new Font(messageBox.getDisplay(), "Courier", 12, SWT.NORMAL));
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 
         // Calculate approximate size of text box to display 25 lines at 80
@@ -149,9 +162,9 @@ public class OutlookFormatMsgDlg extends Dialog {
     }
 
     /*
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
      */
     @Override
@@ -168,8 +181,9 @@ public class OutlookFormatMsgDlg extends Dialog {
         String pdName = ofd.getOtlkDlg().drawingLayer.getActiveProduct()
                 .getType();
         ProductType pt = ProductConfigureDialog.getProductTypes().get(pdName);
-        if (pt != null)
+        if (pt != null) {
             pdName = pt.getType();
+        }
 
         String pd1 = pdName.replaceAll(" ", "_");
 
@@ -188,8 +202,9 @@ public class OutlookFormatMsgDlg extends Dialog {
                 ofd.issueOutlook(otlk);
 
                 String dataURI = storeProduct(getFileName(otlk) + ".xml");
-                if (dataURI == null)
+                if (dataURI == null) {
                     return;
+                }
 
                 try {
                     StorageUtils.storeDerivedProduct(dataURI, fileName, "TEXT",
@@ -198,8 +213,6 @@ public class OutlookFormatMsgDlg extends Dialog {
                     StorageUtils.showError(e);
                     return;
                 }
-                // FileTools.writeFile(fileName, message);
-                // otlk.saveToFile( dirPath + getFileName(otlk)+".xml");
 
                 // clean up
                 this.close();
@@ -210,33 +223,32 @@ public class OutlookFormatMsgDlg extends Dialog {
 
     /**
      * Get the default file name for the formatted outlook
-     * 
+     *
      * @param otlk
      * @return
      */
     private String getFileName(Outlook ol) {
-    	String type = "";
-        if ( ol != null ) {
-        	type = ol.getOutlookType();
+        String type = "";
+        if (ol != null) {
+            type = ol.getOutlookType();
+        } else {
+            // Should be the outlook type for the layer, but there is no outlook
+            // type in layer currently.
+            type = layer.getName();
+            // type = ofd.getOtlkDlg().getOutlookType();
         }
-        else {
-        	//Should be the outlook type for the layer, but there is no outlook type in layer currently. 
-        	type = layer.getName();
-        	//type = ofd.getOtlkDlg().getOutlookType();
-        }
-        
+
         String name = "";
         if (type != null) {
             type = type.toUpperCase();
             String xpath = OutlookAttrDlg.OTLK_XPATH + "[@name='" + type + "']";
             String prefix = "";
-            Node nd = OutlookAttrDlg.readOutlookTbl()
-                    .selectSingleNode(xpath);
-            
-            if ( nd != null ) {
-            	prefix = nd.valueOf("@prefix");
+            Node nd = OutlookAttrDlg.readOutlookTbl().selectSingleNode(xpath);
+
+            if (nd != null) {
+                prefix = nd.valueOf("@prefix");
             }
-            
+
             if (prefix.isEmpty()) {
                 name += "outlook";
             } else {
@@ -244,18 +256,17 @@ public class OutlookFormatMsgDlg extends Dialog {
             }
         }
 
-      //  name += "_"
-      //          + ofd.getDays().toUpperCase().replace("-", "").replace(" ", "")
-      //                  .replace("FIRE", "");
+        // name += "_"
+        // + ofd.getDays().toUpperCase().replace("-", "").replace(" ", "")
+        // .replace("FIRE", "");
 
         String days = ofd.getDays();
-        
-        if ( days.contains("Enh")){
-        	days = "Day1";
+
+        if (days.contains("Enh")) {
+            days = "Day1";
         }
-        
-        name += "_"
-                 + days.toUpperCase().replace("-", "").replace(" ", "");
+
+        name += "_" + days.toUpperCase().replace("-", "").replace(" ", "");
         name += "_" + String.format("%1$td%1$tH%1$tM", ofd.getInitTime()) + "Z";
         return name;
 
@@ -265,17 +276,17 @@ public class OutlookFormatMsgDlg extends Dialog {
      * Re-order the outlook lines and re-generate the message
      */
     private void updatePressed() {
-    	if ( otlk != null ){
-        // ofd.reorderOtlkLines();
-        otlk.reorderLines();
-        messageBox.setText(ofd.formatOtlk(otlk, layer));
-    }
+        if (otlk != null) {
+            // ofd.reorderOtlkLines();
+            otlk.reorderLines();
+            messageBox.setText(ofd.formatOtlk(otlk, layer));
+        }
     }
 
     /*
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
      */
     @Override
@@ -289,7 +300,7 @@ public class OutlookFormatMsgDlg extends Dialog {
 
     /**
      * Set outlook text
-     * 
+     *
      * @param str
      *            The issued watch text
      */
@@ -299,8 +310,7 @@ public class OutlookFormatMsgDlg extends Dialog {
 
     @Override
     /**
-     * Set the location of the dialog
-     * Set the OK button to Save
+     * Set the location of the dialog Set the OK button to Save
      */
     public int open() {
 
@@ -331,8 +341,8 @@ public class OutlookFormatMsgDlg extends Dialog {
 
         // add update button
         updtBtn.setText("Update");
-        updtBtn.setLayoutData(getButton(IDialogConstants.CANCEL_ID)
-                .getLayoutData());
+        updtBtn.setLayoutData(
+                getButton(IDialogConstants.CANCEL_ID).getLayoutData());
         updtBtn.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -360,10 +370,10 @@ public class OutlookFormatMsgDlg extends Dialog {
     public Layer getLayer() {
         return layer;
     }
-    
+
     /**
      * Save this element to EDEX
-     * 
+     *
      * @param filename
      */
     private String storeProduct(String label) {
@@ -371,29 +381,63 @@ public class OutlookFormatMsgDlg extends Dialog {
         String dataURI;
 
         Layer defaultLayer = new Layer();
-        if ( otlk != null ) defaultLayer.addElement(otlk);
-        ArrayList<Layer> layerList = new ArrayList<Layer>();
+        if (otlk != null) {
+            defaultLayer.addElement(otlk);
+        }
+        ArrayList<Layer> layerList = new ArrayList<>();
         layerList.add(defaultLayer);
-        
-        ProductTime refTime = null; 
+
+        ProductTime refTime = null;
+        Calendar currentDtAndTime = Calendar
+                .getInstance(TimeZone.getTimeZone("GMT"));
+        currentDtAndTime.set(Calendar.MILLISECOND, 0);
+        refTime = new ProductTime(currentDtAndTime);
+
         String forecaster = "";
-        if ( otlk != null ){
-        	refTime = new ProductTime(otlk.getIssueTime());
-        	forecaster = otlk.getForecaster();
+
+        if (otlk != null) {
+            forecaster = otlk.getForecaster();
+        } else {
+            forecaster = ofd.getForecaster();
         }
-        else {
-        	refTime = new ProductTime(Calendar.getInstance( TimeZone.getTimeZone("GMT") ));
-        	forecaster = ofd.getForecaster();
+
+        Product activePgenActivity = PgenSession.getInstance().getPgenResource()
+                .getActiveProduct();
+
+        if (layerList.size() == 1) {
+            int iDrawables = 0;
+            iDrawables = defaultLayer.getDrawables().size();
+
+            // If there are no polygons in the OutLook
+            if (iDrawables == 0) {
+                // Get all of the Drawables in enclosing PGEN Activity
+                Layer layer = activePgenActivity.getLayer(0);
+                List<AbstractDrawableComponent> adcs = layer.getDrawables();
+                for (AbstractDrawableComponent adc : adcs) {
+                    // If the PGEN Activity has a Text object
+                    if (adc instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
+                        // Add it to the layer that will get put into the
+                        // OutLook
+                        defaultLayer.addElement(adc);
+                    }
+
+                }
+            }
         }
+
+        String activityName = activePgenActivity.getName();
+        String type = activePgenActivity.getType();
+        int p1, p2 = 0;
+        p1 = type.indexOf('(');
+        p2 = type.indexOf(')');
+        String activitySubType = type.substring(++p1, p2);
 
         Product defaultProduct = new Product("", "OUTLOOK", forecaster, null,
                 refTime, layerList);
-
-        // Product defaultProduct = new Product();
-        // defaultProduct.addLayer(defaultLayer);
-
         defaultProduct.setOutputFile(label);
         defaultProduct.setCenter(PgenUtil.getCurrentOffice());
+        defaultProduct.setName(activityName);
+        defaultProduct.setSubType(activitySubType);
 
         try {
             dataURI = StorageUtils.storeProduct(defaultProduct);

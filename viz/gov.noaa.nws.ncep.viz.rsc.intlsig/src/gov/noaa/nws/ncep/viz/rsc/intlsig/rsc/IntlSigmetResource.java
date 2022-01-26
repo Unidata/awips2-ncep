@@ -115,8 +115,9 @@ import systems.uom.common.USCustomary;;
  *                                      into
  *                                      get{High|Low}InverseCentralMeridian()
  * Nov 05, 2015  5070       randerso    Adjust font sizes for dpi scaling
+ * Apr 28, 2020  77667      smanoj      Flight Information Region (FIR) update.
  * Jul 15, 2020  8191       randerso    Updated for changes to LatLonPoint
- *
+ * 
  * </pre>
  *
  * @author Archana
@@ -128,12 +129,19 @@ public class IntlSigmetResource extends
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(IntlSigmetResource.class);
 
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(IntlSigmetResource.class);
+
     private IntlSigmetResourceData intlSigmetResourceDataObj;
 
     private static final UnitConverter mToNM = SI.METRE
             .getConverterTo(USCustomary.NAUTICAL_MILE);
 
     private IFont font = null;
+
+
+
+
 
     private float baseFontSize = 12;
 
@@ -268,13 +276,12 @@ public class IntlSigmetResource extends
                 }
             }
 
-            // latestSigmetIssuanceTimeForMessageId =
-            // latestSigmetIssuanceTimeForMessageId;
-            // Now that we've determined the latest issuances for each messageId
-            // -- we make a second
-            // pass through the data time matched to this frame. This time,
-            // we purge anything superseded by a later issuance.
-
+            /*
+             * Now that we've determined the latest issuances for each messageId
+             * -- we make a second pass through the data time matched to this
+             * frame. This time, we purge anything superseded by a later
+             * issuance.
+             */
             String[] keys = new String[1];
             keys = fd.condensedIntligLinkedHashMap.keySet().toArray(keys);
             for (String key : keys) {
@@ -460,8 +467,6 @@ public class IntlSigmetResource extends
                                 .isLocationLookUpFailed();
                         if (polygonVertexPixelCoordListSize > 1
                                 && !isLocationLookUpFailed) {
-                            // this.drawPolygon(graphicsTarget,condensedISIG.polygonVertexPixelCoordList,polygonLineColor,polygonLineWidth,lineStyle);
-
                             Coordinate[] polygonCoordinatesList = condensedISIG
                                     .getPolygonLatLonCoordinates();
                             this.drawPolygon(polygonCoordinatesList,
@@ -478,12 +483,6 @@ public class IntlSigmetResource extends
                             /*
                              * Get the centroid of the polygon in world
                              * coordinates to render the symbol
-                             */
-                            /*
-                             * tempSymbolLocationWorldCoord =
-                             * condensedISIG.getCentroidInWorldCoordinates(
-                             * condensedISIG, this.getDescriptor(),
-                             * condensedISIG.polygonVertexPixelCoordList);
                              */
 
                             tempSymbolLocationWorldCoord = condensedISIG
@@ -720,10 +719,9 @@ public class IntlSigmetResource extends
                                                 .get(i).getSymbolType();
                                         Symbol symbol = new Symbol(null,
                                                 symbolColor, symbolWidth,
-                                                // scale per NMAP
-                                                symbolSize * 0.60, false,
-                                                symbolCoordinate, "Symbol",
-                                                symbolType);
+                                                symbolSize * 0.60, 
+                                                false, symbolCoordinate,
+                                                "Symbol", symbolType);
                                         displayEls = df.createDisplayElements(
                                                 symbol, paintProps);
                                     }
@@ -778,7 +776,7 @@ public class IntlSigmetResource extends
                                 /*
                                  * (Non-Javadoc) This is retained from legacy
                                  * code: If any of the sigmets
-                                 * (KZNY/KZMA/KZHU/TJZS) in the Atlantic are
+                                 * (KZWY/KZMA/KZHU/TJZS) in the Atlantic are
                                  * encountered, the label is preceded with the
                                  * character 'A'.
                                  */
@@ -947,31 +945,6 @@ public class IntlSigmetResource extends
                                 arrayOfVerticesOnEitherSide[1]);
 
                 /*
-                 * (Non-Javadoc) Ideally, it should be easy to just use the
-                 * existing IntlSigmetResource.drawPolygon() method coupled with
-                 * the IGraphicsTarget.drawArc() method. However when doing
-                 * this, it was observed that given the multiple conversions
-                 * that take place between the world and pixel coordinates, the
-                 * arc does not get drawn correctly. Hence the code to render
-                 * the polygon and its arc point-by-point have been added here.
-                 */
-
-                /*
-                 * PixelCoordinate prevLoc = null; for (Coordinate
-                 * currCoordinate :
-                 * arrayOfVerticesOnEitherSideForPolygonWithArc[0]) { double[]
-                 * latLon = { currCoordinate.x, currCoordinate.y };
-                 * PixelCoordinate currLoc = new
-                 * PixelCoordinate(descriptor.worldToPixel(latLon)); if (prevLoc
-                 * != null) { graphicsTarget.drawLine(prevLoc.getX(),
-                 * prevLoc.getY(), prevLoc.getZ(), currLoc.getX(),
-                 * currLoc.getY(), currLoc.getZ(), polygonLineColor,
-                 * polygonLineWidth, lineStyle); }
-                 *
-                 * prevLoc = currLoc; }
-                 */
-
-                /*
                  * (Non-Javadoc) prevLoc is set to the last element of the first
                  * side of the polygon The second side is drawn from its last
                  * vertex to the first, thereby allowing the line in-between the
@@ -1058,14 +1031,6 @@ public class IntlSigmetResource extends
                         drawPolygon(graphicsTarget, sideOfLinePixCoordlist,
                                 polygonLineColor, polygonLineWidth, lineStyle);
 
-                        // The following method should be used if we want the
-                        // polygons that span the edges to be clipped
-                        // Seems this case is extremely rare. No test cases were
-                        // found. So for now not using the new drawPolygon
-                        // method for this case.
-                        // this.drawPolygon(sideOfLineArrInLatLonCoordinates,
-                        // graphicsTarget, polygonLineColor, polygonLineWidth,
-                        // lineStyle);
                     }
                 }
 
@@ -1087,7 +1052,7 @@ public class IntlSigmetResource extends
 
     /**
      * Converts a list of world coordinates to a list of pixel coordinates.
-     *
+     * 
      * @param listOfVerticesOnSide1
      *            - the list of Coordinate objects
      * @return an array-list of PixelCoordinate objects
@@ -1522,6 +1487,7 @@ public class IntlSigmetResource extends
                 List<Coordinate> locCoordArray = new ArrayList<>(0);
                 ListIterator<PixelCoordinate> it = vertexListInPixel
                         .listIterator();
+                        .listIterator();
                 while (it.hasNext()) {
                     PixelCoordinate currLoc = it.next();
                     locCoordArray.add(
@@ -1623,24 +1589,19 @@ public class IntlSigmetResource extends
 
             List<Geometry> geomList = new ArrayList<>();
             if (!g.isEmpty()) {
-                // Algorithm:
-                // Process primitive geometry type (non collection). Algorithm
-                // works
-                // in that it walks the geometry, when two points cross, it adds
-                // or
-                // subtracts 360 to the offset to flatten out the geometry. When
-                // first part is done, geometries will be continuous and not
-                // limited
-                // to -180 to 180, they will be technically be > neg infinitive,
-                // <
-                // pos infinity given that the algorithm supports wrapping
-                // around
-                // the world multiple times. When we have the continuous
-                // geometry,
-                // we split it up into sections by intersecting with a 360 deg
-                // inverse central meridian. We then normalize the points for
-                // each
-                // section back to -180 to 180
+                /*
+                 * Algorithm: Process primitive geometry type (non collection).
+                 * Algorithm works in that it walks the geometry, when two
+                 * points cross, it adds or subtracts 360 to the offset to
+                 * flatten out the geometry. When first part is done, geometries
+                 * will be continuous and not limited to -180 to 180, they will
+                 * be technically be > neg infinitive, < pos infinity given that
+                 * the algorithm supports wrapping around the world multiple
+                 * times. When we have the continuous geometry, we split it up
+                 * into sections by intersecting with a 360 deg inverse central
+                 * meridian. We then normalize the points for each section back
+                 * to -180 to 180
+                 */
                 boolean handle = false;
                 if (checker.needsChecking()) {
                     boolean polygon = g instanceof Polygon;
@@ -1692,11 +1653,12 @@ public class IntlSigmetResource extends
                         }
                     }
                     if (handle) {
-                        // All coords in geometry should be denormalized now,
-                        // get
-                        // adjusted envelope, divide envelope into sections, for
-                        // each section, intersect with geometry and add to
-                        // geom list
+                        /*
+                         * All coords in geometry should be denormalized now,
+                         * get adjusted envelope, divide envelope into sections,
+                         * for each section, intersect with geometry and add to
+                         * geom list
+                         */
                         List<Geometry> sections = new ArrayList<>();
                         List<Double> rolls = new ArrayList<>();
                         GeometryFactory gf = g.getFactory();
@@ -2022,7 +1984,7 @@ public class IntlSigmetResource extends
          *            - The Air Traffic Service Unit
          *            <p>
          *            If any of the input parameters are set to one of the
-         *            following stations - KZMA / KZNY / KZHU / TJZS, then the
+         *            following stations - KZMA / KZWY / KZHU / TJZS, then the
          *            method returns true.
          * @return true if the International SIGMET is issued for/in the
          *         Atlantic region or false otherwise
@@ -2031,20 +1993,20 @@ public class IntlSigmetResource extends
                 String atsu) {
             boolean inAtlantic = false;
             if (issueOff != null && ((issueOff.contains("KZMA"))
-                    || (issueOff.contains("KZNY"))
+                    || (issueOff.contains("KZWY"))
                     || (issueOff.contains("KZHU"))
                     || (issueOff.contains("TJZS")))) {
                 inAtlantic = true;
             }
 
             if (omwo != null && ((omwo.contains("KZMA"))
-                    || (omwo.contains("KZNY")) || (omwo.contains("KZHU"))
+                    || (omwo.contains("KZWY")) || (omwo.contains("KZHU"))
                     || (omwo.contains("TJZS")))) {
                 inAtlantic = true;
             }
 
             if (atsu != null && ((atsu.contains("KZMA"))
-                    || (atsu.contains("KZNY")) || (atsu.contains("KZHU"))
+                    || (atsu.contains("KZWY")) || (atsu.contains("KZHU"))
                     || (atsu.contains("TJZS")))) {
                 inAtlantic = true;
             }

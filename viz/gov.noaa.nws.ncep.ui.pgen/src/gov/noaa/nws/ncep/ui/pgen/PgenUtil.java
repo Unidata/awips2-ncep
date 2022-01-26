@@ -164,6 +164,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
  *                                        through the evaluation context
  * 06/15/2016   R13559      bkowal        Removed simulated mouse click.
  * 06/28/2016   R10233      J. Wu         Add parameter to loadContoursTool().
+ * 06/18/2020   79252       pbutler		  PGEN function fixes for null pointers when working w/ Airmets.
  * </pre>
  * 
  * @author
@@ -1237,9 +1238,9 @@ public class PgenUtil {
     /**
      * This function computes the area of a spherical polygon on the earth
      * 
-     * Note: The ANSI C code is adapted and modified from the article
-     * "Computing the Area of a Spherical Polygon" by Robert D. Miller, in
-     * "Graphics Gems IV", Academic Press, 1994.
+     * Note: The ANSI C code is adapted and modified from the article "Computing
+     * the Area of a Spherical Polygon" by Robert D. Miller, in "Graphics Gems
+     * IV", Academic Press, 1994.
      * 
      * @param pts
      *            [] polygon points in map coordinates
@@ -1256,78 +1257,88 @@ public class PgenUtil {
         int jj, kk;
         double Lam1, Lam2, Beta1, Beta2, CosB1, CosB2, HavA;
         double T, A, B, C, S, sum, excess;
+        double area = 0.0;
 
-        int npts = ptsin.length;
-        double[] tmplat = new double[npts];
-        double[] tmplon = new double[npts];
+        // - updated conditional to fix null pointer and paint format on screen
+        // across FAA Regional Boundaries
+        if (ptsin != null) {
 
-        /*
-         * Convert from degrees to radians and save into local arrays
-         */
-        for (jj = 0; jj < npts; jj++) {
-            tmplat[jj] = ptsin[jj].y / Degree;
-            tmplon[jj] = ptsin[jj].x / Degree;
-        }
+            int npts = ptsin.length;
+            double[] tmplat = new double[npts];
+            double[] tmplon = new double[npts];
 
-        /*
-         * Calculate the area in spherical degrees.
-         */
-        sum = 0;
-        Lam2 = 0.0;
-        Beta2 = 0.0;
-        CosB2 = 0.0;
-        for (jj = 0; jj < npts; jj++) {
-            kk = jj + 1;
-            if (jj == 0) {
-                Lam1 = (double) tmplon[jj];
-                Beta1 = (double) tmplat[jj];
-                Lam2 = (double) tmplon[jj + 1];
-                Beta2 = (double) tmplat[jj + 1];
-                CosB1 = Math.cos(Beta1);
-                CosB2 = Math.cos(Beta2);
-            } else {
-                kk = (jj + 1) % (npts);
-                Lam1 = Lam2;
-                Beta1 = Beta2;
-                Lam2 = (double) tmplon[kk];
-                Beta2 = (double) tmplat[kk];
-                CosB1 = CosB2;
-                CosB2 = Math.cos(Beta2);
+            /*
+             * Convert from degrees to radians and save into local arrays
+             */
+            for (jj = 0; jj < npts; jj++) {
+                tmplat[jj] = ptsin[jj].y / Degree;
+                tmplon[jj] = ptsin[jj].x / Degree;
             }
 
-            if (!(Math.abs(Lam1 - Lam2) < GDIFFD)) {
+            /*
+             * Calculate the area in spherical degrees.
+             */
+            sum = 0;
+            Lam2 = 0.0;
+            Beta2 = 0.0;
+            CosB2 = 0.0;
+            for (jj = 0; jj < npts; jj++) {
+                kk = jj + 1;
+                if (jj == 0) {
+                    Lam1 = (double) tmplon[jj];
+                    Beta1 = (double) tmplat[jj];
+                    Lam2 = (double) tmplon[jj + 1];
+                    Beta2 = (double) tmplat[jj + 1];
+                    CosB1 = Math.cos(Beta1);
+                    CosB2 = Math.cos(Beta2);
+                } else {
+                    kk = (jj + 1) % (npts);
+                    Lam1 = Lam2;
+                    Beta1 = Beta2;
+                    Lam2 = (double) tmplon[kk];
+                    Beta2 = (double) tmplat[kk];
+                    CosB1 = CosB2;
+                    CosB2 = Math.cos(Beta2);
+                }
 
-                double a = (1.0 - Math.cos(Beta2 - Beta1)) / 2.0;
-                double b = (1.0 - Math.cos(Lam2 - Lam1)) / 2.0;
-                HavA = a + CosB1 * CosB2 * b;
+                if (!(Math.abs(Lam1 - Lam2) < GDIFFD)) {
 
-                A = 2 * Math.asin(Math.sqrt(HavA));
-                B = HalfPi - Beta2;
-                C = HalfPi - Beta1;
-                S = 0.5 * (A + B + C);
-                T = Math.tan(S / 2) * Math.tan((S - A) / 2)
-                        * Math.tan((S - B) / 2) * Math.tan((S - C) / 2);
+                    double a = (1.0 - Math.cos(Beta2 - Beta1)) / 2.0;
+                    double b = (1.0 - Math.cos(Lam2 - Lam1)) / 2.0;
+                    HavA = a + CosB1 * CosB2 * b;
 
-                excess = Math.abs(4 * Math.atan(Math.sqrt(Math.abs(T))))
-                        * Degree;
-                if (Lam2 < Lam1)
-                    excess = -excess;
+                    A = 2 * Math.asin(Math.sqrt(HavA));
+                    B = HalfPi - Beta2;
+                    C = HalfPi - Beta1;
+                    S = 0.5 * (A + B + C);
+                    T = Math.tan(S / 2) * Math.tan((S - A) / 2)
+                            * Math.tan((S - B) / 2) * Math.tan((S - C) / 2);
 
-                sum = sum + excess;
+                    excess = Math.abs(4 * Math.atan(Math.sqrt(Math.abs(T))))
+                            * Degree;
+                    if (Lam2 < Lam1)
+                        excess = -excess;
+
+                    sum = sum + excess;
+                }
             }
+
+            // TODO - Original code will be removed if 79252 code fix stands
+            // double area = Math.abs(sum);
+            area = Math.abs(sum);
+
+            /*
+             * Convert into "square nautical miles".
+             */
+            double radius = RADIUS
+                    * M2NM; /* The Earth's radius in nautical miles */
+
+            area *= ((radius) * (radius) / Degree);
+
         }
-
-        double area = Math.abs(sum);
-
-        /*
-         * Convert into "square nautical miles".
-         */
-        double radius = RADIUS
-                * M2NM; /* The Earth's radius in nautical miles */
-
-        area *= ((radius) * (radius) / Degree);
 
         return area;
+
     }
 
     /**

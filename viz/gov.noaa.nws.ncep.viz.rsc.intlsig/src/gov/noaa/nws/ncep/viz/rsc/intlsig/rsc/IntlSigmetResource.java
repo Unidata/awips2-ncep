@@ -129,9 +129,6 @@ public class IntlSigmetResource extends
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(IntlSigmetResource.class);
 
-    private static final IUFStatusHandler statusHandler = UFStatus
-            .getHandler(IntlSigmetResource.class);
-
     private IntlSigmetResourceData intlSigmetResourceDataObj;
 
     private static final UnitConverter mToNM = SI.METRE
@@ -1486,7 +1483,6 @@ public class IntlSigmetResource extends
             if (vertexListInPixel != null && !vertexListInPixel.isEmpty()) {
                 List<Coordinate> locCoordArray = new ArrayList<>(0);
                 ListIterator<PixelCoordinate> it = vertexListInPixel
-                        .listIterator();
                         .listIterator();
                 while (it.hasNext()) {
                     PixelCoordinate currLoc = it.next();

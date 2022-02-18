@@ -13,6 +13,7 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.convsigmet,
  com.raytheon.uf.edex.pointdata,
  org.geotools,
  javax.persistence,
- javax.measure
+ javax.measure,
+ com.raytheon.uf.common.status
 Import-Package: com.raytheon.uf.common.wmo,
  org.apache.commons.logging

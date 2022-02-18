@@ -11,9 +11,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import com.raytheon.uf.common.dataplugin.PluginException;
-import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.dataquery.db.QueryParam;
-import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.common.serialization.SerializationException;
@@ -27,22 +25,22 @@ import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
 
 /**
  * Set of DAO methods for TAF data.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 09/09/2011   458        sgurung     Initial Creation from Raytheon's taf plugin
  * 09/23/2011   458        sgurung     Converted to HDF5
  * 12/16/2016   5934       njensen     Moved to edex nctaf plugin
- * 
+ * 02/16/2022   8608       mapeters    Remove populateDataStore override that matched super
+ *
  * </pre>
- * 
+ *
  * @author sgurung
  */
-
 public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
 
     /** The station dao */
@@ -50,18 +48,11 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
 
     /**
      * Creates a new NcTafDao
-     * 
+     *
      * @throws PluginException
      */
     public NcTafDao(String pluginName) throws PluginException {
         super(pluginName);
-    }
-
-    @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
-            IPersistable obj) throws Exception {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     public List<?> queryBySpatialBox(double upperLeftLat, double upperLeftLon,
@@ -71,7 +62,7 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
         List<ObStation> stationList = obDao.queryBySpatialBox(upperLeftLat,
                 upperLeftLon, lowerRightLat, lowerRightLon);
 
-        List<String> stationNames = new ArrayList<String>();
+        List<String> stationNames = new ArrayList<>();
         // for(ObStation station:stationList){
         // stationNames.add((String)station.getIdentifier());
         // }
@@ -88,7 +79,7 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
 
         // List<ObStation> results = obDao.queryByState(state);
 
-        ArrayList<String> icaos = new ArrayList<String>();
+        List<String> icaos = new ArrayList<>();
         // for (ObStation station : results) {
         // //icaos.add((String)station.getIdentifier());
         // }
@@ -101,7 +92,7 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
 
     /**
      * Retrieves an nctaf report using the datauri .
-     * 
+     *
      * @param dataURI
      *            The dataURI to match against.
      * @return The report record if it exists.
@@ -112,9 +103,9 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
         try {
             obs = queryBySingleCriteria("dataURI", dataURI);
         } catch (DataAccessLayerException e) {
-            e.printStackTrace();
+            logger.error("Error querying TAF data by URI: " + dataURI, e);
         }
-        if ((obs != null) && (obs.size() > 0)) {
+        if (obs != null && !obs.isEmpty()) {
             report = (NcTafRecord) obs.get(0);
         }
         return report;
@@ -122,7 +113,7 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
 
     /**
      * Queries for to determine if a given data uri exists on the nctaf table.
-     * 
+     *
      * @param dataUri
      *            The DataURI to find.
      * @return An array of objects. If not null, there should only be a single
@@ -130,8 +121,8 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
      */
     public Object[] queryDataUriColumn(final String dataUri) {
 
-        String sql = "select datauri from awips.nctaf where datauri='"
-                + dataUri + "';";
+        String sql = "select datauri from awips.nctaf where datauri='" + dataUri
+                + "';";
 
         Object[] results = executeSQLQuery(sql);
 
@@ -165,8 +156,8 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
             throws SerializationException {
         if (hdf5DataDescription == null) {
             hdf5DataDescription = PointDataDescription
-                    .fromStream(this.getClass().getResourceAsStream(
-                            "/res/pointdata/nctaf.xml"));
+                    .fromStream(this.getClass()
+                            .getResourceAsStream("/res/pointdata/nctaf.xml"));
 
         }
         return hdf5DataDescription;
@@ -175,8 +166,8 @@ public class NcTafDao extends PointDataPluginDao<NcTafRecord> {
     @Override
     public PointDataDbDescription getPointDataDbDescription() {
         if (dbDataDescription == null) {
-            InputStream stream = this.getClass().getResourceAsStream(
-                    "/res/pointdata/nctafdb.xml");
+            InputStream stream = this.getClass()
+                    .getResourceAsStream("/res/pointdata/nctafdb.xml");
             if (stream != null) {
                 try {
                     dbDataDescription = PointDataDbDescription

@@ -55,6 +55,7 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
  *                                     to allow the activitySubType to be saved
  *                                     when the Product object has a value for
  *                                     it, such as modified OUTLOOK records.
+ * Apr 08, 2022 8653       tjensen     Improve error messages on failed retrieval
  *
  * </pre>
  *
@@ -62,6 +63,8 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
  * @version 1.0
  */
 public class StorageUtils {
+
+    private static final String NONE = "NONE";
 
     private static final String STORAGE_ERROR = "Pgen Storage Exception";
 
@@ -103,11 +106,11 @@ public class StorageUtils {
         // the activitySubType. The activitySubtype will be in parentheses.
         // Example: "Excessive_rainfall_98E(98E_21Z)"
         if (type != null) {
-            int loc1 = type.indexOf("(");
+            int loc1 = type.indexOf('(');
             if (loc1 > 0) {
                 info.setActivityType(type.substring(0, loc1));
                 String subtype = type.substring(loc1 + 1).replace(")", "");
-                if (subtype.length() > 0 && !subtype.equalsIgnoreCase("NONE")) {
+                if (subtype.length() > 0 && !subtype.equalsIgnoreCase(NONE)) {
                     info.setActivitySubtype(subtype);
                 }
             }
@@ -250,7 +253,6 @@ public class StorageUtils {
         }
 
         String dataURI = record.getDataURI();
-
         DbQueryRequest request = new DbQueryRequest();
         request.setEntityClass(PgenRecord.class.getName());
         request.addRequestField(PgenRecord.DATAURI);
@@ -263,8 +265,6 @@ public class StorageUtils {
             if (response.getResults().size() == 1) {
                 exists = true;
             }
-            System.out.println(
-                    "GOT RESPONSE BACK = " + response.getResults().size());
         } catch (Exception e) {
             throw new PgenStorageException(
                     "Error determinimg if activity exists", e);
@@ -296,11 +296,16 @@ public class StorageUtils {
             ResponseMessageError err = (ResponseMessageError) resp;
             StringBuilder sb = new StringBuilder(
                     "Error Retrieving Activity from EDEX");
-            if (((ResponseMessageError) resp).getErrorChain() != null) {
+            if (err.getErrorChain() != null) {
                 for (String msg : err.getErrorChain()) {
                     sb.append("\n");
                     sb.append(msg);
                 }
+            } else {
+                sb.append("\n");
+                sb.append(err.getErrorMsg());
+                sb.append("\n");
+                sb.append(err.getErrorCause());
             }
             throw new PgenStorageException(sb.toString());
         }

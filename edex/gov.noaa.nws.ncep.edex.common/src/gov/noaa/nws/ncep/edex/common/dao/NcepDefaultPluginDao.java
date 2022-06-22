@@ -7,94 +7,75 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import com.raytheon.edex.db.dao.DefaultPluginDao;
 import com.raytheon.uf.common.dataplugin.PluginException;
-import com.raytheon.uf.common.dataplugin.persist.IPersistable;
-import com.raytheon.uf.common.datastorage.IDataStore;
-import com.raytheon.uf.edex.database.plugin.PluginDao;
 
-public class NcepDefaultPluginDao extends PluginDao {
+/**
+ * Default Data Access Object for NCEP plugins.
+ *
+ * <pre>
+ *
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ *                                     Initial creation
+ * Jun 22, 2022 8865       mapeters    Extend DefaultPluginDao
+ *
+ * </pre>
+ *
+ * @author unknown
+ */
+public class NcepDefaultPluginDao extends DefaultPluginDao {
 
-	protected List<String> tableClassNameList= new ArrayList<String>();
-	
-	public List<String> getTableClassName() {
-		return tableClassNameList;
-	}
+    protected List<String> tableClassNameList = new ArrayList<>();
 
-	public void setTableClassName(List<String> tableClassNamelst) {
-		this.tableClassNameList = tableClassNamelst;
-	}
+    public List<String> getTableClassName() {
+        return tableClassNameList;
+    }
 
-	public NcepDefaultPluginDao(String pluginName) throws PluginException {
-		super(pluginName);
-		// TODO Auto-generated constructor stub
-	}
+    public void setTableClassName(List<String> tableClassNamelst) {
+        this.tableClassNameList = tableClassNamelst;
+    }
 
+    public NcepDefaultPluginDao(String pluginName) throws PluginException {
+        super(pluginName);
+    }
 
-	/**
-	 * Purges all metadata  for the
-	 * owning plugin from the database
-	 * 
-	 * @param date
-	 *            The data cutoff date
-	 * @return The number of items deleted
-	 */
-	protected int purgeAllTables() {
-		int results = 0;
-		logger.info("purging..."+ this.pluginName);
-		if (this.daoClass == null) {
-			logger.info("No record class specified for " + this.pluginName
-					+ " plugin. EDEX will not purge data for "
-					+ this.pluginName + " plugin");
-		} else {
-			Session s = getSession();
-			
-			Transaction tx = s.beginTransaction();
-			try {
-				
-				
-				String queryString = "delete " + daoClass.getSimpleName()
-						+ " x";
-				logger.info("query..."+ queryString);
-				Query query = s.createQuery(queryString);
-				results = query.executeUpdate();
-				tx.commit();
-				
-				s.flush();
-			} catch (Throwable t) {
-				// TODO
-				t.printStackTrace();
-				tx.rollback();
-			} finally {
-				if (s != null) {
-					s.close();
-				}
-			}
-		}
-		return results;
-	}
-	/*@Override
-	/**
-	 * Purges all data associated with the owning plugin based on criteria
-	 * specified by the owning plugin
-	 * 
-	 * @throws PluginException
-	 *             If problems occur while interacting with the data stores
-	 *
-	public void purgeAllData() throws PluginException {
-		purgeAllTables();
-		
-		ArrayList<File> files = FileUtil.listFiles(new File(PLUGIN_HDF5_DIR),
-				new HDF5PluginFilenameFilter(pluginName), true);
-		for (File file : files) {
-			file.delete();
-		}
-	
-	}*/
+    /**
+     * Purges all metadata for the owning plugin from the database
+     *
+     * @param date
+     *            The data cutoff date
+     * @return The number of items deleted
+     */
+    protected int purgeAllTables() {
+        int results = 0;
+        logger.info("purging..." + this.pluginName);
+        if (this.daoClass == null) {
+            logger.info("No record class specified for " + this.pluginName
+                    + " plugin. EDEX will not purge data for " + this.pluginName
+                    + " plugin");
+        } else {
+            try (Session s = getSession()) {
+                Transaction tx = s.beginTransaction();
+                try {
 
-	@Override
-	protected IDataStore populateDataStore(IDataStore dataStore,
-			IPersistable obj) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+                    String queryString = "delete " + daoClass.getSimpleName()
+                            + " x";
+                    logger.info("query..." + queryString);
+                    Query query = s.createQuery(queryString);
+                    results = query.executeUpdate();
+                    tx.commit();
+
+                    s.flush();
+                } catch (Throwable t) {
+                    logger.error("Error purging " + pluginName + "/" + daoClass,
+                            t);
+                    tx.rollback();
+                }
+            }
+        }
+        return results;
+    }
 }

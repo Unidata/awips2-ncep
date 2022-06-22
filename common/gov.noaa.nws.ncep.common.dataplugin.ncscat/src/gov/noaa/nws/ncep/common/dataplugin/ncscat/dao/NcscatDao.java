@@ -29,6 +29,7 @@ import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatRecord;
  * ------------ ----------  ----------- --------------------------
  * 11/2009                  Uma Josyula Initial creation
  * Sep 23, 2021 8608        mapeters    Pass metadata ids to datastore
+ * Jun 22, 2022 8865        mapeters    Update populateDataStore to return boolean
  *
  * </pre>
  *
@@ -41,7 +42,7 @@ public class NcscatDao extends PluginDao {
     }
 
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
+    protected boolean populateDataStore(IDataStore dataStore,
             IPersistable record) throws StorageException {
 
         NcscatRecord ncscatRecord = (NcscatRecord) record;
@@ -65,7 +66,7 @@ public class NcscatDao extends PluginDao {
         dataStore.addDataRecord(storageRecord,
                 new DataUriMetadataIdentifier(ncscatRecord));
 
-        return dataStore;
+        return true;
     }
 
     @Override

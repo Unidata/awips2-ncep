@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: AWIPS II Migration
 Require-Bundle: com.raytheon.edex.common,
  javax.persistence,
- gov.noaa.nws.ncep.common.dataplugin.wcp
+ gov.noaa.nws.ncep.common.dataplugin.wcp,
+ com.raytheon.uf.common.status
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.apache.commons.logging
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

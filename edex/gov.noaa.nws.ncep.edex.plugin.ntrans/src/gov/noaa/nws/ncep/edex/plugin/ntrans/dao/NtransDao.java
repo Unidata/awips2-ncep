@@ -30,6 +30,7 @@ import gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord;
  * 11/2009                 Uma Josyula Initial creation
  * Dec 14, 2016 5934       njensen     Moved to edex ntrans plugin
  * Sep 23, 2021 8608       mapeters    Pass metadata ids to datastore
+ * Jun 22, 2022 8865       mapeters    Update populateDataStore to return boolean
  *
  * </pre>
  *
@@ -42,7 +43,7 @@ public class NtransDao extends PluginDao {
     }
 
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
+    protected boolean populateDataStore(IDataStore dataStore,
             IPersistable record) throws StorageException {
 
         NtransRecord ntransRecord = (NtransRecord) record;
@@ -56,7 +57,7 @@ public class NtransDao extends PluginDao {
         dataStore.addDataRecord(imageDataRecord,
                 new DataUriMetadataIdentifier(ntransRecord));
 
-        return dataStore;
+        return true;
     }
 
     @Override

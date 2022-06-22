@@ -32,11 +32,12 @@ import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyBlock;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 09/2009      143             L. Lin      Initial coding
- * Aug 30, 2013 2298            rjpeter     Make getPluginName abstract
- * Sep 23, 2021 8608            mapeters    Pass metadata ids to datastore
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 09/2009      143         L. Lin      Initial coding
+ * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract
+ * Sep 23, 2021 8608        mapeters    Pass metadata ids to datastore
+ * Jun 22, 2022 8865        mapeters    Update populateDataStore to return boolean
  * </pre>
  *
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -58,8 +59,9 @@ public class MosaicDao extends PluginDao {
     }
 
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
-            IPersistable obj) throws Exception {
+    protected boolean populateDataStore(IDataStore dataStore, IPersistable obj)
+            throws Exception {
+        boolean populated = false;
 
         MosaicRecord mosaicRec = (MosaicRecord) obj;
         IMetadataIdentifier metaId = new DataUriMetadataIdentifier(mosaicRec);
@@ -69,6 +71,7 @@ public class MosaicDao extends PluginDao {
                     new long[] { 120 });
             rec.setCorrelationObject(mosaicRec);
             dataStore.addDataRecord(rec, metaId);
+            populated = true;
         }
 
         if (mosaicRec.getRawData() != null) {
@@ -77,6 +80,7 @@ public class MosaicDao extends PluginDao {
                     new long[] { mosaicRec.getNx(), mosaicRec.getNy() });
             rec.setCorrelationObject(mosaicRec);
             dataStore.addDataRecord(rec, metaId);
+            populated = true;
         }
 
         if ((mosaicRec.getThresholds() != null)
@@ -86,6 +90,7 @@ public class MosaicDao extends PluginDao {
                     new long[] { 16 });
             rec.setCorrelationObject(mosaicRec);
             dataStore.addDataRecord(rec, metaId);
+            populated = true;
         }
 
         if (mosaicRec.getSymbologyBlock() != null) {
@@ -95,6 +100,7 @@ public class MosaicDao extends PluginDao {
             ByteDataRecord bdr = new ByteDataRecord("Symbology",
                     mosaicRec.getDataURI(), data);
             dataStore.addDataRecord(bdr, metaId);
+            populated = true;
         }
 
         if (mosaicRec.getProductDependentValues() != null) {
@@ -104,6 +110,7 @@ public class MosaicDao extends PluginDao {
                             mosaicRec.getProductDependentValues().length });
             rec.setCorrelationObject(mosaicRec);
             dataStore.addDataRecord(rec, metaId);
+            populated = true;
         }
 
         if (mosaicRec.getRecordVals().isEmpty()) {
@@ -113,9 +120,10 @@ public class MosaicDao extends PluginDao {
             ByteDataRecord bdr = new ByteDataRecord("RecordVals",
                     mosaicRec.getDataURI(), data);
             dataStore.addDataRecord(bdr, metaId);
+            populated = true;
         }
 
-        return dataStore;
+        return populated;
     }
 
     @Override

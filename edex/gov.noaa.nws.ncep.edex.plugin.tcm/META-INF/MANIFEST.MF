@@ -9,6 +9,7 @@ Require-Bundle: javax.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.tcm,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.common.status
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core

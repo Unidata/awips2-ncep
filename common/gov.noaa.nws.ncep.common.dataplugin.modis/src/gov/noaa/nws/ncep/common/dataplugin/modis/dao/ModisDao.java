@@ -49,7 +49,7 @@ import gov.noaa.nws.ncep.common.dataplugin.modis.ModisSpatialCoverage;
  * 10/01/2014   R5116      kbugenhagen  Initial creation
  * Sep 23, 2021 8608       mapeters     Pass metadata ids to datastore
  * Feb 16, 2022 8608       mapeters     Update usage of obsolete storeInterpolated method
- *
+ * Jun 22, 2022 8865       mapeters     Update populateDataStore to return boolean
  *
  * </pre>
  *
@@ -74,8 +74,8 @@ public class ModisDao extends PluginDao {
      * levels for the image are stored to support down-scaling.
      */
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
-            IPersistable obj) throws Exception {
+    protected boolean populateDataStore(IDataStore dataStore, IPersistable obj)
+            throws Exception {
 
         final ModisRecord record = (ModisRecord) obj;
         AbstractStorageRecord dataset = null;
@@ -181,7 +181,7 @@ public class ModisDao extends PluginDao {
 
         dataStore.store();
 
-        return dataStore;
+        return true;
     }
 
     @Override

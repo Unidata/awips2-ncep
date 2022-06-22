@@ -13,6 +13,7 @@ Require-Bundle: javax.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
- javax.xml.bind
+ javax.xml.bind,
+ com.raytheon.uf.common.status
 Import-Package: com.raytheon.uf.common.serialization.comm,
  org.locationtech.jts.geom

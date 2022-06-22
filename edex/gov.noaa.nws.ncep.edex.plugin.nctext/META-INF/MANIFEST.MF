@@ -21,4 +21,5 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  javax.persistence,
  com.raytheon.uf.edex.decodertools,
- javax.xml.bind
+ javax.xml.bind,
+ com.raytheon.uf.common.status

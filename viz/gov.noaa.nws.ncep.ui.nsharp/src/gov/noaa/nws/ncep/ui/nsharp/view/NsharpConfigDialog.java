@@ -259,4 +259,16 @@ public class NsharpConfigDialog extends Dialog {
         return super.open();
 
     }
+    
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#isResizable()
+     * Allow this dialog to be resizable, because sometimes it is not
+     * large enough to display all the options on monitors with 
+     * certain resolutions.
+     */
+    @Override
+    protected boolean isResizable(){
+    	return true;
+    }
 }

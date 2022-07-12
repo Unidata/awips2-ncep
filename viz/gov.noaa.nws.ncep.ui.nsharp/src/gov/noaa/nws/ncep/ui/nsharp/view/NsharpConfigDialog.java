@@ -15,6 +15,7 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * 03/21/2012	229			Chin Chen	Initial coding
  * 03/09/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option                       
  * 09/16/2015   RM#10188    Chin Chen   Model selection upgrades - use grid resource definition name for model type display
+ * 07/12/2022             srcarter@ucar Make this dialog resizable 
  *
  * </pre>
  * 
@@ -258,5 +259,17 @@ public class NsharpConfigDialog extends Dialog {
                 this.getShell().getParent().getLocation().y + 200);
         return super.open();
 
+    }
+    
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#isResizable()
+     * Allow this dialog to be resizable, because sometimes it is not
+     * large enough to display all the options on monitors with 
+     * certain resolutions.
+     */
+    @Override
+    protected boolean isResizable(){
+    	return true;
     }
 }

@@ -43,6 +43,8 @@ import gov.noaa.nws.ncep.edex.util.UtilN;
  *                                   TimeTools usage
  * Sep 13, 2018  7460     dgilling   Improved getHazardType.
  * Jul 15, 2020  8191     randerso   Updated for changes to LatLonPoint
+ * Aug 02, 2022  8904     tjensen    Remove duplicate string from
+ *                                   terminationList set
  *
  * </pre>
  *
@@ -830,10 +832,12 @@ public class IntlSigmetParser {
             time = timejapanMatcher.group(4);
         } else if (timecanadaMatcher.find()) {
             time = timecanadaMatcher.group(4);
-// TODO: SonarQube flagged this as unreachable since it duplicates the previous if check.
-// was it supposed to be something other than timecanadaMatcher.find()?
-//        } else if (timecanadaMatcher.find()) {
-//            time = timecanadaMatcher.group(6);
+            // TODO: SonarQube flagged this as unreachable since it duplicates
+            // the previous if check.
+            // was it supposed to be something other than
+            // timecanadaMatcher.find()?
+            // } else if (timecanadaMatcher.find()) {
+            // time = timecanadaMatcher.group(6);
         } else if (time1Matcher.find()) {
             time = time1Matcher.group(4);
         } else if (time2Matcher.find()) {
@@ -1480,7 +1484,7 @@ public class IntlSigmetParser {
                 "INTSF=", "MAINLY", "SIGMET", "OCNL", "WKN", "PL", "FZRA",
                 "LLWS", "TURB", "STR", "FCST", "VA", "MDT", "STRONG", "LN",
                 "AT", "BASED", "OF", "SVR", "OVER", "TS", "AND", "OBL",
-                "TURBUL", "BLW", "TOP", "TORNADO", "CORRECTION");
+                "TURBUL", "BLW", "TORNADO", "CORRECTION");
 
         final String LATLON1_EXP = "(N|S)([0-9]{4}) (E|W)([0-9]{5}) -";
         // Pattern used for extracting latlon

@@ -15,7 +15,7 @@ Prefix: %{_component_default_prefix}
 URL: N/A
 License: N/A
 Distribution: N/A
-Vendor: Raytheon
+Vendor: %{_build_vendor}
 
 AutoReq: no
 provides: awips2-ncep-cli

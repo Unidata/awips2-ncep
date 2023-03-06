@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Intlsigmet Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.intlsigmet
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: gov.noaa.nws.ncep.common,
  org.geotools,
  javax.persistence,

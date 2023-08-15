@@ -9,26 +9,26 @@ usage(){
       - <sourcedf>: the source directory or the source file (ending with .vgf).
       - <target>: the target directory or the target file (ending with .xml)
       - -a is the Pgen configuration option followed by the activity
-		and subActivity names. The activity and subActivity are separated
-		by a space. The subActivity can be omitted or after the activity.
+        and subActivity names. The activity and subActivity are separated
+        by a space. The subActivity can be omitted or after the activity.
       - -t: the contour table option followed by the table name.
-		It is users' responsibility to provide their tables. The table has 8 
-		columns of contour color, contour parameter, level1, level2, 
-		forcastHour, cint and time1, time2. See a sample table in 
-		${GEMPAK}/utilities/a2conv/distVC/table/vgfConvert.tbl.
-    	
-		Also, the user could define a given group type of elements to be converted 
-		into a specific Outlook type in CAVE. See vgfConvert_EXCE_RAIN.tbl and 
-		vgfConvert_FLOOD.tbl for examples.
+        It is users' responsibility to provide their tables. The table has 8 
+        columns of contour color, contour parameter, level1, level2, 
+        forcastHour, cint and time1, time2. See a sample table in 
+        ${GEMPAK}/utilities/a2conv/distVC/table/vgfConvert.tbl.
+        
+        Also, the user could define a given group type of elements to be converted 
+        into a specific Outlook type in CAVE. See vgfConvert_EXCE_RAIN.tbl and 
+        vgfConvert_FLOOD.tbl for examples.
       -M/-m: the flag for converting LPF from existing xmls. By default, VGFs in an LPF will be 
-	     automatically converted into XMLs before combining into a multi-layer xml, but the user
+         automatically converted into XMLs before combining into a multi-layer xml, but the user
              could not specify table for each single VGF. With this flag, the user could first use 
              "-t" flag to specify a table for each single VGF. Then combine the resulting xmls using 
              a command like "vgf2xml lpfFile . -M".
       - -s: site/center, e.g., OAX, OPC. Default as "Default".
       - -f: forecaster. Default as "Default".
       - -u: activity status. Default as "UNKNOWN".
-		
+        
       - The converted file has the same name with .xml ending.
 EOF
     exit
@@ -48,23 +48,12 @@ fi
 if [ $NA_OS == "linux2.6.18_x86_64" ]; then
     file -L `which java` | grep "64-bit" > /dev/null
     if [ $? -eq 0 ]; then
-	    export LD_LIBRARY_PATH=${OS_LIB}:home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distVC/lib:$LD_LIBRARY_PATH
-	    echo "First if LD_LIBRARY_PATH"
-	    echo LD_LIBRARY_PATH
-	    #export LD_LIBRARY_PATH=${OS_LIB}:${GEMPAK}/utilities/a2conv/distVC/lib:$LD_LIBRARY_PATH
-	    
+        export LD_LIBRARY_PATH=${OS_LIB}:${GEMPAK}/utilities/a2conv/distVC/lib:$LD_LIBRARY_PATH
      else
-	    export LD_LIBRARY_PATH=${NAWIPS}/os/linux2.6.18_i686/lib:home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distVC/lib:$LD_LIBRARY_PATH
-	    #export LD_LIBRARY_PATH=${NAWIPS}/os/linux2.6.18_i686/lib:${GEMPAK}/utilities/a2conv/distVC/lib:$LD_LIBRARY_PATH
-	    echo "SECOND if LD_LIBRARY_PATH"
-	    echo LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${NAWIPS}/os/linux2.6.18_i686/lib:${GEMPAK}/utilities/a2conv/distVC/lib:$LD_LIBRARY_PATH
     fi
 else
-    #export LD_LIBRARY_PATH=${OS_LIB}:home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/a2conv/distVC/lib:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=${OS_LIB}:${GEMPAK}/utilities/gov.noaa.nws.ncep.standalone/distVC/lib:$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=${OS_LIB}:home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distVC/lib:$LD_LIBRARY_PATH
-    echo "THIRD if LD_LIBRARY_PATH"${OS_LIB}:home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distVC/lib
-	echo LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${OS_LIB}:${GEMPAK}/utilities/gov.noaa.nws.ncep.standalone/distVC/lib:$LD_LIBRARY_PATH
 fi
 
 #
@@ -95,9 +84,7 @@ fi
 
 #java -jar ${GEMPAK}/utilities/a2conv/distVC/vgfConverter.jar $srcpath $tgtpath  $3 $4 $5 $6 $7
 
-java -jar /home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distVC/vgfConverter.jar ${1+"$@"}
-
-#java -jar ${GEMPAK}/utilities/a2conv/distVC/vgfConverter.jar ${1+"$@"}
+java -jar ${GEMPAK}/utilities/a2conv/distVC/vgfConverter.jar ${1+"$@"}
 
 #  Cleanup temp JNA directory if it was used
 if [ -d "$temp_jna_dir" ]; then

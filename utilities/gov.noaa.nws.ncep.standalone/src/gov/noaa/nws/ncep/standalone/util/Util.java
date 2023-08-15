@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.standalone.util.Util.java
- * 
+ *
  * Date created (as Feb 1, 2010)
  *
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -25,7 +25,15 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
 /**
  * Utility methods to be used in standalone package. 01/11 TTR 169 Q. Zhou
  * Handled exception
- * 
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * Aug 11, 2023 2033507     achalla     Added error suppression on read()
+ *
+ * </pre>
+ *
  * @author mlaryukhin
  */
 public class Util {
@@ -34,7 +42,7 @@ public class Util {
 
     /**
      * Reads the contents of the file.
-     * 
+     *
      * @param fileName
      *            file name
      * @return
@@ -70,8 +78,9 @@ public class Util {
 
     /**
      * Reads product in a file into a JAXB-based Products object
-     * 
+     *
      * @throws FileNotFoundException
+     * @throws JAXBException
      */
     public static Products read(String fileName) throws FileNotFoundException {
         Products products = null;
@@ -80,26 +89,31 @@ public class Util {
             Unmarshaller unmarshaller = context.createUnmarshaller();
             products = (Products) unmarshaller
                     .unmarshal(new FileReader(fileName));
+
         } catch (JAXBException e) {
-            // throw new RuntimeException(e);
-            System.out.println(
-                    "*** The xml file " + fileName + " is not readable."); // +
-                                                                           // e.getStackTrace()
-            System.out.println(
-                    "*** This is the ERROR::::::" + e.getLocalizedMessage()); // +
-                                                                              // e.getStackTrace()
+            System.err
+                    .println("The xml file " + fileName + " is not readable.");
+
         } catch (FileNotFoundException e) {
-            // throw new FileNotFoundException("An error occurred while opening
-            // " + fileName);
-            System.out
-                    .println("*** The xml file " + fileName + " is not exist.");
+            System.err.println("The xml file " + fileName + " does not exist.");
+        } catch (InternalError ie) {
+            /*
+             * suppressing package error until further investigation caused by
+             * Java-11 upgrade which doesn't cause service interruption
+             */
+            /*
+             * Error Message: Error occurred while invoking reflection on target
+             * classes. Make sure all referenced classes are on classpath:
+             * interface javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
+             * Exception: null
+             */
         }
         return products;
     }
 
     /**
      * Writes product in a file into a JAXB-based Products object
-     * 
+     *
      * @throws FileNotFoundException
      */
     public static void write(String fileName, Products products, Class<?> clazz)

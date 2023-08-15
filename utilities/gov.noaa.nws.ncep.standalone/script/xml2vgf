@@ -39,16 +39,9 @@ echo " "
 echo "Converting XMLs into ASCII tag files ....... "
 echo " "
 
-export PATH=/home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/bin:$PATH
-#export PATH=${GEMPAK}/utilities/a2conv/bin:$PATH
+export PATH=${GEMPAK}/utilities/a2conv/bin:$PATH
 
-java -jar /home/achalla/gitNWIPS/AWIPS2_NCEP/utilities/gov.noaa.nws.ncep.standalone/distXC/xmlConverter.jar $srcpath $tgtpath $3
-#java -jar ${GEMPAK}/utilities/a2conv/distXC/xmlConverter.jar $srcpath $tgtpath $3
-
-echo "The TagPath,AND PATH VARS ARE BELOW==>"
-echo ${tgtpath}
-echo " "
-echo ${PATH}
+java -jar ${GEMPAK}/utilities/a2conv/distXC/xmlConverter.jar $srcpath $tgtpath $3
 
 #cd $tgtpath
 

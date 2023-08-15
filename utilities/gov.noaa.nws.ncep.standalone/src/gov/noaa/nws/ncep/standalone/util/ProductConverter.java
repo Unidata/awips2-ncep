@@ -1,6 +1,6 @@
 /*
  * gov.noaa.nws.ncep.ui.pgen.file.ProductConverter
- * 
+ *
  * Date created: 17 February 2009
  *
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -94,7 +94,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
 /**
  * Define a ProductConverter Class - some methods to convert the products
  * between XML format and the actual in-memory PGEN products.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -102,12 +102,12 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 02/17/09		#63			J. Wu   	Initial Creation.
  * 01/11        #137        Q.Zhou      Move it from pgen.file to here (made some export)
  * 										Made standalone not depend on edex and isconverter condition.
- *             							Modified convertXML2WatchBox(), convertXML2Volcano()  
- * 
+ *             							Modified convertXML2WatchBox(), convertXML2Volcano()
+ *
  * 11/1/2011   137          Q.Zhou      Copied from pgen.file again due to pgen refactor (Removed pgen.original).
  * 										Redo above modifications. Modified on new Text definition.
- * 02/12       597          S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
- * 03/12       #676         Q. Zhou     Added Issue Office to IntlSigmet.  
+ * 02/12       597          S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo.
+ * 03/12       #676         Q. Zhou     Added Issue Office to IntlSigmet.
  * 03/12       #599         Q. Zhou     Modified watchbox for anchor & county columns
  * 11/13       1065-TTR850  J. Wu       Added kink lines.
  * 05/14       TTR995       J. Wu       Set text's "auto" flag to false.
@@ -124,7 +124,9 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 04/28/20     77994       ksunil      new fields in Sigmet for Tropical Cyclone.
  * May 22, 2020 78000       ksunil      New Tropical Cyclone UI components for Fcst
  * Apr 08, 2021 90325       smanoj      CARSAM Backup WMO headers update.
- * 
+ * Aug 11, 2023 2033507     achalla     Modified convert() to handle the latest
+ *                                      DrawableElemet's object configuration
+ *
  * </pre>
  *
  * @author J. Wu
@@ -138,7 +140,6 @@ public class ProductConverter {
     public static List<Product> convert(Products filePrds) {
 
         List<Product> prd = new ArrayList<>();
-
         for (gov.noaa.nws.ncep.ui.pgen.file.Product fPrd : filePrds
                 .getProduct()) {
             Product p = new Product();
@@ -197,7 +198,6 @@ public class ProductConverter {
             List<gov.noaa.nws.ncep.ui.pgen.file.Layer> flayers) {
 
         List<Layer> layers = new ArrayList<>();
-
         for (gov.noaa.nws.ncep.ui.pgen.file.Layer fLayer : flayers) {
 
             Layer lyr = new Layer();
@@ -219,9 +219,7 @@ public class ProductConverter {
 
             lyr.setInputFile(null);
             lyr.setOutputFile(null);
-
             lyr.setDrawables(convert(fLayer.getDrawableElement()));
-
             layers.add(lyr);
         }
 
@@ -237,87 +235,91 @@ public class ProductConverter {
 
         List<AbstractDrawableComponent> des = new ArrayList<>();
 
-        // Its a Line
+        // Line
         if (!elem.getLine().isEmpty()) {
             convertDELine(elem, des);
         }
-        // Its a Symbol
-        else if (!elem.getSymbol().isEmpty()) {
+        // TCA
+        if (!elem.getTCA().isEmpty()) {
+            convertDE_TCA(elem, des);
+        }
+        // GFA
+        if (!elem.getGfa().isEmpty()) {
+            convertDE_GFA(elem, des);
+        }
+        // DECollection
+        if (!elem.getDECollection().isEmpty()) {
+            convertDE_DECollection(elem, des);
+        }
+        // Symbol
+        if (!elem.getSymbol().isEmpty()) {
             convertDESymbol(elem, des);
         }
-        // Its Text
-        else if (!elem.getText().isEmpty()) {
+        // Text
+        if (!elem.getText().isEmpty()) {
             convertDEText(elem, des);
         }
-        // Its AVN Text
-        else if (!elem.getAvnText().isEmpty()) {
+        // AVN Text
+        if (!elem.getAvnText().isEmpty()) {
             convertDEAVNText(elem, des);
         }
-        // Its MidCloud Text
-        else if (!elem.getMidCloudText().isEmpty()) {
+        // MidCloud Text
+        if (!elem.getMidCloudText().isEmpty()) {
             convertDECloudText(elem, des);
         }
-        // Its an Arc
-        else if (!elem.getArc().isEmpty()) {
+        // Arc
+        if (!elem.getArc().isEmpty()) {
             convertDEArc(elem, des);
         }
 
-        // The types above can be used with a TrackCoverter for tracking storms
-        // so add them now. Not necessary for the types following this
-        // function call
+        /*
+         * The types above can be used with a TrackCoverter for tracking storms
+         * so add them now. Not necessary for the types following this function
+         * call
+         */
         des.addAll(TrackConverter
                 .getTrackElementListByTrackBeanList(elem.getTrack()));
 
-        // Its a Vector
+        // Vector
         if (!elem.getVector().isEmpty()) {
             convertDEVector(elem, des);
         }
-        // Its a TCA
-        else if (!elem.getTCA().isEmpty()) {
-            convertDE_TCA(elem, des);
-        }
-        // Its a DECollection
-        else if (!elem.getDECollection().isEmpty()) {
-            convertDE_DECollection(elem, des);
-        }
-        // Its a Watch Box
-        else if (!elem.getWatchBox().isEmpty()) {
+
+        // Watch Box
+        if (!elem.getWatchBox().isEmpty()) {
             for (gov.noaa.nws.ncep.ui.pgen.file.WatchBox fwb : elem
                     .getWatchBox()) {
                 des.add(convertXML2WatchBox(fwb));
             }
         }
-        // Conturs
-        else if (!elem.getContours().isEmpty()) {
+        // Contours
+        if (!elem.getContours().isEmpty()) {
             for (gov.noaa.nws.ncep.ui.pgen.file.Contours fdec : elem
                     .getContours()) {
                 des.add(convertXML2Contours(fdec));
             }
         }
-        // Its an Outlook
-        else if (!elem.getOutlook().isEmpty()) {
+        // Outlook
+        if (!elem.getOutlook().isEmpty()) {
             for (gov.noaa.nws.ncep.ui.pgen.file.Outlook fotlk : elem
                     .getOutlook()) {
                 des.add(convertXML2Outlook(fotlk));
             }
         }
-        // Its a Sigment
-        else if (!elem.getSigmet().isEmpty()) {
+        // Sigmet
+        if (!elem.getSigmet().isEmpty()) {
             convertDESigment(elem, des);
         }
-        // Its a GFA
-        else if (!elem.getGfa().isEmpty()) {
-            convertDE_GFA(elem, des);
-        }
-        // Its a Volcano
-        else if (!elem.getVolcano().isEmpty()) {
+
+        // Volcano
+        if (!elem.getVolcano().isEmpty()) {
             for (gov.noaa.nws.ncep.ui.pgen.file.Volcano fVol : elem
                     .getVolcano()) {
                 des.add(convertXML2Volcano(fVol));
             }
         }
-        // Its a TCM
-        else if (!elem.getTcm().isEmpty()) {
+        // TCM
+        if (!elem.getTcm().isEmpty()) {
             for (gov.noaa.nws.ncep.ui.pgen.file.TCM ftcm : elem.getTcm()) {
                 des.add(convertXML2Tcm(ftcm));
             }
@@ -333,6 +335,7 @@ public class ProductConverter {
     private static void convertDE_GFA(
             gov.noaa.nws.ncep.ui.pgen.file.DrawableElement elem,
             List<AbstractDrawableComponent> des) {
+
         for (gov.noaa.nws.ncep.ui.pgen.file.Gfa fgfa : elem.getGfa()) {
 
             Color[] clr = new Color[fgfa.getColor().size()];
@@ -427,6 +430,7 @@ public class ProductConverter {
         for (gov.noaa.nws.ncep.ui.pgen.file.DECollection fdec : elem
                 .getDECollection()) {
             String cname = fdec.getCollectionName();
+
             if (cname.equalsIgnoreCase("jet")) {
                 Jet jet = convertXML2Jet(fdec);
                 if (jet != null) {
@@ -455,6 +459,7 @@ public class ProductConverter {
     private static void convertDE_TCA(
             gov.noaa.nws.ncep.ui.pgen.file.DrawableElement elem,
             List<AbstractDrawableComponent> des) {
+
         for (gov.noaa.nws.ncep.ui.pgen.file.TCA ftca : elem.getTCA()) {
 
             TCAElement tca = new TCAElement();
@@ -1543,7 +1548,7 @@ public class ProductConverter {
     /**
      * Convert a DECollection to a format that can be used by jaxb and saved to
      * XML files
-     * 
+     *
      * @param dec
      * @return
      */
@@ -1575,7 +1580,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a jet element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -1629,7 +1634,7 @@ public class ProductConverter {
 
     /**
      * Convert a XML Line to a jet line
-     * 
+     *
      * @return
      */
     private static JetLine convertJetLine(
@@ -1661,7 +1666,7 @@ public class ProductConverter {
 
     /**
      * Convert a vector from XML to jet hash
-     * 
+     *
      * @param fVector
      * @param jet
      * @return
@@ -1696,7 +1701,7 @@ public class ProductConverter {
 
     /**
      * Convert a Vector from XML to jet barb
-     * 
+     *
      * @param fVector
      * @param jet
      * @return
@@ -1730,7 +1735,7 @@ public class ProductConverter {
 
     /**
      * Convert an XML text to a jet flight level text
-     * 
+     *
      * @param fText
      * @return
      */
@@ -1768,7 +1773,7 @@ public class ProductConverter {
 
     /**
      * Convert a Contours object to an XML Contours object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -1838,7 +1843,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML Contours object to a PGEN Contours object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -1950,7 +1955,7 @@ public class ProductConverter {
 
     /**
      * Convert a WatchBox element to file
-     * 
+     *
      * @param wb
      * @return
      */
@@ -2200,7 +2205,7 @@ public class ProductConverter {
 
     /**
      * Convert XML to WatchBox element
-     * 
+     *
      * @param fwb
      * @return
      */
@@ -2415,7 +2420,7 @@ public class ProductConverter {
 
     /**
      * Convert an Outlook object to an XML Outlook object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -2510,7 +2515,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML Outlook object to a PGEN Outlook object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -2623,9 +2628,9 @@ public class ProductConverter {
 
     /**
      * Convert XML to Volcano element
-     * 
+     *
      * public for saving elements with SaveMsgDlg and TEST/RESUME types
-     * 
+     *
      * @param fVol
      * @return Volcano element
      */
@@ -2699,9 +2704,9 @@ public class ProductConverter {
 
     /**
      * Convert Volcano element to XML file
-     * 
+     *
      * public for saving elements with SaveMsgDlg and TEST/RESUME types
-     * 
+     *
      * @param vol
      * @return XML file
      */
@@ -2784,7 +2789,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a labeled line element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -2998,7 +3003,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a cloud element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -3011,7 +3016,7 @@ public class ProductConverter {
 
     /**
      * Convert a DECollection in an XML file to a turbulence element
-     * 
+     *
      * @param dec
      * @return
      */
@@ -3075,7 +3080,7 @@ public class ProductConverter {
 
     /**
      * Convert a JAXB XML TCM object to a PGEN Tcm object.
-     * 
+     *
      * @param cnt
      * @return
      */
@@ -3111,7 +3116,7 @@ public class ProductConverter {
 
     /**
      * Convert a Tcm object to an XML TCM object.
-     * 
+     *
      * @param cnt
      * @return
      */

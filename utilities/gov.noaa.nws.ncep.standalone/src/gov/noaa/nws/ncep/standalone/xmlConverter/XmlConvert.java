@@ -18,13 +18,13 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
 
 /**
  * XmlConvert
- * 
+ *
  * This program could either convert a CAVE PGEN activity XML file into one
  * single NMAP2 VG file with all elements in it OR convert each layer in the
  * activity XML into its own VG file and generate an LPF for this activity. For
  * the latter, "-s" should be specified at command line and the activity XML
  * should have more than one layer in it.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -41,7 +41,7 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
  * 										multiple layers to LPF with multiple
  * 										VG files.
  * </pre>
- * 
+ *
  * @author Q. Zhou
  * @version 1
  */

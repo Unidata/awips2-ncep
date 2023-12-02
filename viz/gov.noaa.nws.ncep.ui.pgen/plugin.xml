@@ -632,7 +632,7 @@
    
     <extension
        point="org.eclipse.ui.menus">
-        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.viz.overlays.staticOverlay">
+        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.activityConfigure">
             <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.palette"
                 label="PGEN Palette">
@@ -3473,9 +3473,9 @@
    <extension
        point="org.eclipse.ui.menus">
        <menuContribution
-           locationURI="menu:tools?after=tools.Pg">
+           locationURI="menu:tools?after=tools.Pa">
            <command
-              label="Configure PGEN Activity"
+              label="PGEN Activity Configuration"
               commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure">
            </command>
        </menuContribution>

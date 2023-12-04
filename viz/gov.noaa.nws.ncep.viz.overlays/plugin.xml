@@ -54,7 +54,7 @@
 
    <extension
        point="org.eclipse.ui.menus">
-        <menuContribution locationURI="menu:tools?after=tools.Pg">
+        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.palette">
             <command
                 commandId="gov.noaa.nws.ncep.viz.overlays.staticOverlay"
                 label="PGEN Static Overlay">
@@ -66,24 +66,6 @@
             </command>
             <menu
                    label="Plots">
-            <command
-                commandId="gov.noaa.nws.ncep.viz.plotModelMngr"
-                label="Plot Model Manager">
-                <commandParameter
-                     id="perspective"
-                     name="perspective"
-                     optional="true">
-                </commandParameter>
-                <parameter
-                   name="perspective"
-                   value="D2D">
-                </parameter>
-                <visibleWhen>
-                    <reference
-                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-                    </reference>
-                </visibleWhen>
-            </command>
             <command
                 commandId="gov.noaa.nws.ncep.viz.conditionalFilterMngr"
                 label="Conditional Filter Manager">
@@ -100,6 +82,24 @@
                <reference
                  definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
                </reference>
+                </visibleWhen>
+            </command>
+            <command
+                commandId="gov.noaa.nws.ncep.viz.plotModelMngr"
+                label="Plot Model Manager">
+                <commandParameter
+                     id="perspective"
+                     name="perspective"
+                     optional="true">
+                </commandParameter>
+                <parameter
+                   name="perspective"
+                   value="D2D">
+                </parameter>
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>
                 </visibleWhen>
             </command>
             </menu>

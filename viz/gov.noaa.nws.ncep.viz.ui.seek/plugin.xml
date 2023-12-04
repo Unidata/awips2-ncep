@@ -12,7 +12,7 @@
    <extension
        point="org.eclipse.ui.menus">
        <menuContribution
-           locationURI="menu:tools?after=tools.Pg">   
+           locationURI="menu:tools?after=tools.Ran">   
            <command
               label="Seek Tool D2D"
               commandId="gov.noaa.nws.ncep.viz.ui.actions.seekD2D">

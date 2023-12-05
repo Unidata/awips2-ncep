@@ -64,8 +64,7 @@
                     </reference>
                 </visibleWhen>
             </command>
-            <menu
-                   label="Plots">
+
             <command
                 commandId="gov.noaa.nws.ncep.viz.plotModelMngr"
                 label="Plot Model Manager">
@@ -84,7 +83,6 @@
                     </reference>
                 </visibleWhen>
             </command>
-            </menu>
         </menuContribution>
         <menuContribution
            locationURI="menu:gfe?after=gov.noaa.nws.ncep.ui.pgen.activityConfigure">

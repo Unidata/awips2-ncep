@@ -64,26 +64,7 @@
                     </reference>
                 </visibleWhen>
             </command>
-            <menu
-                   label="Plots">
-            <command
-                commandId="gov.noaa.nws.ncep.viz.conditionalFilterMngr"
-                label="Conditional Filter Manager">
-                <commandParameter
-                  id="perspective"
-                  name="perspective"
-                  optional="true">
-                  </commandParameter>
-                  <parameter
-                   name="perspective"
-                   value="D2D">
-                  </parameter>
-               <visibleWhen>
-               <reference
-                 definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-               </reference>
-                </visibleWhen>
-            </command>
+
             <command
                 commandId="gov.noaa.nws.ncep.viz.plotModelMngr"
                 label="Plot Model Manager">
@@ -102,7 +83,6 @@
                     </reference>
                 </visibleWhen>
             </command>
-            </menu>
         </menuContribution>
         <menuContribution
            locationURI="menu:gfe?after=gov.noaa.nws.ncep.ui.pgen.activityConfigure">

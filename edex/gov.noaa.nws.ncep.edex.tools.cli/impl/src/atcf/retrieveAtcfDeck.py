@@ -15,7 +15,7 @@
 import os
 import logging
 
-from ufpy import UsageArgumentParser
+from awips import UsageArgumentParser
 import lib.CommHandler as CH
 import AtcfDeckRetriever
 

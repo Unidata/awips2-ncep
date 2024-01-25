@@ -148,7 +148,7 @@
     <name>NSBNMisc</name>
     <selectedRetentionHours>24</selectedRetentionHours>
     <dataSet>
-      <dirPattern>(atcf|GeoMag|mcidas|mosaic|ncscat|Ncscat|ntrans|pgen|sgwhv|SolarImage|stormtrack|unknown|viirs)</dirPattern>
+      <dirPattern>(atcf|GeoMag|mcidas|mosaic|ncscat|Ncscat|ntrans|pgen|sgwhv|SolarImage|stormtrack|unknown|viirs)/.*</dirPattern>
       <timeType>File</timeType>
       <displayLabel>{1}</displayLabel>
     </dataSet>
@@ -157,7 +157,7 @@
     <name>NSBNGrib</name>
     <selectedRetentionHours>24</selectedRetentionHours>
     <dataSet>
-      <dirPattern>(grib)</dirPattern>
+      <dirPattern>(grib)/.*</dirPattern>
       <timeType>File</timeType>
       <displayLabel>{1}</displayLabel>
     </dataSet>
@@ -166,7 +166,7 @@
     <name>NSBNGOESR</name>
     <selectedRetentionHours>24</selectedRetentionHours>
     <dataSet>
-      <dirPattern>(GOESR)</dirPattern>
+      <dirPattern>(GOESR)/.*</dirPattern>
       <timeType>File</timeType>
       <displayLabel>{1}</displayLabel>
     </dataSet>
@@ -176,7 +176,7 @@
     <selectedRetentionHours>24</selectedRetentionHours>
     <preserveDirPattern>(dmw_ingest|GOESR_ingest|grib_ingest|ingest|misc_ingest|ntrans_ingest|pgen_ingest|rad_ingest|sat_ingest|viirs_ingest)</preserveDirPattern>
     <dataSet>
-      <dirPattern>(drop_box|awpdbnet_drop_box)</dirPattern>
+      <dirPattern>(drop_box|awpdbnet_drop_box)/.*</dirPattern>
       <timeType>File</timeType>
       <displayLabel>{1}</displayLabel>
     </dataSet>

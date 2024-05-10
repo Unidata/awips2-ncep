@@ -1,10 +1,10 @@
 package gov.noaa.nws.ncep.viz.tools.predefinedArea;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -13,57 +13,26 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
-import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.geotools.coverage.grid.ImageGeometry;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.api.geometry.Bounds;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.referencing.CRS;
-import org.geotools.referencing.GeodeticCalculator;
-import org.geotools.referencing.operation.DefaultMathTransformFactory;
-import org.geotools.referencing.operation.projection.MapProjection;
-// import org.geotools.referencing.operation.projection.MapProjection;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.geometry.Envelope;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.parameter.ParameterValueGroup;
 
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.NoninvertibleTransformException;
-import org.opengis.referencing.operation.TransformException;
-
-import com.raytheon.uf.common.geospatial.MapUtil;
-import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.viz.ui.tools.AbstractTool;
-import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.raytheon.uf.viz.core.IExtent;
-import com.raytheon.uf.viz.core.drawables.AbstractDescriptor;
-import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
-import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.raytheon.uf.viz.core.maps.display.MapRenderableDisplay;
+import com.raytheon.viz.ui.editor.AbstractEditor;
+import com.raytheon.viz.ui.tools.AbstractTool;
 
-// import gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea.MapProjection;
-import gov.noaa.nws.ncep.viz.common.area.AreaName;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
-import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
-import gov.noaa.nws.ncep.viz.common.area.IGridGeometryProvider;
-import gov.noaa.nws.ncep.viz.common.area.NcAreaProviderMngr;
 import gov.noaa.nws.ncep.viz.common.area.PredefinedArea;
-import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
 import gov.noaa.nws.ncep.viz.common.customprojection.GempakProjectionValuesUtil;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapRenderableDisplay;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayAreaProviderFactory;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-import gov.noaa.nws.ncep.viz.ui.display.NCPaneManager;
 
 public class CreateCustomProjectionHandler extends AbstractTool implements IHandler {
 
@@ -78,7 +47,7 @@ public class CreateCustomProjectionHandler extends AbstractTool implements IHand
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {
 		super.execute(arg0);
 		 
-		Envelope envelope;
+		Bounds envelope;
 		
 		ParameterValueGroup parameters;
 				

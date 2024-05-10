@@ -38,7 +38,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.PixelExtent;
@@ -454,7 +454,7 @@ public class NctextuiResource extends
      * 
      * @see
      * com.raytheon.viz.core.rsc.capabilities.IProjectableResource#isProjectable
-     * (org.opengis.referencing.crs.CoordinateReferenceSystem)
+     * (org.geotools.api.referencing.crs.CoordinateReferenceSystem)
      */
     public boolean isProjectable(CoordinateReferenceSystem mapData) {
 

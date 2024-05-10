@@ -47,7 +47,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.tools.imageProperties,
  gov.noaa.nws.ncep.viz.ui.display,
- org.opengis.referencing
+ org.geotools.api.referencing
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncradar,
  gov.noaa.nws.ncep.viz.rsc.ncradar.rsc
 

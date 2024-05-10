@@ -27,6 +27,6 @@ Import-Package: com.raytheon.uf.common.geospatial,
  gov.noaa.nws.ncep.common.tools,
  gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.ui.display,
- org.opengis.referencing.crs
+ org.geotools.api.referencing.crs
 Export-Package: gov.noaa.nws.ncep.viz.rsc.intlsig,
  gov.noaa.nws.ncep.viz.rsc.intlsig.rsc

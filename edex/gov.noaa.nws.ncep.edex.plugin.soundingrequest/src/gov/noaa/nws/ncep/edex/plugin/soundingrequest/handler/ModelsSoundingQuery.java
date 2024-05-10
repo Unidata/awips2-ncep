@@ -9,9 +9,9 @@ import javax.measure.UnitConverter;
 import javax.media.jai.InterpolationBilinear;
 
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1049,7 +1049,7 @@ public class ModelsSoundingQuery {
         Coordinate coord = new Coordinate(lon, lat);
 
         try {
-            DirectPosition2D exactPt = PointUtil.determineExactIndex(coord, crs,
+            Position2D exactPt = PointUtil.determineExactIndex(coord, crs,
                     geom);
             Integer nx = spatialArea.getNx();
             Integer ny = spatialArea.getNy();

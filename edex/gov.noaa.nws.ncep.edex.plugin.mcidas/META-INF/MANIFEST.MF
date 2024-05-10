@@ -15,8 +15,8 @@ Import-Package: com.raytheon.edex.exception,
  org.locationtech.jts.geom,
  org.locationtech.jts.io,
  org.geotools.geometry,
- org.opengis.referencing.crs,
- org.opengis.referencing.operation
+ org.geotools.api.referencing.crs,
+ org.geotools.api.referencing.operation
 Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.mcidas,
  com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,

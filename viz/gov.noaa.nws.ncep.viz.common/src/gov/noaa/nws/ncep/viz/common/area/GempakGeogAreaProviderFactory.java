@@ -16,7 +16,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.localization.FileUpdatedMessage;
 import com.raytheon.uf.common.localization.ILocalizationFileObserver;

@@ -6,10 +6,10 @@ import java.util.Arrays;
 
 import javax.measure.UnitConverter;
 
+import org.geotools.api.referencing.crs.ProjectedCRS;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
-import org.opengis.referencing.crs.ProjectedCRS;
+import org.geotools.geometry.GeneralBounds;
 
 import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
 import tech.units.indriya.function.AbstractConverter;
@@ -27,6 +27,7 @@ import tech.units.indriya.function.MultiplyConverter;
  * raster images 
  * 01/2010      204             M. Li        Set tileSize; correct geometry envelope
  * 09/2014                      sgilbert     Correct GridGeometry
+ * May 07, 2024 2037231         aford        Upgrade GeoTools to 31
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -156,7 +157,7 @@ public class MosaicTiler {
         double minX, maxX, minY, maxY;
         GridGeometry2D gridGeometry2D = null;
 
-        GeneralEnvelope generalEnvelope = new GeneralEnvelope(2);
+        GeneralBounds generalEnvelope = new GeneralBounds(2);
         generalEnvelope.setCoordinateReferenceSystem(crs);
 
         // Assumes 0,0 point ( lat/lon of origin in CRS ) is at center of image

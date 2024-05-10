@@ -54,7 +54,7 @@ import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.linearref.LinearLocation;
 import org.locationtech.jts.linearref.LocationIndexedLine;
-import org.opengis.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.MathTransform;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -186,6 +186,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
  *                                        support multi-panel displays
  * Feb 07, 2022  100402      smanoj       Check against null pointer.
  * Mar 25, 2022  8790        mapeters     Handle pane manager refactor, cleanup
+ * May 07, 2024  2037231     aford        Upgrade GeoTools to 31
  *
  * </pre>
  *
@@ -1497,7 +1498,7 @@ public class PgenUtil {
     public static double getPolyArea(Polygon poly) {
         double area = 0.0;
         try {
-            org.opengis.referencing.crs.ProjectedCRS localProjectionCRS = MapUtil
+            org.geotools.api.referencing.crs.ProjectedCRS localProjectionCRS = MapUtil
                     .constructStereographic(MapUtil.AWIPS_EARTH_RADIUS,
                             MapUtil.AWIPS_EARTH_RADIUS,
                             poly.getCentroid().getY(),

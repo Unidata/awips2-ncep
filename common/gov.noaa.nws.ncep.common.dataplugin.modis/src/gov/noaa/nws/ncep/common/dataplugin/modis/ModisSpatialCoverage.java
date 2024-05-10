@@ -9,19 +9,19 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.GeneralBounds;
 import org.hibernate.annotations.Index;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.locationtech.jts.geom.Geometry;
 
 import com.raytheon.uf.common.dataplugin.persist.PersistableDataObject;
 import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
-import org.locationtech.jts.geom.Geometry;
 
 import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFactory;
 
@@ -36,6 +36,7 @@ import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFa
  * ------------ ---------- -----------  --------------------------
  * 10/01/2014   R5116      kbugenhagen  Initial creation
  * 11/07/2018   #7552      dgilling     Implement IGridGeometryProvider.
+ * May 07, 2024 2037231    aford        Upgrade GeoTools to 31
  *
  * </pre>
  *
@@ -122,7 +123,7 @@ public class ModisSpatialCoverage extends PersistableDataObject implements
         double[] lowRange = new double[] { 0, 0 };
         double[] highRange = new double[] { width, getNy() * getDy() };
 
-        GeneralEnvelope env = new GeneralEnvelope(lowRange, highRange);
+        GeneralBounds env = new GeneralBounds(lowRange, highRange);
         env.setCoordinateReferenceSystem(getCrs());
 
         return new GridGeometry2D(new GeneralGridEnvelope(new int[] { 0, 0 },

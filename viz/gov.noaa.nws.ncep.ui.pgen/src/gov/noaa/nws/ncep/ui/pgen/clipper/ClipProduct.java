@@ -16,6 +16,26 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
+import org.geotools.geometry.jts.JTS;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+
+import com.raytheon.uf.common.geospatial.MapUtil;
+
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.Arc;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
@@ -28,25 +48,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.elements.SinglePointElement;
 import gov.noaa.nws.ncep.ui.pgen.gfa.Gfa;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.geotools.geometry.jts.JTS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
-
-import com.raytheon.uf.common.geospatial.MapUtil;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.geom.impl.CoordinateArraySequence;
-
 /**
  * Class to clip a PGEN product
  * 
@@ -55,6 +56,7 @@ import org.locationtech.jts.geom.impl.CoordinateArraySequence;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 01/2013		#966			B. Yin		Initial Creation.
+ * May 07, 2024 2037231         aford       Upgrade GeoTools to 31
  * 
  * </pre>
  * 
@@ -207,22 +209,12 @@ public class ClipProduct {
 					CoordinateReferenceSystem crs = MapUtil.constructStereographic(MapUtil.AWIPS_EARTH_RADIUS,
 							MapUtil.AWIPS_EARTH_RADIUS, center.y, center.x);
 					MathTransform fromLatLon = null;
-					MathTransform toLatLon = null;
 					
 					try {
 						fromLatLon = MapUtil.getTransformFromLatLon(crs);
 					} catch (FactoryException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
-					}
-					
-					if (fromLatLon != null) {
-						try {
-							toLatLon = fromLatLon.inverse();
-						} catch (org.opengis.referencing.operation.NoninvertibleTransformException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 					}
 
 					try {

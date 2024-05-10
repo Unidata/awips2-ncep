@@ -1,22 +1,22 @@
 package gov.noaa.nws.ncep.viz.common.area;
 
-import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
-
+import org.geotools.api.coverage.grid.GridEnvelope;
+import org.geotools.api.geometry.Bounds;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridEnvelope2D;
-import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.GeneralBounds;
 import org.geotools.referencing.CRS;
-import org.opengis.coverage.grid.GridEnvelope;
-import org.opengis.geometry.Envelope;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.adapter.GridGeometryAdapter;
 import com.raytheon.uf.common.serialization.IDeserializationContext;
 import com.raytheon.uf.common.serialization.ISerializationContext;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.adapters.GridGeometrySerialized;
+
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 /**
  * Serialization adapter for grid geometries unique to NCEP.
@@ -29,7 +29,8 @@ import com.raytheon.uf.common.serialization.adapters.GridGeometrySerialized;
  * 11/2013      1066        G. Hull     Created.
  * 03/2014      TTR957      B. Yin      Handle native satellite navigation.
  * Nov 05, 2015 10436       njensen     Updated import, cleaned up
- * 
+ * May 07, 2024 2037231     aford       Upgrade GeoTools to 31
+ *
  * </pre>
  * 
  * @author ghull
@@ -58,7 +59,7 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
             throw new Exception("Unable to parse CRS from WKS: " + v.CRS);
         }
 
-        GeneralEnvelope env = new GeneralEnvelope(crs);
+        GeneralBounds env = new GeneralBounds(crs);
         env.setRange(0, v.envelopeMinX, v.envelopeMaxX);
         env.setRange(1, v.envelopeMinY, v.envelopeMaxY);
 
@@ -90,7 +91,7 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
             GeneralGridGeometry object) throws SerializationException {
         int numDims = object.getDimension();
         GridEnvelope range = object.getGridRange();
-        Envelope env = object.getEnvelope();
+        Bounds env = object.getEnvelope();
 
         serializer.writeString(object.getCoordinateReferenceSystem().toWKT());
         serializer.writeI32(numDims);
@@ -109,7 +110,7 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
             CoordinateReferenceSystem crs = CRS.parseWKT(deserializer
                     .readString());
             int numDims = deserializer.readI32();
-            GeneralEnvelope env = new GeneralEnvelope(crs);
+            GeneralBounds env = new GeneralBounds(crs);
             int[] lowRange = new int[numDims];
             int[] highRange = new int[numDims];
             for (int i = 0; i < numDims; ++i) {

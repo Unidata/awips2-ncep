@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.viz.common.area;
 
-import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,7 +14,7 @@ import javax.xml.bind.JAXBException;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.GeneralBounds;
 import org.geotools.referencing.crs.DefaultEngineeringCRS;
 
 import com.raytheon.uf.common.localization.FileUpdatedMessage;
@@ -40,6 +35,11 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+
 /**
  * Read and create PredefinedAreas from localization. Also
  * 
@@ -57,7 +57,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 09/26/2016   R20482      K.Bugenhagen Handle saving localization file without 
  *                                       throwing exception due to updated 
  *                                       checksum.  Fixed issue with deleting.
- * 
+ * May 07, 2024  2037231    aford        Upgrade GeoTools to 31
+ *
  * </pre>
  * 
  * @author ghull
@@ -313,7 +314,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
     public static PredefinedArea createDefaultNonMapArea(NcDisplayType dt,
             PixelExtent extent) {
 
-        GeneralEnvelope envelope = new GeneralEnvelope(2);
+        GeneralBounds envelope = new GeneralBounds(2);
         envelope.setRange(0, extent.getMinX(), extent.getMaxX());
         envelope.setRange(1, extent.getMinY(), extent.getMaxY());
         envelope.setCoordinateReferenceSystem(DefaultEngineeringCRS.CARTESIAN_2D);

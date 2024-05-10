@@ -26,4 +26,4 @@ Import-Package: com.raytheon.uf.common.message.response,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.ui.display,
  org.eclipse.swt.graphics,
- org.opengis.referencing.crs
+ org.geotools.api.referencing.crs

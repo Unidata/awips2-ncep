@@ -7,8 +7,8 @@ import org.geotools.referencing.operation.projection.LambertConformal2SP;
 import org.geotools.referencing.operation.projection.MapProjection.AbstractProvider;
 import org.geotools.referencing.operation.projection.Mercator;
 import org.geotools.referencing.operation.projection.PolarStereographic;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * <pre>

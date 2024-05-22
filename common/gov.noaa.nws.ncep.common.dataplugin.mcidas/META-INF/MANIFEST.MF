@@ -19,5 +19,5 @@ Require-Bundle: gov.noaa.nws.ncep.common,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.status,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.mcidas

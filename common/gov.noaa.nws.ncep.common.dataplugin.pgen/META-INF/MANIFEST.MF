@@ -8,7 +8,7 @@ Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.common.message,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.common.dataplugin.pgen.request,
  gov.noaa.nws.ncep.common.dataplugin.pgen.response

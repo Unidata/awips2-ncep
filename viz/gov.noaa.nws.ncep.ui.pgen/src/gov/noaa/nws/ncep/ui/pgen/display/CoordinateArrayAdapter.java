@@ -8,7 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.display;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.locationtech.jts.geom.Coordinate;
 

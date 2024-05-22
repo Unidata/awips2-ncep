@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.ui.pgen,
  com.raytheon.uf.edex.decodertools,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.locationtech.jts.geom,

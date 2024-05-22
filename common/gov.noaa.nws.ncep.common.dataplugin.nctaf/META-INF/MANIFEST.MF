@@ -11,7 +11,7 @@ Require-Bundle: com.raytheon.uf.common.status,
  com.raytheon.uf.common.time,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
- javax.xml.bind
+ jakarta.xml.bind
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,

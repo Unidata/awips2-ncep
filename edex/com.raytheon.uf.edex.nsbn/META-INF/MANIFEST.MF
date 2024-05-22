@@ -13,4 +13,4 @@ Require-Bundle: org.apache.camel,
  org.apache.commons.io,
  com.raytheon.uf.common.wmo,
  com.raytheon.uf.common.localization,
- javax.xml.bind
+ jakarta.xml.bind

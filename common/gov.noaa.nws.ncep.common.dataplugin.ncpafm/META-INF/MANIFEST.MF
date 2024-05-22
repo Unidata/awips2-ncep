@@ -11,7 +11,7 @@ Require-Bundle: jakarta.persistence,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.dataplugin,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncpafm
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.pointdata.spatial,

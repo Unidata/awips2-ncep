@@ -19,8 +19,8 @@
  **/
 package gov.noaa.nws.ncep.viz.ui.display;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
 import org.eclipse.swt.graphics.RGB;
 

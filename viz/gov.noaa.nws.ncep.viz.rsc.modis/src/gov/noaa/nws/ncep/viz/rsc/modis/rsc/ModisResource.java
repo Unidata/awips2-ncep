@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridCoverageFactory;

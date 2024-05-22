@@ -3,7 +3,7 @@ package gov.noaa.nws.ncep.viz.resources.manager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.eclipse.swt.graphics.RGB; 
 

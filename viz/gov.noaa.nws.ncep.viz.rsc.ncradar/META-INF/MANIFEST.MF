@@ -24,7 +24,7 @@ Require-Bundle: org.apache.batik,
  com.raytheon.viz.pointdata,
  com.raytheon.uf.common.units,
  com.raytheon.uf.common.style,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,

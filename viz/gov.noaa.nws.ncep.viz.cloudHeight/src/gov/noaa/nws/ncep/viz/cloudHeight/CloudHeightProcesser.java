@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.measure.UnitConverter;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.referencing.CRS;

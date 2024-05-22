@@ -19,7 +19,7 @@ Require-Bundle: com.raytheon.viz.core,
  gov.noaa.nws.ncep.viz.localization,
  javax.measure,
  com.raytheon.uf.viz.core.maps,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.viz.localization.perspective
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.overlays,

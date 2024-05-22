@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.viz.localization,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,

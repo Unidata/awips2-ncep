@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.dataplugin.level,
  com.sun.jna,
  org.geotools,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.gempak,

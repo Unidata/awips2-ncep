@@ -9,7 +9,7 @@ Require-Bundle: gov.noaa.nws.ncep.common,
  org.geotools,
  jakarta.persistence,
  javax.measure,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.common.status
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ffg,
  gov.noaa.nws.ncep.common.dataplugin.ffg.dao

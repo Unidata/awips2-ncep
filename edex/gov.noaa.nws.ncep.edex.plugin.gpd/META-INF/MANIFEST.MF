@@ -11,7 +11,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  gov.noaa.nws.ncep.edex.common.sounding,
  javax.measure,
  org.apache.commons.logging,
- javax.xml.bind
+ jakarta.xml.bind
 Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.gpd,
  com.raytheon.uf.common.dataplugin.level,

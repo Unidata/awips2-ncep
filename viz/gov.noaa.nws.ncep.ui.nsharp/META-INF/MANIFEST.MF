@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.sounding,
  com.raytheon.viz.core.graphing,
  org.apache.commons.lang3,
- javax.xml.bind,
+ jakarta.xml.bind,
  javax.measure
 Import-Package: com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.common.sounding,

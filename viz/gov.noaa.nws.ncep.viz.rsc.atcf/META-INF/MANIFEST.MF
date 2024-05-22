@@ -19,7 +19,7 @@ Require-Bundle: gov.noaa.nws.ncep.common,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.update.configurator,
- javax.xml.bind
+ jakarta.xml.bind
 Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.uf.edex.decodertools.core,
  org.locationtech.jts.geom,

@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  gov.noaa.nws.ncep.common,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.common.dataplugin.ncscat.dao
 Bundle-Vendor: AWIPS II migration

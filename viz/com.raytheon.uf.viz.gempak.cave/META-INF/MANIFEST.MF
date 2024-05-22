@@ -11,7 +11,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.gridcoverage,
  org.geotools,
  com.raytheon.uf.common.geospatial,
- javax.xml.bind,
+ jakarta.xml.bind,
  javax.measure
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.comm,

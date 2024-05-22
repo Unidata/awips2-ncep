@@ -15,4 +15,4 @@ Import-Package: com.raytheon.uf.common.dataplugin,
 Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  gov.noaa.nws.ncep.common,
- javax.xml.bind
+ jakarta.xml.bind

@@ -3,8 +3,8 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
 import com.raytheon.uf.common.dataquery.db.OrderField.ResultOrder;
 import com.raytheon.uf.common.time.DataTime;

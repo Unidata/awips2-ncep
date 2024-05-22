@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.resources.attributes;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.eclipse.swt.graphics.RGB; 
 

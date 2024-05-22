@@ -10,7 +10,7 @@ Require-Bundle: com.raytheon.edex.common,
  javax.measure,
  com.raytheon.uf.common.localization,
  jakarta.persistence,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common,
  gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,

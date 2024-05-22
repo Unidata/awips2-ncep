@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.ui,
  javax.measure,
  com.raytheon.viz.pointdata,
  com.raytheon.uf.common.pointdata,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wavesat,

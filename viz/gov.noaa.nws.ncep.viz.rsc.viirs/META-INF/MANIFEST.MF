@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.viz.ui,
  gov.noaa.nws.ncep.viz.common,
  com.raytheon.uf.common.inventory,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.persist,

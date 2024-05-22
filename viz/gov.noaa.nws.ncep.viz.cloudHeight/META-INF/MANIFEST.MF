@@ -22,7 +22,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.colormap,
  com.raytheon.uf.common.numeric,
  com.raytheon.uf.viz.datacube,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.inventory.exception,

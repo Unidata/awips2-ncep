@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.ui.pgen,
  com.raytheon.uf.viz.datacube,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,

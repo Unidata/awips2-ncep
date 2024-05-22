@@ -3,7 +3,7 @@ package gov.noaa.nws.ncep.viz.tools.cursor;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;

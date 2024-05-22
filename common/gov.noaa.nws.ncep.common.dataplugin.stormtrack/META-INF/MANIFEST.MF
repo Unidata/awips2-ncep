@@ -12,5 +12,5 @@ Require-Bundle: jakarta.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
- javax.xml.bind
+ jakarta.xml.bind
 Import-Package: org.locationtech.jts.geom

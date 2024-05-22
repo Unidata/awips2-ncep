@@ -2,7 +2,7 @@ package gov.noaa.nws.ncep.viz.common;
 
 import java.util.ArrayList;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.eclipse.swt.graphics.RGB; 
 

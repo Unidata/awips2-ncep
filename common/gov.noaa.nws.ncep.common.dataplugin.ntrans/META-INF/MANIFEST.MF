@@ -8,7 +8,7 @@ Require-Bundle: jakarta.persistence,
  gov.noaa.nws.ncep.common,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ntrans
 Bundle-Vendor: AWIPS II migration
 Import-Package: com.raytheon.uf.common.wmo

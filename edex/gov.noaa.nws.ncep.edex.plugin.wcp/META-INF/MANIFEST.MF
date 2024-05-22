@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.wcp
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: AWIPS II Migration
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.wcp,
  com.raytheon.uf.common.status
 Import-Package: com.raytheon.uf.edex.decodertools.core,

@@ -9,7 +9,7 @@ Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  javax.measure,
  com.raytheon.uf.common.localization,
- javax.persistence,
+ jakarta.persistence,
  javax.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common,

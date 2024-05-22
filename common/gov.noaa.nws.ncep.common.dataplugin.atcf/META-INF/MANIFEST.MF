@@ -9,7 +9,7 @@ Export-Package: gov.noaa.nws.ncep.common.dataplugin.atcf,
  gov.noaa.nws.ncep.common.dataplugin.atcf.dao,
  gov.noaa.nws.ncep.common.dataplugin.atcf.request,
  gov.noaa.nws.ncep.edex.uengine.tasks.atcf
-Require-Bundle: javax.persistence,
+Require-Bundle: jakarta.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,

@@ -13,6 +13,6 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  gov.noaa.nws.ncep.common.tools,
  gov.noaa.nws.ncep.edex.common.dao
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common,
  javax.xml.bind

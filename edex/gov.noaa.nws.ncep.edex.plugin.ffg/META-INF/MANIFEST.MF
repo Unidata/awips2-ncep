@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ffg
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.ffg,

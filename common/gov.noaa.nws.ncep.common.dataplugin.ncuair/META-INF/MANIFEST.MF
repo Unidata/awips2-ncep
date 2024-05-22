@@ -6,7 +6,7 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
 Require-Bundle: 
  gov.noaa.nws.ncep.common,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.dataplugin,

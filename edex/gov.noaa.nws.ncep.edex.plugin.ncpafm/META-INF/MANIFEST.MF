@@ -6,7 +6,7 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II Migration
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.edex.common,

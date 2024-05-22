@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.idft
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II Migration
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common,

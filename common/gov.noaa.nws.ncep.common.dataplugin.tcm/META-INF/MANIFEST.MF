@@ -11,7 +11,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.serialization.annotations,
  gov.noaa.nws.ncep.common.tools,
- javax.persistence,
+ jakarta.persistence,
  org.hibernate.annotations
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.tcm
 Bundle-Vendor: NOAA/NWS/NCEP/NCO

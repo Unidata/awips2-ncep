@@ -9,7 +9,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.serialization.comm,
  org.geotools,
  javax.measure,
- javax.persistence
+ jakarta.persistence
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.modis,
  gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.common.dataplugin.modis.projection

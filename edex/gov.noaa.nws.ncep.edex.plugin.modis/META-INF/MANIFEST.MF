@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  javax.measure,
- javax.persistence,
+ jakarta.persistence,
  ucar.nc2,
  org.apache.commons.lang,
  com.raytheon.uf.common.status,

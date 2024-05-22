@@ -21,6 +21,6 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.time,
  org.locationtech.jts.geom,
  javax.measure,
- javax.persistence
+ jakarta.persistence
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.pirep
 

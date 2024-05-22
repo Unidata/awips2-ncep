@@ -10,7 +10,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.measure,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.common.dataplugin.pirep,
  org.slf4j

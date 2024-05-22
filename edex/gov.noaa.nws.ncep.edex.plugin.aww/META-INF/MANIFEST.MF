@@ -6,7 +6,7 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II migration
 Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common,
  com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.pointdata,

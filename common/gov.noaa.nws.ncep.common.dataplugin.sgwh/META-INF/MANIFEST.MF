@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Sgwh
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.sgwh
 Bundle-Version: 1.0.0.qualifier
-Require-Bundle: javax.persistence,
+Require-Bundle: jakarta.persistence,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.common,
  com.raytheon.uf.common.dataplugin,

@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.sgwh
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.sgwh,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,

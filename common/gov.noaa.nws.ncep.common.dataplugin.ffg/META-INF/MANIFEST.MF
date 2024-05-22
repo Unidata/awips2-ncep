@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: gov.noaa.nws.ncep.common,
  com.raytheon.edex.common,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure,
  javax.xml.bind,
  com.raytheon.uf.common.status

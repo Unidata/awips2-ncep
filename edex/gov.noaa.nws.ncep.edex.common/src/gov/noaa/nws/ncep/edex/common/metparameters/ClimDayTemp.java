@@ -4,7 +4,7 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import javax.measure.quantity.Temperature;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;

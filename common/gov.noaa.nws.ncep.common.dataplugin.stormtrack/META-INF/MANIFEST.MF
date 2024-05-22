@@ -8,7 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.stormtrack,
  gov.noaa.nws.ncep.common.dataplugin.stormtrack.dao,
  gov.noaa.nws.ncep.edex.uengine.tasks.stormtrack
-Require-Bundle: javax.persistence,
+Require-Bundle: jakarta.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,

@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: gempak native libs linux 64-bit
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.gempak.nativelib.linux64
 Bundle-Version: 1.0.0.qualifier
+Eclipse-BundleShape: dir
 Fragment-Host: gov.noaa.nws.ncep.viz.gempak.nativelib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Eclipse-PlatformFilter: (& (osgi.os=linux) (osgi.arch=x86_64))

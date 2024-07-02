@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Modis
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.modis;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

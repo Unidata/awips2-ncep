@@ -5,6 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.viz.gempak;singleton:=true
 Bundle-Version: 1.19.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.gempak.Activator
 Eclipse-BuddyPolicy: ext
+Eclipse-BundleShape: dir
 Eclipse-RegisterBuddy:  com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

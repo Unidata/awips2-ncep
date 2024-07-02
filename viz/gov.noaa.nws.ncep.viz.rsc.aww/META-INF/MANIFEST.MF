@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: AWW Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.aww;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.aww.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,

@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: NC Satellite Resource Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.satellite;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Require-Bundle: com.raytheon.viz.core,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.serialization.comm,

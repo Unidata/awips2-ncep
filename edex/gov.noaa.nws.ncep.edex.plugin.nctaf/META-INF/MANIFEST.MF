@@ -12,7 +12,8 @@ Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  com.raytheon.uf.common.status,
  jakarta.xml.bind,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.esb.camel
 Export-Package: gov.noaa.nws.ncep.edex.plugin.nctaf.decoder
 Import-Package: com.raytheon.edex.exception,
  com.raytheon.uf.common.wmo,

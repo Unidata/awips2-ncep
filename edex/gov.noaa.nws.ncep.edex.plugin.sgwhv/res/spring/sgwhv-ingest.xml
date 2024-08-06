@@ -21,29 +21,10 @@
 		<constructor-arg ref="sgwhvPluginName" />
 		<constructor-arg value="jms-durable:queue:Ingest.sgwhv" />
 	</bean>
-    
-	<camelContext id="sgwhv-camel" 
-	              xmlns="http://camel.apache.org/schema/spring" 
-	              errorHandlerRef="errorHandler">
 
-		<route id="sgwhvIngestRoute">
-			<from uri="jms-durable:queue:Ingest.sgwhv"/>
-			<setHeader name="pluginName">
-				<constant>sgwhv</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<bean ref="sgwhvDecoder" method="decode" />
-					<bean ref="swghvToPointData" method="toPointData" />
-					<to uri="direct-vm:persistIndexAlert" />		
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:sgwhv?level=ERROR"/>
-				</doCatch>
-			</doTry>
-		</route>
-		
-		</camelContext>
+    <bean id="sgwhv-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.sgwhv.decoder.SgwhvCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

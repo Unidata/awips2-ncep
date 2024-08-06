@@ -22,4 +22,5 @@ Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  com.raytheon.uf.edex.decodertools,
  jakarta.xml.bind,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.esb.camel

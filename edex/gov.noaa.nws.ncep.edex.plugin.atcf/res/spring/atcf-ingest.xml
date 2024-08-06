@@ -15,28 +15,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.atcf" />
     </bean>
 
-    <camelContext id="atcf-camel" xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-
-        <route id="atcfIngestRoute">
-            <from uri="jms-durable:queue:Ingest.atcf" />
-            <setHeader name="pluginName">
-                <constant>atcf</constant>
-            </setHeader>
-            <bean ref="stringToFile" />
-            <split streaming="true">
-                <method ref="atcfSeparator" method="batchSeparate" />
-                <doTry>
-                    <pipeline>
-                        <bean ref="atcfDecoder" method="decode" />
-                        <to uri="direct-vm:indexAlert" />
-                    </pipeline>
-                    <doCatch>
-                        <exception>java.lang.Throwable</exception>
-                        <to uri="log:atcf?level=ERROR" />
-                    </doCatch>
-                </doTry>
-            </split>
-        </route>
-    </camelContext>
+    <bean id="atcf-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.atcf.AtcfCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

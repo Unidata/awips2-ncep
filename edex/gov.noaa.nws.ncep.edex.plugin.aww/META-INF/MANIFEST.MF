@@ -14,5 +14,6 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.aww,
  org.geotools,
  com.raytheon.uf.common.status,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.esb.camel
 Bundle-RequiredExecutionEnvironment: JavaSE-11

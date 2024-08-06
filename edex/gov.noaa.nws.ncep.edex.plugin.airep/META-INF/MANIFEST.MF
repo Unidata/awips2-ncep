@@ -14,7 +14,8 @@ Require-Bundle: com.raytheon.edex.common,
  org.apache.camel;resolution:=optional,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.common.dataplugin.airep,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.esb.camel
 Export-Package: gov.noaa.nws.ncep.edex.plugin.airep,
  gov.noaa.nws.ncep.edex.plugin.airep.decoder
 Import-Package: com.raytheon.uf.common.wmo,

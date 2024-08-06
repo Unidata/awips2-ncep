@@ -18,37 +18,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.idft" />
 	</bean>
 
-	<camelContext id="idft-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin idft routes -->
-		<route id="idftIngestRoute">
-			<from uri="jms-durable:queue:Ingest.idft" />
-			<setHeader name="pluginName">
-				<constant>idft</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<split streaming="true">
-						<method ref="idftSeparator" method="separate" />
-						<doTry>
-							<pipeline>
-								<bean ref="idftDecoder" method="decode" />
-								<to uri="direct-vm:indexAlert" />
-							</pipeline>
-							<doCatch>
-								<exception>java.lang.Throwable</exception>
-								<to uri="log:idft?level=ERROR" />
-							</doCatch>
-						</doTry>
-					</split>
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:airmet?level=ERROR" />
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="idft-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.idft.decoder.IdftCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

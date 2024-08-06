@@ -21,39 +21,10 @@
 		<constructor-arg value="aww" />
 		<constructor-arg value="jms-durable:queue:Ingest.aww" />
 	</bean>
-    
-    <camelContext id="aww-camel" 
-                  xmlns="http://camel.apache.org/schema/spring" 
-                  errorHandlerRef="errorHandler">
 
-        <!-- Begin Aww routes -->
-        <route id="awwIngestRoute">
-            <from uri="jms-durable:queue:Ingest.aww"/>
-            <setHeader name="pluginName">
-                <constant>aww</constant>
-            </setHeader>
-            <doTry>
-				<pipeline>
-		            <bean ref="stringToFile" />
-        		    <split streaming="true">
-                		<method ref="awwSeparator" method="separate"/>
-		                <doTry>
-        		        	<pipeline>
-                		    	<bean ref="awwDecoder" method="decode"/>
-                        		<to uri="direct-vm:indexAlert"/>
-		                    </pipeline>
-        	            <doCatch>
-	                        <exception>java.lang.Throwable</exception>
-    	                    <to uri="log:aww?level=ERROR"/>
-        	             </doCatch>
-            	      </doTry>
-		            </split>
-                </pipeline>
-        	    <doCatch>
-            	    <exception>java.lang.Throwable</exception>
-                    <to uri="log:aww?level=ERROR"/>
-                </doCatch>
-            </doTry>
-        </route>
-	</camelContext>
+    <bean id="awwIngestRoute" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.aww.AwwCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

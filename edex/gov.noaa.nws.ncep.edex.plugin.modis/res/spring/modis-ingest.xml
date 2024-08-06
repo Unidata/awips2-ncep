@@ -18,27 +18,9 @@
         <constructor-arg value="modis" />
         <constructor-arg value="jms-durable:queue:Ingest.modis" />
     </bean>
-                                                
-    <camelContext id="modis-camel"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler"
-        autoStartup="false">
-
-        <!-- Begin Modis routes -->
-        <route id="modisIngestRoute">
-            <from uri="jms-durable:queue:Ingest.modis"/>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <bean ref="modisDecoder" method="decode" />
-                    <to uri="direct-vm:persistIndexAlert" />
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:modis?level=ERROR"/>
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
-    
+    <bean id="modis-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.modis.decoder.ModisCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

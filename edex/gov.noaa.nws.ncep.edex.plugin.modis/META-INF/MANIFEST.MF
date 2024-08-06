@@ -12,7 +12,8 @@ Require-Bundle: com.raytheon.edex.common,
  org.apache.commons.lang,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.localization,
- ucar.nc2
+ ucar.nc2,
+ com.raytheon.uf.edex.esb.camel
 Import-Package: gov.noaa.nws.ncep.common.dataplugin.modis,
  gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.common.dataplugin.modis.projection,

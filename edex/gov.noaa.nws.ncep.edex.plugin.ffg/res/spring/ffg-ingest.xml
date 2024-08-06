@@ -15,37 +15,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.ffg" />
     </bean>
 
-    <camelContext id="ffg-camel" 
-                  xmlns="http://camel.apache.org/schema/spring" 
-                  errorHandlerRef="errorHandler">
-
-        <route id="ffgIngestRoute">
-            <from uri="jms-durable:queue:Ingest.ffg"/>
-            <setHeader name="pluginName">
-                <constant>ffg</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <split streaming="true">
-                        <method ref="ffgSeparator" method="separate"/>
-                          <doTry>
-                             <pipeline>
-                                <bean ref="ffgDecoder" method="decode"/>
-                                <to uri="direct-vm:indexAlert"/>
-                            </pipeline>
-                            <doCatch>
-                                <exception>java.lang.Throwable</exception>
-                                <to uri="log:ffg?level=ERROR"/>
-                            </doCatch>
-                        </doTry>
-                    </split>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:ffg?level=ERROR"/>
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    <bean id="ffg-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ffg.decoder.FfgCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

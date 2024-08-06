@@ -17,37 +17,9 @@
                 <constructor-arg value="jms-durable:queue:Ingest.tcm" />
     </bean>
 
-	<camelContext id="tcm-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin Tcm routes -->
-		<route id="tcmIngestRoute">
-			<from uri="jms-durable:queue:Ingest.tcm" />
-			<setHeader name="pluginName">
-				<constant>tcm</constant>
-			</setHeader>
-			<doTry>
-			<pipeline>
-			<bean ref="stringToFile" />
-			<split streaming="true">
-				<method ref="tcmSeparator" method="separate" />
-				<doTry>
-					<pipeline>
-						<bean ref="tcmDecoder" method="decode" />
-						<to uri="direct-vm:indexAlert" />
-					</pipeline>
-					<doCatch>
-						<exception>java.lang.Throwable</exception>
-						<to uri="log:tcm?level=ERROR" />
-					</doCatch>
-				</doTry>
-			</split>
-			</pipeline>
-			    <doCatch>
-			        <exception>java.lang.Throwable</exception>
-			        <to uri="log:tcm?level=ERROR"/>
-			    </doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="tcm-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.tcm.decoder.TcmCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

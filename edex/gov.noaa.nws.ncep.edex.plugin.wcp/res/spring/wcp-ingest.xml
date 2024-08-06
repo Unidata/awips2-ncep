@@ -18,37 +18,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.wcp" />
 	</bean>
 
-	<camelContext id="wcp-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin wcp routes -->
-		<route id="wcpIngestRoute">
-			<from uri="jms-durable:queue:Ingest.wcp" />
-			<setHeader name="pluginName">
-				<constant>wcp</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<split streaming="true">
-						<method ref="wcpSeparator" method="separate" />
-						<doTry>
-							<pipeline>
-								<bean ref="wcpDecoder" method="decode" />
-								<to uri="direct-vm:indexAlert" />
-							</pipeline>
-							<doCatch>
-								<exception>java.lang.Throwable</exception>
-								<to uri="log:wcp?level=ERROR" />
-							</doCatch>
-						</doTry>
-					</split>
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:airmet?level=ERROR" />
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="wcp-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.wcp.decoder.WcpCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

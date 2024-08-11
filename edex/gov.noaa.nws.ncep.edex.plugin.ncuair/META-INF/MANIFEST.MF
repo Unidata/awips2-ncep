@@ -14,6 +14,7 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.ncuair,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.status,
  org.slf4j,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.edex.esb.camel
 Import-Package: com.raytheon.uf.common.wmo,
  gov.noaa.nws.ncep.common.tools

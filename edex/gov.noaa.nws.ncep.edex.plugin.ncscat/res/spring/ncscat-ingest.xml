@@ -20,39 +20,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.Ncscat" />
 	</bean>
 
-	<camelContext id="ncscat-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<route id="ncscatIngestRoute">
-			<from uri="jms-durable:queue:Ingest.Ncscat" />
-		<!-- 	<setHeader name="pluginName">
-				<constant>ncscat</constant>
-			</setHeader>-->
-			<doTry>
-				<pipeline>
-				<bean ref="stringToFile" />
-			<doTry>
-				<pipeline>
-					
-					<!--
-			need to replace the method decode with 	decodeNcscatInputFile
-					<bean ref="ncscatDecoder" method="decode" />	-->
-					<bean ref="ncscatDecoder" method="decodeNcscatInputFile" />	
-					<to uri="direct-vm:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ncscat?level=ERROR" />
-				</doCatch>
-			</doTry>
-		    </pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ncscat?level=ERROR" />
-				</doCatch>
-			</doTry>
-	<!-- bean ref="processUtil" method="delete" /-->
-		</route>
-	</camelContext>
+    <bean id="ncscat-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ncscat.decoder.NcscatCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

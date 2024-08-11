@@ -18,36 +18,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.Ntrans" />
 	</bean>
 
-	<camelContext id="ntrans-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin Ntrans routes -->
-		<route id="ntransIngestRoute">
-			<from uri="jms-durable:queue:Ingest.Ntrans" />
-		<!-- 	<setHeader name="pluginName">
-				<constant>ntrans</constant>
-			</setHeader>-->
-			<doTry>
-				<pipeline>
-				<bean ref="stringToFile" />
-			<doTry>
-				<pipeline>					
-					<bean ref="ntransDecoder" method="decode" />
-					<to uri="direct-vm:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ntrans?level=ERROR" />
-				</doCatch>
-			</doTry>
-		    </pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ntrans?level=ERROR" />
-				</doCatch>
-			</doTry>
-	<!-- bean ref="processUtil" method="delete" /-->
-		</route>
-	</camelContext>
+     <bean id="ntrans-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ntrans.decoder.NtransCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

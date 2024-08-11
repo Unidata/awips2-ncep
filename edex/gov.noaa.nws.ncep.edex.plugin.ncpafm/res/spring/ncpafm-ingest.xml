@@ -19,41 +19,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.ncpafm" />
 	</bean>
 
-	<camelContext id="ncpafm-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin ncpafm routes -->
-		<route id="ncpafmIngestRoute">
-			<from uri="jms-durable:queue:Ingest.ncpafm" />
-			<setHeader name="pluginName">
-				<constant>ncpafm</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<split streaming="true">
-						<method ref="ncpafmSeparator" method="separate" />
-						<doTry>
-							<pipeline>
-								<bean ref="ncpafmDecoder" method="decode" />
-								<!-- Add next line for h5 version  /-->
-								<bean ref="ncpafmPointDataTransform" method="toPointData" />
-								<!--to uri="direct-vm:indexAlert" /-->
-								<to uri="direct-vm:persistIndexAlert" />
-							</pipeline>
-							<doCatch>
-								<exception>java.lang.Throwable</exception>
-								<to uri="log:ncpafm?level=ERROR" />
-							</doCatch>
-						</doTry>
-					</split>
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<!--to uri="log:airmet?level=ERROR" /-->
-					<to uri="log:ncpafm?level=ERROR" />
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="ncpafm-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder.NcPafmCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

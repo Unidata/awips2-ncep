@@ -6,7 +6,9 @@
 <root>
 	<otlktype name="OUTLOOK" prefix="" >
 		<label name="TSTM"	text="GENERAL THUNDERSTORM" value="0"/>
+		<label name="MRGL"  text = "MARGINAL RISK" value="10"/>
 		<label name="SLGT"	text = "SLIGHT RISK" value="20"/>
+		<label name="ENH"  text = "ENHANCED RISK" value="30"/>
 		<label name="MDT"	text = "MODERATE RISK" value="40"/>
 		<label name="HIGH"	text ="HIGH RISK" value="60"/>
 		<label name="2%"/>

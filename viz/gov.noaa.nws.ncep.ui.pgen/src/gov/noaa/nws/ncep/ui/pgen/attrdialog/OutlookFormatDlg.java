@@ -100,6 +100,7 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
  * Nov 30, 2020  85416       tjensen   Improve OutlookTimeProduct lookup
  * Dec 01, 2021  95362       tjensen   Refactor PGEN Resource management to
  *                                     support multi-panel displays
+ * Aug 19, 2024       tmeyer@unidata   Add MRGL and ENH options for SPC Outlooks                                 
  *
  * </pre>
  *
@@ -120,12 +121,12 @@ public class OutlookFormatDlg extends CaveJFACEDialog {
      * that aren't in {@link #orderedLabelsMap}.
      */
     private static final String[] defaultOrderedLabels = { "HIGH", "MDT",
-            "SLGT", "TSTM", "NONE", "2%", "5%", "10%", "15%", "25%", "30%",
-            "35%", "40%", "45%", "50%", "60%", "70%", "75%", "HATCHED", "AREA",
-            "ISODRYT", "SCTDRYT", "DRY-TSTM", "ELEVATED", "CRITICAL", "EXTREME",
-            "D3", "D4", "D5", "D6", "D7", "D8", "D3-4", "D3-5", "D3-6", "D3-7",
-            "D3-8", "D4-5", "D4-6", "D4-7", "D4-8", "D5-6", "D5-7", "D5-8",
-            "D6-6", "D6-8", "D7-8" };
+            "ENH", "SLGT", "MRGL", "TSTM", "NONE", "2%", "5%", "10%", "15%",
+            "25%", "30%", "35%", "40%", "45%", "50%", "60%", "70%", "75%",
+            "HATCHED", "AREA", "ISODRYT", "SCTDRYT", "DRY-TSTM", "ELEVATED",
+            "CRITICAL", "EXTREME", "D3", "D4", "D5", "D6", "D7", "D8", "D3-4",
+            "D3-5", "D3-6", "D3-7", "D3-8", "D4-5", "D4-6", "D4-7", "D4-8",
+            "D5-6", "D5-7", "D5-8", "D6-6", "D6-8", "D7-8" };
 
     /**
      * Map from outlook type to order of labels in the outlook text message.

@@ -15,5 +15,5 @@ Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Bundle-RequiredExecutionEnvironment: JavaSE-11

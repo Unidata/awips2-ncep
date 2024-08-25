@@ -8,5 +8,5 @@ Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.ncscat,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ncscat.util

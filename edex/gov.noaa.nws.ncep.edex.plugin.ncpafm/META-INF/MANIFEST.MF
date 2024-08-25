@@ -13,7 +13,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.ncpafm,

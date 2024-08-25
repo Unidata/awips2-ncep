@@ -11,7 +11,7 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.atcf,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.edex.common,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.common.status,

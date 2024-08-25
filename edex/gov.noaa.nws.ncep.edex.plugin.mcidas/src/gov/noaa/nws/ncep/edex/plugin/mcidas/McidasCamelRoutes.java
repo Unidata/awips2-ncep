@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ncep.edex.plugin.mcidas;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "mcidas-ingest.xml", context "mcidas-camel"

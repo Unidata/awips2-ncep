@@ -11,7 +11,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.localization,
  jakarta.persistence,
  jakarta.xml.bind,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common,
  gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,

@@ -15,7 +15,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.common.dataplugin.airep,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ncep.edex.plugin.airep,
  gov.noaa.nws.ncep.edex.plugin.airep.decoder
 Import-Package: com.raytheon.uf.common.wmo,

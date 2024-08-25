@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ncep.edex.plugin.airep;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "airep-ingest.xml", context "airep-camel"

@@ -8,7 +8,7 @@ Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.wcp,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.apache.commons.logging
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

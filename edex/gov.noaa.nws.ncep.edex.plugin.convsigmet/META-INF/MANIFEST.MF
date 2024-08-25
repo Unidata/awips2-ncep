@@ -16,6 +16,6 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.convsigmet,
  javax.measure,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.common.wmo,
  org.apache.commons.logging

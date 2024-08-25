@@ -10,7 +10,7 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.ffg,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ffg.decoder,
  gov.noaa.nws.ncep.edex.plugin.ffg.util
 Import-Package: com.raytheon.uf.common.wmo,

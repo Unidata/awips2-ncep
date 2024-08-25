@@ -9,7 +9,7 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.sgwhv,
  com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.wmo,

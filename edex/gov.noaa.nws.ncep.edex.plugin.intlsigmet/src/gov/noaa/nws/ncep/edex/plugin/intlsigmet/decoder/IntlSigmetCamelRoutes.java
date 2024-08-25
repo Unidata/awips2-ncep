@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ncep.edex.plugin.intlsigmet.decoder;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "intlsigmet-ingest.xml", context "intlsigmet-camel"

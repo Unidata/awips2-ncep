@@ -13,7 +13,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.status,
  jakarta.xml.bind,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ncep.edex.plugin.nctaf.decoder
 Import-Package: com.raytheon.edex.exception,
  com.raytheon.uf.common.wmo,

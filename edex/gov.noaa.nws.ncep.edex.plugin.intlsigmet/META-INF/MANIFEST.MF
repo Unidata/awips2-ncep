@@ -14,5 +14,5 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.intlsigmet,
  javax.measure,
  org.slf4j,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.common.wmo

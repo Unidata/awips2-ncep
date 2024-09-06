@@ -19,6 +19,7 @@
 -Dqpid.dest_syntax=BURL
 -Dlogback.configurationFile=logback-gempak.xml
 -Dlogback.statusListenerClass=com.raytheon.uf.common.logback.UFLogbackInternalStatusListener
+-Dslf4j.provider=ch.qos.logback.classic.spi.LogbackServiceProvider
 -Dthrift.stream.maxsize=200
 -Dviz.memory.warn.threshold=10M
 -Dhttps.certificate.check=true

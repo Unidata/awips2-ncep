@@ -5,17 +5,16 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.mosaic
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
 Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.measure,
  com.raytheon.uf.common.localization,
  jakarta.persistence,
  jakarta.xml.bind,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.common.dataplugin.mosaic,
+ com.raytheon.uf.common.decodertools
 Bundle-ActivationPolicy: lazy
-Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common,
- gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,
- gov.noaa.nws.ncep.edex.plugin.mosaic.uengine,
- gov.noaa.nws.ncep.edex.plugin.mosaic.util
+Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,
+ gov.noaa.nws.ncep.edex.plugin.mosaic.uengine
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: org.apache.commons.logging

@@ -2,8 +2,8 @@ package gov.noaa.nws.ncep.common.tools;
 
 import java.util.Calendar;
 
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 
 /**
  * This software was a utility class developed by NCEP.
@@ -22,6 +22,7 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * 9/2011					B. Hebbard	Added CALENDAR_MISSING
  * 11/2011					S. Gurung	Added NEGATIVE_FLOAT_MISSING and NEGATIVE_INTEGER_MISSING
  * 08/2013					T. Lee		Simplied stormtrack reg expression
+ * Sep 06, 2024 2037799     njensen     Changed imports to copies to not depend on edex
  *
  * </pre>
  *

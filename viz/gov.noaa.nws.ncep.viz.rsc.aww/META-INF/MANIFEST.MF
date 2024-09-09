@@ -17,15 +17,14 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.ui.pgen,
- com.raytheon.uf.edex.decodertools,
  gov.noaa.nws.ncep.common.log,
  jakarta.xml.bind,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.common.decodertools
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.time,
- com.raytheon.uf.edex.decodertools.core,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.viz.core.drawables,
  com.raytheon.uf.viz.core.exception,

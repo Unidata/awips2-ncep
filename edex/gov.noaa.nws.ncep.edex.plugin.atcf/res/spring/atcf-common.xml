@@ -11,7 +11,7 @@
 	<bean id="atcfProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="atcfPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.atcf" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.atcf.dao.AtcfDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.atcf.dao.AtcfDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.atcf.AtcfRecord" />
 	</bean>
 

@@ -12,9 +12,9 @@ import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.edex.util.Util;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.idft.IdftRecord;
 import gov.noaa.nws.ncep.edex.plugin.idft.util.IdftParser;

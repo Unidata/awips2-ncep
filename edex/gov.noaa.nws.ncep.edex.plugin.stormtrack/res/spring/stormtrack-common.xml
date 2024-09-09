@@ -11,7 +11,7 @@
 	<bean id="stormTrackProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="stormTrackPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.stormtrack" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.stormtrack.dao.StormTrackDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.stormtrack.dao.StormTrackDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.stormtrack.StormTrackRecord" />
 	</bean>
 

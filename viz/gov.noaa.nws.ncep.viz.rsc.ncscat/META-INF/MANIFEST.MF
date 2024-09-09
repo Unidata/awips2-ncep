@@ -19,11 +19,10 @@ Require-Bundle: org.eclipse.ui,
  jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Import-Package: com.raytheon.uf.edex.decodertools.core,
- org.locationtech.jts.geom,
- gov.noaa.nws.ncep.common.dataplugin.ncscat,
+Import-Package: gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,
  gov.noaa.nws.ncep.viz.ui.display,
- javax.measure
+ javax.measure,
+ org.locationtech.jts.geom
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncscat,
  gov.noaa.nws.ncep.viz.rsc.ncscat.rsc

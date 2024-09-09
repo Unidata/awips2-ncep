@@ -13,11 +13,12 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.ncpafm,
- gov.noaa.nws.ncep.edex.tools.decoder,
+ gov.noaa.nws.ncep.edex.common.tools.decoder,
  gov.noaa.nws.ncep.edex.util
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder,
  gov.noaa.nws.ncep.edex.plugin.ncpafm.util

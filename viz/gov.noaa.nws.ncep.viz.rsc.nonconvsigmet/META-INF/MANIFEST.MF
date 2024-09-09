@@ -18,13 +18,12 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.ui.pgen,
- com.raytheon.uf.edex.decodertools,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.common.decodertools
 Bundle-ActivationPolicy: lazy
-Import-Package: com.raytheon.uf.edex.decodertools.core,
- org.locationtech.jts.geom,
- gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet,
- gov.noaa.nws.ncep.viz.ui.display
+Import-Package: gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet,
+ gov.noaa.nws.ncep.viz.ui.display,
+ org.locationtech.jts.geom
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.viz.rsc.nonconvsigmet,
  gov.noaa.nws.ncep.viz.rsc.nonconvsigmet.rsc

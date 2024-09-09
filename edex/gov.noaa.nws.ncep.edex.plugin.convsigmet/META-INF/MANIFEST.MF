@@ -8,7 +8,6 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.convsigmet,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
  com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,
  org.geotools,
@@ -16,6 +15,7 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.convsigmet,
  javax.measure,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.wmo,
  org.apache.commons.logging

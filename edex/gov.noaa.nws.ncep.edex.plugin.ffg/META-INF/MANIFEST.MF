@@ -10,12 +10,13 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.ffg,
  org.slf4j,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ffg.decoder,
  gov.noaa.nws.ncep.edex.plugin.ffg.util
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.tools,
- gov.noaa.nws.ncep.edex.tools.decoder,
+ gov.noaa.nws.ncep.edex.common.tools.decoder,
  gov.noaa.nws.ncep.edex.util
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

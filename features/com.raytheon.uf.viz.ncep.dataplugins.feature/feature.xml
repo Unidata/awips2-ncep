@@ -31,7 +31,7 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.edex.plugin.mosaic"
+         id="gov.noaa.nws.ncep.common.dataplugin.mosaic"
          download-size="0"
          install-size="0"
          version="0.0.0"

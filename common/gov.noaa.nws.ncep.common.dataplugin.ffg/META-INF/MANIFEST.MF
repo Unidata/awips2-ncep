@@ -5,12 +5,13 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ffg
 Bundle-Version: 1.19.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: gov.noaa.nws.ncep.common,
- com.raytheon.edex.common,
  org.geotools,
  jakarta.persistence,
  javax.measure,
  jakarta.xml.bind,
- com.raytheon.uf.common.status
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.serialization
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ffg,
  gov.noaa.nws.ncep.common.dataplugin.ffg.dao
 Import-Package: org.hibernate,

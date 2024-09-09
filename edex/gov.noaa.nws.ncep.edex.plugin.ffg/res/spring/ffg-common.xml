@@ -11,7 +11,7 @@
 	<bean id="ffgProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="ffgPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ffg" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.ffg.dao.FfgDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.ffg.dao.FfgDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.ffg.FfgRecord" />
 	</bean>
 

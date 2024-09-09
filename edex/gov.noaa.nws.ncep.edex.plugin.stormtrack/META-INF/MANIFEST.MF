@@ -11,7 +11,8 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.common.dataplugin.stormtrack,
  gov.noaa.nws.ncep.common,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.edex.common.dao
 Import-Package: gov.noaa.nws.ncep.common.dataplugin.stormtrack,
  org.apache.commons.logging
 Export-Package: gov.noaa.nws.ncep.edex.plugin.stormtrack.decoder,

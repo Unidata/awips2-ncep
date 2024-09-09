@@ -12,16 +12,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.raytheon.edex.esb.Headers;
+import com.raytheon.uf.common.decodertools.LatLonPoint;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
 import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetLocation;
 import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
 import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 
 /**
  * Airmen's Meteorological Information DecoderUtil

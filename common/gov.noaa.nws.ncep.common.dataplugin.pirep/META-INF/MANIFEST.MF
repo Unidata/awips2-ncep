@@ -7,11 +7,12 @@ Eclipse-BundleShape: dir
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.uf.common.status,
  javax.measure,
- com.raytheon.uf.edex.decodertools,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.dataaccess,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ gov.noaa.nws.ncep.common,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,

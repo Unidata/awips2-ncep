@@ -15,5 +15,7 @@ Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  com.raytheon.uf.common.status,
  org.slf4j,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools,
+ gov.noaa.nws.ncep.edex.util
 Bundle-RequiredExecutionEnvironment: JavaSE-11

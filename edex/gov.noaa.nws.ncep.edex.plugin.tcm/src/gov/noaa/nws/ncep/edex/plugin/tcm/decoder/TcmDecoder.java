@@ -10,11 +10,11 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.MndTime;
 import gov.noaa.nws.ncep.edex.plugin.tcm.util.TcmParser;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
 
 /**
  * TcmDecoder

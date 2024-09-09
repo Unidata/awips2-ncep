@@ -31,8 +31,8 @@ import org.apache.log4j.Logger;
 
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.plugin.AbstractRecordSeparator;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.util.StringUtil;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
 public class FfgSeparator extends AbstractRecordSeparator {
     private final Logger log = Logger.getLogger(getClass().getName());

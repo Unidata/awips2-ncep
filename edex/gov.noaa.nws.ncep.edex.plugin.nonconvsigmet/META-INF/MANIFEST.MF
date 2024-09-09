@@ -8,13 +8,13 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
  com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,
  org.geotools,
  jakarta.persistence,
  javax.measure,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.wmo,
  org.apache.commons.logging

@@ -13,7 +13,8 @@ import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.datastorage.records.ShortDataRecord;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicTiler;
 import tech.units.indriya.function.AbstractConverter;
 
 /**

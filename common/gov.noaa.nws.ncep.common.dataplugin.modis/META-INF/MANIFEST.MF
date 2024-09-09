@@ -5,13 +5,15 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.modis
 Bundle-Version: 1.16.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization, org.geotools
-Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.common.serialization.comm,
+Require-Bundle: com.raytheon.uf.common.serialization.comm,
  org.geotools,
  javax.measure,
- jakarta.persistence
+ jakarta.persistence,
+ com.raytheon.uf.common.geospatial,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.datastorage
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.modis,
- gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.common.dataplugin.modis.projection
 Import-Package: com.raytheon.uf.common.numeric.buffer,
  com.raytheon.uf.common.numeric.dest,

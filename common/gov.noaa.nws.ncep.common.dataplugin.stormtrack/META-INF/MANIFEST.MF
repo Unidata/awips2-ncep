@@ -6,11 +6,11 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.stormtrack,
- gov.noaa.nws.ncep.common.dataplugin.stormtrack.dao,
  gov.noaa.nws.ncep.edex.uengine.tasks.stormtrack
 Require-Bundle: jakarta.persistence,
- com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.dataplugin
 Import-Package: org.locationtech.jts.geom

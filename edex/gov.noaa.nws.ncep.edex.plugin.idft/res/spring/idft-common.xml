@@ -11,7 +11,7 @@
 	<bean id="idftProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="idftPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.idft" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.idft.dao.IdftDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.idft.dao.IdftDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.idft.IdftRecord" />
 	</bean>
 

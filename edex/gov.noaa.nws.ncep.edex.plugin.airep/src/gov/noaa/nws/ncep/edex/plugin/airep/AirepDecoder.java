@@ -10,10 +10,10 @@ import java.util.Map;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 import gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord;
 import gov.noaa.nws.ncep.edex.plugin.airep.decoder.AIREPWeather;

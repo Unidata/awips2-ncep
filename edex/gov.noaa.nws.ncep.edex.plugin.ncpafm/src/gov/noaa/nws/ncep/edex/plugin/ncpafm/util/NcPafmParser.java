@@ -31,9 +31,9 @@ import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmParameters;
 import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmUgc;
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField.StationField;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.MndTime;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
 import gov.noaa.nws.ncep.edex.common.stationTables.StationTable;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
 import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.io.File;

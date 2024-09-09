@@ -11,7 +11,8 @@ Require-Bundle: com.raytheon.uf.common.status,
  com.raytheon.uf.common.time,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,
@@ -21,13 +22,12 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization.annotations,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.wmo,
- com.raytheon.uf.edex.decodertools.time,
- org.locationtech.jts.geom,
  gov.noaa.nws.ncep.common.tools,
- javax.measure,
  jakarta.persistence,
+ javax.measure,
  org.apache.commons.lang.builder,
- org.apache.commons.logging
+ org.apache.commons.logging,
+ org.locationtech.jts.geom
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.nctaf,
  gov.noaa.nws.ncep.common.dataplugin.nctaf.dao
 

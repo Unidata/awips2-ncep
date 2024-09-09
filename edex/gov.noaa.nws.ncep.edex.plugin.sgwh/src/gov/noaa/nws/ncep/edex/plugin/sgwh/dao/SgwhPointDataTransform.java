@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 import gov.noaa.nws.ncep.common.dataplugin.sgwh.SgwhRecord;
 

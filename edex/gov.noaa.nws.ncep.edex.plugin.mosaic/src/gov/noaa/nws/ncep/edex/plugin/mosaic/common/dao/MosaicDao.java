@@ -21,9 +21,9 @@ import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicConstants;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyBlock;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.MosaicConstants;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.SymbologyBlock;
 
 /**
  * Data Access Object implementation for accessing mosaic data

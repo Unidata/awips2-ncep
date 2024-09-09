@@ -1,15 +1,15 @@
 package gov.noaa.nws.ncep.viz.rsc.aww.utils;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.IRscDataObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.RGB;
 
+import com.raytheon.uf.common.decodertools.LatLonPoint;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.IRscDataObject;
 
 /**
  * PreProcessDisplay - common class used throughout AWW viz resources

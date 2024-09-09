@@ -11,6 +11,8 @@ Require-Bundle: jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.tcm,
  org.slf4j,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools,
+ gov.noaa.nws.ncep.edex.util
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core

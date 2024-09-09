@@ -15,6 +15,22 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Pressure;
 import javax.measure.quantity.Speed;
 import javax.measure.quantity.Temperature;
+
+import org.locationtech.jts.geom.Geometry;
+
+import com.raytheon.uf.common.dataplugin.NullUtil;
+import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataplugin.annotations.DataURI;
+import com.raytheon.uf.common.dataplugin.annotations.NullString;
+import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
+import com.raytheon.uf.common.geospatial.ISpatialEnabled;
+import com.raytheon.uf.common.pointdata.IPointData;
+import com.raytheon.uf.common.pointdata.PointDataView;
+import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
@@ -30,22 +46,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
-
-import org.locationtech.jts.geom.Geometry;
-
-import com.raytheon.uf.common.dataplugin.NullUtil;
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.annotations.DataURI;
-import com.raytheon.uf.common.dataplugin.annotations.NullString;
-import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
-import com.raytheon.uf.common.geospatial.ISpatialEnabled;
-import com.raytheon.uf.common.pointdata.IPointData;
-import com.raytheon.uf.common.pointdata.PointDataView;
-import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
-
 import si.uom.NonSI;
 import si.uom.SI;
 import systems.uom.common.USCustomary;

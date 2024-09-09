@@ -16,5 +16,6 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.airmet,
  javax.measure,
  org.slf4j,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.wmo

@@ -1,13 +1,13 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import javax.measure.quantity.Length;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
-import gov.noaa.nws.ncep.edex.util.UtilN;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import si.uom.SI;
 
 /**

@@ -5,7 +5,7 @@
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
                         
-    <bean id="modisDao" class="gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao">
+    <bean id="modisDao" class="gov.noaa.nws.ncep.edex.plugin.modis.dao.ModisDao">
        <constructor-arg ref="modisPluginName" />    
     </bean> 
         

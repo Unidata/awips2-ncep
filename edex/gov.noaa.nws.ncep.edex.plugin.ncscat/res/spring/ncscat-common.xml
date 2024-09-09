@@ -10,7 +10,7 @@
 		<property name="pluginName" ref="ncscatPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ncscat" />
 		<property name="dao"
-			value="gov.noaa.nws.ncep.common.dataplugin.ncscat.dao.NcscatDao" />
+			value="gov.noaa.nws.ncep.edex.plugin.ncscat.dao.NcscatDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatRecord" />
 

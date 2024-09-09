@@ -93,7 +93,6 @@ import com.raytheon.uf.viz.datacube.DataCubeContainer;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
@@ -515,11 +514,11 @@ public class ModisResource
                     .retrieve(dataRecord.getDataURI());
             for (IDataRecord rec : dataRecords) {
                 if (rec instanceof FloatDataRecord) {
-                    if (rec.getName().equals(ModisDao.LATITUDE_DATASET_NAME)) {
+                    if (rec.getName().equals(ModisRecord.LATITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLatitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     } else if (rec.getName()
-                            .equals(ModisDao.LONGITUDE_DATASET_NAME)) {
+                            .equals(ModisRecord.LONGITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLongitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     }

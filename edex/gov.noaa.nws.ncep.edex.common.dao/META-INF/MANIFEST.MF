@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: NCEP EDEX Common DAO
+Bundle-SymbolicName: gov.noaa.nws.ncep.edex.common.dao
+Bundle-Version: 1.24.0.qualifier
+Automatic-Module-Name: gov.noaa.nws.ncep.edex.common.dao
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Export-Package: gov.noaa.nws.ncep.edex.common.dao
+Require-Bundle: com.raytheon.uf.edex.database,
+ jakarta.persistence,
+ com.raytheon.edex.common,
+ org.slf4j,
+ com.raytheon.uf.edex.pointdata

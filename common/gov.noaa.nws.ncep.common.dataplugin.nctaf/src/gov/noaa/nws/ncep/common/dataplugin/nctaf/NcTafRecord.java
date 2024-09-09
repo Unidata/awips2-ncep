@@ -15,6 +15,23 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.time.DateUtils;
+
+import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataplugin.annotations.DataURI;
+import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
+import com.raytheon.uf.common.geospatial.ISpatialEnabled;
+import com.raytheon.uf.common.pointdata.IPointData;
+import com.raytheon.uf.common.pointdata.PointDataView;
+import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.common.time.TimeRange;
+
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.util.VisibilityParser;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
@@ -29,24 +46,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
-
-import org.apache.commons.lang.time.DateUtils;
-
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.annotations.DataURI;
-import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
-import com.raytheon.uf.common.geospatial.ISpatialEnabled;
-import com.raytheon.uf.common.pointdata.IPointData;
-import com.raytheon.uf.common.pointdata.PointDataView;
-import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
-
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.util.VisibilityParser;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 
 /**
  * Record implementation for taf plugin

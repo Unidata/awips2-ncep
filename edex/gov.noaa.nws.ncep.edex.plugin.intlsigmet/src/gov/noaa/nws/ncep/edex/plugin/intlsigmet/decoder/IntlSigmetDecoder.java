@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.time.util.TimeUtil;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetRecord;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 import gov.noaa.nws.ncep.edex.plugin.intlsigmet.util.IntlSigmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 /**
  * IntlSigmet Decoder

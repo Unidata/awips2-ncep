@@ -20,9 +20,6 @@
 
 package gov.noaa.nws.ncep.edex.plugin.nctext.decoder;
 
-import gov.noaa.nws.ncep.edex.plugin.nctext.common.NctextRecord;
-import gov.noaa.nws.ncep.edex.plugin.nctext.common.dao.NctextInputFileTypeDao;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -40,8 +37,11 @@ import org.apache.commons.logging.LogFactory;
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.plugin.AbstractRecordSeparator;
 import com.raytheon.edex.util.Util;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+
+import gov.noaa.nws.ncep.edex.plugin.nctext.common.NctextRecord;
+import gov.noaa.nws.ncep.edex.plugin.nctext.common.dao.NctextInputFileTypeDao;
 
 public class NctextSeparator extends AbstractRecordSeparator {
 

@@ -8,7 +8,11 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.raytheon.edex.common,
  jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.ssha,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.pointdata,
+ gov.noaa.nws.ncep.edex.common.dao,
+ com.raytheon.uf.edex.pointdata,
+ com.raytheon.uf.common.decodertools
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ssha.decoder,
  gov.noaa.nws.ncep.edex.plugin.ssha.util
 Import-Package: com.raytheon.uf.edex.bufrtools,

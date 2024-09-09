@@ -10,10 +10,11 @@ Export-Package: gov.noaa.nws.ncep.common.dataplugin.atcf,
  gov.noaa.nws.ncep.common.dataplugin.atcf.request,
  gov.noaa.nws.ncep.edex.uengine.tasks.atcf
 Require-Bundle: jakarta.persistence,
- com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
  jakarta.xml.bind,
- com.raytheon.uf.common.status
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.dataplugin
 Import-Package: com.raytheon.uf.common.serialization.comm,
  org.locationtech.jts.geom

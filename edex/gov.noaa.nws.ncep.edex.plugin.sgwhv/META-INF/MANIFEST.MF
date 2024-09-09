@@ -9,7 +9,8 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.sgwhv,
  com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.edex.common.dao
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.wmo,
@@ -17,6 +18,6 @@ Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.bufrtools,
  com.raytheon.uf.edex.bufrtools.descriptors,
  com.raytheon.uf.edex.bufrtools.packets,
- com.raytheon.uf.edex.decodertools.time,
+ com.raytheon.uf.common.decodertools.time,
  org.apache.commons.logging
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB

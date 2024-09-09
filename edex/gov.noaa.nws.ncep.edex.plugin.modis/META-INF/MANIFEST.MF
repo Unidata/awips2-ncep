@@ -13,8 +13,8 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.localization,
  ucar.nc2,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.numeric
 Import-Package: gov.noaa.nws.ncep.common.dataplugin.modis,
- gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.common.dataplugin.modis.projection,
  org.apache.commons.logging

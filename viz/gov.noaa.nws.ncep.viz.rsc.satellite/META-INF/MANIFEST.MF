@@ -35,7 +35,6 @@ Import-Package:
  com.raytheon.uf.viz.npp.viirs.style,
  com.raytheon.viz.core.gl,
  gov.noaa.nws.ncep.common.dataplugin.modis,
- gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.viz.localization,
  gov.noaa.nws.ncep.viz.resourceManager.ui,
  gov.noaa.nws.ncep.viz.ui.display

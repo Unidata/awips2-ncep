@@ -5,7 +5,7 @@
     http://camel.apache.org/schema/spring
     http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-	<bean id="ncscatDao" class="gov.noaa.nws.ncep.common.dataplugin.ncscat.dao.NcscatDao">
+	<bean id="ncscatDao" class="gov.noaa.nws.ncep.edex.plugin.ncscat.dao.NcscatDao">
 	<constructor-arg ref="ncscatPluginName"/> 
 	</bean>
 

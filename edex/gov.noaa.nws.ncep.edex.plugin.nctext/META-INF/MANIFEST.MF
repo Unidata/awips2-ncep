@@ -23,4 +23,6 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  jakarta.xml.bind,
  org.slf4j,
- com.raytheon.uf.edex.routes
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.edex.common.dao,
+ com.raytheon.uf.common.decodertools

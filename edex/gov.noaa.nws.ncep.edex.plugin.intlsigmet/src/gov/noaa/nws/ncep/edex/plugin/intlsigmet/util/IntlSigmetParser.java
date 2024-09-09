@@ -11,16 +11,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.raytheon.edex.esb.Headers;
+import com.raytheon.uf.common.decodertools.LatLonPoint;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
 import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetLocation;
 import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetRecord;
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 
 /**
  * International Significant Meteorological Information DecoderUtil

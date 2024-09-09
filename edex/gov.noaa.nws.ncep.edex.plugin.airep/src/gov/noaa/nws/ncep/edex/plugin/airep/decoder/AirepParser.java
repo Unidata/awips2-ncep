@@ -17,13 +17,13 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.decodertools.aircraft.AircraftFlightLevel;
 import com.raytheon.uf.edex.decodertools.aircraft.AircraftLatitude;
 import com.raytheon.uf.edex.decodertools.aircraft.AircraftLongitude;
 import com.raytheon.uf.edex.decodertools.aircraft.AircraftRemarks;
 import com.raytheon.uf.edex.decodertools.core.BasePoint;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 import com.raytheon.uf.edex.decodertools.core.PlatformLocationProxy;
 
 import gov.noaa.nws.ncep.edex.plugin.airep.AirepSeparator;

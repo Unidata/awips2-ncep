@@ -12,15 +12,15 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
+import com.raytheon.uf.common.decodertools.aircraft.AircraftCloudLayer;
+import com.raytheon.uf.common.decodertools.aircraft.AircraftFlightCondition;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.edex.decodertools.aircraft.AircraftCloudLayer;
-import com.raytheon.uf.edex.decodertools.aircraft.AircraftFlightCondition;
 import com.raytheon.uf.edex.decodertools.core.BasePoint;
 import com.raytheon.uf.edex.decodertools.core.DecoderTools;
 import com.raytheon.uf.edex.decodertools.core.IDecoderInput;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepLayerData;
 import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepRecord;

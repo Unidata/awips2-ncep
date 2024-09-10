@@ -12,7 +12,6 @@ Require-Bundle: gov.noaa.nws.ncep.common,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization
-Export-Package: gov.noaa.nws.ncep.common.dataplugin.ffg,
- gov.noaa.nws.ncep.common.dataplugin.ffg.dao
+Export-Package: gov.noaa.nws.ncep.common.dataplugin.ffg
 Import-Package: org.hibernate,
  org.hibernate.annotations

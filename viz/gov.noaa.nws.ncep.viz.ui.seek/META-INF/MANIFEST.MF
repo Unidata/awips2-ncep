@@ -23,5 +23,5 @@ Require-Bundle: com.raytheon.viz.ui,
  org.apache.commons.lang3,
  com.raytheon.uf.viz.core.maps
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.ui.seek

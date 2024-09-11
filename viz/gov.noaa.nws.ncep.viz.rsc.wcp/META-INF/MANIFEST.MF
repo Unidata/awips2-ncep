@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.common.dataplugin.wcp,
  jakarta.xml.bind
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wcp,
  gov.noaa.nws.ncep.viz.rsc.wcp.rsc

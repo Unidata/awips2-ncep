@@ -23,7 +23,7 @@ Require-Bundle: com.raytheon.viz.core,
  com.raytheon.uf.common.derivparam,
  jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.satellite.area,
  gov.noaa.nws.ncep.viz.rsc.satellite.rsc,
  gov.noaa.nws.ncep.viz.rsc.satellite.units

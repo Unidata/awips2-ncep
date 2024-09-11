@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.ui,
  jakarta.xml.bind,
  javax.measure
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.stormtrack,
  gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc
 Import-Package: gov.noaa.nws.ncep.gempak.parameters,

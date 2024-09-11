@@ -30,7 +30,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.gempak.common,
  com.raytheon.uf.viz.ncep.grid
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.contours,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc

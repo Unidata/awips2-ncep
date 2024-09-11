@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.ui,
  javax.measure,
  jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ffg,
  gov.noaa.nws.ncep.viz.rsc.ffg.rsc
 Import-Package: gov.noaa.nws.ncep.viz.ui.display

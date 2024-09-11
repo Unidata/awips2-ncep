@@ -25,4 +25,4 @@ Require-Bundle: com.raytheon.uf.common.localization,
 Import-Package: com.raytheon.uf.common.units,
  gov.noaa.nws.ncep.common.tools,
  org.apache.commons.logging
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

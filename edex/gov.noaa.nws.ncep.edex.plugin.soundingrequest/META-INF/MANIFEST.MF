@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: SoundingRequest
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.soundingrequest
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.edex.plugin.bufrua.dao,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.bufrua,

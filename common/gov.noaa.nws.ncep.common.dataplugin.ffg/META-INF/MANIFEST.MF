@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: FFG Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ffg
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: gov.noaa.nws.ncep.common,
  org.geotools,
  jakarta.persistence,

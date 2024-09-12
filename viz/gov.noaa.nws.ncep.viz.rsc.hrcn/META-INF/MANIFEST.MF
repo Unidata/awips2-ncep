@@ -23,6 +23,6 @@ Import-Package: gov.noaa.nws.ncep.common.dataplugin.tcm,
  gov.noaa.nws.ncep.ui.pgen.elements.tcm,
  gov.noaa.nws.ncep.viz.ui.display,
  org.locationtech.jts.geom
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.hrcn,
  gov.noaa.nws.ncep.viz.rsc.hrcn.rsc

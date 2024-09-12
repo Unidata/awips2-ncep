@@ -50,4 +50,4 @@ Import-Package: com.raytheon.uf.viz.core.maps.display,
  gov.noaa.nws.ncep.common.staticdata,
  javax.measure
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

@@ -6,7 +6,7 @@ Bundle-Version: 1.18.0.qualifier
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.ncep.grid
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: com.raytheon.uf.viz.gempak.common,
  com.raytheon.uf.viz.gempak.common.adapter,
  com.raytheon.uf.viz.gempak.common.comm,

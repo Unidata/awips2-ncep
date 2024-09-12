@@ -4,7 +4,7 @@ Bundle-Name: Airep Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.airep
 Bundle-Version: 1.19.0.qualifier
 Eclipse-BundleShape: dir
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.common.status,
  javax.measure,
  org.hibernate,

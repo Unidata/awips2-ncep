@@ -18,4 +18,4 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.routes,
  com.raytheon.uf.common.decodertools,
  gov.noaa.nws.ncep.edex.util
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

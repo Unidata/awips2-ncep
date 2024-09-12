@@ -17,4 +17,4 @@ Require-Bundle: com.raytheon.edex.common,
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.idft
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17

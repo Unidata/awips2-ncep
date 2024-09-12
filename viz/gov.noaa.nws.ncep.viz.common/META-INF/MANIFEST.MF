@@ -33,4 +33,4 @@ Import-Package: com.raytheon.uf.common.comm,
  javax.measure,
  org.locationtech.jts.geom,
  org.locationtech.jts.io
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

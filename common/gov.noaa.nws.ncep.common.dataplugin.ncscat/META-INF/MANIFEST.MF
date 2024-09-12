@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Ncscat Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ncscat
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: jakarta.persistence,
  gov.noaa.nws.ncep.common,
  jakarta.xml.bind,

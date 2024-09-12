@@ -25,7 +25,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.datacube,
  jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.pypies,
  com.raytheon.viz.core.gl.dataformat,

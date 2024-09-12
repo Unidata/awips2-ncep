@@ -13,7 +13,7 @@ Require-Bundle:
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.geospatial,
  jakarta.xml.bind
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncuair,
  gov.noaa.nws.ncep.common.dataplugin.ncuair.dao
 Import-Package: com.raytheon.uf.common.pointdata,

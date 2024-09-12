@@ -16,5 +16,5 @@ Require-Bundle: com.raytheon.edex.common,
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,
  gov.noaa.nws.ncep.edex.plugin.mosaic.uengine
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: org.apache.commons.logging

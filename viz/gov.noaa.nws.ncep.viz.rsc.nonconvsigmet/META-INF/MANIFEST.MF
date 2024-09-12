@@ -24,7 +24,7 @@ Bundle-ActivationPolicy: lazy
 Import-Package: gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet,
  gov.noaa.nws.ncep.viz.ui.display,
  org.locationtech.jts.geom
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.nonconvsigmet,
  gov.noaa.nws.ncep.viz.rsc.nonconvsigmet.rsc
 

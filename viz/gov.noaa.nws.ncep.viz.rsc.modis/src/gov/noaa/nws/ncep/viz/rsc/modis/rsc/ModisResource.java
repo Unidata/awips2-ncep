@@ -1234,7 +1234,7 @@ public class ModisResource
             try {
                 dataValue = colorMapParameters.getDataToDisplayConverter()
                         .convert(bestValue);
-            } catch (NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
                 dataValue = Double.NaN;
             }
             // convert CI scaled value (dataValue), which is 0..254 to actual CI

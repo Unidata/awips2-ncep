@@ -549,7 +549,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
             try {
                 dataValue = colorMapParameters.getDataToDisplayConverter()
                         .convert(bestValue);
-            } catch (NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
                 dataValue = Double.NaN;
             }
             dataValue = convertDataValue(dataValue);

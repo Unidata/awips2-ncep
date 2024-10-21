@@ -450,7 +450,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                     try {
                         convertedValue = params.getDataToDisplayConverter()
                                 .convert(i);
-                    } catch (NumberFormatException e) {
+                    } catch (IllegalArgumentException e) {
                         convertedValue = Double.NaN;
                     }
                     entry.setDisplayValue(convertedValue);
@@ -702,7 +702,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                     } else {
                         d = Double.NaN;
                     }
-                } catch (NumberFormatException e) {
+                } catch (IllegalArgumentException e) {
                     d = Double.NaN;
                 }
 
@@ -742,7 +742,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                         double disp;
                         try {
                             disp = image2disp.convert(j);
-                        } catch (NumberFormatException e) {
+                        } catch (IllegalArgumentException e) {
                             // the value is a special case and represents
                             // "no color" on the color map.
                             continue;

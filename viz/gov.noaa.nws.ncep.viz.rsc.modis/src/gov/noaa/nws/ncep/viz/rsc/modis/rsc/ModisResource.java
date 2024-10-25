@@ -50,7 +50,6 @@ import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
 import com.raytheon.uf.common.style.ImageryLabelingPreferences;
@@ -135,6 +134,8 @@ import tech.units.indriya.quantity.Quantities;
  * 04/15/2019   7596    lsingh       Updated units framework to JSR-363.
  * 05/21/2019   64168   ksunil       Use ImageryLabelingPreference
  * 11/02/2022   8905    lsingh       Check for NaN when converting units.
+ * Oct 25, 2024 2037223 aford        JAXB upgrade - Configure JAXB Manager to
+ *                                   Use Custom JAXB Context Factory
  * </pre>
  *
  * @author kbugenhagen
@@ -1105,17 +1106,14 @@ public class ModisResource
 
             locator.save();
 
-            Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
+            Class<?>[] jaxbClasses = new Class<?>[classes.size()];
             classes.toArray(jaxbClasses);
 
-            /*
-             * Add JaxbDummyObject at the beginning so properties are loaded
-             * correctly
-             */
-            jaxbClasses[jaxbClasses.length - 1] = jaxbClasses[0];
-            jaxbClasses[0] = JaxbDummyObject.class;
-
-            jaxb = new JAXBManager(jaxbClasses);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    jaxbClasses);
         }
 
         return jaxb;

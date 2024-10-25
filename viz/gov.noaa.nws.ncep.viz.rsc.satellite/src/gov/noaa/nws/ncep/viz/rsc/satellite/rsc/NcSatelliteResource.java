@@ -38,7 +38,6 @@ import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
@@ -147,6 +146,8 @@ import tech.units.indriya.format.SimpleUnitFormat;
  * May 21, 2019  64168    ksunil       Use ImageryLabelingPreference
  * Apr 20, 2020  8145     randerso     Replace SamplePreferences with
  *                                     SampleFormat
+ * Oct 25, 2024  2037223  aford        JAXB upgrade - Configure JAXB Manager to
+ *                                     Use Custom JAXB Context Factory
  *
  * </pre>
  *
@@ -953,17 +954,14 @@ public class NcSatelliteResource extends
 
             locator.save();
 
-            Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
-            classes.toArray(jaxbClasses);
+            Class<?>[] jaxbClasses = classes
+                    .toArray(new Class<?>[classes.size()]);
 
-            /*
-             * Add JaxbDummyObject at the beginning so properties are loaded
-             * correctly
-             */
-            jaxbClasses[jaxbClasses.length - 1] = jaxbClasses[0];
-            jaxbClasses[0] = JaxbDummyObject.class;
-
-            jaxb = new JAXBManager(jaxbClasses);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    jaxbClasses);
         }
 
         return jaxb;

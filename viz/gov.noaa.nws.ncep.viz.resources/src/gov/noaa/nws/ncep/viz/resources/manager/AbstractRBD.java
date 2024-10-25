@@ -45,7 +45,6 @@ import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.adapters.GridGeometrySerialized;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -89,6 +88,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    10/07/2016     R21481    Bugenhagen  Replaced use of temp file with ByteArrayOutputStream 
  *                                         in getRbd method.
  *    11/08/16       5976      bsteffen    Update deprecated method calls.
+ *    Oct 25, 2024   2037223   aford       JAXB upgrade - Configure JAXB Manager to
+ *                                         Use Custom JAXB Context Factory
  * 
  * </pre>
  * 
@@ -752,20 +753,18 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             throws JAXBException {
         if (jaxb == null) {
             SubClassLocator locator = new SubClassLocator();
-            Collection<Class<?>> classes = JAXBClassLocator.getJAXBClasses(
-                    locator, AbstractRBD.class);
+            Collection<Class<?>> classes = JAXBClassLocator
+                    .getJAXBClasses(locator, AbstractRBD.class);
             locator.save();
 
-            Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
+            Class<?>[] jaxbClasses = new Class<?>[classes.size()];
             classes.toArray(jaxbClasses);
-            /*
-             * Add JaxbDummyObject at the begining so properties are loaded
-             * correctly
-             */
-            jaxbClasses[jaxbClasses.length - 1] = jaxbClasses[0];
-            jaxbClasses[0] = JaxbDummyObject.class;
 
-            jaxb = new JAXBManager(jaxbClasses);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    jaxbClasses);
         }
         return jaxb;
     }

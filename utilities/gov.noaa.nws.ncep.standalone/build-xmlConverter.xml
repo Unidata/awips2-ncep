@@ -1,6 +1,6 @@
 <project name="xmlConverter" default="build-jar" basedir=".">
     <description>
-        This build file is for building xmlConverter application only. /usr1/YourName/git/16.1.1-n
+        This build file is for building xmlConverter application only.
         
         This build does not compile the projects and relies on Eclipse, which automatically compiles them.
         All the classes and needed jar libraries are copied to the distXC folder, the references to these files 
@@ -12,16 +12,18 @@
         
         This script runs from a base directory which is the latest Eclipse workspace 
         
-        Each users needs to put this string (adjust for thier paths) like these into Run2 > "main" tab > Arguments:
-        
-        -Dsrc_ctrl_home=/usr1/yournamel/git/
+        This script is set up by default to run with dependency repositories (e.g. AWIPS2_Core) located 
+        as siblings to this repository. If the repositories are located in a different location, the
+        following system property can be set in Run > "main" tab > Arguments:
+            
+            -Dsrc_ctrl_home=/usr1/yourname/git/
        
         
     </description>
 
     <!-- set global properties for this build -->
     <property name="project_name"   value="xmlConverter"/>
-    <property name="src_ctrl_home" value="/usr1/yournamel/git/"/>
+    <property name="src_ctrl_home" value="${basedir}/../../.."/>
     <property name="standalone_dir" value="gov.noaa.nws.ncep.standalone"/>
     <property name="repository_ncep" value="AWIPS2_NCEP"/>
     <property name="repository_core" value="AWIPS2_Core"/>
@@ -57,9 +59,6 @@
         </copy>
         
         <copy todir="${distXC}/lib">
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="jts-1.13.jar"/>			
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="geoapi-*.jar"/>
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="gt-*.jar"/>
             <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.ws" includes="*.jar"/>

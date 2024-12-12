@@ -12,17 +12,17 @@
         
         The base directory for this script is your latest Eclipse workspace
         
-        Each user must set his/her src_ctrl_home property in
-        Run2 > "main" > Arguments to something like
-    	
-        -Dsrc_ctrl_home=/usr1/yournamel/git/
-
+        This script is set up by default to run with dependency repositories (e.g. AWIPS2_Core) located 
+        as siblings to this repository. If the repositories are located in a different location, the
+        following system property can be set in Run > "main" tab > Arguments:
+            
+            -Dsrc_ctrl_home=/usr1/yourname/git/
         
     </description>
 
     <!-- set global properties for this build -->
     <property name="project_name"   value="vgfConverter"/>
-    <property name="src_ctrl_home" value ="/usr1/yournamel/git/"/>
+    <property name="src_ctrl_home" value ="${basedir}/../../.."/>
     <property name="repository_ncep" value="AWIPS2_NCEP"/>
     <property name="repository_core" value="AWIPS2_Core"/>
     <property name="repository_core_foss" value="AWIPS2_Core_FOSS"/>
@@ -53,9 +53,7 @@
                 
         <copy todir="${distVC}/lib">
             <fileset dir="${src_ctrl_home}/${repository_ncep}/utilities/${standalone_dir}/script" includes="*.so"/>
-        	 <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="jaxb-runtime*.jar"/>
-        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="jaxb-api*.jar"/>
-        	 <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="istack*.jar"/>
+        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
             <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/> 
          	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_foss}/lib/com.sun.jna" includes="*.jar"/>

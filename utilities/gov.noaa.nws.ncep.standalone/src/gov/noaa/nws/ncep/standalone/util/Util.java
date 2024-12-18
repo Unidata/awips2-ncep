@@ -31,6 +31,8 @@ import gov.noaa.nws.ncep.ui.pgen.file.Products;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * Aug 11, 2023 2033507     achalla     Added error suppression on read()
+ * Dec 13, 2024 2038283     aford       Remove error suppression on read, issue fixed
+ *                                      by adding geospatial plugin to classpath.
  *
  * </pre>
  *
@@ -96,18 +98,8 @@ public class Util {
 
         } catch (FileNotFoundException e) {
             System.err.println("The xml file " + fileName + " does not exist.");
-        } catch (InternalError ie) {
-            /*
-             * suppressing package error until further investigation caused by
-             * Java-11 upgrade which doesn't cause service interruption
-             */
-            /*
-             * Error Message: Error occurred while invoking reflection on target
-             * classes. Make sure all referenced classes are on classpath:
-             * interface javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
-             * Exception: null
-             */
         }
+
         return products;
     }
 

@@ -9,3 +9,15 @@ bin-test/
 *.pyo
 *.o
 *.orig
+
+# ncep standalone build dirs
+build/
+distClip/
+distCol/
+distJoin/
+distMisc/
+distMod/
+distVC/
+distVT/
+distXC/
+distXT/

@@ -66,8 +66,8 @@
 		<copy todir="${distXT}/lib"> <!--/lib-->
 			
 			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="*.jar"/>
-			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
-			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.xml.bind" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.activation" includes="*.jar"/>
 			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.measure" includes="*.jar"/>
 			
 			<fileset dir="${eclipse_plugins_dir}" includes="org.eclipse.jface_*.jar"/>		

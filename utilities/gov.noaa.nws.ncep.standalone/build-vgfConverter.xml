@@ -47,14 +47,13 @@
             <fileset dir="./bin" includes="gov/noaa/nws/ncep/standalone/util/*.class"/>		
             <fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.ui.pgen/bin" includes="**/*.class"/>	
             <fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.serialization/bin" includes="**/*.class"/>
-            <fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.geospatial" includes="**/*.class"/>
-        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="**/*.class"/>
+            <fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.geospatial/bin" includes="**/*.class"/>
         </copy>
                 
         <copy todir="${distVC}/lib">
             <fileset dir="${src_ctrl_home}/${repository_ncep}/utilities/${standalone_dir}/script" includes="*.so"/>
-        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/> 
+        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.xml.bind" includes="*.jar"/>
+            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.activation" includes="*.jar"/> 
          	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_foss}/lib/com.sun.jna" includes="*.jar"/>
         </copy>

@@ -9,14 +9,23 @@
 		
 		To build a jar file, right click on this file, then "Run As...", then Target, then Select "build-jar", 
 		then click "Apply", then clcik "Run"
+
+		This script is set up by default to run with dependency repositories (e.g. AWIPS2_Core) located 
+        as siblings to this repository. If the repositories are located in a different location, the
+        following system property can be set in Run > "main" tab > Arguments:
+            
+            -Dsrc_ctrl_home=/usr1/yourname/git/
+			
     </description>
 
 	<!-- set global properties for this build -->
 	<property name="project_name"   value="colormapConverter"/>
+	<property name="src_ctrl_home" value ="${basedir}/../../.."/>
+	<property name="repository_core" value="AWIPS2_Core"/>
+	<property name="repository_core_foss" value="AWIPS2_Core_FOSS"/>
 	<property name="src" location="src" />
 	<property name="build" location="build" />
 	<property name="distCol" location="distCol" />
-	<property name="colormapConverter" location="gov/noaa/nws/ncep/standalone/colormapConverter" />
 	<property name="bin" location="bin" />
 
 	
@@ -28,13 +37,21 @@
 		
 		<!-- Copy all the needed files from the projects which eclipse already compiled -->
 		<copy todir="${build}">			
-			<fileset dir="../gov.noaa.nws.ncep.standalone/bin" includes="gov/noaa/nws/ncep/standalone/colormapConverter/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.colormap/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.serialization/bin" includes="**/*.class"/>
-			
+			<fileset dir="./bin" includes="gov/noaa/nws/ncep/standalone/colormapConverter/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.colormap/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.serialization/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.status/bin" includes="**/*.class"/>
 		</copy>		
+
+		<copy todir="${distCol}/lib">
+            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.slf4j" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/ch.qos.logback" includes="*.jar"/>
+         </copy>
+
 		<copy todir="${distCol}/table">
-			<fileset dir="../gov.noaa.nws.ncep.standalone/table" includes="enhance.tbl"/>					
+			<fileset dir="./table" includes="enhance.tbl"/>					
 		</copy>
 		
 		<path id="distCol.classpath">

@@ -9,15 +9,24 @@
 		
 		To build a jar file, right click on this file, then "Run As...", then Target, then Select "build-jar", 
 		then click "Apply", then clcik "Run"
+
+		This script is set up by default to run with dependency repositories (e.g. AWIPS2_Core) located 
+        as siblings to this repository. If the repositories are located in a different location, the
+        following system property can be set in Run > "main" tab > Arguments:
+            
+            -Dsrc_ctrl_home=/usr1/yourname/git/
     </description>
 
 	<!-- set global properties for this build -->
 	<property name="project_name"   value="joinvgf"/>
+	<property name="src_ctrl_home" value="${basedir}/../../.."/>
+	<property name="repository_ncep" value="AWIPS2_NCEP"/>
+	<property name="repository_dev_baseline" value="AWIPS2_Dev_Baseline"/>
+    <property name="repository_core" value="AWIPS2_Core"/>
+    <property name="repository_core_foss" value="AWIPS2_Core_FOSS"/>
 	<property name="src" location="src" />
-	<property name="srcOther" location="../com.raytheon.uf.viz.core/src" />
 	<property name="build" location="build" />
 	<property name="distJoin" location="distJoin" />
-	<property name="joinvgf" location="gov/noaa/nws/ncep/standalone/joinvgf" />
 	<property name="bin" location="bin" />
 
 	
@@ -29,55 +38,52 @@
 		
 		<!-- Copy all the needed files from the projects which eclipse already compiled -->
 		<copy todir="${build}">
-			<fileset dir="../gov.noaa.nws.ncep.ui.pgen/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.viz.core/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.common/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.meteolib/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.plugin.obs/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.plugin.satellite/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.plugin.warning/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.colormap/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.dataplugin/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.dataplugin.level/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.datastorage/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.geospatial/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.localization/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.message/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.pointdata/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.python/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.serialization/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.serialization.comm/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.status/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.common.time/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.edex.decodertools/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.edex.pointdata/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.viz.core/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.uf.viz.d2d.core/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.bcd/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.core/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.core.gl/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.pointdata/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.satellite/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.shapefile/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.viz.ui/bin" includes="**/*.class"/>
-			<!--fileset dir="../com.raytheon.viz.ui.glMap/bin" includes="**/*.class"/-->
-			<fileset dir="../com.raytheon.viz.ui.tools.map/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.edex.common/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.ui.pgen/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.common/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.resources/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.rsc.plotdata/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.tools/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.ui.display/bin" includes="**/*.class"/>
-			<fileset dir="../gov.noaa.nws.ncep.viz.ui.locator/bin" includes="**/*.class"/>
-			<fileset dir="../meteolib.jni/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/edex/com.raytheon.edex.common/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/edexOsgi/com.raytheon.edex.plugin.obs/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/edexOsgi/com.raytheon.edex.plugin.satellite/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/edexOsgi/com.raytheon.edex.plugin.warning/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.colormap/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.dataplugin/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.dataplugin.level/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.datastorage/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.geospatial/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.localization/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.message/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.pointdata/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.python/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.serialization/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.serialization.comm/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.status/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/common/com.raytheon.uf.common.time/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/edexOsgi/com.raytheon.uf.edex.decodertools/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/edex/com.raytheon.uf.edex.pointdata/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/viz/com.raytheon.uf.viz.core/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/cave/com.raytheon.uf.viz.d2d.core/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/cave/com.raytheon.viz.bcd/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/viz/com.raytheon.viz.core/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/viz/com.raytheon.viz.core.gl/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/cave/com.raytheon.viz.pointdata/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/cave/com.raytheon.viz.satellite/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_core}/viz/com.raytheon.viz.ui/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_dev_baseline}/cave/com.raytheon.viz.ui.tools.map/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/edex/gov.noaa.nws.ncep.edex.common/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.ui.pgen/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.common/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.resources/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.rsc.plotdata/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.tools/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.ui.display/bin" includes="**/*.class"/>
+			<fileset dir="${src_ctrl_home}/${repository_ncep}/viz/gov.noaa.nws.ncep.viz.ui.locator/bin" includes="**/*.class"/>
 			<fileset dir="${bin}" includes="**/*.class"/>
 		</copy>
 		
 		<copy todir="${distJoin}/lib">
-			<fileset dir="../org.geotools" includes="*.jar"/>
-			<fileset dir="../javax.measure" includes="*.jar"/>
-			<fileset dir="../org.apache.log4j" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.measure" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.slf4j" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/ch.qos.logback" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
 		</copy>
 		
 		<copy todir="${distJoin}" file="hlp/${project_name}.hlp"/>

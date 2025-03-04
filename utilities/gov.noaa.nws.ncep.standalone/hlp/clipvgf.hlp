@@ -4,7 +4,7 @@
 
 INPUT PARAMETERS
 
-java -jar clipvgf.jar input_filename clip_bound keep_flag output_filename clip_accuracy [EDEXServer]
+java --add-opens java.base/java.lang=ALL-UNNAMED -jar clipvgf.jar input_filename clip_bound keep_flag output_filename clip_accuracy [EDEXServer]
    clipvgf              Program name
    input_filename       xml file to be clipped
    clip_bound           Bounds name of geographical clipping area; format:
@@ -54,9 +54,17 @@ The bounds area MUST be a single area, i.e., it may not have multiple parts
 such as islands. The only bounds file designed specifically for clipping
 (only one part per bound area) is the seamless surface analysis (SSA) file.
 
+JAVA 17 NOTE
+
+When running the application on Java 17, the following add-opens parameter needs
+to be added to avoid access errors at runtime due to the module system in Java 17.
+The parameter has been added to the example commands below for reference. 
+
+--add-opens java.base/java.lang=ALL-UNNAMED
+
 EXAMPLES
 
-   java -jar clipvgf.jar input.xml "STATEBNDS|<STATE>CO" keep output.xml exact http://localhost:9581/services
+   java --add-opens java.base/java.lang=ALL-UNNAMED -jar clipvgf.jar input.xml "STATEBNDS|<STATE>CO" keep output.xml exact http://localhost:9581/services
 
         - clips the xml file "input.xml" against the seamless surface analysis
           bounds area. "STATEBNDS" is in the alias of the table stored in bounds.clo table, 
@@ -65,7 +73,7 @@ EXAMPLES
           "Clip against the shape taken from bounds.statebnds table where state is CO"
           Element points within this bounds area are saved into the xml file "output.xml". 
 
-   java -jar clipvgf.jar input.xml "COUNTY|<WFO>GID" notkeep output.xml exact http://lnx111.ncep.noaa.gov:9581/services
+   java --add-opens java.base/java.lang=ALL-UNNAMED -jar clipvgf.jar input.xml "COUNTY|<WFO>GID" notkeep output.xml exact http://lnx111.ncep.noaa.gov:9581/services
 
         - clips the xml file "input.xml" against the seamless surface analysis
           bounds area named "GID". "COUNTY" corresponds to COUNTYBNDS in bounds.clo, 

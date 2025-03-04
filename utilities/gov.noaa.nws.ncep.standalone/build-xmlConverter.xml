@@ -59,9 +59,9 @@
         </copy>
         
         <copy todir="${distXC}/lib">
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
-        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
-        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.ws" includes="*.jar"/>
+            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.xml.bind" includes="*.jar"/>
+        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.activation" includes="*.jar"/>
+        	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.xml.ws" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.geotools.nonoperational" includes="*.jar"/>
         	<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.measure" includes="*.jar"/>

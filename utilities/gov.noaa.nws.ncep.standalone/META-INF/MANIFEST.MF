@@ -24,9 +24,8 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.common.staticdata,
  com.sun.jna,
- javax.xml.bind,
- com.sun.xml.bind
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+ jakarta.xml.bind
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.message,
@@ -41,7 +40,6 @@ Import-Package: com.raytheon.uf.common.geospatial,
  gov.noaa.nws.ncep.viz.localization,
  gov.noaa.nws.ncep.viz.resources.manager
 Bundle-ClassPath: .,
- jna.jar,
  VgfXml.so
 Automatic-Module-Name: gov.noaa.nws.ncep.standalone
 

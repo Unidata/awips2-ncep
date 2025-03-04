@@ -44,8 +44,8 @@
 		</copy>		
 
 		<copy todir="${distCol}/lib">
-            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.xml.bind" includes="*.jar"/>
-			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/javax.activation" includes="*.jar"/>
+            <fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.xml.bind" includes="*.jar"/>
+			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/jakarta.activation" includes="*.jar"/>
 			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/org.slf4j" includes="*.jar"/>
 			<fileset dir="${src_ctrl_home}/${repository_core_foss}/lib/ch.qos.logback" includes="*.jar"/>
          </copy>

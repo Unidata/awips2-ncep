@@ -5,7 +5,7 @@
 
 	<bean id="mosaicProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" value="mosaic" />
-                <property name="pluginFQN" value="gov.noaa.nws.ncep.edex.plugin.mosaic" />
+		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.mosaic" />
 		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao.MosaicDao" />
 		<property name="record" value="gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord" />
 	</bean>

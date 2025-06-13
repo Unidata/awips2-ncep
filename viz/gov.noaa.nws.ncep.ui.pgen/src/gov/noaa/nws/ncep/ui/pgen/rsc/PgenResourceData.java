@@ -16,7 +16,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISaveablePart2;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -24,7 +23,6 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -100,6 +98,8 @@ import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
  * Jan 25, 2022  100402   smanoj      Check against null pointer.
  * Aug 19, 2022  106528   smanoj      Modified code to avoid bug(D2D is stuck)
  *                                    when reordering MapEditor tabs.
+ * Oct 19, 2022  108537   tjensen     Fix Activity Center dialog error and 
+ *                                    clean up
  * 
  * </pre>
  *
@@ -143,8 +143,6 @@ public class PgenResourceData extends AbstractResourceData
     private long autosaveInterval; // in milliseconds
 
     private long lastSaveTime = 0;
-
-    private boolean multiSave = true;
 
     private boolean needsSaving = false;
 
@@ -272,11 +270,14 @@ public class PgenResourceData extends AbstractResourceData
 
             activeProduct.setOnOff(true);
 
-            IWorkbenchPart part = PlatformUI.getWorkbench()
-                    .getActiveWorkbenchWindow().getActivePage().getActivePart();
-            if (!(part instanceof VizMapEditor)) {
-                activateProductManage();
-            }
+            /* 
+             * TODO: TAJ: This call can trigger a catastrophic CAVE bug that locks 
+             * up the GUI if an eclipse move occurs while the activity dialog is 
+             * open. This will be resolved in a future ticket after discussion with
+             * centers preferred implementation. 
+             */
+            activateProductManage();
+
         } else if (productList.size() == 1) {
             startLayering();
         } else {
@@ -296,8 +297,6 @@ public class PgenResourceData extends AbstractResourceData
 
         initializeProducts();
 
-        AbstractEditor mapEditor = PgenUtil.getActiveEditor();
-
         if (productManageDlg == null) {
 
             Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
@@ -311,8 +310,6 @@ public class PgenResourceData extends AbstractResourceData
         if (!(productManageDlg.isOpen())) {
             productManageDlg.open();
         }
-
-        mapEditor.refresh();
 
     }
 
@@ -842,8 +839,6 @@ public class PgenResourceData extends AbstractResourceData
      */
     public void saveProducts(String filename, boolean postSave) {
 
-        this.multiSave = postSave;
-
         ArrayList<Product> prds = (ArrayList<Product>) productList;
 
         if (filename != null && !prds.isEmpty()) {
@@ -997,8 +992,6 @@ public class PgenResourceData extends AbstractResourceData
      * @param filename
      */
     public void saveProducts_prev(String filename, boolean multiSave) {
-
-        this.multiSave = multiSave;
 
         ArrayList<Product> prds = (ArrayList<Product>) productList;
 

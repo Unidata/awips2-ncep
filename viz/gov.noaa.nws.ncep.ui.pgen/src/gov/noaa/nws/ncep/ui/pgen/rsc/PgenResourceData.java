@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISaveablePart2;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -23,6 +24,7 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -96,7 +98,9 @@ import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
  * Dec 01, 2021  95362    tjensen     Refactor PGEN Resource management to
  *                                    support multi-panel displays
  * Jan 25, 2022  100402   smanoj      Check against null pointer.
- *
+ * Aug 19, 2022  106528   smanoj      Modified code to avoid bug(D2D is stuck)
+ *                                    when reordering MapEditor tabs.
+ * 
  * </pre>
  *
  * @author sgilbert
@@ -268,7 +272,11 @@ public class PgenResourceData extends AbstractResourceData
 
             activeProduct.setOnOff(true);
 
-            activateProductManage();
+            IWorkbenchPart part = PlatformUI.getWorkbench()
+                    .getActiveWorkbenchWindow().getActivePage().getActivePart();
+            if (!(part instanceof VizMapEditor)) {
+                activateProductManage();
+            }
         } else if (productList.size() == 1) {
             startLayering();
         } else {

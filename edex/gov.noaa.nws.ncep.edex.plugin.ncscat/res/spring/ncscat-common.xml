@@ -16,7 +16,7 @@
 
 	</bean>
 
-	<bean factory-bean="pluginRegistry" factory-method="register">
+	<bean id="ncscatPluginRegistered" factory-bean="pluginRegistry" factory-method="register">
 		<constructor-arg ref="ncscatPluginName" />
 		<constructor-arg ref="ncscatProperties" />
 	</bean>

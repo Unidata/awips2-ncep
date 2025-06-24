@@ -11,7 +11,8 @@
 	<bean id="sgwhSeparator"
 		class="gov.noaa.nws.ncep.edex.plugin.sgwh.decoder.SgwhSeparator" />
 
-	<bean id="sgwhToPointData" class="gov.noaa.nws.ncep.edex.plugin.sgwh.dao.SgwhPointDataTransform" />
+	<bean id="sgwhToPointData" class="gov.noaa.nws.ncep.edex.plugin.sgwh.dao.SgwhPointDataTransform" 
+		depends-on="sgwhRegistered"/>
 
 
     <bean id="sgwhDistRegistry" factory-bean="distributionSrv"

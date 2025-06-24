@@ -23,7 +23,7 @@
         <property name="compression" value="GZIP"/>
 	</bean>
 
-	<bean factory-bean="pluginRegistry" factory-method="register">
+	<bean id="ntransPluginRegistered" factory-bean="pluginRegistry" factory-method="register">
 		<constructor-arg ref="ntransPluginName" />
 		<constructor-arg ref="ntransProperties" />
 	</bean>

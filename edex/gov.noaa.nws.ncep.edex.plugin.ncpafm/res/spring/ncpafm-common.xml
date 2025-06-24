@@ -15,7 +15,7 @@
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord" />
 	</bean>
 
-	<bean factory-bean="pluginRegistry" factory-method="register">
+	<bean id="ncpafmPluginRegistered" factory-bean="pluginRegistry" factory-method="register">
 		<constructor-arg ref="ncpafmPluginName"/>
 		<constructor-arg ref="ncpafmProperties"/>
 	</bean>

@@ -5,7 +5,7 @@
 
     <bean id="pirepDecoder" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepDecoder"/>
 
-    <bean id="pirepPointData" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepPointDataTransform"/>
+    <bean id="pirepPointData" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepPointDataTransform" depends-on="pirepPluginRegistered"/>
     
     <bean id="pirepSeparator" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepSeparator"/>
 

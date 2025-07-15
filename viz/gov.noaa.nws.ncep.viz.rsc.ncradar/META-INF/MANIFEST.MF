@@ -7,6 +7,7 @@ Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ncradar.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.apache.batik,
+ org.apache.commons.configuration2,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.resources,

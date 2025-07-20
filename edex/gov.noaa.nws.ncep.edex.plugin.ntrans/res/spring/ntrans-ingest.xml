@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ntransDao" class="gov.noaa.nws.ncep.edex.plugin.ntrans.dao.NtransDao">
+	<bean id="ntransDao" class="gov.noaa.nws.ncep.edex.plugin.ntrans.dao.NtransDao" depends-on="ntransPluginRegistered">
 	<constructor-arg ref="ntransPluginName"/> 
 	</bean>
 

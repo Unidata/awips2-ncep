@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ncscatDao" class="gov.noaa.nws.ncep.edex.plugin.ncscat.dao.NcscatDao">
+	<bean id="ncscatDao" class="gov.noaa.nws.ncep.edex.plugin.ncscat.dao.NcscatDao" depends-on="ncscatPluginRegistered">
 	<constructor-arg ref="ncscatPluginName"/> 
 	</bean>
 

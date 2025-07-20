@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
   
-    <bean id="mcidasDao" class="gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao">
+    <bean id="mcidasDao" class="gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao" depends-on="mcidasPluginRegistered">
 		<constructor-arg ref="mcidasPluginName" />
 	</bean>	
 	

@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
                         
-    <bean id="modisDao" class="gov.noaa.nws.ncep.edex.plugin.modis.dao.ModisDao">
+    <bean id="modisDao" class="gov.noaa.nws.ncep.edex.plugin.modis.dao.ModisDao" depends-on="modisPluginRegistered">
        <constructor-arg ref="modisPluginName" />    
     </bean> 
         

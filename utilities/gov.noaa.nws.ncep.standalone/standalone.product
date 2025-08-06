@@ -134,7 +134,7 @@ Developed on the Raytheon Visualization Environment (viz)
       <plugin id="org.apache.camel"/>
       <plugin id="org.apache.commons.beanutils"/>
       <plugin id="org.apache.commons.collections"/>
-      <plugin id="org.apache.commons.configuration"/>
+      <plugin id="org.apache.commons.configuration2"/>
       <plugin id="org.apache.commons.httpclient"/>
       <plugin id="org.apache.commons.lang"/>
       <plugin id="org.apache.commons.logging"/>

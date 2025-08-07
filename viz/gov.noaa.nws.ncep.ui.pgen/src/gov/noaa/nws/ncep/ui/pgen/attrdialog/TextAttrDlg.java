@@ -37,9 +37,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
@@ -70,7 +70,9 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 08/20/2019   67218       ksunil          prevent the text box from starting the text on line 2
  * 02/26/2020   75024       smanoj          Fix to have correct default Color Attributes for 
  *                                          tropical TROF front label.
- * 08/12/2020   81342       mroos           Remove trailing newline at end of text & cursor placement                                         
+ * 08/12/2020   81342       mroos           Remove trailing newline at end of text & cursor placement
+ * Aug 05, 2025 2039303     njensen         Fix memory leak by disposing
+ *                                          ColorButtonSelector
  *
  * </pre>
  *
@@ -1182,6 +1184,9 @@ public class TextAttrDlg extends AttrDlg implements IText {
         colorLbl = new Label(top, SWT.LEFT);
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(top);
+        top.addDisposeListener(e -> {
+            cs.dispose();
+        });
 
         Color color = lastColorPerBoxType.get(boxCombo.getText());
         if (color != null) {

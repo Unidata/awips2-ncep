@@ -28,9 +28,9 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
@@ -68,6 +68,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 09/14         TTR750    J. Wu     Use fontStyle for track labels.
  * Dec 01, 2021  95362     tjensen   Refactor PGEN Resource management to
  *                                   support multi-panel displays
+ * Aug 05, 2025 2039303    njensen   Fix memory leak by disposing
+ *                                   ColorButtonSelector
  *
  * </pre>
  *
@@ -576,6 +578,11 @@ public class TrackAttrDlg extends AttrDlg implements ITrack {
         colorLabel.setText("Extra Color:");
         extrapCS = new ColorButtonSelector(topComposite);
         extrapCS.setColorValue(new RGB(0, 192, 0)); // Green???
+
+        topComposite.addDisposeListener(e -> {
+            initialCS.dispose();
+            extrapCS.dispose();
+        });
 
         /*
          * Draw speed unit selection label, checkbox and combo

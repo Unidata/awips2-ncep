@@ -82,6 +82,7 @@ import gov.noaa.nws.ncep.viz.overlays.resources.PgenStaticOverlayResourceData;
  *                                  Code-refactored
  * Feb 06, 2020  57972    tjensen   Add option to display in map layer. Used for
  *                                  GFE
+ * Aug 05, 2025  2039303  njensen   Fix memory leak by disposing GC
  *
  * </pre>
  *
@@ -296,6 +297,7 @@ public class PgenStaticOverlayDialog extends CaveSWTDialog {
         GC gc = new GC(locationText);
         gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.widthHint = gc.getFontMetrics().getAverageCharWidth() * 50;
+        gc.dispose();
         locationText.setLayoutData(gridData);
         locationText.setText("");
         locationText.setEnabled(false);

@@ -1,14 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
-import gov.noaa.nws.ncep.viz.rsc.ncscat.rsc.NcscatResourceData.ArrowStyle;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-
 import java.util.EnumSet;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -31,6 +22,15 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
+import gov.noaa.nws.ncep.viz.rsc.ncscat.rsc.NcscatResourceData.ArrowStyle;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+
 /**
  * An interface to edit NCSCAT resource attributes.
  * 
@@ -44,6 +44,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 08 Oct 2010               B. Hebbard   Fix tool tips.
  * 01 Jul 2014 TTR 1018      S. Russell   Updated call to ColorBarEditor
  * 04/05/2016   R15715       dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Aug 05, 2025 2039303      njensen      Fix memory leak by disposing
+ *                                        ColorButtonSelector
  * 
  * </pre>
  * 
@@ -941,6 +943,9 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         super.dispose();
         colorBarEditor1.dispose();
         colorBarEditor2.dispose();
+        if (timeStampColorSelector != null) {
+            timeStampColorSelector.dispose();
+        }
     }
 
 }

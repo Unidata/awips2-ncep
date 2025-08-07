@@ -34,9 +34,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.ui.PlatformUI;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
@@ -82,6 +82,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 11/13         1049     B. Yin    Handle outlook type defined in layer.
  * Dec 01, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * Aug 05, 2025 2039303   njensen   Fix memory leak by disposing
+ *                                  ColorButtonSelector
  *
  * </pre>
  *
@@ -991,9 +993,11 @@ public class OutlookAttrDlg extends AttrDlg implements IContours, ILine {
 
         colorLbl = new Label(panel2, SWT.LEFT);
         colorLbl.setText("Color:");
-        ;
         cs = new ColorButtonSelector(panel2);
         cs.setColorValue(new RGB(255, 0, 0));
+        panel2.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**

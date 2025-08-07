@@ -1,16 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.dialogs;
 
-import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList;
-import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.overlays.Activator;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -52,6 +41,17 @@ import org.eclipse.swt.widgets.ToolItem;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList;
+import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.overlays.Activator;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * Provides an interface to modify the day/night terminator overlay parameters
  * 
@@ -61,6 +61,9 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * ------------ ----------  ----------- --------------------------
  * 04/29/2014   1130        S. Gurung     Initial creation
  * 04/05/2016   R15715      dgilling      Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Aug 05, 2025 2039303     njensen       Fix memory leak by disposing
+ *                                        ColorButtonSelectors
+ * </pre>
  * 
  * @author sgurung
  * @version 1.0
@@ -564,6 +567,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 linePreviewAreaCanvas.update();
             }
         });
+        selectLineColorGroup.addDisposeListener(e -> {
+            cms.dispose();
+        });
 
     }
 
@@ -785,6 +791,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             public void propertyChange(PropertyChangeEvent event) {
                 sunMarkerColor.setAttrValue(cms.getColorValue());
             }
+        });
+        selectMarkerColorGroup.addDisposeListener(e -> {
+            cms.dispose();
         });
 
     }
@@ -1093,6 +1102,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 linePreviewAreaCanvas.update();
             }
         });
+        selectLineColorGroup.addDisposeListener(e -> {
+            cms.dispose();
+        });
 
     }
 
@@ -1234,6 +1246,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 dayShadeColor.setAttrValue(dayCms.getColorValue());
             }
         });
+        selectDayShadeColorGroup.addDisposeListener(e -> {
+            dayCms.dispose();
+        });
 
         // Night Shading Color
 
@@ -1245,6 +1260,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             public void propertyChange(PropertyChangeEvent event) {
                 nightShadeColor.setAttrValue(nightCms.getColorValue());
             }
+        });
+        selectNightShadeColorGroup.addDisposeListener(e -> {
+            nightCms.dispose();
         });
     }
 

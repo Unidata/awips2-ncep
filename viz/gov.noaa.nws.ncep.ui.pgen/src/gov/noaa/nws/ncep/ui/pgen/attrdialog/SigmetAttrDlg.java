@@ -281,6 +281,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Mar 07, 2022  99344      smanoj       Remove Trend from Intl Sigmet GUI and other
  *                                       bug fixes for Volcanic Ash.
  * May 17, 2022  103690     achalla      PGEN functionality CarSam Enhancement.
+ * Aug 05, 2025 2039303     njensen      Fix memory leak by disposing
+ *                                       ColorButtonSelector
  * </pre>
  *
  * @author gzhang
@@ -3867,6 +3869,9 @@ public class SigmetAttrDlg extends AttrDlg implements ISigmet {
         cs = new ColorButtonSelector(top);
         Color clr = Color.cyan;
         cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
+        top.addDisposeListener(e -> {
+            cs.dispose();
+        });
 
         // Line Width GUI
         this.createLineWidthControls();

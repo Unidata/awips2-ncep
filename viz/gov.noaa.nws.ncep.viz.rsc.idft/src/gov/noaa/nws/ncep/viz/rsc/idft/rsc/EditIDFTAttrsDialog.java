@@ -8,11 +8,6 @@
 
 package gov.noaa.nws.ncep.viz.rsc.idft.rsc;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
@@ -31,6 +26,11 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+
 /**
  * UI for editing IDFT resource attributes.
  * 
@@ -44,6 +44,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 11/04/2010    #307      Greg Hull    Change Lengths,Widths from String to Double
  * 03/13/2013   982        Archana     add display stn number attr
  * 04/05/2016   R15715     dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Aug 05, 2025 2039303    njensen     Fix memory leak by disposing
+ *                                     ColorButtonSelectors
  * 
  * </pre>
  * 
@@ -158,6 +160,12 @@ public class EditIDFTAttrsDialog extends AbstractEditResourceAttrsDialog {
             public void propertyChange(PropertyChangeEvent event) {
                 rscAttrArrowColor.setAttrValue(event.getNewValue());
             }
+        });
+
+        colComp.addDisposeListener(e -> {
+            colorSelNumber.dispose();
+            colorSelPoint.dispose();
+            colorSelArrow.dispose();
         });
 
         final Label labelArrowLength = new Label(colComp, SWT.NONE);

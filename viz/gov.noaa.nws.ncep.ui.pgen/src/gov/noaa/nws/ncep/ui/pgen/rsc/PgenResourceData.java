@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
@@ -17,6 +13,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.PlatformUI;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -30,7 +27,6 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.raytheon.viz.ui.tools.AbstractModalTool;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.Activator;
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
@@ -67,6 +63,9 @@ import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenDrawingTool;
 import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * Contains all the PGEN Products, layers, and Elements behind the PgenResource.
@@ -100,6 +99,7 @@ import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
  *                                    when reordering MapEditor tabs.
  * Oct 19, 2022  108537   tjensen     Fix Activity Center dialog error and 
  *                                    clean up
+ * Aug 05, 2025  2039303  njensen     Fix memory leak by disposing Image
  * 
  * </pre>
  *
@@ -1160,6 +1160,9 @@ public class PgenResourceData extends AbstractResourceData
 
         confirmDlg.open();
         returnCode = confirmDlg.getReturnCode();
+        if (im != null) {
+            im.dispose();
+        }
         return returnCode;
     }
 

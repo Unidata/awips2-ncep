@@ -65,6 +65,8 @@ import gov.noaa.nws.ncep.viz.ui.display.IColorBar;
  *                                   spinners an option
  * Mar 24, 2020  8049     randerso   Remove READ_ONLY from Spinner controls
  *                                   Code cleanup.
+ * Aug 05, 2025 2039303   njensen    Fix memory leak by disposing
+ *                                   ColorButtonSelectors
  *
  * </pre>
  *
@@ -1161,6 +1163,13 @@ public class ColorBarEditor extends Composite {
         }
         if (dragIntrvlCursor != null) {
             dragIntrvlCursor.dispose();
+        }
+
+        if (intrvlColorSelector != null) {
+            intrvlColorSelector.dispose();
+        }
+        if (labelColorSelector != null) {
+            labelColorSelector.dispose();
         }
     }
 

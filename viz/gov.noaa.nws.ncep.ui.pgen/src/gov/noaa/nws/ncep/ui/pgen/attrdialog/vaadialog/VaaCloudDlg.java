@@ -31,9 +31,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
@@ -65,6 +65,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * Mar 20, 2019  7572     dgilling  Code cleanup.
  * Dec 01, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * Aug 05, 2025 2039303   njensen   Fix memory leak by disposing
+ *                                  ColorButtonSelector
  *
  * </pre>
  *
@@ -401,6 +403,9 @@ public class VaaCloudDlg extends AttrDlg implements IVaaCloud {
 
         cs = new ColorButtonSelector(top, 50, 20);
         cs.setColorValue(getLayerColor());
+        top.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**

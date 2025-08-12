@@ -39,9 +39,7 @@ import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
-import org.eclipse.ui.handlers.IHandlerService;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.IColorMap;
@@ -93,6 +91,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  * 09/14/2016    3241       bsteffen      Remove combine next image checkbox.
  * 01/25/2017    R20988     K.Bugenhagen  Updated constructor to check for 
  *                                        correct colormap name.
+ * Aug 05, 2025 2039303     njensen       Fix memory leak by disposing
+ *                                        ColorButtonSelector
  * </pre>
  * 
  * @author archana
@@ -179,6 +179,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
     private Button showColorBarEditOptionsBtn = null;
 
     private Color labelColor;
+
+    private ColorButtonSelector labelColorSelector = null;
 
     public ColorBarFromColorMapAttrsEditorComposite(Composite parent, int style,
             INatlCntrsResourceData resourceData, Capabilities capabilities) {
@@ -444,7 +446,7 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         fd.left = new FormAttachment(pixelLabel, 25, SWT.RIGHT);
         fd.top = new FormAttachment(showLabelsBtn, 20, SWT.BOTTOM);
         labelColorComp.setLayoutData(fd);
-        final ColorButtonSelector labelColorSelector = new ColorButtonSelector(
+        labelColorSelector = new ColorButtonSelector(
                 labelColorComp, 50, 25);
         labelColorSelector.setColorValue(labelColor.getRGB());
         labelColorSelector.addListener(new IPropertyChangeListener() {
@@ -1173,6 +1175,9 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
     public void dispose() {
         if (labelColor != null) {
             labelColor.dispose();
+        }
+        if (labelColorSelector != null) {
+            labelColorSelector.dispose();
         }
         editedColorBar.dispose();
         super.dispose();

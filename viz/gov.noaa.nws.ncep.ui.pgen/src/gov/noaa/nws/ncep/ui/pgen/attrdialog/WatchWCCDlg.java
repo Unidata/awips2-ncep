@@ -8,10 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -28,6 +24,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
  * Watch Box WCC SAVE dialog.
  * 
@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Text;
  * 04/13		#874		B. Yin		Change the base class to Dialog 
  * 										because blockOnOpen is not working in CaveJFaceDialog
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing GC
  * </pre>
  * 
  * @author B. Yin
@@ -102,6 +103,7 @@ public class WatchWCCDlg extends Dialog {
         GC gc = new GC(messageBox);
         FontMetrics fm = gc.getFontMetrics();
         gd.widthHint = NUM_COLUMNS * fm.getAverageCharWidth();
+        gc.dispose();
 
         messageBox.setLayoutData(gd);
         messageBox.setText(wccText);

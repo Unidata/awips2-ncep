@@ -50,6 +50,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                   Implemented Alpha transparency.
  * Mar 24, 2020  8049     randerso   Remove READ_ONLY from Spinner controls.
  *                                   Code cleanup.
+ * Aug 05, 2025 2039303   njensen    Fix memory leak by disposing
+ *                                   ColorButtonSelector
  *
  * </pre>
  *
@@ -911,6 +913,13 @@ public class ConditionalColorBarEditor extends Composite {
         }
         if (dragIntrvlCursor != null) {
             dragIntrvlCursor.dispose();
+        }
+
+        if (intrvlColorSelector != null) {
+            intrvlColorSelector.dispose();
+        }
+        if (labelColorSelector != null) {
+            labelColorSelector.dispose();
         }
     }
 

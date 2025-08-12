@@ -44,6 +44,8 @@ import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscRscAttrs;
  *  12/14/12     #861        Greg Hull    Added COLOR_PALLETTE for Pgen Rsc
  *  04/05/2016   R15715      dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
  *  Aug 22, 2018 #7081       dgilling     Use refactor ColorMatrixSelector.
+ *  Aug 05, 2025 2039303     njensen      Fix memory leak by disposing
+ *                                        ColorButtonSelector
  *
  * </pre>
  *
@@ -188,6 +190,9 @@ public class EditMiscResourceAttrsDialog extends
                 final ColorButtonSelector colorSel = new ColorButtonSelector(
                         colComp, 50, 20);
                 colorSel.setColorValue((RGB) rscAttr.getAttrValue());
+                colComp.addDisposeListener(e -> {
+                    colorSel.dispose();
+                });
 
                 colorSel.addListener(new IPropertyChangeListener() {
                     // forward the property change of the color selector

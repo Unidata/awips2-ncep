@@ -9,8 +9,6 @@ package gov.noaa.nws.ncep.ui.pgen.productmanage;
 
 import java.awt.Color;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -22,6 +20,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
+
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 
 /**
@@ -35,7 +35,9 @@ import org.eclipse.swt.widgets.Shell;
  * 03/11        231         Archana     Altered the PGEN layering dialog
  *                                      to display only a button showing the 
  *                                      selected color instead of displaying 
- *                                      the complete color matrix . 
+ *                                      the complete color matrix .
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector
  * </pre>
  * 
  * @author jwu
@@ -119,7 +121,10 @@ public class LayeringDisplayDialog extends ProductDialog {
 
         cs = new ColorButtonSelector( grp );
         Color clr = layeringDlg.getLayerForColorMode().getColor();
-        cs.setColorValue( new RGB( clr.getRed(),  clr.getGreen(), clr.getBlue() ) );       
+        cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
+        grp.addDisposeListener(e -> {
+            cs.dispose();
+        });
         
         Composite fillComp = new Composite( shell, SWT.NONE );
         fillComp.setLayout( new GridLayout( 1, true ) );

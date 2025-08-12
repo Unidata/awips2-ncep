@@ -108,6 +108,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 05/13         ?            J. Wu        Added setOtherTextLastUsed()
  * Dec 01, 2021  95362        tjensen      Refactor PGEN Resource management to
  *                                         support multi-panel displays
+ * Aug 05, 2025 2039303       njensen      Fix memory leak by disposing
+ *                                         ColorButtonSelector and Image
  *
  * </pre>
  *
@@ -337,8 +339,10 @@ public class GfaAttrDlg extends LineAttrDlg implements IGfa {
     }
 
     private void createColorButtonSelector() {
-
         cs = new ColorButtonSelector(panelComboGroup);
+        panelComboGroup.addDisposeListener(e -> {
+            cs.dispose();
+        });
         if (rgbLastUsed == null) {
 
             RGB rgb = getDefaultRGB(hazardCbo.getItem(hazardIndexLastUsed),
@@ -635,6 +639,7 @@ public class GfaAttrDlg extends LineAttrDlg implements IGfa {
             l.setBounds(image.getBounds());
             l.setToolTipText("Required field");
             l.setVisible(false);
+            image.dispose();
             if (lblStr.isEmpty()) {
                 requiredCrosses.put("type", l);
             } else {
@@ -1624,7 +1629,6 @@ public class GfaAttrDlg extends LineAttrDlg implements IGfa {
             gd.horizontalAlignment = GridData.FILL;
             otherText.setLayoutData(gd);
             textVOR.dispose();
-            cs.dispose();
             textVOR = createTextAttr(panelComboGroup, TEXT_WIDTH, TEXT_HEIGHT,
                     6, true, false);
             createColorButtonSelector();

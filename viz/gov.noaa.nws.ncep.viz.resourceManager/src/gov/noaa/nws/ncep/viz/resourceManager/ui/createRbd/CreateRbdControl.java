@@ -198,6 +198,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *                                       Cleanup.
  * 11/14/2016     R17362    Jeff Beck    Added functionality to remove user defined resources from the dominant resource combo
  *                                       when clicking the "X" on the GUI.
+ * Aug 05, 2025 2039303     njensen      Fix memory leak by disposing
+ *                                       ColorButtonSelector
  * </pre>
  * 
  * @author ghull
@@ -1379,6 +1381,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         grpColorComp.setToolTipText("Legend Color");
         grpColorBtn = new ColorButtonSelector(grpColorComp, 28, 22);
         grpColorBtn.setColorValue(GempakColor.convertToRGB(1));
+        grpColorComp.addDisposeListener(e -> {
+            grpColorBtn.dispose();
+        });
 
         fd = new FormData();
         fd.width = 30;

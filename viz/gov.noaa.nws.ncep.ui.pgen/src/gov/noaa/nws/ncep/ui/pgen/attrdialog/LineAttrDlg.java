@@ -8,15 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.Activator;
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList;
-import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.ILine;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +28,18 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList;
+import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.ILine;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 /**
  * Singleton attribute dialog for lines.
@@ -63,6 +63,8 @@ import org.locationtech.jts.geom.Coordinate;
  * 04/13		TTR399		J. Wu		make the dialog smaller.
  * 04/13        1065        J. Wu       Added KINK_POSITION.
  * 04/15        R6520       J. Wu       Set width/pattern size range to match NMAP2.
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector and Image
  * </pre>
  * 
  * @author B. Yin
@@ -467,6 +469,14 @@ public class LineAttrDlg extends AttrDlg implements ILine {
         ColorButtonSelector dflt = new ColorButtonSelector(colorGroup);
         dflt.setColorValue(new RGB(0, 255, 0));
         csList.add(dflt);
+        colorGroup.addDisposeListener(e -> {
+            if (csList != null) {
+                for (ColorButtonSelector cbs : csList) {
+                    cbs.dispose();
+                }
+            }
+        });
+
     }
 
     /*
@@ -743,6 +753,7 @@ public class LineAttrDlg extends AttrDlg implements ILine {
                     Image orgImg = getFillPatternIcon("icons/patt00.gif");
                     img = new Image(this.getShell().getDisplay(), orgImg
                             .getImageData().scaledTo(40, 20));
+                    orgImg.dispose();
                     break;
                 case 1:
                     img = getFillPatternIcon("icons/patt01.gif");

@@ -11,22 +11,23 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import java.awt.Color;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import com.raytheon.uf.viz.core.exception.VizException;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Text;
 import org.locationtech.jts.geom.Coordinate;
+
+import com.raytheon.uf.viz.core.exception.VizException;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
@@ -49,9 +50,11 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                      the complete color matrix .
  * 04/11		?			B. Yin		Re-factor IAttribute
  * 04/13		TTR399		J. Wu		make the dialog smaller.
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector
  * </pre>
  * 
- * @author	J. Wu
+ * @author J. Wu
  */
 
 public class ArcAttrDlg  extends AttrDlg implements IArc{
@@ -362,6 +365,9 @@ public class ArcAttrDlg  extends AttrDlg implements IArc{
 
 		cs = new ColorButtonSelector( inCmp, 20, 15 );
         cs.setColorValue( new RGB( 0,255,0 ) );
+        inCmp.addDisposeListener(e -> {
+            cs.dispose();
+        });
 	}
 	
 	/**

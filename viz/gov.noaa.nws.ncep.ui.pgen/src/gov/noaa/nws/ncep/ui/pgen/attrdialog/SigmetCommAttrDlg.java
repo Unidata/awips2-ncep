@@ -35,6 +35,12 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -42,12 +48,6 @@ import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.common.util.StringUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
@@ -115,6 +115,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                    support multi-panel displays
  * Mar 04, 2022  100402   smanoj      Bug fix to support multi-panel
  *                                    display refactor.
+ * Aug 05, 2025 2039303   njensen     Fix memory leak by disposing
+ *                                    ColorButtonSelector
  * 
  * </pre>
  *
@@ -461,6 +463,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         Color clr = getDefaultColor(this.pgenType);
         cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));// new
                                                                                // RGB(0,255,0));
+        top.addDisposeListener(e -> {
+            cs.dispose();
+        });
 
         if (!PgenConstant.TYPE_INTL_SIGMET.equalsIgnoreCase(pgenType)
                 && !PgenConstant.TYPE_CONV_SIGMET.equalsIgnoreCase(pgenType)) {

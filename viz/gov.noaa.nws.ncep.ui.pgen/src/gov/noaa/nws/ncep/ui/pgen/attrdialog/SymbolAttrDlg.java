@@ -34,9 +34,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
@@ -77,6 +77,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 04/13         TTR399   J. Wu       Make the dialog compact
  * Dec 01, 2021  95362    tjensen     Refactor PGEN Resource management to
  *                                    support multi-panel displays
+ * Aug 05, 2025 2039303   njensen     Fix memory leak by disposing
+ *                                    ColorButtonSelector
  *
  * </pre>
  *
@@ -670,6 +672,9 @@ public class SymbolAttrDlg extends AttrDlg implements ISymbol {
         colorLbl.setText("Color ");
         cs = new ColorButtonSelector(inCmp, 20, 15);
         cs.setColorValue(new RGB(0, 255, 0));
+        inCmp.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**

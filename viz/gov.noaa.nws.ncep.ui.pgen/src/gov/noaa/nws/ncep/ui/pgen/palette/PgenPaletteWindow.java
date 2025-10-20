@@ -92,7 +92,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.filter.CategoryFilter;
 import gov.noaa.nws.ncep.ui.pgen.gfa.PreloadGfaDataThread;
-import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductDialogStarter;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceList;
@@ -167,6 +166,10 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *                                       clicks instead of on focus
  * Dec 01, 2021  95362       tjensen     Refactor PGEN Resource management to
  *                                       support multi-panel displays
+ * Oct 01, 2025  2039577     tjensen     partHidden no longer closes Activity 
+ *                                       Center and layering dialogs and
+ *                                       partBroughtToTop no longer reopens
+ *                                       dialogs
  *
  * </pre>
  *
@@ -1012,13 +1015,7 @@ public class PgenPaletteWindow extends ViewPart
                     }
                 }
             }
-
-            // Open Product or Layer management dialog if necessary
-            if (rsc != null) {
-                VizApp.runAsync(new ProductDialogStarter(rsc));
-            }
         }
-
     }
 
     @Override
@@ -1115,7 +1112,6 @@ public class PgenPaletteWindow extends ViewPart
             PgenResourceList pgen = PgenUtil
                     .findPgenResources((AbstractEditor) part);
             if (pgen != null) {
-                pgen.closeDialogs();
                 pgen.deactivatePgenTools();
                 deactivatePGENContext();
                 ((AbstractEditor) part).refresh();
@@ -1123,7 +1119,6 @@ public class PgenPaletteWindow extends ViewPart
         } else if (part instanceof PgenPaletteWindow) {
             PgenResource pgen = PgenSession.getInstance().getCurrentResource();
             if (pgen != null) {
-                pgen.closeDialogs();
                 pgen.deactivatePgenTools();
                 deactivatePGENContext();
             }

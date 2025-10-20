@@ -19,5 +19,11 @@
         further_licensing_information.
     -->
 <requestPatterns xmlns:ns2="group">
-    <regex>^F[TC][PUX][AQSX].*</regex>
+	<!-- 
+	    DR #2039667: The following regex is commented out to disable NCTAF 
+	    ingest processing by default. Sites wanting to enable NCTAF ingest
+	    processing should create a site level override of this file, 
+	    uncommenting out the regex below. 
+	-->	
+    <!--<regex>^F[TC][PUX][AQSX].*</regex>-->
 </requestPatterns>

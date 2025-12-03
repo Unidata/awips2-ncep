@@ -19,7 +19,7 @@
  **/
 package gov.noaa.nws.ncep.viz.gempak;
 
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 

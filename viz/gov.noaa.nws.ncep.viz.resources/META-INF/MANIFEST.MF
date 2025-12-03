@@ -9,7 +9,7 @@ Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.core,
  com.raytheon.viz.ui,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.ui.display,
  com.raytheon.uf.common.colormap,

@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.viz.ui.display,
  gov.noaa.nws.ncep.viz.localization,
- org.apache.commons.lang
+ org.apache.commons.lang3
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.viz.resourceManager.timeline,

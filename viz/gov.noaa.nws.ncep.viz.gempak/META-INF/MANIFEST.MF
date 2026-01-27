@@ -34,4 +34,4 @@ Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.viz.core.exception,
  gov.noaa.nws.ncep.common.log.logger,
  gov.noaa.nws.ncep.viz.gempak.nativelib,
- org.apache.commons.lang
+ org.apache.commons.lang3

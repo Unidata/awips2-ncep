@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.common.status,
  javax.measure,
  gov.noaa.nws.ncep.common,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  com.raytheon.uf.common.time,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
@@ -26,7 +26,7 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  gov.noaa.nws.ncep.common.tools,
  jakarta.persistence,
  javax.measure,
- org.apache.commons.lang.builder,
+ org.apache.commons.lang3.builder,
  org.locationtech.jts.geom
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.nctaf,
  gov.noaa.nws.ncep.common.dataplugin.nctaf.dao

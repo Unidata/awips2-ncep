@@ -2,7 +2,7 @@ package gov.noaa.nws.ncep.viz.rsc.satellite.units;
 
 import javax.measure.UnitConverter;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import tech.units.indriya.function.AbstractConverter;
 

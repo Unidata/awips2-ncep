@@ -7,7 +7,7 @@ import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import javax.measure.quantity.Temperature;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import si.uom.SI;
 import tech.units.indriya.AbstractUnit;

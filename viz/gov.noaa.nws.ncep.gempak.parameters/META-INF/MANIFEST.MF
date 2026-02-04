@@ -7,7 +7,7 @@ Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.gempak.parameters.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  javax.measure,
  com.raytheon.uf.viz.core,
  gov.noaa.nws.ncep.gempak.parameters.core

@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="airepDecoder" class="gov.noaa.nws.ncep.edex.plugin.airep.AirepDecoder">
         <constructor-arg ref="airepPluginName" />   
@@ -18,43 +16,10 @@
         <constructor-arg value="airep" />
         <constructor-arg value="jms-durable:queue:Ingest.airep" />
     </bean>
-
-    <camelContext id="airep-camel"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-
-        <!-- Begin airep routes -->
-        <route id="airepIngestRoute">
-            <from uri="jms-durable:queue:Ingest.airep" />
-            <setHeader name="pluginName">
-                <constant>airep</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <split streaming="true">
-                        <method ref="airepSeparator" method="separate" />
-                        <doTry>
-                            <pipeline>
-                                <bean ref="airepDecoder" method="decode" />
-                                <!-- Add next line for h5 version and change next
-                                     line from indexAlert to persistIndexAlert" /-->
-                                <bean ref="airepPointData" method="toPointData" />
-                                <!--  to uri="direct-vm:indexAlert" /-->
-                                <to uri="direct-vm:persistIndexAlert" />
-                            </pipeline>
-                            <doCatch>
-                                <exception>java.lang.Throwable</exception>
-                                <to uri="log:airep?level=ERROR" />
-                            </doCatch>
-                        </doTry>
-                    </split>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:airep?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    
+    <bean id="airep-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.airep.AirepCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

@@ -6,7 +6,7 @@ package gov.noaa.nws.ncep.edex.plugin.airep.decoder;
 
 import java.util.HashMap;
 
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 
 /**
  * TODO Change this to a Java 1.5 enum.

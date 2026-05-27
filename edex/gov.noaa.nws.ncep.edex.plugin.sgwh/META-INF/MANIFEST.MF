@@ -5,16 +5,18 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.sgwh
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.common.dataplugin.sgwh,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,
- com.raytheon.uf.common.status
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.edex.common.dao
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.bufrtools,
  com.raytheon.uf.edex.bufrtools.descriptors,
  com.raytheon.uf.edex.bufrtools.packets,
- com.raytheon.uf.edex.decodertools.time,
+ com.raytheon.uf.common.decodertools.time,
  org.apache.commons.logging

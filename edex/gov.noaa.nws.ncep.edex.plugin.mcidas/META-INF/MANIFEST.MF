@@ -4,19 +4,19 @@ Bundle-Name: Mcidas Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.mcidas
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.edex.exception,
  com.raytheon.edex.plugin,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.numeric.buffer,
  com.raytheon.uf.common.time,
- com.raytheon.uf.edex.decodertools.time,
+ com.raytheon.uf.common.decodertools.time,
  org.locationtech.jts.geom,
  org.locationtech.jts.io,
  org.geotools.geometry,
- org.opengis.referencing.crs,
- org.opengis.referencing.operation
+ org.geotools.api.referencing.crs,
+ org.geotools.api.referencing.operation
 Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.mcidas,
  com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
@@ -25,5 +25,6 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.mcidas,
  javax.measure,
  com.raytheon.uf.common.status,
  gov.noaa.nws.ncep.edex.common,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mcidas.decoder

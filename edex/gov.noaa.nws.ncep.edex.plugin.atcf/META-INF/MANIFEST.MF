@@ -4,13 +4,14 @@ Bundle-Name: Atcf Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.atcf
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common.dataplugin.atcf,
  gov.noaa.nws.ncep.common,
- gov.noaa.nws.ncep.edex.common
+ gov.noaa.nws.ncep.edex.common,
+ com.raytheon.uf.edex.routes
 Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.common.status,

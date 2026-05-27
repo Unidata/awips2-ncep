@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: NCEP Util
+Bundle-SymbolicName: gov.noaa.nws.ncep.edex.util
+Bundle-Version: 1.24.0.qualifier
+Export-Package: gov.noaa.nws.ncep.edex.util
+Require-Bundle: com.raytheon.edex.common,
+ org.slf4j,
+ gov.noaa.nws.ncep.edex.common
+Automatic-Module-Name: gov.noaa.nws.ncep.edex.util
+Bundle-RequiredExecutionEnvironment: JavaSE-17

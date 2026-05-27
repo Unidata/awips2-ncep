@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Ncgrid Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.ncgrid;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ncgrid.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.core.runtime,
@@ -22,14 +23,14 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.gempak.nativelib,
  com.raytheon.uf.common.style,
  com.raytheon.uf.common.numeric,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  gov.noaa.nws.ncep.common.dataplugin.ncgrib,
  org.slf4j,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.viz.gempak.common,
  com.raytheon.uf.viz.ncep.grid
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.contours,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc

@@ -1,15 +1,14 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="ncpafmDecoder" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder.NcPafmDecoder">
 		<constructor-arg ref="ncpafmPluginName" />
 	</bean>
 
-	<bean id="ncpafmPointDataTransform" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.dao.NcPafmPointDataTransform" />
+	<bean id="ncpafmPointDataTransform" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.dao.NcPafmPointDataTransform" 
+		depends-on="ncpafmPluginRegistered"/>
 
 	<bean id="ncpafmSeparator" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder.NcPafmSeparator" />
 
@@ -19,41 +18,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.ncpafm" />
 	</bean>
 
-	<camelContext id="ncpafm-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin ncpafm routes -->
-		<route id="ncpafmIngestRoute">
-			<from uri="jms-durable:queue:Ingest.ncpafm" />
-			<setHeader name="pluginName">
-				<constant>ncpafm</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<split streaming="true">
-						<method ref="ncpafmSeparator" method="separate" />
-						<doTry>
-							<pipeline>
-								<bean ref="ncpafmDecoder" method="decode" />
-								<!-- Add next line for h5 version  /-->
-								<bean ref="ncpafmPointDataTransform" method="toPointData" />
-								<!--to uri="direct-vm:indexAlert" /-->
-								<to uri="direct-vm:persistIndexAlert" />
-							</pipeline>
-							<doCatch>
-								<exception>java.lang.Throwable</exception>
-								<to uri="log:ncpafm?level=ERROR" />
-							</doCatch>
-						</doTry>
-					</split>
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<!--to uri="log:airmet?level=ERROR" /-->
-					<to uri="log:ncpafm?level=ERROR" />
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="ncpafm-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder.NcPafmCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

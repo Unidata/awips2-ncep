@@ -6,7 +6,7 @@ Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  javax.measure
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.serialization.annotations,
@@ -17,8 +17,8 @@ Import-Package: com.raytheon.uf.common.geospatial,
  org.geotools.referencing.crs,
  org.geotools.referencing.datum,
  org.locationtech.jts.geom,
- org.opengis.referencing.crs,
- org.opengis.referencing.datum
+ org.geotools.api.referencing.crs,
+ org.geotools.api.referencing.datum
 Export-Package: com.raytheon.uf.viz.ncep.grid,
  com.raytheon.uf.viz.ncep.grid.customCoverage,
  com.raytheon.uf.viz.ncep.grid.util

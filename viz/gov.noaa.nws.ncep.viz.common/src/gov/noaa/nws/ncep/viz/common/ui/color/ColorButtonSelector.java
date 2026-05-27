@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Display;
  * ------------ ----------  ----------- --------------------------
  * 07 May 2009  74B         B. Hebbard  Initial implementation.
  * 11/25/2016   R21762      P. Moyer    Implemented alpha transparency/"No Color" option
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing alphaImage
+ *                                      and alphaPattern
  * </pre>
  * 
  * @author bhebbard
@@ -336,6 +338,12 @@ public class ColorButtonSelector extends EventManager {
     public void dispose() {
         if (composite != null) {
             composite.dispose();
+        }
+        if (alphaImage != null) {
+            alphaImage.dispose();
+        }
+        if (alphaPattern != null) {
+            alphaPattern.dispose();
         }
     }
 

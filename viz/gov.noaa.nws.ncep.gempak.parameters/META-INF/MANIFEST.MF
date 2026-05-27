@@ -3,15 +3,16 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Option Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.gempak.parameters;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.gempak.parameters.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  javax.measure,
  com.raytheon.uf.viz.core,
  gov.noaa.nws.ncep.gempak.parameters.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: gov.noaa.nws.ncep.gempak.parameters.core.contourinterval,
  gov.noaa.nws.ncep.gempak.parameters.core.util,
  gov.noaa.nws.ncep.viz.common.ui,

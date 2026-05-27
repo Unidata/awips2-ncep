@@ -1,24 +1,16 @@
 package gov.noaa.nws.ncep.viz.ui.display;
 
-import gov.noaa.nws.ncep.viz.common.area.PredefinedArea;
-import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsPaneManager;
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayName.NcPaneName;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.geometry.GeneralBounds;
 
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.serialization.ISerializableObject;
@@ -41,6 +33,14 @@ import com.raytheon.uf.viz.xy.graph.AbstractXyRenderableDisplay;
 import com.raytheon.uf.viz.xy.map.rsc.GraphResourceData;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
+import gov.noaa.nws.ncep.viz.common.area.PredefinedArea;
+import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsPaneManager;
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
+import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayName.NcPaneName;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+
 /**
  * MapRenderableDisplay for NatlCntrs
  * 
@@ -52,8 +52,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 04/21/2014   #1136      qzhou       Initial creation
  * 07/28/2014   R4078      sgurung     Added code changes to support loading TimeSeriesResource in a new window.
  * 10/28/2014   R4508      sgurung     Changed OverlayMode to VERTICAL in method customizeResourceList()
- * 
- * 
+ * May 07, 2024 2037231    aford       Upgrade GeoTools to 31
+ *
  * </pre>
  * 
  * @author qzhou
@@ -181,7 +181,7 @@ public class NCTimeSeriesRenderableDisplay extends AbstractXyRenderableDisplay
     private GeneralGridGeometry createGridGeometry(IExtent extent,
             CoordinateReferenceSystem crs) {
         // copied from AbstractDescriptor since it was protected
-        GeneralEnvelope envelope = new GeneralEnvelope(2);
+        GeneralBounds envelope = new GeneralBounds(2);
         envelope.setRange(0, extent.getMinX(), extent.getMaxX());
         envelope.setRange(1, extent.getMinY(), extent.getMaxY());
         envelope.setCoordinateReferenceSystem(crs);

@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
     
     <bean id="convsigmetDecoder" class="gov.noaa.nws.ncep.edex.plugin.convsigmet.decoder.ConvSigmetDecoder">
         <constructor-arg ref="convsigmetPluginName"/>
@@ -16,39 +14,10 @@
 		<constructor-arg value="convsigmet" />
 		<constructor-arg value="jms-durable:queue:Ingest.convsigmet" />
 	</bean>
-    
-    <camelContext id="convsigmet-camel" 
-                  xmlns="http://camel.apache.org/schema/spring" 
-                  errorHandlerRef="errorHandler">
 
-        <!-- Begin ConvSigmet routes -->
-        <route id="convsigmetIngestRoute">
-            <from uri="jms-durable:queue:Ingest.convsigmet"/>
-            <setHeader name="pluginName">
-                <constant>convsigmet</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-		            <bean ref="stringToFile" />
-        		    <split streaming="true">
-                		<method ref="convsigmetSeparator" method="separate"/>
-                  		<doTry>
-                     		<pipeline>
-                        		<bean ref="convsigmetDecoder" method="decode"/>
-                        		<to uri="direct-vm:indexAlert"/>
-		                    </pipeline>
-        		            <doCatch>
-                		        <exception>java.lang.Throwable</exception>
-                        		<to uri="log:convsigmet?level=ERROR"/>
-		                    </doCatch>
-						</doTry>
-					</split>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:convsigmet?level=ERROR"/>
-                </doCatch>
-            </doTry>
-        </route>
-	</camelContext>
+    <bean id="convsigmet-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.convsigmet.ConvsigmetCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

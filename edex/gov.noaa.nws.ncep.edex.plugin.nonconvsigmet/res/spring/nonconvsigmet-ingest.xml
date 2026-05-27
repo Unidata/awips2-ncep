@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="nonconvsigmetDecoder" class="gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.decoder.NonConvSigmetDecoder">
         <constructor-arg ref="nonconvsigmetPluginName"/>
@@ -17,37 +15,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.nonconvsigmet" />
     </bean>
 
-    <camelContext id="nonconvsigmet-camel" 
-                  xmlns="http://camel.apache.org/schema/spring" 
-                  errorHandlerRef="errorHandler">
-
-        <route id="nonconvsigmetIngestRoute">
-            <from uri="jms-durable:queue:Ingest.nonconvsigmet"/>
-            <setHeader name="pluginName">
-                <constant>nonconvsigmet</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <split streaming="true">
-                        <method ref="nonconvsigmetSeparator" method="separate"/>
-                           <doTry>
-                               <pipeline>
-                                   <bean ref="nonconvsigmetDecoder" method="decode"/>
-                                   <to uri="direct-vm:indexAlert"/>
-                               </pipeline>
-                                <doCatch>
-                                   <exception>java.lang.Throwable</exception>
-                                   <to uri="log:nonconvsigmet?level=ERROR"/>
-                               </doCatch>
-                           </doTry>
-                    </split>
-                   </pipeline>
-                    <doCatch>
-                       <exception>java.lang.Throwable</exception>
-                      <to uri="log:nonconvsigmet?level=ERROR"/>
-                   </doCatch>
-               </doTry>
-        </route>
-    </camelContext>
+    <bean id="nonconvsigmet-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.nonconvsigmet.decoder.NonConvSigmetCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

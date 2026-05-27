@@ -29,9 +29,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
@@ -69,6 +69,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  *                                  change
  * Dec 01, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * Aug 05, 2025 2039303   njensen   Fix memory leak by disposing
+ *                                  ColorButtonSelector
  *
  * </pre>
  *
@@ -227,6 +229,9 @@ public class JetAttrDlg extends LineAttrDlg {
         // 24, 24, 0, 2, 2);
         cs = new ColorButtonSelector(pane1);
         cs.setColorValue(new RGB(0, 255, 0));
+        pane1.addDisposeListener(e -> {
+            cs.dispose();
+        });
 
         Label widthLbl = new Label(pane1, SWT.LEFT);
         widthLbl.setText("Line Width:");

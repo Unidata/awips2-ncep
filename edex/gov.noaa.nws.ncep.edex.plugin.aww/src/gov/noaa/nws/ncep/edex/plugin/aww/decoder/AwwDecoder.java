@@ -13,17 +13,17 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.MndTime;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 import gov.noaa.nws.ncep.edex.plugin.aww.exception.AwwDecoderException;
 import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwLatLonUtil;
 import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwParser;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 /**
  *

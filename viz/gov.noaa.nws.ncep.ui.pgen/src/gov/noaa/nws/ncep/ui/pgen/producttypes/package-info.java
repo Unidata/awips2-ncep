@@ -5,5 +5,5 @@
 // Generated on: 2010.10.12 at 11:26:14 AM EDT 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.example.org/productType", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://www.example.org/productType", elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package gov.noaa.nws.ncep.ui.pgen.producttypes;

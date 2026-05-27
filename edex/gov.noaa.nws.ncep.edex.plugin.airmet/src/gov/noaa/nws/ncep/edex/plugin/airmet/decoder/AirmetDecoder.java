@@ -12,13 +12,13 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 
 import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
 import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 import gov.noaa.nws.ncep.edex.plugin.airmet.util.AirmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 /**
  * Airmet Decoder

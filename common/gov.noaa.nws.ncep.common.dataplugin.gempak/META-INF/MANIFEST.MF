@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Gempak
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.gempak
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.common.serialization.comm
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Require-Bundle: com.raytheon.uf.common.serialization.comm,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.time
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.gempak.request

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.eclipse.swt.graphics.RGB;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;

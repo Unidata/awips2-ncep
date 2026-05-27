@@ -3,7 +3,7 @@ package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;

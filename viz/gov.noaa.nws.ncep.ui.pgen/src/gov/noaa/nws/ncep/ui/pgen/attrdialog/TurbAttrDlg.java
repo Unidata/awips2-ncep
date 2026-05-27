@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
@@ -55,6 +55,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 04/11         #?       B. Yin    Re-factor IAttribute
  * Dec 01, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * Aug 05, 2025  2039303  njensen   Fix memory leak by disposing
+ *                                  ColorButtonSelector
  *
  * </pre>
  *
@@ -370,6 +372,9 @@ public class TurbAttrDlg extends AttrDlg implements ILine {
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(colorGroup);
         cs.setColorValue(new RGB(238, 238, 0));
+        colorGroup.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     private void createSymbolAttr(Composite comp) {

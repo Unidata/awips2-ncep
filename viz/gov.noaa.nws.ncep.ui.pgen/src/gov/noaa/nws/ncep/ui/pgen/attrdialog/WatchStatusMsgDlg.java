@@ -8,9 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -31,6 +28,9 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
  * Implementation of a dialog to display text message for watch status.
  * 
@@ -40,6 +40,8 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * ------------	----------	-----------	--------------------------
  * 03/10		#159		B. Yin   	Initial Creation.
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing GC
+ *
  * </pre>
  * 
  * @author B. Yin
@@ -105,6 +107,7 @@ public class WatchStatusMsgDlg extends CaveJFACEDialog {
         GC gc = new GC(messageBox);
         FontMetrics fm = gc.getFontMetrics();
         gd.widthHint = NUM_COLUMNS * fm.getAverageCharWidth();
+        gc.dispose();
 
         messageBox.setLayoutData(gd);
         messageBox.setText(statusMsg);

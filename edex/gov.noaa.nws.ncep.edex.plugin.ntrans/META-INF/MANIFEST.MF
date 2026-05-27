@@ -3,9 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: NTRANS PlugIn 
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ntrans
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
- gov.noaa.nws.ncep.common.dataplugin.ntrans
+ jakarta.persistence,
+ gov.noaa.nws.ncep.common.dataplugin.ntrans,
+ com.raytheon.uf.edex.routes
 Import-Package: org.apache.commons.logging
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ntrans.decoder

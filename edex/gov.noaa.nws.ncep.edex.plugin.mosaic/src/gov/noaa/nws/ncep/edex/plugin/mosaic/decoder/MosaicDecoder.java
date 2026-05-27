@@ -13,20 +13,20 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfo;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.MosaicInfoDict;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Layer;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.Level3Parser;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.RasterPacket;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyBlock;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.util.level3.SymbologyPacket;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.MosaicInfo;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.MosaicInfoDict;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.Layer;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.Level3Parser;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.RasterPacket;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.SymbologyBlock;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3.SymbologyPacket;
 
 /**
  * Decoder implementation for mosaic plugin

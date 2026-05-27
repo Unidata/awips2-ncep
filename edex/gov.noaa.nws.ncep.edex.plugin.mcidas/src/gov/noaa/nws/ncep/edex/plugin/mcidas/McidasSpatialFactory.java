@@ -16,6 +16,7 @@
  * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
  *                                       Switched to slf4j logger
  * Jul 26, 2016 R19277      bsteffen    Support Equidistant Cylindrical projection.
+ * May 07, 2024 2037231     aford       Upgrade GeoTools to 31
  * 
  * </pre>
  * 
@@ -31,11 +32,11 @@ import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasMapCoverageDao;
 import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import org.apache.commons.codec.binary.Base64;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.ProjectedCRS;
-import org.opengis.referencing.operation.MathTransform;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.crs.ProjectedCRS;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,14 +200,14 @@ public class McidasSpatialFactory {
                     + mapProjection);
         }
 
-        DirectPosition2D firstPosition = null;
-        DirectPosition2D secondPosition = null;
-        DirectPosition2D thirdPosition = null;
-        DirectPosition2D fourthPosition = null;
-        DirectPosition2D corner1 = new DirectPosition2D();
-        DirectPosition2D corner2 = new DirectPosition2D();
-        DirectPosition2D corner3 = new DirectPosition2D();
-        DirectPosition2D corner4 = new DirectPosition2D();
+        Position2D firstPosition = null;
+        Position2D secondPosition = null;
+        Position2D thirdPosition = null;
+        Position2D fourthPosition = null;
+        Position2D corner1 = new Position2D();
+        Position2D corner2 = new Position2D();
+        Position2D corner3 = new Position2D();
+        Position2D corner4 = new Position2D();
 
         /*
          * Projection is Mercator. Determine corner points from
@@ -240,19 +241,19 @@ public class McidasSpatialFactory {
             MathTransform toLatLon = fromLatLon.inverse();
 
             // Use lllat and lllon to specify the first point
-            firstPosition = new DirectPosition2D();
-            fromLatLon.transform(new DirectPosition2D(lllon, lllat),
+            firstPosition = new Position2D();
+            fromLatLon.transform(new Position2D(lllon, lllat),
                     firstPosition);
 
             int nxm1 = nx - 1;
             int nym1 = ny - 1;
             // Determine the 3 other corner points using the given dx,dy,nx, and
             // ny in meters
-            secondPosition = new DirectPosition2D(dx * nxm1 + firstPosition.x,
+            secondPosition = new Position2D(dx * nxm1 + firstPosition.x,
                     firstPosition.y);
-            thirdPosition = new DirectPosition2D(dx * nxm1 + firstPosition.x,
+            thirdPosition = new Position2D(dx * nxm1 + firstPosition.x,
                     dy * nym1 + firstPosition.y);
-            fourthPosition = new DirectPosition2D(firstPosition.x, dy * nym1
+            fourthPosition = new Position2D(firstPosition.x, dy * nym1
                     + firstPosition.y);
 
             // Convert the corner points from meters to lat/lon

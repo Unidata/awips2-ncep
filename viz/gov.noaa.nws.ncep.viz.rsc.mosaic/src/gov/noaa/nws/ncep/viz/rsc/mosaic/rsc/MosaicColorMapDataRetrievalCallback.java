@@ -19,8 +19,6 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.mosaic.rsc;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
@@ -32,6 +30,8 @@ import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.viz.core.data.IColorMapDataRetrievalCallback;
 import com.raytheon.uf.viz.core.exception.VizException;
+
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord;
 
 /**
  * 

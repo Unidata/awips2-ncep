@@ -1,7 +1,7 @@
 package com.raytheon.uf.viz.ncep.grid.customCoverage;
 
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;

@@ -8,7 +8,7 @@ import javax.measure.quantity.Length;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;

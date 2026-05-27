@@ -21,12 +21,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.geotools.data.Query;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
-import org.opengis.feature.simple.SimpleFeature;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Polygon;
 
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
@@ -39,12 +45,6 @@ import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineSegment;
-import org.locationtech.jts.geom.LinearRing;
-import org.locationtech.jts.geom.Polygon;
 
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;

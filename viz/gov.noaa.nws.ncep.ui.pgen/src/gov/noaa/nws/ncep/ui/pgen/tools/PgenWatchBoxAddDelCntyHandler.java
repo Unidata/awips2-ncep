@@ -10,6 +10,10 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import java.util.List;
 
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -23,18 +27,8 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 
 import com.raytheon.viz.ui.editor.AbstractEditor;
-
-import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
-import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.WatchBoxAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.elements.WatchBox;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
@@ -53,6 +47,7 @@ import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceList;
  * 12/09         159      B. Yin    Initial Creation.
  * Dec 02, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * May 07, 2024  2037231  aford     Upgrade GeoTools to 31
  *
  * </pre>
  *
@@ -292,8 +287,8 @@ public class PgenWatchBoxAddDelCntyHandler extends InputHandlerDefaultImpl {
      */
     private Filter createFilter(Point loc) {
         // create filter
-        FilterFactory2 ff = CommonFactoryFinder
-                .getFilterFactory2(GeoTools.getDefaultHints());
+        FilterFactory ff = CommonFactoryFinder
+                .getFilterFactory(GeoTools.getDefaultHints());
 
         Filter filter = ff.contains(ff.property("Location"), ff.literal(loc));
 

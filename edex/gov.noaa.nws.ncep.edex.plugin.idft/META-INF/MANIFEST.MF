@@ -5,13 +5,16 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.idft
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II Migration
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.common.dataplugin.idft,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.routes,
+ gov.noaa.nws.ncep.edex.common.dao,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.idft
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17

@@ -10,14 +10,14 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord;
 import gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetSection;
+import gov.noaa.nws.ncep.edex.common.tools.decoder.UtilN;
 import gov.noaa.nws.ncep.edex.plugin.convsigmet.util.ConvSigmetParser;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 /**
  * Convective Sigmet Decoder

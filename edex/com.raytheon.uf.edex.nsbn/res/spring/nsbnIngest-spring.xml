@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="nsbnFileChangedStrategy" class="com.raytheon.uf.edex.esb.camel.FileChangedExclusiveReadLockStrategy">
         <constructor-arg value="5000" />
@@ -12,20 +10,12 @@
     <bean id="nsbnFileTransferProcess" class="com.raytheon.uf.edex.nsbn.NSBNFileTransfer"/>
     <bean id="nsbnIdempotentRepository" class="com.raytheon.uf.edex.nsbn.NSBNIdempotentRepository"/>
     
-    <camelContext id="clusteredNSBNFileTransferProcess"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-        <endpoint id="nsbnFileTransferEndpoint"
-            uri="file:${nsbn.drop.box}?noop=true&amp;idempotent=true&amp;idempotentRepository=#nsbnIdempotentRepository&amp;delay=5000&amp;maxMessagesPerPoll=1000&amp;exclusiveReadLockStrategy=#nsbnFileChangedStrategy&amp;recursive=true" />
-
-        <route id="nsbnFileScan">
-            <from uri="nsbnFileTransferEndpoint" />
-            <bean ref="nsbnFileTransferProcess"/>
-        </route>
-    </camelContext>
-
-    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
-        <constructor-arg ref="clusteredNSBNFileTransferProcess" />
+    <bean id="clusteredNSBNFileTransferProcess" factory-bean="routeContextFactory" factory-method="createClustered">
+        <constructor-arg>
+            <bean class="com.raytheon.uf.edex.nsbn.ClusteredNSBNFileTransferProcessRoutes">
+                <constructor-arg name="nsbnDropBox" value="${nsbn.drop.box}" />
+            </bean>
+        </constructor-arg>
     </bean>
 
 </beans>

@@ -4,7 +4,7 @@
  **/
 package gov.noaa.nws.ncep.edex.plugin.airep.decoder;
 
-import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+import com.raytheon.uf.common.decodertools.IDecoderConstants;
 
 /*a
  * TODO Enter a description here.

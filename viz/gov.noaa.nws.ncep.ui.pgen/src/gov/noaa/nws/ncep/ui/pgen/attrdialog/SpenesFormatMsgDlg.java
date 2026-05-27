@@ -50,6 +50,7 @@ import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
  * 04/29         977      S. Gilbert  PGEN Database support
  * Dec 01, 2021  95362    tjensen     Refactor PGEN Resource management to
  *                                    support multi-panel displays
+ * Aug 05, 2025 2039303   njensen     Fix memory leak by disposing GC
  *
  * </pre>
  *
@@ -133,6 +134,7 @@ public class SpenesFormatMsgDlg extends CaveJFACEDialog {
         GC gc = new GC(messageBox);
         FontMetrics fm = gc.getFontMetrics();
         gd.widthHint = NUM_COLUMNS * fm.getAverageCharWidth();
+        gc.dispose();
 
         messageBox.setLayoutData(gd);
         if (spenes != null) {

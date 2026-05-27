@@ -5,10 +5,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NCNonMapRenderableDisplay;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 /**
  * Bundle for Natl Cntrs Resources

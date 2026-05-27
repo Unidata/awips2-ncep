@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridCoverageFactory;
@@ -29,9 +29,9 @@ import org.locationtech.jts.algorithm.CGAlgorithms;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.coverage.grid.GridCoverageWriter;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.coverage.grid.GridCoverage;
+import org.geotools.api.coverage.grid.GridCoverageWriter;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.image.ColorMapData;
@@ -50,7 +50,6 @@ import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
 import com.raytheon.uf.common.style.ImageryLabelingPreferences;
@@ -93,7 +92,6 @@ import com.raytheon.uf.viz.datacube.DataCubeContainer;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
@@ -136,6 +134,8 @@ import tech.units.indriya.quantity.Quantities;
  * 04/15/2019   7596    lsingh       Updated units framework to JSR-363.
  * 05/21/2019   64168   ksunil       Use ImageryLabelingPreference
  * 11/02/2022   8905    lsingh       Check for NaN when converting units.
+ * Oct 25, 2024 2037223 aford        JAXB upgrade - Configure JAXB Manager to
+ *                                   Use Custom JAXB Context Factory
  * </pre>
  *
  * @author kbugenhagen
@@ -515,11 +515,11 @@ public class ModisResource
                     .retrieve(dataRecord.getDataURI());
             for (IDataRecord rec : dataRecords) {
                 if (rec instanceof FloatDataRecord) {
-                    if (rec.getName().equals(ModisDao.LATITUDE_DATASET_NAME)) {
+                    if (rec.getName().equals(ModisRecord.LATITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLatitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     } else if (rec.getName()
-                            .equals(ModisDao.LONGITUDE_DATASET_NAME)) {
+                            .equals(ModisRecord.LONGITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLongitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     }
@@ -1106,17 +1106,14 @@ public class ModisResource
 
             locator.save();
 
-            Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
+            Class<?>[] jaxbClasses = new Class<?>[classes.size()];
             classes.toArray(jaxbClasses);
 
-            /*
-             * Add JaxbDummyObject at the beginning so properties are loaded
-             * correctly
-             */
-            jaxbClasses[jaxbClasses.length - 1] = jaxbClasses[0];
-            jaxbClasses[0] = JaxbDummyObject.class;
-
-            jaxb = new JAXBManager(jaxbClasses);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    jaxbClasses);
         }
 
         return jaxb;
@@ -1235,7 +1232,7 @@ public class ModisResource
             try {
                 dataValue = colorMapParameters.getDataToDisplayConverter()
                         .convert(bestValue);
-            } catch (NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
                 dataValue = Double.NaN;
             }
             // convert CI scaled value (dataValue), which is 0..254 to actual CI

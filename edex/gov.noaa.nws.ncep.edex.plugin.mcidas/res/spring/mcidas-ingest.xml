@@ -1,48 +1,25 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
   
-    <bean id="mcidasDao" class="gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao">
+    <bean id="mcidasDao" class="gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao" depends-on="mcidasPluginRegistered">
 		<constructor-arg ref="mcidasPluginName" />
 	</bean>	
 	
 	<bean id="mcidasDecoder" class="gov.noaa.nws.ncep.edex.plugin.mcidas.decoder.McidasDecoder">
 		<property name="dao" ref="mcidasDao" />
 	</bean>
-	
-	<!-- bean id="mcidasRegistry" class=" com.raytheon.uf.edex.esb.camel.BasicThreadPoolRouter"
-		factory-method="getInstance" depends-on="alphaNumericDatatypePool">
-		<constructor-arg><value>AlphaNumeric</value></constructor-arg>
-		<constructor-arg><value>mcidas</value></constructor-arg>
-		<constructor-arg><value>direct-vm:mcidasIngest</value></constructor-arg>
-	</bean-->
 
     <bean id="mcidasRegistry" factory-bean="distributionSrv"
 		factory-method="register">
 		<constructor-arg value="mcidas" />
 		<constructor-arg value="jms-durable:queue:Ingest.mcidas" />
 	</bean>
-
-	<camelContext id="mcidas-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<route id="mcidasIngestRoute">
-			<from uri="jms-durable:queue:Ingest.mcidas" />
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<bean ref="mcidasDecoder" method="decode" />
-					<to uri="direct-vm:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:mcidas?level=ERROR" />
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+	
+    <bean id="mcidas-came" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.mcidas.McidasCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

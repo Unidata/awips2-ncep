@@ -18,7 +18,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.PlatformUI;
-import org.opengis.coverage.grid.GridEnvelope;
+import org.geotools.api.coverage.grid.GridEnvelope;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IExtent;

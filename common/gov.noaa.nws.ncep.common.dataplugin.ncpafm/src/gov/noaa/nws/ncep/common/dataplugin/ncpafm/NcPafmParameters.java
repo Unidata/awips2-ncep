@@ -33,7 +33,7 @@ import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import java.io.Serializable;
 import java.util.Calendar;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
 

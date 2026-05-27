@@ -1,11 +1,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ncscatDao" class="gov.noaa.nws.ncep.common.dataplugin.ncscat.dao.NcscatDao">
+	<bean id="ncscatDao" class="gov.noaa.nws.ncep.edex.plugin.ncscat.dao.NcscatDao" depends-on="ncscatPluginRegistered">
 	<constructor-arg ref="ncscatPluginName"/> 
 	</bean>
 
@@ -20,39 +18,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.Ncscat" />
 	</bean>
 
-	<camelContext id="ncscat-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<route id="ncscatIngestRoute">
-			<from uri="jms-durable:queue:Ingest.Ncscat" />
-		<!-- 	<setHeader name="pluginName">
-				<constant>ncscat</constant>
-			</setHeader>-->
-			<doTry>
-				<pipeline>
-				<bean ref="stringToFile" />
-			<doTry>
-				<pipeline>
-					
-					<!--
-			need to replace the method decode with 	decodeNcscatInputFile
-					<bean ref="ncscatDecoder" method="decode" />	-->
-					<bean ref="ncscatDecoder" method="decodeNcscatInputFile" />	
-					<to uri="direct-vm:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ncscat?level=ERROR" />
-				</doCatch>
-			</doTry>
-		    </pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ncscat?level=ERROR" />
-				</doCatch>
-			</doTry>
-	<!-- bean ref="processUtil" method="delete" /-->
-		</route>
-	</camelContext>
+    <bean id="ncscat-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ncscat.decoder.NcscatCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

@@ -4,19 +4,21 @@ Bundle-Name: NcPafm Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ncpafm
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II Migration
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.localization,
  gov.noaa.nws.ncep.common,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools,
+ gov.noaa.nws.ncep.edex.util
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.ncpafm,
- gov.noaa.nws.ncep.edex.tools.decoder,
- gov.noaa.nws.ncep.edex.util
+ gov.noaa.nws.ncep.edex.common.tools.decoder
 Export-Package: gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder,
  gov.noaa.nws.ncep.edex.plugin.ncpafm.util

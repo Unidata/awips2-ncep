@@ -7,12 +7,6 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.aww.wstm;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.rsc.aww.Activator;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -36,6 +30,12 @@ import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.rsc.aww.Activator;
+
 /**
  * Creates a dialog box to edit the WSTM resource
  * 
@@ -46,6 +46,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 08-Nov-2010    247      Archana     Initial creation.
  * 21-Dec-2011             B. Hebbard  Correct event type checkbox labels
  * 04/05/2016   R15715     dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Aug 05, 2025 2039303    njensen     Fix memory leak by disposing
+ *                                     ColorButtonSelectors
  *                                                
  * @author archana
  * </pre>
@@ -418,6 +420,12 @@ public class EditWstmAttrDialog extends AbstractEditResourceAttrsDialog {
                 openMarkerSelectionPanel((Button) event.widget,
                         MarkerSelectionPanelIdentifier.PANEL3);
             }
+        });
+
+        gridComp.addDisposeListener(e -> {
+            wstmAdvisoryColorButtonSelector.dispose();
+            wstmWatchColorButtonSelector.dispose();
+            wstmWarningColorButtonSelector.dispose();
         });
 
         drawHorizontalSeparator(gridComp, 7);

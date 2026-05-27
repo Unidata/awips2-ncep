@@ -3,14 +3,15 @@ Bundle-ManifestVersion: 2
 Bundle-Name: NC Satellite Resource Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.satellite;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Require-Bundle: com.raytheon.viz.core,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.serialization.comm,
  gov.noaa.nws.ncep.viz.resources,
  com.raytheon.viz.ui,
  javax.measure,
- javax.persistence,
- org.apache.commons.lang,
+ jakarta.persistence,
+ org.apache.commons.lang3,
  org.geotools,
  com.raytheon.uf.common.colormap,
  gov.noaa.nws.ncep.viz.common,
@@ -20,9 +21,9 @@ Require-Bundle: com.raytheon.viz.core,
  com.raytheon.uf.common.dataplugin.satellite,
  com.raytheon.uf.common.style,
  com.raytheon.uf.common.derivparam,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.satellite.area,
  gov.noaa.nws.ncep.viz.rsc.satellite.rsc,
  gov.noaa.nws.ncep.viz.rsc.satellite.units
@@ -34,7 +35,6 @@ Import-Package:
  com.raytheon.uf.viz.npp.viirs.style,
  com.raytheon.viz.core.gl,
  gov.noaa.nws.ncep.common.dataplugin.modis,
- gov.noaa.nws.ncep.common.dataplugin.modis.dao,
  gov.noaa.nws.ncep.viz.localization,
  gov.noaa.nws.ncep.viz.resourceManager.ui,
  gov.noaa.nws.ncep.viz.ui.display

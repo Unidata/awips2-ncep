@@ -13,8 +13,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.algorithm.CGAlgorithms;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.coverage.grid.GridCoverageWriter;
+import org.geotools.api.coverage.grid.GridCoverage;
+import org.geotools.api.coverage.grid.GridCoverageWriter;
 
 import com.raytheon.uf.common.colormap.image.ColorMapData;
 import com.raytheon.uf.common.colormap.image.Colormapper;

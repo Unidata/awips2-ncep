@@ -5,10 +5,10 @@ import gov.noaa.nws.ncep.gempak.parameters.core.marshaller.garea.GraphicsAreaCoo
 import org.apache.log4j.Logger;
 import org.geotools.parameter.Parameter;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchIdentifierException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.NoSuchIdentifierException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;

@@ -3,15 +3,16 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Intlsigmet Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.intlsigmet
 Bundle-Version: 1.18.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.intlsigmet,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common,
  com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure,
  org.slf4j,
- com.raytheon.uf.common.status
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools
 Import-Package: com.raytheon.uf.common.wmo

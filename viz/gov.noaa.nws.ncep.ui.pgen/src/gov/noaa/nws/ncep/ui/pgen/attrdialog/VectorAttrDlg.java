@@ -29,11 +29,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.display.ArrowHead;
@@ -61,6 +61,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 09/29/2015   R1283       J. Wu       Fix direction-change when moving hash marks.
  * 03/03/2016   #13557      J. Beck     Set keyboard focus to wind speed text field for Wind Barb and Wind Arrow
  * 11/07/2016   R23252      S. Russell  Added method getArrowHeadType()
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector
  * 
  * </pre>
  * 
@@ -799,6 +801,9 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
         colorSelector = new ColorButtonSelector(top);
         colorSelector.setColorValue(new RGB(0, 255, 0));
+        top.addDisposeListener(e -> {
+            colorSelector.dispose();
+        });
     }
 
     /**

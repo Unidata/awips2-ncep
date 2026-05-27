@@ -3,13 +3,14 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Airep Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.airep
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Eclipse-BundleShape: dir
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.common.status,
  javax.measure,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.dataaccess,
- javax.xml.bind
+ jakarta.xml.bind
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,
@@ -19,6 +20,6 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.time,
  org.locationtech.jts.geom,
  javax.measure,
- javax.persistence
+ jakarta.persistence
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.airep
 

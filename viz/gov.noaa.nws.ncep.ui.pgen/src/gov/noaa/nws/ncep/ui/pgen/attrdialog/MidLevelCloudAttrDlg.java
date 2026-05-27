@@ -8,11 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IMidCloudText;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +25,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IMidCloudText;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 /**
  * Singleton attribute dialog for Aviation Mid Level Cloud Text elements.
@@ -50,6 +50,8 @@ import org.locationtech.jts.geom.Coordinate;
  * 11/10		?			B. Yin		Added flag for two columns
  * 										Removed cloud amount  
  * 04/11		#?			B. Yin		Re-factor IAttribute
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector
  * </pre>
  * 
  * @author J. Wu
@@ -724,6 +726,9 @@ public class MidLevelCloudAttrDlg extends AttrDlg implements IMidCloudText {
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(multigroup);
         cs.setColorValue(new RGB(0, 255, 0));
+        multigroup.addDisposeListener(e -> {
+            cs.dispose();
+        });
 
         Label sep6 = new Label(top, SWT.SEPARATOR | SWT.HORIZONTAL);
         sep6.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Stormtrack
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.stormtrack;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.stormtrack.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -11,15 +12,14 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.dataplugin,
- com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.geospatial,
  gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.common.dataplugin.stormtrack,
  gov.noaa.nws.ncep.viz.ui.display,
- javax.xml.bind,
+ jakarta.xml.bind,
  javax.measure
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ncep.viz.rsc.stormtrack,
  gov.noaa.nws.ncep.viz.rsc.stormtrack.rsc
 Import-Package: gov.noaa.nws.ncep.gempak.parameters,

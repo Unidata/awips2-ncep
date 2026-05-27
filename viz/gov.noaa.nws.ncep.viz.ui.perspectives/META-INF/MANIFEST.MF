@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.dataplugin.satellite,
  gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.staticdataprovider,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.ui.perspectives
 Import-Package: com.raytheon.uf.common.derivparam.library,
@@ -28,4 +28,4 @@ Import-Package: com.raytheon.uf.common.derivparam.library,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
  gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.viz.rsc.satellite.units
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

@@ -45,6 +45,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * May 04        #734      J. Zeng      Add calling method to create/edit a spenes
  * Mar 2013      #928      B. Yin       Made the button bar smaller.
  * Mar 20, 2019  #7572     dgilling     Code cleanup.
+ * Aug 05, 2025 2039303    njensen      Fix memory leak by disposing
+ *                                      ColorButtonSelector
  *
  * </pre>
  *
@@ -195,6 +197,9 @@ public class SpenesAttrDlg extends LineAttrDlg {
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(comp);
         cs.setColorValue(new RGB(255, 0, 0));
+        comp.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**

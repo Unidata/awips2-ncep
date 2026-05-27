@@ -15,8 +15,8 @@ import javax.measure.Unit;
 import javax.measure.format.MeasurementParseException;
 
 import org.eclipse.swt.graphics.RGB;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
@@ -58,8 +58,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord;
+import gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicTiler;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;

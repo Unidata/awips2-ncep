@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: GEMPAK CAVE
 Bundle-SymbolicName: com.raytheon.uf.viz.gempak.cave;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.gempak.common,
@@ -11,9 +12,9 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.gridcoverage,
  org.geotools,
  com.raytheon.uf.common.geospatial,
- javax.xml.bind,
+ jakarta.xml.bind,
  javax.measure
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.grid.dataquery,

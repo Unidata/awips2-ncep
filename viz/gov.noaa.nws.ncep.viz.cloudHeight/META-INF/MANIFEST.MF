@@ -3,12 +3,13 @@ Bundle-ManifestVersion: 2
 Bundle-Name: cloudHeight Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.cloudHeight;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.cloudHeight.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.viz.ui,
  gov.noaa.nws.ncep.viz.common,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  com.raytheon.viz.core,
  org.geotools,
  com.raytheon.viz.ui.tools.map,
@@ -22,9 +23,9 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.colormap,
  com.raytheon.uf.common.numeric,
  com.raytheon.uf.viz.datacube,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.pypies,
  com.raytheon.viz.core.gl.dataformat,

@@ -10,7 +10,7 @@ import java.util.Map;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.operation.projection.MapProjection;
 import org.geotools.referencing.operation.projection.MapProjection.AbstractProvider;
-import org.opengis.parameter.ParameterValueGroup;
+import org.geotools.api.parameter.ParameterValueGroup;
 
 import com.raytheon.uf.common.dataplugin.grid.GridInfoRecord;
 import com.raytheon.uf.common.gridcoverage.GridCoverage;

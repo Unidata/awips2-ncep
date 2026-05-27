@@ -24,39 +24,42 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
  * Dec 07, 2015 10436       bmabe       Moved McidasCRSBuilder back to original location
  *                                      b/c of build issues
  * Mar 06 2019  6140        tgurney     Hibernate 5 GeometryType fix
+ * May 07, 2024 2037231     aford       Upgrade GeoTools to 31
  *
  * </pre>
  */
 
 import java.awt.geom.Rectangle2D;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.geotools.api.coverage.grid.GridEnvelope;
+import org.geotools.api.geometry.Bounds;
+import org.geotools.api.geometry.MismatchedDimensionException;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.ProjectedCRS;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.DirectPosition2D;
-import org.geotools.geometry.Envelope2D;
+import org.geotools.geometry.Position2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.opengis.coverage.grid.GridEnvelope;
-import org.opengis.geometry.Envelope;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.ProjectedCRS;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 
 import com.raytheon.uf.common.dataplugin.persist.PersistableDataObject;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
@@ -66,8 +69,6 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
@@ -421,7 +422,7 @@ public class McidasMapCoverage extends PersistableDataObject
     public GridGeometry2D getGridGeometry() throws MismatchedDimensionException,
             FactoryException, TransformException {
         GridEnvelope gridRange;
-        Envelope crsRange;
+        Bounds crsRange;
 
         // for native projection
         if (projection == McidasMapCoverage.GVAR) {
@@ -432,8 +433,8 @@ public class McidasMapCoverage extends PersistableDataObject
             int maxY = -1 * getUpperLeftLine();
 
             gridRange = new GridEnvelope2D(0, 0, nx, ny);
-            crsRange = new Envelope2D(getCrs(),
-                    new Rectangle2D.Double(minX, minY, maxX, maxY));
+            crsRange = new ReferencedEnvelope(
+                    new Rectangle2D.Double(minX, minY, maxX, maxY), getCrs());
         }
 
         else {
@@ -444,8 +445,8 @@ public class McidasMapCoverage extends PersistableDataObject
             }
 
             gridRange = new GridEnvelope2D(0, 0, nx, ny);
-            crsRange = new Envelope2D(getCrs(), new Rectangle2D.Double(minX,
-                    minY, nx * getDx(), ny * getDy()));
+            crsRange = new ReferencedEnvelope(new Rectangle2D.Double(minX, minY,
+                    nx * getDx(), ny * getDy()), getCrs());
         }
 
         return new GridGeometry2D(gridRange, crsRange);
@@ -461,8 +462,8 @@ public class McidasMapCoverage extends PersistableDataObject
     private void findMins() throws FactoryException,
             MismatchedDimensionException, TransformException {
         MathTransform from84 = MapUtil.getTransformFromLatLon(getCrs());
-        DirectPosition2D urInCrs = transform(from84, getUrlon(), getUrlat());
-        DirectPosition2D llInCrs = transform(from84, getLllon(), getLllat());
+        Position2D urInCrs = transform(from84, getUrlon(), getUrlat());
+        Position2D llInCrs = transform(from84, getLllon(), getLllat());
         this.minX = Math.min(urInCrs.x, llInCrs.x);
         this.minY = Math.min(urInCrs.y, llInCrs.y);
     }
@@ -477,10 +478,10 @@ public class McidasMapCoverage extends PersistableDataObject
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    private DirectPosition2D transform(MathTransform mt, double x, double y)
+    private Position2D transform(MathTransform mt, double x, double y)
             throws MismatchedDimensionException, TransformException {
-        DirectPosition2D dest = new DirectPosition2D();
-        mt.transform(new DirectPosition2D(x, y), dest);
+        Position2D dest = new Position2D();
+        mt.transform(new Position2D(x, y), dest);
         return dest;
     }
 

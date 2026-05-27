@@ -4,12 +4,15 @@ Bundle-Name: Tcm Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.tcm
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: javax.persistence,
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Require-Bundle: jakarta.persistence,
  com.raytheon.edex.common,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.common.dataplugin.tcm,
  org.slf4j,
- com.raytheon.uf.common.status
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.edex.routes,
+ com.raytheon.uf.common.decodertools,
+ gov.noaa.nws.ncep.edex.util
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core

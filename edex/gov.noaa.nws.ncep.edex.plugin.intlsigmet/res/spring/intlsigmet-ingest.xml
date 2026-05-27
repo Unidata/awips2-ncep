@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
    <bean id="intlsigmetDecoder" class="gov.noaa.nws.ncep.edex.plugin.intlsigmet.decoder.IntlSigmetDecoder">
         <constructor-arg ref="intlsigmetPluginName"/>
@@ -16,38 +14,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.intlsigmet" />
 	</bean>
 
-    <camelContext id="intlsigmet-camel" 
-                  xmlns="http://camel.apache.org/schema/spring" 
-                  errorHandlerRef="errorHandler">
-        
-        <!-- Begin IntlSigmet routes -->
-        <route id="intlsigmetIngestRoute">
-            <from uri="jms-durable:queue:Ingest.intlsigmet"/>
-            <setHeader name="pluginName">
-                <constant>intlsigmet</constant>
-            </setHeader>
-            <bean ref="stringToFile" />
-            <doTry>
-                <pipeline>
-                    <split streaming="true">
-                        <method ref="intlsigmetSeparator" method="separate"/>
-                        <doTry>
-                            <pipeline>
-                                <bean ref="intlsigmetDecoder" method="decode"/>
-                                <to uri="direct-vm:indexAlert"/>
-                            </pipeline>
-                            <doCatch>
-                                <exception>java.lang.Throwable</exception>
-                                <to uri="log:intlsigmet?level=ERROR"/>
-                            </doCatch>
-                        </doTry>
-                     </split>
-                 </pipeline>
-                 <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:intlsigmet?level=ERROR"/>
-                 </doCatch>
-             </doTry>
-        </route>
-	</camelContext>
+    <bean id="intlsigmet-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.intlsigmet.decoder.IntlSigmetCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

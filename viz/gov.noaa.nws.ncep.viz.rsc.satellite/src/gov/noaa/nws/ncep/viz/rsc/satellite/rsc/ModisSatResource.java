@@ -10,7 +10,7 @@ import java.util.Map;
 import javax.measure.Unit;
 
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.dataplugin.HDF5Util;
@@ -28,7 +28,6 @@ import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
 import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
 import tech.units.indriya.AbstractUnit;
 
@@ -194,11 +193,11 @@ public class ModisSatResource extends
                     .getDataURI());
             for (IDataRecord rec : dataRecords) {
                 if (rec instanceof FloatDataRecord) {
-                    if (rec.getName().equals(ModisDao.LATITUDE_DATASET_NAME)) {
+                    if (rec.getName().equals(ModisRecord.LATITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLatitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     } else if (rec.getName().equals(
-                            ModisDao.LONGITUDE_DATASET_NAME)) {
+                            ModisRecord.LONGITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLongitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     }

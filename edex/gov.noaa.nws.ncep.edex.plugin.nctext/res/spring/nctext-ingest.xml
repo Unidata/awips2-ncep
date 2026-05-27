@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
   
   
 	<bean id="nctextDecoder" class="gov.noaa.nws.ncep.edex.plugin.nctext.decoder.NctextFileNameGenerator">
@@ -17,33 +15,9 @@
 		<constructor-arg value="jms-durable:queue:ingest.nctext" />
 	</bean>
 
-	<camelContext id="nctext-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<route id="nctextIngestRoute">
-			<from uri="jms-durable:queue:ingest.nctext" />
-			<setHeader name="pluginName">
-                <constant>nctext</constant>
-            </setHeader>
-			<bean ref="stringToFile" />
-			<doTry>
-				<pipeline>
-					<bean ref="nctextDecoder" method="renameAndDecodeFile" />
-					<!-- bean ref="nctextDecoderSbn" method="decodeTextInputFile" /-->
-					<multicast>
-						<to uri="direct-vm:persistIndexAlert" />
-					</multicast>
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:warning?level=INFO" />
-				</doCatch>
-			</doTry>
-			
-		</route>
-		
-	</camelContext>
-
-  
+    <bean id="nctext-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.nctext.decoder.NctextCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

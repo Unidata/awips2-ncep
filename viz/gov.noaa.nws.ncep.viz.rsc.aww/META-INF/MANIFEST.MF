@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: AWW Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.aww;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.aww.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
@@ -10,21 +11,20 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.viz.core,
  gov.noaa.nws.ncep.viz.resources,
  com.raytheon.viz.ui,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  org.geotools,
  gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.edex.common,
  com.raytheon.uf.common.message,
  gov.noaa.nws.ncep.ui.pgen,
- com.raytheon.uf.edex.decodertools,
  gov.noaa.nws.ncep.common.log,
- javax.xml.bind,
- org.slf4j
+ jakarta.xml.bind,
+ org.slf4j,
+ com.raytheon.uf.common.decodertools
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.time,
- com.raytheon.uf.edex.decodertools.core,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.viz.core.drawables,
  com.raytheon.uf.viz.core.exception,

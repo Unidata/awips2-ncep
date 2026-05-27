@@ -3,9 +3,9 @@ package gov.noaa.nws.ncep.common.dataplugin.modis.projection;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisSpatialCoverage;
 
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.ProjectedCRS;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.ProjectedCRS;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 

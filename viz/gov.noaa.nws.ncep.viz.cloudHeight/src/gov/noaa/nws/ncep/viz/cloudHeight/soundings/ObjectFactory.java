@@ -8,7 +8,7 @@
 
 package gov.noaa.nws.ncep.viz.cloudHeight.soundings;
 
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 
 /**

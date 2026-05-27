@@ -3,11 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Overlays Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.overlays;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.overlays.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: com.raytheon.viz.core,
  com.raytheon.viz.ui,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  org.eclipse.core.runtime,
  org.eclipse.ui,
  org.geotools,
@@ -19,7 +20,7 @@ Require-Bundle: com.raytheon.viz.core,
  gov.noaa.nws.ncep.viz.localization,
  javax.measure,
  com.raytheon.uf.viz.core.maps,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.viz.localization.perspective
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.overlays,
@@ -27,5 +28,5 @@ Export-Package: gov.noaa.nws.ncep.viz.overlays,
  gov.noaa.nws.ncep.viz.overlays.resources
 Import-Package: com.raytheon.uf.common.time,
  com.raytheon.uf.viz.core.maps
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
  

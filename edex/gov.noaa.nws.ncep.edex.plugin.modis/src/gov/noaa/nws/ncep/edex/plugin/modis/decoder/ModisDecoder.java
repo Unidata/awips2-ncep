@@ -3,7 +3,7 @@ package gov.noaa.nws.ncep.edex.plugin.modis.decoder;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisMessageData;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisSpatialCoverage;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
+import gov.noaa.nws.ncep.edex.plugin.modis.dao.ModisDao;
 
 import java.io.IOException;
 import java.text.ParseException;

@@ -8,11 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IAvnText;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,9 +27,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IAvnText;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 /**
  * Singleton attribute dialog for Aviation Text elements.
@@ -52,6 +52,8 @@ import org.locationtech.jts.geom.Coordinate;
  *                                          the complete color matrix.
  * 04/11		#?			B. Yin			Re-factor IAttribute
  * 03/13		#928		B. Yin			Added a separator above the button bar.
+ * Aug 05, 2025 2039303     njensen         Fix memory leak by disposing
+ *                                          ColorButtonSelector
  * </pre>
  * 
  * @author J. Wu
@@ -909,6 +911,9 @@ public class AvnTextAttrDlg extends AttrDlg implements IAvnText {
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(top);
         cs.setColorValue(new RGB(0, 255, 0));
+        top.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**

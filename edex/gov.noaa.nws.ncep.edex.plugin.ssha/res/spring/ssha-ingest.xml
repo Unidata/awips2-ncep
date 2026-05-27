@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="sshaDecoder"
 		class="gov.noaa.nws.ncep.edex.plugin.ssha.decoder.SshaDecoder">
@@ -13,7 +11,8 @@
 	<bean id="sshaSeparator"
 		class="gov.noaa.nws.ncep.edex.plugin.ssha.decoder.SshaSeparator" />
 
-	<bean id="sshaToPointData" class="gov.noaa.nws.ncep.common.dataplugin.ssha.dao.SshaPointDataTransform" />
+	<bean id="sshaToPointData" class="gov.noaa.nws.ncep.edex.plugin.ssha.dao.SshaPointDataTransform" 
+		depends-on="sshaRegistered"/>
 
 
 
@@ -22,29 +21,10 @@
 		<constructor-arg ref="sshaPluginName" />
 		<constructor-arg value="jms-durable:queue:Ingest.ssha" />
 	</bean>
-    
-	<camelContext id="ssha-camel" 
-	              xmlns="http://camel.apache.org/schema/spring" 
-	              errorHandlerRef="errorHandler">
 
-		<!-- Begin Ssha routes -->
-		<route id="sshaIngestRoute">
-			<from uri="jms-durable:queue:Ingest.ssha"/>
-			<setHeader name="pluginName">
-				<constant>ssha</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<bean ref="sshaDecoder" method="decode" />
-					<bean ref="sshaToPointData" method="toPointData" />
-					<to uri="direct-vm:persistIndexAlert" />		
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:ssha?level=ERROR"/>
-				</doCatch>
-			</doTry>
-		</route>
-	</camelContext>
+    <bean id="ssha-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ssha.decoder.SshaCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	
 	<bean id="mosaicDecoder" class="gov.noaa.nws.ncep.edex.plugin.mosaic.decoder.MosaicDecoder"/>
@@ -14,24 +12,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.Mosaic" />
     </bean>
 
-	<camelContext id="mosaic-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<route id="mosaicIngestRoute">
-			<from uri="jms-durable:queue:Ingest.Mosaic" />
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<bean ref="mosaicDecoder" method="decode" />
-					<to uri="direct-vm:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:mosaic?level=ERROR" />
-				</doCatch>
-			</doTry>
-			<!-- bean ref="processUtil" method="delete" /-->
-		</route>
-	</camelContext>
+    <bean id="mosaic-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.mosaic.decoder.MosaicCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

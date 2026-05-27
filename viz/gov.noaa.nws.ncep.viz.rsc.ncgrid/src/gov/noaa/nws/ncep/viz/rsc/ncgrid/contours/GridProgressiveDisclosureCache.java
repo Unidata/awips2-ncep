@@ -33,7 +33,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.opengis.coverage.grid.GridGeometry;
+import org.geotools.api.coverage.grid.GridGeometry;
 
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.grid.display.GridCellLocationCache;

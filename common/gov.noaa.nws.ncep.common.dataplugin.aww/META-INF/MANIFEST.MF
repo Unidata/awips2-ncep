@@ -4,9 +4,9 @@ Bundle-Name: Aww Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.aww
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: AWIPS II migration
-Require-Bundle: javax.persistence,
+Require-Bundle: jakarta.persistence,
  gov.noaa.nws.ncep.common,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.dataplugin
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.aww
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

@@ -1,15 +1,5 @@
-/*
- * TcaTextMessageDlg
- * 
- * Date created: 15 SEPTEMBER 2009
- *
- * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
- */
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
-
-import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
-import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -28,10 +18,27 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
+import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
+import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+
 /**
- * @author sgilbert
- * 
- */
+ * TcaTextMessageDlg
+ *
+ * Date created: 15 SEPTEMBER 2009
+ *
+ * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date          Ticket#  Engineer    Description
+ * ------------- -------- ----------- ------------------------------------------
+ * Aug 05, 2025 2039303   njensen     Fix memory leak by disposing GC
+ *
+ * </pre>
+ *
+ **/
+
 public class TcaTextMessageDlg extends CaveJFACEDialog {
 
     private Composite top = null;
@@ -115,6 +122,7 @@ public class TcaTextMessageDlg extends CaveJFACEDialog {
         GC gc = new GC(messageBox);
         FontMetrics fm = gc.getFontMetrics();
         gd.widthHint = NUM_COLUMNS * fm.getAverageCharWidth();
+        gc.dispose();
 
         messageBox.setLayoutData(gd);
         messageBox.setText(message);

@@ -5,8 +5,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.geotools.api.geometry.Bounds;
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.opengis.geometry.Envelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.geospatial.util.EnvelopeIntersection;
@@ -18,10 +22,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.prep.PreparedGeometry;
-import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 
 /**
  * 
@@ -37,6 +37,7 @@ import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
  * 11/30/2015   R13133      kbugenhagen  Initial creation.
  * 06/01/2016   R18511      kbugenhagen  Changes for satellite viz resource 
  *                                       refactoring.
+ * May 07, 2024 2037231     aford        Upgrade GeoTools to 31
  * </pre>
  * 
  * @author kbugenhagen
@@ -89,7 +90,7 @@ public abstract class AbstractSatelliteRecordData<S extends IPersistable> {
             tileSet.project(targetGeometry);
 
             try {
-                Envelope tileSetEnvelope = tileSet.getTileSetGeometry()
+                Bounds tileSetEnvelope = tileSet.getTileSetGeometry()
                         .getEnvelope();
 
                 double intersectionFactor = getIntersectionFactor();

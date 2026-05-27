@@ -8,7 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.producttypes;
 
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 
 /**

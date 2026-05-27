@@ -16,8 +16,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.eclipse.swt.graphics.Rectangle;
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.MathTransform;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.operation.MathTransform;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.pointdata.vadriver.VA_Advanced;

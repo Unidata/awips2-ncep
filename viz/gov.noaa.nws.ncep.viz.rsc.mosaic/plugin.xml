@@ -6,7 +6,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.mosaic.rsc.MosaicResource"
             name="RadarMosaic"
-            recordClass="gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord"
+            recordClass="gov.noaa.nws.ncep.common.dataplugin.mosaic.MosaicRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW"/>
    </extension>

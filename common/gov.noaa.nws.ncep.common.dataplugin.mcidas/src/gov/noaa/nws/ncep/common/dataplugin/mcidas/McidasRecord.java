@@ -24,6 +24,7 @@
  * Jul 26, 2016 R19277      bsteffen    Added getGridGeometry to consolidate
  *                                      duplicated code.
  * Nov 07, 2018 #7552       dgilling    Implement IGridGeometryProvider.
+ * May 07, 2024  2037231    aford       Upgrade GeoTools to 31
  *
  * </pre>
  *
@@ -34,23 +35,23 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
 
 import java.util.Calendar;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.GeneralBounds;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Index;
@@ -351,7 +352,7 @@ public class McidasRecord extends PersistablePluginDataObject implements
             return MapUtil.getGridGeometry(coverage);
         } else {
 
-            GeneralEnvelope env = new GeneralEnvelope(2);
+            GeneralBounds env = new GeneralBounds(2);
             env.setCoordinateReferenceSystem(coverage.getCrs());
 
             int minX = coverage.getUpperLeftElement();

@@ -33,9 +33,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
@@ -72,6 +72,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * 12/13         TTR 800  B. Yin    Added original county list
  * Dec 01, 2021  95362    tjensen   Refactor PGEN Resource management to support
  *                                  multi-panel displays
+ * Aug 05, 2025 2039303   njensen   Fix memory leak by disposing
+ *                                  ColorButtonSelectors
  *
  * </pre>
  *
@@ -305,6 +307,9 @@ public class WatchBoxAttrDlg extends AttrDlg implements IWatchBox {
 
         cs = new ColorButtonSelector(colorComp);
         cs.setColorValue(new RGB(255, 0, 255));
+        colorComp.addDisposeListener(e -> {
+            cs.dispose();
+        });
     }
 
     /**
@@ -349,6 +354,9 @@ public class WatchBoxAttrDlg extends AttrDlg implements IWatchBox {
 
         symbolColor = new ColorButtonSelector(colorComp);
         symbolColor.setColorValue(new RGB(0, 255, 0));
+        colorComp.addDisposeListener(e -> {
+            symbolColor.dispose();
+        });
 
     }
 

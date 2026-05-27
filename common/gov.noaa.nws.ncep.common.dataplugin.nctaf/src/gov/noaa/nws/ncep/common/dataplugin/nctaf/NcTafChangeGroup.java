@@ -25,8 +25,6 @@ import static gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafConstants.WIND_SHEA
 import static gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafConstants.WX_CAVOK;
 import static gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafConstants.WX_NSW;
 
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -36,20 +34,21 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-
+import com.raytheon.uf.common.decodertools.time.TimeTools;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.edex.decodertools.time.TimeTools;
+
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  * 

@@ -15,7 +15,7 @@ import java.util.Iterator;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.coverage.grid.GridEnvelope;
+import org.geotools.api.coverage.grid.GridEnvelope;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 

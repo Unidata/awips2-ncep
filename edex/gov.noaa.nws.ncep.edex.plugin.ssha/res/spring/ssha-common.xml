@@ -10,7 +10,7 @@
 	<bean id="sshaProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="sshaPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ssha" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.ssha.dao.SshaDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.ssha.dao.SshaDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.ssha.SshaRecord" />
 	</bean>

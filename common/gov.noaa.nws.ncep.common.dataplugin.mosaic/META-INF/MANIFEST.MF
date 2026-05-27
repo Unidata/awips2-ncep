@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Mosaic
+Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.mosaic
+Bundle-Version: 1.24.0.qualifier
+Export-Package: gov.noaa.nws.ncep.common.dataplugin.mosaic,
+ gov.noaa.nws.ncep.common.dataplugin.mosaic.util,
+ gov.noaa.nws.ncep.common.dataplugin.mosaic.util.level3
+Require-Bundle: com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.datastorage,
+ com.raytheon.uf.common.geospatial,
+ jakarta.xml.bind,
+ javax.measure,
+ org.slf4j
+Automatic-Module-Name: gov.noaa.nws.ncep.common.dataplugin.mosaic
+Bundle-RequiredExecutionEnvironment: JavaSE-17

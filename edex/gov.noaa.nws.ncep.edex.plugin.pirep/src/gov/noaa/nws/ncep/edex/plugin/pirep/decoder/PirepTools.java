@@ -5,7 +5,7 @@ package gov.noaa.nws.ncep.edex.plugin.pirep.decoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.raytheon.uf.edex.decodertools.aircraft.AircraftFlightCondition;
+import com.raytheon.uf.common.decodertools.aircraft.AircraftFlightCondition;
 import com.raytheon.uf.edex.decodertools.aircraft.Entry;
 import com.raytheon.uf.edex.decodertools.aircraft.WordTranslator;
 

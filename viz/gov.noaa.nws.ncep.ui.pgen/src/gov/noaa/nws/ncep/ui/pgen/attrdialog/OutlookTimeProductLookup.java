@@ -24,14 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
 /**
  * Object for unmarshalling the outlooktimes.xml to objects.
@@ -82,7 +82,7 @@ public class OutlookTimeProductLookup {
             JAXBContext jaxbContext = JAXBContext
                     .newInstance(OutlookTimesProductSet.class);
 
-            javax.xml.bind.Unmarshaller jaxbUnmarshaller = jaxbContext
+            Unmarshaller jaxbUnmarshaller = jaxbContext
                     .createUnmarshaller();
 
             OutlookTimesProductSet outlookTimesProductSet = (OutlookTimesProductSet) jaxbUnmarshaller

@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
        
 	
 	<bean id="stormTrackDecoder" class="gov.noaa.nws.ncep.edex.plugin.stormtrack.decoder.StormTrackDecoder"/>
@@ -16,30 +14,9 @@
 		<constructor-arg value="jms-durable:queue:Ingest.stormTrack" />
 	</bean>
 
-	<camelContext id="stormTrack-camel" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-
-		<!-- Begin StormTrack routes -->
-		<route id="stormTrackIngestRoute">
-			<from uri="jms-durable:queue:Ingest.stormtrack" />
-			<setHeader name="pluginName">
-				<constant>stormtrack</constant>
-			</setHeader>
-			<bean ref="stringToFile" />
-			<split streaming="true">
-				<method ref="stormTrackSeparator" method="batchSeparate" />
-				<doTry>
-					<pipeline>
-						<bean ref="stormTrackDecoder" method="decode" />
-						<to uri="direct-vm:indexAlert" />
-					</pipeline>
-					<doCatch>
-						<exception>java.lang.Throwable</exception>
-						<to uri="log:stormtrack?level=ERROR" />
-					</doCatch>
-				</doTry>
-			</split>
-			<!--<bean ref="processUtil" method="delete" /> -->
-		</route>
-	</camelContext>
+    <bean id="stormTrack-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.stormtrack.decoder.StormTrackCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

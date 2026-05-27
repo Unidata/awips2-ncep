@@ -23,7 +23,7 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;

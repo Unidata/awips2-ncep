@@ -3,15 +3,17 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Nctaf Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.nctaf
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.common.status,
  javax.measure,
  gov.noaa.nws.ncep.common,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  com.raytheon.uf.common.time,
  org.hibernate,
  com.raytheon.uf.common.pointdata,
- javax.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.common.decodertools,
+ org.slf4j
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.annotations,
  com.raytheon.uf.common.dataplugin.persist,
@@ -21,13 +23,11 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization.annotations,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.wmo,
- com.raytheon.uf.edex.decodertools.time,
- org.locationtech.jts.geom,
  gov.noaa.nws.ncep.common.tools,
+ jakarta.persistence,
  javax.measure,
- javax.persistence,
- org.apache.commons.lang.builder,
- org.apache.commons.logging
+ org.apache.commons.lang3.builder,
+ org.locationtech.jts.geom
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.nctaf,
  gov.noaa.nws.ncep.common.dataplugin.nctaf.dao
 

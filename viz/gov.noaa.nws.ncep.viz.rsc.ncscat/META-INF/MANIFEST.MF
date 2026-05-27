@@ -3,11 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Quikscat Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.ncscat;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ncscat.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  org.geotools,
  com.raytheon.viz.core,
  com.raytheon.viz.ui,
@@ -15,14 +16,13 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common,
  gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.viz.resources,
- javax.xml.bind
+ jakarta.xml.bind
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
-Import-Package: com.raytheon.uf.edex.decodertools.core,
- org.locationtech.jts.geom,
- gov.noaa.nws.ncep.common.dataplugin.ncscat,
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Import-Package: gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,
  gov.noaa.nws.ncep.viz.ui.display,
- javax.measure
+ javax.measure,
+ org.locationtech.jts.geom
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncscat,
  gov.noaa.nws.ncep.viz.rsc.ncscat.rsc

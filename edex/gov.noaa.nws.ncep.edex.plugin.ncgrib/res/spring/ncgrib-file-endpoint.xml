@@ -1,37 +1,15 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="ncgribFilenameProcessor" class="gov.noaa.nws.ncep.edex.plugin.ncgrib.NcgribFileNameProcessor"/>
-
-    <camelContext id="ncgrib-qpid-endpoint" xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler"
-        autoStartup="false">
-
-        <endpoint id="ncgribJmsEndpoint" uri="jms-durable:queue:Ingest.ncGrib?concurrentConsumers=${GRIB_SPLIT_THREADS}"/>
-
-        <route id="ncgribFileNameConsumerRoute">
-            <from uri="ncgribJmsEndpoint"/>
-            <doTry>
-                <pipeline>
-                    <bean ref="ncgribFilenameProcessor"/>
-                    <setHeader name="pluginName">
-                        <constant>grid</constant> 
-                    </setHeader>
-                    <bean ref="stringToFile"/>
-                    <split streaming="true">
-                        <method ref="gribSplitter" method="split"/>
-                        <to uri="jms-durable:queue:Ingest.GribDecode" />
-                    </split>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="direct-vm:logFailedData" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    
+    <bean id="ncgrib-qpid-endpoint" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ncep.edex.plugin.ncgrib.NcgribQpidEndpointRoutes">
+                <constructor-arg name="gribSplitThreads" value="${GRIB_SPLIT_THREADS}" />
+            </bean>
+        </constructor-arg>
+    </bean>
 </beans>

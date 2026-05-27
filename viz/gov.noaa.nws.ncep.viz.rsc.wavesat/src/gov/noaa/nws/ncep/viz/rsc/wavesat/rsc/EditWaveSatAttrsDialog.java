@@ -1,12 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.wavesat.rsc;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
@@ -27,6 +20,13 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+
 /**
  * A Dialog to edit SGWH resource attributes.
  * 
@@ -40,6 +40,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 04/15/15     R6281        Bruce Hebbard  Add meters/feet selection
  * 06/16/15     R6281        Bruce Hebbard  Clean up per code review comments
  * 04/05/2016   R15715       dgilling       Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Aug 05, 2025 2039303      njensen        Fix memory leak by disposing
+ *                                          ColorButtonSelector
  * 
  * </pre>
  * 
@@ -89,6 +91,8 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
     Group colorBarGrpMeters = null;
 
     Group colorBarGrpFeet = null;
+
+    private ColorButtonSelector colBtnSel = null;
 
     //
     @Override
@@ -343,7 +347,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         selColComp.setLayoutData(fd);
         selColComp.setLayout(new GridLayout());
 
-        final ColorButtonSelector colBtnSel = new ColorButtonSelector(
+        colBtnSel = new ColorButtonSelector(
                 selColComp, 55, 25);
         colBtnSel.setColorValue((RGB) timeDisplayColorAttr.getAttrValue());
         colBtnSel.addListener(new IPropertyChangeListener() {
@@ -409,5 +413,8 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         super.dispose();
         colorBarEditorMeters.dispose();
         colorBarEditorFeet.dispose();
+        if (colBtnSel != null) {
+            colBtnSel.dispose();
+        }
     }
 }

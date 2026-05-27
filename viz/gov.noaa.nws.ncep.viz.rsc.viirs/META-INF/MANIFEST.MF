@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: viirs
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.viirs;singleton:=true
 Bundle-Version: 1.19.0.qualifier
+Eclipse-BundleShape: dir
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -18,8 +19,8 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.viz.ui,
  gov.noaa.nws.ncep.viz.common,
  com.raytheon.uf.common.inventory,
- javax.xml.bind
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+ jakarta.xml.bind
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.persist,
  com.raytheon.uf.common.datastorage,

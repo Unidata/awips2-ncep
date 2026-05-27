@@ -22,10 +22,6 @@
 
 package gov.noaa.nws.ncep.edex.plugin.tcm.util;
 
-import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmPositionWinds;
-import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord;
-import gov.noaa.nws.ncep.edex.util.UtilN;
-
 import java.util.Calendar;
 import java.util.Scanner;
 import java.util.regex.MatchResult;
@@ -34,8 +30,13 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.wmo.WMOHeader;
+
+import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmPositionWinds;
+import gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord;
+import gov.noaa.nws.ncep.edex.util.UtilN;
 
 
 

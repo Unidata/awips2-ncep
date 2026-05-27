@@ -23,13 +23,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.geotools.api.geometry.Bounds;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,6 +269,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * Oct 23, 2018  54476    tjensen          Change cache to singleton
  * Oct 25, 2018  54483    mapeters         Handle {@link NcgribLogger} refactor
  * Feb 01, 2019  7720     mrichardson      Incorporated changes for subgrids.
+ * May 07, 2024  2037231  aford            Upgrade GeoTools to 31
  *
  * </pre>
  *
@@ -2372,8 +2373,8 @@ public class NcgridResource
             double halfZoomedSpan = zoomedSpan / 2;
             double[] centerLatLon = area.getMapCenter();
 
-            DirectPosition2D centerPosition = new DirectPosition2D(
-                    centerLatLon[0], centerLatLon[1]);
+            Position2D centerPosition = new Position2D(centerLatLon[0],
+                    centerLatLon[1]);
 
             MathTransform llToCRS = CRS
                     .findMathTransform(DefaultGeographicCRS.WGS84, crs);
@@ -2384,14 +2385,14 @@ public class NcgridResource
             double lower = centerPosition.y - halfZoomedSpan;
             double upper = centerPosition.y + halfZoomedSpan;
 
-            Envelope validEnvelope = geom.getEnvelope();
+            Bounds validEnvelope = geom.getEnvelope();
             left = Math.max(left, validEnvelope.getMinimum(0));
             right = Math.min(right, validEnvelope.getMaximum(0));
             lower = Math.max(lower, validEnvelope.getMinimum(1));
             upper = Math.min(upper, validEnvelope.getMaximum(1));
 
-            DirectPosition2D lowerLeft = new DirectPosition2D(left, lower);
-            DirectPosition2D upperRight = new DirectPosition2D(right, upper);
+            Position2D lowerLeft = new Position2D(left, lower);
+            Position2D upperRight = new Position2D(right, upper);
 
             MathTransform crsToLL = llToCRS.inverse();
             crsToLL.transform(lowerLeft, lowerLeft);

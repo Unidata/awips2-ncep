@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -51,6 +50,7 @@ import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
+import jakarta.xml.bind.Marshaller;
 
 /**
  * Implementation of a dialog to display information of an issued watch.
@@ -67,6 +67,7 @@ import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
  * 12/13         TTR 800  B. Yin      Added original county list
  * Dec 01, 2021  95362    tjensen     Refactor PGEN Resource management to
  *                                    support multi-panel displays
+ * Aug 05, 2025 2039303   njensen     Fix memory leak by disposing GC
  *
  * </pre>
  *
@@ -133,6 +134,7 @@ public class WatchFormatMsgDlg extends CaveJFACEDialog {
         GC gc = new GC(messageBox);
         FontMetrics fm = gc.getFontMetrics();
         gd.widthHint = NUM_COLUMNS * fm.getAverageCharWidth();
+        gc.dispose();
 
         messageBox.setLayoutData(gd);
         setMessage(generateProducts(putWatcInProduct(wfd.getWatchBox()),

@@ -28,10 +28,10 @@ import javax.measure.format.MeasurementParseException;
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.ColorMapException;
@@ -450,7 +450,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                     try {
                         convertedValue = params.getDataToDisplayConverter()
                                 .convert(i);
-                    } catch (NumberFormatException e) {
+                    } catch (IllegalArgumentException e) {
                         convertedValue = Double.NaN;
                     }
                     entry.setDisplayValue(convertedValue);
@@ -702,7 +702,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                     } else {
                         d = Double.NaN;
                     }
-                } catch (NumberFormatException e) {
+                } catch (IllegalArgumentException e) {
                     d = Double.NaN;
                 }
 
@@ -742,7 +742,7 @@ public abstract class RadarImageResource<D extends IDescriptor>
                         double disp;
                         try {
                             disp = image2disp.convert(j);
-                        } catch (NumberFormatException e) {
+                        } catch (IllegalArgumentException e) {
                             // the value is a special case and represents
                             // "no color" on the color map.
                             continue;

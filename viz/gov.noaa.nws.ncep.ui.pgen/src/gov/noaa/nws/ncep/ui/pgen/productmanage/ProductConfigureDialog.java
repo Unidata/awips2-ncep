@@ -7,28 +7,6 @@
  */
 package gov.noaa.nws.ncep.ui.pgen.productmanage;
 
-import gov.noaa.nws.ncep.ui.pgen.Activator;
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursInfoDlg;
-import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
-import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenActions;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenClass;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenControls;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenObjects;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProdType;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
-import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductTypes;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenActionXtra;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +18,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -85,6 +61,29 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursInfoDlg;
+import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
+import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenActions;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenClass;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenControls;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenObjects;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProdType;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductTypes;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenActionXtra;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import jakarta.xml.bind.JAXBException;
+
 /**
  * This class allows the user to configure and edit the product types.
  * 
@@ -118,6 +117,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 12/20/2019   71069       smanoj      Modified the code to better handle
  *                                      a null productType.getName()
  * 12/02/2020   85217       smanoj      Fix error launching configure activity Dialog.
+ * Aug 05, 2025 2039303     njensen     Fix memory leak by disposing
+ *                                      ColorButtonSelector
  * 
  * </pre>
  * 
@@ -1791,6 +1792,9 @@ public class ProductConfigureDialog extends ProductDialog {
         Color clr = Color.RED;
         layerColorSelector.setColorValue(new RGB(clr.getRed(), clr.getGreen(),
                 clr.getBlue()));
+        dispComp.addDisposeListener(e -> {
+            layerColorSelector.dispose();
+        });
 
         layerFillBtn = new Button(dispComp, SWT.CHECK);
         layerFillBtn.setText("Filled");

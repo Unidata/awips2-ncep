@@ -174,13 +174,15 @@
          id="gov.noaa.nws.ncep.common.dataplugin.airep"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
          
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.pirep"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
 
    <plugin
          id="com.raytheon.uf.common.remote.script"

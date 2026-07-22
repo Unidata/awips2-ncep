@@ -21,7 +21,8 @@
          id="com.raytheon.uf.viz.aviation.advisory"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
 
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.airmet"

@@ -34,7 +34,8 @@
          id="gov.noaa.nws.ncep.viz.localization"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
 
    <plugin
          id="gov.noaa.nws.ncep.common"
@@ -68,7 +69,8 @@
          id="gov.noaa.nws.ncep.common.log4j.config"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
 
    <plugin
          id="gov.noaa.nws.ncep.viz.ui.display"
